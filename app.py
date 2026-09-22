@@ -474,15 +474,25 @@ def changelog_entries():
     except OSError:
         return []
     entries, current = [], None
+    via_pattern = re.compile(r"^!\[via ([A-Za-z0-9 ]+)\]")
     for line in lines:
         if line.startswith("## "):
             if current:
                 entries.append(current)
             heading = line[3:].strip()
             timestamp, separator, version = heading.partition(" · ")
-            current = {"timestamp": timestamp if separator else "Wcześniejsza wersja", "version": version if separator else heading, "changes": []}
+            current = {"timestamp": timestamp if separator else "Wcześniejsza wersja", "version": version if separator else heading, "changes": [], "via": None}
         elif current and line.startswith("- "):
             current["changes"].append(line[2:].strip())
+        elif current:
+            # Attribution badge line at the bottom of an entry, e.g.
+            # "![via Claude](https://img.shields.io/badge/via-Claude-D97757)"
+            # -- shows as an actual badge on GitHub, and as a small local
+            # chip here (no outbound request from the panel itself, see
+            # CSS .changelog-via/.via-claude/.via-codex).
+            match = via_pattern.match(line.strip())
+            if match:
+                current["via"] = match.group(1).strip()
     if current:
         entries.append(current)
     return entries

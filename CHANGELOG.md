@@ -1,6 +1,6 @@
-> Wpisy oznaczone `(via Claude)` / `(via Codex)` pokazują, które narzędzie AI wykonało daną zmianę — operator pracuje z oboma. Dopisuj to oznaczenie w nagłówku każdego nowego wpisu.
+> Odznaka `via` na dole każdego wpisu pokazuje, które narzędzie AI wykonało daną zmianę — operator pracuje z Claude i Codex. Dopisuj ją na końcu każdego nowego wpisu, np. `![via Claude](https://img.shields.io/badge/via-Claude-D97757)` albo `![via Codex](https://img.shields.io/badge/via-Codex-10A37F)`.
 
-## 2026-09-22 18:15 CEST · 1.60.0 · Sklep offline, nazwy botów, logi panelu, poprawki dashboardu (via Claude)
+## 2026-09-22 18:15 CEST · 1.60.0 · Sklep offline, nazwy botów, logi panelu, poprawki dashboardu
 
 **Nowe funkcje:**
 
@@ -15,6 +15,8 @@
 - **Wyświetlanie rat serwerowych (EXP/Drop/Yang) z aktywnym bonusem eventu** — bonus (`+50% · czas`) był osobnym elementem flex w wierszu z `justify-content:space-between`, co rozpychało go na sam koniec wiersza z ogromną przerwą po wartości procentowej. Wartość i bonus są teraz zgrupowane razem przy prawej krawędzi wiersza; kolorem wyróżnia się tylko sam bonus, nie cała wartość.
 - **Widget "Boty CH1/CH2 na mapach" na dashboardzie** — pełne nazwy map/kody `M<n>` pod słupkami były nieczytelne w wąskim kafelku (zwłaszcza dla lochów/stref specjalnych bez `M<n>` w nazwie, gdzie pokazywała się cała, długa nazwa). Zastąpione małą ikonką charakterystycznego dropu z danej mapy (ta sama ikonka dla M1/M2/M3 każdego królestwa, bo tiery dropią to samo) + flagą królestwa obok — obie wycentrowane jedna pod drugą. Mapy bez dobrze dobranej ikony (M3) dostają zamiast tego krótki kod tekstowy + flagę, w tym samym układzie.
 - **Podsumowanie dnia**: dodana kategoria "Najwyższe średnie obrażenia w broni" (nazwa, ikona, średnie obrażenia, właściciel) korzystająca z tego samego rankingu co `/rankings`.
+
+![via Claude](https://img.shields.io/badge/via-Claude-D97757)
 
 ## 2026-09-19 03:05 CEST · 1.59.5 · Poprawka poszerzania panelu bocznego
 

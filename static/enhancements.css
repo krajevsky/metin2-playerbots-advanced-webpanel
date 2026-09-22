@@ -98,3 +98,10 @@ button.danger{background:#7a2331!important}
 .pagination a{padding:6px 11px;border:1px solid var(--edge);border-radius:6px;color:var(--text);text-decoration:none;font-size:13px}
 .pagination a.active{background:var(--blue2);border-color:var(--blue2);color:#fff}
 @media(max-width:760px){.bot-name-add-form{grid-template-columns:1fr}.bot-name-filters{flex-direction:column}.bot-name-filters input,.bot-name-filters select{width:100%}}
+/* Changelog: mały "via Claude/Codex" chip na dole każdego wpisu, kolorem */
+.changelog-via{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;color:var(--muted);background:color-mix(in srgb,var(--edge) 40%,transparent);width:fit-content}
+.changelog-via-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.changelog-via.via-claude .changelog-via-dot{background:#D97757;box-shadow:0 0 6px #D97757}
+.changelog-via.via-claude{color:#D97757}
+.changelog-via.via-codex .changelog-via-dot{background:#10A37F;box-shadow:0 0 6px #10A37F}
+.changelog-via.via-codex{color:#10A37F}
