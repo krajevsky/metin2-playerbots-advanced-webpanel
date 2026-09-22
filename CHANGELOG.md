@@ -1,5 +1,18 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, które narzędzie AI wykonało daną zmianę — operator pracuje z Claude i Codex. Dopisuj ją na końcu każdego nowego wpisu, np. `![via Claude](https://img.shields.io/badge/via-Claude-D97757)` albo `![via Codex](https://img.shields.io/badge/via-Codex-10A37F)`.
 
+## 2026-09-22 19:27 CEST · 1.61.0 · Panel działa na żywo — koniec przeładowań strony
+
+**Nowa funkcja:**
+
+- **Żaden przycisk w panelu już nie przeładowuje całej strony.** Wszystkie formularze (Zarządzanie, Konta i GM, Nazwy postaci botów, Kreator postaci, Gospodarka, Eventy, Gildie, nadania przedmiotów, Baza przedmiotów, profil gracza/bota, lista graczy) wysyłają się teraz w tle — treść strony aktualizuje się na żywo w miejscu, dokładnie tak samo jak po przeładowaniu, tylko bez samego przeładowania. Wyjątek celowy: logowanie i pierwszy kreator uruchomienia, gdzie prawdziwe przekierowanie jest właściwe.
+- **Nowy system powiadomień o wykonanej akcji**: zamiast blokującego okienka z przyciskiem "OK", komunikat wjeżdża animacją od góry ekranu i **zostaje, dopóki nie klikniesz X** — nie znika sam. Osobny mechanizm od dzwoneczka powiadomień (ten obsługuje zdarzenia serwera, nie akcje w panelu).
+- Usuwanie postaci (i inne akcje przenoszące gdzie indziej niż bieżąca strona) poprawnie robi prawdziwe przekierowanie zamiast podmiany w miejscu — pasek adresu nigdy nie pokazuje niezgodnej treści.
+- Formularze wyszukiwania/filtrowania aktualizują adres URL na bieżąco (można kopiować link z aktywnym filtrem, cofać się przyciskiem Wstecz).
+
+**Poprawka przy okazji:** na stronie Eventy fragment skryptu (włącz/wyłącz pole bonusu przy wyborze "szkatułka") od dawna przypadkiem siedział w tytule strony zamiast w treści i nigdy się nie wykonywał — przeniesiony, teraz działa.
+
+![via Claude](https://img.shields.io/badge/via-Claude-D97757)
+
 ## 2026-09-22 18:15 CEST · 1.60.0 · Sklep offline, nazwy botów, logi panelu, poprawki dashboardu
 
 **Nowe funkcje:**
