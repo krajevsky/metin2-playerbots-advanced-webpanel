@@ -64,6 +64,7 @@
 .skill-slot:hover{z-index:5}
 .skill-slot:hover .item-tip{display:block}
 .skill-passive{grid-template-columns:1fr auto!important}
+.skill-slot--passive{border-color:color-mix(in srgb,var(--blue2) 62%,var(--edge));background:color-mix(in srgb,var(--panel) 78%,var(--blue2) 22%)}
 @media(max-width:1050px){.inventory-panel{max-width:337px}}
 @media(max-width:650px){.inventory-panel{padding:12px}.metin-inventory{margin:auto}.item-tip{width:170px;font-size:11px}}
 .bot-profile-head,.bot-profile-head *{font-family:Tahoma,Arial,sans-serif}.profile-tags span,.stat-cells div,.bot-live-details dd,.inventory-yang,.inv-slot>b,.safebox-slot>b,.skill-slot>b{color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}.skill-icon{width:30px;height:30px;display:grid;place-items:center;border:1px solid #b99854;border-radius:4px;background:linear-gradient(135deg,#355d94,#111a35);color:#ffe6a3;font:700 10px Tahoma,Arial;text-shadow:1px 1px #000;box-shadow:inset 0 0 0 1px #07101e}.skill:nth-child(3n) .skill-icon{background:linear-gradient(135deg,#913f3f,#251119)}.skill:nth-child(3n+2) .skill-icon{background:linear-gradient(135deg,#4d7f46,#132415)}

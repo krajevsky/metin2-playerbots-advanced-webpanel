@@ -547,6 +547,18 @@ def skill_rank(master_type, level):
     return str(level)
 
 
+def skill_icon_suffix(master_type, level):
+    """Select the client icon stage for normal, M, G and Perfect skills."""
+    master_type, level = int(master_type or 0), int(level or 0)
+    if master_type >= 3 or level >= 40:
+        return "_p"
+    if master_type == 2 or level >= 30:
+        return "_g"
+    if master_type == 1 or level >= 20:
+        return "_m"
+    return ""
+
+
 def experience_progress(level, exp):
     level, exp = int(level or 0), max(0, int(exp or 0))
     required = int(EXP_LEVELS[min(max(level, 0), len(EXP_LEVELS) - 1)] or 0)
@@ -657,19 +669,15 @@ def parse_skills(raw, job, group):
         master, level = (raw[offset] if offset < len(raw) else 0), (raw[offset + 1] if offset + 1 < len(raw) else 0)
         rank = skill_rank(master, level)
         if level:
-            # Tieru's icon pack has the master artwork in *_m.png.  It is used
-            # for every mastered stage (M, G and P); there are no *_p.png files.
-            result.append({"vnum": vnum, "name": name, "level": level, "master_type": master, "rank": rank, "icon_suffix": "_m" if master >= 1 or level >= 20 else ""})
+            result.append({"vnum": vnum, "name": name, "level": level, "master_type": master, "rank": rank,
+                           "icon_suffix": skill_icon_suffix(master, level)})
     return result
 
 
-# Passives with no client icon pack (confirmed against Tieru's own
-# static/skill_icons/ -- none of these vnums are in it): horse riding/summon
-# and the four ability-book skills (Dowodzenie..Polimorfia). Their "level"
-# byte is a plain number here (30 lvl konia, 100% przywolania), not the
-# M/G/P combat-skill grading skill_rank() computes for SKILLS above.
+# The client stores support skills alongside class skills. Tieru's panel does
+# not ship their artwork, which made this section fall back to text only.
 PASSIVE_SKILLS = {
-    121: "Dowodzenie", 122: "Combo", 124: "Górnictwo", 125: "Kowalstwo",
+    121: "Dowodzenie", 122: "Combo", 123: "Wędkarstwo", 124: "Górnictwo", 125: "Kowalstwo",
     126: "Język Shinsoo", 127: "Język Chunjo", 128: "Język Jinno", 129: "Polimorfia",
     130: "Poziom konia", 131: "Przywołanie konia",
 }
@@ -682,9 +690,10 @@ def parse_passive_skills(raw):
     result = []
     for vnum, name in PASSIVE_SKILLS.items():
         offset = vnum * 6
-        level = raw[offset + 1] if offset + 1 < len(raw) else 0
+        master, level = (raw[offset] if offset < len(raw) else 0), (raw[offset + 1] if offset + 1 < len(raw) else 0)
         if level:
-            result.append({"vnum": vnum, "name": name, "level": level})
+            result.append({"vnum": vnum, "name": name, "level": level, "master_type": master,
+                           "rank": skill_rank(master, level), "icon_suffix": skill_icon_suffix(master, level)})
     return result
 
 
