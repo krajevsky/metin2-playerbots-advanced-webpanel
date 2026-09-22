@@ -113,6 +113,9 @@
 /* v1.40: player-specific assets load after enhancements, so keep their theme overrides here. */
 .storage-tabs button{background:color-mix(in srgb,var(--blue2) 38%,var(--panel))!important;border:1px solid var(--edge)!important;color:var(--text)!important}.storage-tabs button.active{background:var(--blue2)!important;color:#fff!important}.bot-live-details div,.skill{border-color:var(--edge)!important}
 .safebox-tabs button{background:color-mix(in srgb,var(--blue2) 38%,var(--panel))!important;border:1px solid var(--edge)!important;color:var(--text)!important}.safebox-tabs button.active{background:var(--blue2)!important;color:#fff!important}.safebox-inventory{background:var(--panel)!important;border-color:var(--edge)!important}
+/* Profile sections predate the theme variables and retained their original
+   blue backdrop on Ember, Forest and Empire. */
+.profile-sections section{background:var(--panel)!important;border-color:var(--edge)!important}.skill-slot{border-color:var(--edge)!important;background:color-mix(in srgb,var(--panel) 74%,var(--blue2) 26%)!important}.skill-slot--passive{background:color-mix(in srgb,var(--panel) 66%,var(--blue2) 34%)!important}
 /* v1.41: teleport-me button + offline-shop link, and gear-history event coloring. */
 .profile-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
 .log-lines .gear-refine-ok b,.log-lines .gear-bought b{color:#79e3af}

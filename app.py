@@ -692,8 +692,13 @@ def parse_passive_skills(raw):
         offset = vnum * 6
         master, level = (raw[offset] if offset < len(raw) else 0), (raw[offset + 1] if offset + 1 < len(raw) else 0)
         if level:
+            # Horse riding and calling a horse use their own 1–30 numeric
+            # progression in the client. They are not M/G/P skills even when
+            # their value crosses 20, 30 or 40.
+            horse_skill = vnum in (130, 131)
             result.append({"vnum": vnum, "name": name, "level": level, "master_type": master,
-                           "rank": skill_rank(master, level), "icon_suffix": skill_icon_suffix(master, level)})
+                           "rank": str(level) if horse_skill else skill_rank(master, level),
+                           "icon_suffix": "" if horse_skill else skill_icon_suffix(master, level)})
     return result
 
 
