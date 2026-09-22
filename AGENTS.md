@@ -38,10 +38,26 @@ up.
 
 ## Committing and pushing to GitHub
 
-Only push to `origin` (this repo) after a real, meaningful batch of work —
-same threshold as the version-bump rule above. Don't push after every small
-edit. When genuinely unsure, ask the operator rather than pushing or
-withholding by default.
+GitHub `origin/main` is the single source of truth when several agents work
+on the panel. Before **every** change, first synchronise and verify the local
+tree:
+
+```sh
+git fetch origin
+git pull --ff-only origin main
+git status --short --branch
+```
+
+Work only when that status is clean and the branch is aligned with
+`origin/main`. If another agent pushed while work is in progress, stop before
+deploying, pull the new commit, resolve or reapply the local change on top of
+it, and verify the resulting diff.
+
+Every completed change, including a small CSS or text fix, gets its own small,
+focused commit and is pushed to `origin/main` immediately after validation.
+This rule does **not** change the versioning rule above: small commits do not
+bump `VERSION` or add a `CHANGELOG.md` entry. Deploy the exact pushed commit,
+never an uncommitted VPS-only edit.
 
 Never push to `TieruYT/metin2-playerbots` (the upstream engine this panel
 sits next to) — that's not this repo's business at all.
