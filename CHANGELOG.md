@@ -1,4 +1,10 @@
-> Odznaka `via` na dole każdego wpisu pokazuje, które narzędzie AI wykonało daną zmianę — operator pracuje z Claude i Codex. Dopisuj ją na końcu każdego nowego wpisu, np. `![via Claude](https://img.shields.io/badge/via-Claude-D97757)` albo `![via Codex](https://img.shields.io/badge/via-Codex-10A37F)`.
+> Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
+
+## 2026-09-22 21:47 CEST · 1.65.0 · Nowa odznaka "via" w changelogu + dołączenie Tieru
+
+- Operator i Tieru rozwijają teraz jeden wspólny panel zamiast dwóch osobnych — odznaka `via` na dole każdego wpisu dostała nową formę: praca z asystą AI to teraz `via Claude by Seban` / `via Codex by Seban` (imię operatora w panelu ma animowany, przelewający się kolor + migającą gwiazdkę obok), a kod wniesiony wprost przez Tieru (bez asysty AI) dostaje samo `via Tieru`, własnym, bursztynowym kolorem.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
 
 ## 2026-09-22 20:37 CEST · 1.64.0 · Punkty wędek w tooltipie
 

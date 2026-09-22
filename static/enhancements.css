@@ -105,3 +105,15 @@ button.danger{background:#7a2331!important}
 .changelog-via.via-claude{color:#D97757}
 .changelog-via.via-codex .changelog-via-dot{background:#10A37F;box-shadow:0 0 6px #10A37F}
 .changelog-via.via-codex{color:#10A37F}
+/* Tieru's own code merged straight in (not AI-assisted) -- plain "via Tieru",
+   no "by <author>" half, gets its own signature amber dot. */
+.changelog-via.via-tieru .changelog-via-dot{background:#f2c34d;box-shadow:0 0 6px #f2c34d}
+.changelog-via.via-tieru{color:#f2c34d}
+/* "by Seban" (or whoever) half: shifting rainbow gradient text + a twinkling
+   star after the name -- operator's ask, 2026-09-22, referencing an IPS
+   forum profile's animated rank-color effect as the look to match. */
+.via-rainbow{position:relative;font-weight:800;background:linear-gradient(90deg,#ff5f6d,#ffc371,#4ade80,#38bdf8,#a374ff,#ff5f6d);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:via-rainbow-shift 4s linear infinite}
+.via-star{display:inline-block;margin-left:2px;font-style:normal;color:#ffe28a;text-shadow:0 0 6px #ffe28a;animation:via-star-twinkle 1.6s ease-in-out infinite}
+@keyframes via-rainbow-shift{0%{background-position:0% 50%}100%{background-position:400% 50%}}
+@keyframes via-star-twinkle{0%,100%{opacity:.35;transform:scale(.8) rotate(0deg)}50%{opacity:1;transform:scale(1.2) rotate(20deg)}}
+@media(prefers-reduced-motion:reduce){.via-rainbow,.via-star{animation:none}}

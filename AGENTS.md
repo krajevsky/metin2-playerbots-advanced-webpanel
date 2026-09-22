@@ -33,23 +33,37 @@ pasted straight in as release notes.
 ## 2. Tag every CHANGELOG.md entry with which agent made it
 
 End every `CHANGELOG.md` entry with an attribution badge on its own line,
-right after the last bullet point (not in the entry's title/heading):
+right after the last bullet point (not in the entry's title/heading). Work
+done with AI assistance (that's you) is credited jointly with the operator,
+`Seban` — the badge text is `<Agent> by Seban`:
 
 ```
-![via Claude](https://img.shields.io/badge/via-Claude-D97757)
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
 ```
 
 or, if you are Codex:
 
 ```
-![via Codex](https://img.shields.io/badge/via-Codex-10A37F)
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+```
+
+**Exception: Tieru.** As of 2026-09-22 the operator merged Tieru's own
+classic panel work into this same codebase instead of maintaining two
+panels separately (see repo README for the current shape). Any change that
+is actually Tieru's own code being brought in directly — not something
+written with AI assistance — gets credited to him alone, no "by Seban" half:
+
+```
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
 ```
 
 This renders as an actual colored badge on GitHub, and the panel itself
 parses this exact line (see `changelog_entries()` in `app.py`) to render a
-small matching colored chip on `/changelog` — so keep the format (leading
-`![via `, the name, then `](`) exactly as shown, or the panel won't pick it
-up.
+small matching colored chip on `/changelog` — the `by <name>` half additionally
+gets an animated rainbow-gradient + twinkling star (`.via-rainbow`/`.via-star`
+in `static/enhancements.css`) there, though GitHub's own badge obviously can't
+animate. Keep the format (leading `![via `, the name, then `](`) exactly as
+shown, or the panel won't pick it up.
 
 ## Committing and pushing to GitHub
 

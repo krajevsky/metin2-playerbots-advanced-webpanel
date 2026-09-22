@@ -489,18 +489,24 @@ def changelog_entries():
                 entries.append(current)
             heading = line[3:].strip()
             timestamp, separator, version = heading.partition(" · ")
-            current = {"timestamp": timestamp if separator else "Wcześniejsza wersja", "version": version if separator else heading, "changes": [], "via": None}
+            current = {"timestamp": timestamp if separator else "Wcześniejsza wersja", "version": version if separator else heading, "changes": [], "via": None, "via_agent": None, "via_author": None}
         elif current and line.startswith("- "):
             current["changes"].append(line[2:].strip())
         elif current:
             # Attribution badge line at the bottom of an entry, e.g.
-            # "![via Claude](https://img.shields.io/badge/via-Claude-D97757)"
+            # "![via Claude by Seban](https://img.shields.io/badge/via-...)"
             # -- shows as an actual badge on GitHub, and as a small local
             # chip here (no outbound request from the panel itself, see
-            # CSS .changelog-via/.via-claude/.via-codex).
+            # CSS .changelog-via/.via-claude/.via-codex/.via-tieru). Split on
+            # " by " so "Seban" gets its own rainbow/star treatment in the
+            # template -- a plain "Tieru" entry (his own code, merged in
+            # directly, not AI-assisted) has no author half at all.
             match = via_pattern.match(line.strip())
             if match:
+                via_agent, _, via_author = match.group(1).strip().partition(" by ")
                 current["via"] = match.group(1).strip()
+                current["via_agent"] = via_agent.strip()
+                current["via_author"] = via_author.strip() or None
     if current:
         entries.append(current)
     return entries
