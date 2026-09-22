@@ -1,0 +1,22 @@
+{% extends 'base.html' %}{% block title %}Podsumowanie dnia {{ s.day_number }} · {{ panel_brand }}{% endblock %}{% block content %}
+<a class="back" href="{{ url_for('dashboard') }}">← Dashboard</a>
+<p class="eyebrow">DZIEŃ {{ s.day_number }} · {{ s.summary_date.strftime('%d.%m.%Y') }}</p><h1>📅 Podsumowanie dnia</h1><p class="muted">Start i koniec dnia (00:00–24:00), z migawek zbieranych co 5 minut. Ulepszenia +9 i zniszczone Metiny to liczba zdarzeń w tym dniu, nie stan na koniec.</p>
+<section class="cards">
+<article><span>Boty w grze</span><strong>{{ s.bots_start if s.bots_start is not none else '—' }} → {{ s.bots_end if s.bots_end is not none else '—' }}</strong></article>
+<article><span>Yang w obiegu</span><strong>{{ '{:,}'.format(s.yang_start).replace(',', ' ') if s.yang_start is not none else '—' }} → {{ '{:,}'.format(s.yang_end).replace(',', ' ') if s.yang_end is not none else '—' }}</strong></article>
+<article><span>Przedmiotów ulepszonych na +9</span><strong>{{ s.refine9_count }}</strong></article>
+<article><span>Zniszczonych kamieni Metin</span><strong>{{ s.metin_count }}</strong></article>
+<article><span>Smoczych Monet w obiegu</span><strong>{{ '{:,}'.format(s.cash_start).replace(',', ' ') if s.cash_start is not none else '—' }} → {{ '{:,}'.format(s.cash_end).replace(',', ' ') if s.cash_end is not none else '—' }}</strong></article>
+<article><span>Zorganizowane eventy</span><strong>{{ s.events_count }}</strong></article>
+<article><span>Najwyższy poziom</span><strong>Lv {{ s.level_start if s.level_start is not none else '—' }} → Lv {{ s.level_end if s.level_end is not none else '—' }}</strong></article>
+<article><span>Sklepów offline</span><strong>{{ s.shops_start if s.shops_start is not none else '—' }} → {{ s.shops_end if s.shops_end is not none else '—' }}</strong></article>
+</section>
+{% if s.top_weapon_name %}
+<section class="panel"><h2>⚔️ Najwyższe średnie obrażenia w broni</h2>
+<div class="item-cell top-weapon-cell">{% if item_icon(s.top_weapon_vnum) %}<img src="{{item_icon(s.top_weapon_vnum)}}" alt="">{% endif %}
+<div><strong>{{s.top_weapon_name}}</strong><span class="muted"> · średnie obrażenia {{s.top_weapon_avg_damage}}</span><br>
+<span class="muted">Właściciel: </span>{% if s.top_weapon_owner_pid %}<a href="{{url_for('player', pid=s.top_weapon_owner_pid)}}">{{s.top_weapon_owner_name}}</a>{% else %}{{s.top_weapon_owner_name}}{% endif %}</div></div>
+</section>
+{% endif %}
+<p class="muted">Ta strona nie ma linku w nawigacji — dociera się tu z powiadomienia albo bezpośredniego linku.</p>
+{% endblock %}

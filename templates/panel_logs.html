@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Logi panelu · {{panel_brand}}{% endblock %}
+{% block content %}
+<p class="eyebrow">DIAGNOSTYKA</p><h1>Logi panelu</h1>
+<p class="muted">Błędy działania samego webpanelu (nie gry) — z pełnym śladem (traceback), która strona/akcja to wywołała i kiedy. Jeśli coś Ci się zepsuło w panelu, pobierz plik poniżej i załącz go do zgłoszenia — będzie od razu jasne, skąd się wziął błąd, zamiast zgadywać po samym opisie.</p>
+<section class="panel">
+  <div class="live-log-actions">
+    <a class="button secondary" href="{{url_for('panel_logs_download')}}">📥 Pobierz pełny plik logów</a>
+    <span class="muted">Rozmiar aktywnego pliku: {{ '%.1f'|format(log_size / 1024) }} KB {% if not log_tail %}— pusty, jeszcze żaden błąd nie został zapisany{% endif %}</span>
+  </div>
+</section>
+<section class="panel command-reference">
+  <h2 style="margin:0 0 12px">Ostatnie wpisy (do 500 linii)</h2>
+  {% if log_tail %}<pre>{{log_tail}}</pre>{% else %}<p class="muted">Brak zapisanych błędów — panel nie zarejestrował jeszcze żadnego wyjątku od czasu wdrożenia tej funkcji.</p>{% endif %}
+</section>
+{% endblock %}

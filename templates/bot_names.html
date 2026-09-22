@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Nazwy postaci botów · {{panel_brand}}{% endblock %}
+{% block content %}
+<p class="eyebrow">ADMINISTRACJA</p><h1>Nazwy postaci botów</h1>
+<p class="muted">Pula nicków, z której silnik ubiera każdego bota w momencie, gdy jego konto powstaje w bazie — nie wtedy, gdy go "wpuszczamy" (podnosimy limit aktywnych botów). Nick jest przydzielany raz i zostaje na stałe, nawet jeśli lista się zmieni później. Priorytety i blokady poniżej działają więc dopiero na boty, które <b>jeszcze nie mają żadnego nicku</b> — to znaczy dopiero po realnym poszerzeniu puli (pełny wipe/reseed), nie na obecnie żyjące boty.</p>
+<section class="cards compact">
+  <article><span>Nicków w puli</span><strong>{{stats.total or 0}}</strong></article>
+  <article><span>Już przydzielonych</span><strong>{{stats.used_count or 0}}</strong></article>
+  <article><span>Zablokowanych</span><strong>{{stats.blocked_count or 0}}</strong></article>
+  <article><span>Własnych (dodanych ręcznie)</span><strong>{{stats.custom_count or 0}}</strong></article>
+</section>
+<section class="panel">
+  <h2>➕ Dodaj nowe nicki do kolejki</h2>
+  <form method="post" action="{{url_for('bot_names_add')}}" class="bot-name-add-form">
+    <label>Nicki (jeden na linię)<textarea name="names" rows="4" placeholder="NowyNick1&#10;NowyNick2&#10;NowyNick3" required></textarea></label>
+    <label>Królestwo<select name="empire">{% for eid, e in empires.items() %}<option value="{{eid}}">{{e.name}}</option>{% endfor %}</select></label>
+    <label>Priorytet <small>(wyższy = wcześniej w kolejce)</small><input type="number" name="priority" value="0" min="0" max="1000"></label>
+    <button>Dodaj do kolejki</button>
+  </form>
+</section>
+<section class="panel">
+  <h2>⚙ Zastosuj teraz</h2>
+  <p class="muted">{% if pending %}Jest <b>{{pending}}</b> bot(ów) bez żadnego nicku — kliknięcie nada im nazwy według aktualnych priorytetów/blokad poniżej.{% else %}Obecnie 0 botów bez nicku — wszystkie już mają swój na stałe. Przycisk zadziała dopiero po tym, jak przybędzie nowych, jeszcze nienazwanych botów (pełny wipe/reseed z większą pulą).{% endif %}</p>
+  <form method="post" action="{{url_for('bot_names_reconcile')}}"><button class="secondary" {% if not pending %}disabled{% endif %}>Nadaj nicki oczekującym botom ({{pending}})</button></form>
+</section>
+<form method="get" class="bot-name-filters">
+  <input name="q" value="{{search}}" placeholder="🔍 Szukaj nicku">
+  <select name="empire"><option value="0" {% if empire==0 %}selected{% endif %}>Wszystkie królestwa</option>{% for eid, e in empires.items() %}<option value="{{eid}}" {% if empire==eid %}selected{% endif %}>{{e.name}}</option>{% endfor %}</select>
+  <select name="status">
+    <option value="all" {% if status=='all' %}selected{% endif %}>Wszystkie statusy</option>
+    <option value="free" {% if status=='free' %}selected{% endif %}>Wolne (w kolejce)</option>
+    <option value="used" {% if status=='used' %}selected{% endif %}>Już przydzielone</option>
+    <option value="blocked" {% if status=='blocked' %}selected{% endif %}>Zablokowane</option>
+  </select>
+  <button>Filtruj</button>
+</form>
+<section class="panel table-wrap">
+  <table>
+    <thead><tr><th>Nick</th><th>Królestwo</th><th>Źródło</th><th>Priorytet</th><th>Status</th><th>Akcje</th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr class="{% if e.blocked %}bot-name-blocked{% elif e.pid %}bot-name-used{% endif %}">
+        <td><b>{{e.name}}</b>{% if e.pid and e.current_name != e.name %} <small class="muted">(teraz: {{e.current_name}})</small>{% endif %}</td>
+        <td>{% set empire=empire_info(e.empire) %}{% if empire.flag %}<span class="empire-badge"><img src="{{empire_flag(e.empire)}}" alt="{{empire.name}}">{{empire.name}}</span>{% else %}—{% endif %}</td>
+        <td>{{'Własny' if e.source=='custom' else 'Baza silnika'}}</td>
+        <td><form method="post" action="{{url_for('bot_names_priority', name=e.name)}}" class="bot-name-priority-form"><input type="number" name="priority" value="{{e.priority}}" min="0" max="1000"><button class="secondary" title="Zapisz priorytet">✓</button></form></td>
+        <td>{% if e.blocked %}<span class="bot-name-tag blocked">⛔ Zablokowany</span>{% elif e.pid %}<span class="bot-name-tag used">✅ Bot #{{e.pid}}{% if e.level is not none %} (Lv {{e.level}}){% endif %}</span>{% else %}<span class="bot-name-tag free">⏳ W kolejce</span>{% endif %}</td>
+        <td class="bot-name-actions">
+          {% if e.blocked %}
+          <form method="post" action="{{url_for('bot_names_unblock', name=e.name)}}"><button class="secondary">Odblokuj</button></form>
+          {% elif not e.pid %}
+          <form method="post" action="{{url_for('bot_names_block', name=e.name)}}"><button class="secondary">Zablokuj</button></form>
+          {% if e.source=='custom' %}<form method="post" action="{{url_for('bot_names_delete', name=e.name)}}" onsubmit="return confirm('Usunąć ten nick z kolejki?');"><button class="secondary danger">Usuń</button></form>{% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted">Brak nicków pasujących do filtrów.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% if pages > 1 %}
+<nav class="pagination">
+  {% for p in range(1, pages+1) %}<a class="{% if p==page %}active{% endif %}" href="{{url_for('bot_names', q=search, empire=empire, status=status, page=p)}}">{{p}}</a>{% endfor %}
+</nav>
+{% endif %}
+{% endblock %}

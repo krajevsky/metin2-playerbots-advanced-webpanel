@@ -1,0 +1,3 @@
+{% macro tooltip(item, price=none) -%}
+<div class="item-tip"><b>{{item.item_name}}</b><span class="tip-vnum">VNUM {{item.vnum}}</span>{% if item.count > 1 %}<span>Ilość: {{item.count}}</span>{% endif %}{% for stat in item.base_stats %}<span class="tip-base">{{stat}}</span>{% endfor %}{% for bonus in item.bonuses %}<span class="tip-bonus {% if '-' in bonus %}negative{% endif %}">{{bonus}}</span>{% endfor %}{% for stone in item.stones %}<span class="tip-stone">{{stone.name}}</span>{% for bonus in stone.bonuses %}<span class="tip-bonus {% if '-' in bonus %}negative{% endif %}">{{bonus}}</span>{% endfor %}{% endfor %}{% if price is not none %}<span class="tip-price">Cena: {{'{:,}'.format(price).replace(',', ' ')}} Yang</span>{% endif %}</div>
+{%- endmacro %}

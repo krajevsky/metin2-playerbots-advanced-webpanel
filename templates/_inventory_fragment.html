@@ -1,0 +1,19 @@
+{% from '_macros.html' import tooltip %}
+<div id="inventory-storage">
+  <div class="metin-inventory" aria-label="Ekwipunek postaci">
+    <div class="equipment-layer">{% for slot in ['weapon','body','head','foots','wrist','neck','ear','shield','unique1','unique2','arrow','belt'] %}{% set item=equipment.get(slot) %}<div class="equip-slot {{slot}}{% if slot in ('weapon','unique1') %} tip-left{% elif slot in ('neck','ear','arrow') %} tip-right{% endif %}">{% if item %}{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{{ tooltip(item) }}{% endif %}</div>{% endfor %}</div>
+    <div class="inv-tabs">{% for label, page in [('Strona I',0),('Strona II',1),('Strona III',2),('Strona IV',3)] %}<button {% if page == 0 %}class="active" {% endif %}data-page="{{page}}"><span class="tab-shine"></span><span class="tab-ripple"></span><span class="tab-label">{{label}}</span></button>{% endfor %}</div>
+    <div class="inventory-layer">{% for item in inventory %}{% set page=(item.pos // 45) %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="inv-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" data-page="{{page}}" {% if page != 0 %}hidden{% endif %} style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div>
+    <div class="inventory-yang"><span>{{'{:,}'.format(gold or 0).replace(',', ' ')}} Yang</span></div>
+  </div>
+  <p id="inventory-empty" class="muted" hidden>Ta strona ekwipunku jest pusta.</p>
+</div>
+<div id="safebox-storage" hidden>
+  <div class="safebox-tabs"><button class="active" data-page="0">Strona I</button><button data-page="1">Strona II</button><button data-page="2">Strona III</button></div>
+  <div class="safebox-inventory"><div class="safebox-layer">{% for item in safebox %}{% set page=item.pos // 45 %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="safebox-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" data-page="{{page}}" {% if page != 0 %}hidden{% endif %} style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div></div>
+  <p id="safebox-empty" class="muted" hidden>Ta strona magazynu jest pusta.</p>
+</div>
+{% if has_horse_bag %}<div id="horse-storage" hidden>
+  <p class="muted horse-bag-hint">Juki konne — widoczne tylko przy przywołanym i odblokowanym u stajennego koniu.</p>
+  <div class="safebox-inventory"><div class="safebox-layer">{% for item in horse_bag %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="safebox-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div></div>
+</div>{% endif %}

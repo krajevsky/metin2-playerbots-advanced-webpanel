@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Kreator postaci · {{panel_brand}}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='character-creator-page.css') }}">
+<script defer src="{{ url_for('static', filename='character-creator-page.js') }}"></script>
+<p class="eyebrow">ADMINISTRACJA</p><h1>Kreator postaci</h1>
+<form method="post" action="{{ url_for('character_creator') }}" id="cc-page-form">
+<input type="hidden" name="gm_job" id="cc-gm-job" value="0">
+<input type="hidden" name="gm_gender" id="cc-gm-gender" value="male">
+<input type="hidden" name="empire" id="cc-empire" value="1">
+<div class="cc-layout">
+  <aside class="panel cc-sidebar">
+    <div>
+      <h3>Królestwo</h3>
+      <div class="cc-empire-flags">
+        {% for eid, empire in [(1,'Shinsoo'),(2,'Chunjo'),(3,'Jinno')] %}
+        <button type="button" class="empire-flag-btn{% if eid==1 %} active{% endif %}" data-empire="{{eid}}">
+          <img src="{{ empire_flag(eid) }}" alt="{{empire}}"><span>{{empire}}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      <h3>Płeć</h3>
+      <div class="cc-gender-toggle">
+        <button type="button" class="gender-btn active" data-gender="male">Mężczyzna</button>
+        <button type="button" class="gender-btn" data-gender="female">Kobieta</button>
+      </div>
+    </div>
+    <div class="cc-nick">
+      <h3>Nazwa</h3>
+      <input required name="gm_name" id="cc-nick-input" maxlength="24" pattern="[A-Za-z0-9\[\]]{2,24}" title="Litery, cyfry i nawiasy [ ], 2-24 znaki">
+      <small id="cc-nick-status" class="muted"></small>
+    </div>
+    <div id="cc-step1-actions">
+      <button type="button" id="cc-next-btn">Dalej</button>
+    </div>
+
+    <div id="cc-step2" hidden>
+      <hr>
+      <h3>Rodzaj konta</h3>
+      <select name="authority" id="cc-authority">
+        <option value="PLAYER" selected>PLAYER</option>
+        <option value="LOW_WIZARD">LOW_WIZARD</option>
+        <option value="GOD">GOD</option>
+        <option value="HIGH_WIZARD">HIGH_WIZARD</option>
+        <option value="IMPLEMENTOR">IMPLEMENTOR</option>
+      </select>
+
+      <h3 style="margin-top:16px">Konto</h3>
+      <div class="cc-account-mode">
+        <button type="button" class="mode-btn active" data-mode="existing">Istniejące konto</button>
+        <button type="button" class="mode-btn" data-mode="new">Nowe konto</button>
+      </div>
+
+      <div id="cc-existing-account">
+        <input type="text" id="cc-account-search" placeholder="🔍 Szukaj loginu…">
+        <select name="existing_account_id" id="cc-account-select" size="6"></select>
+        <div id="cc-empire-warning" class="flash error" hidden></div>
+      </div>
+
+      <div id="cc-new-account" hidden>
+        <label>Login<input name="login" id="cc-new-login" maxlength="30" pattern="[A-Za-z0-9_]+"></label>
+        <label>Hasło<input name="password" id="cc-new-password" type="password" minlength="6"></label>
+        <label>E-mail <small>(opcjonalnie)</small><input name="email" id="cc-new-email" type="email"></label>
+        <label>Kod usunięcia postaci<input name="deletion_code" id="cc-new-deletion" type="password" inputmode="numeric" minlength="7" maxlength="7" pattern="[0-9]{7}" placeholder="Dokładnie 7 cyfr"></label>
+      </div>
+      <input type="hidden" name="account_mode" id="cc-account-mode" value="existing">
+
+      <div class="cc-confirm-row" style="margin-top:16px">
+        <button type="button" id="cc-back-btn" class="secondary">Wstecz</button>
+        <button type="submit" id="cc-submit-btn">Stwórz postać</button>
+      </div>
+    </div>
+  </aside>
+
+  <section class="cc-scene fullscreen" id="cc-scene" data-base="{{ url_for('static', filename='char-creator/') }}" data-preselect-account="{{ preselect_account_id or '' }}" style="background-image:linear-gradient(to bottom, rgba(0,0,0,.15), var(--bg) 92%), url('{{ url_for('static', filename='character-creator-bg.jpg') }}')">
+    <div class="cc-orbit"></div>
+    <div class="cc-class-row">
+      <button type="button" class="cc-arrow left" aria-label="Poprzednia klasa"><img src="{{ url_for('static', filename='arrow-left.png') }}" alt=""></button>
+      <div class="cc-class-name" id="cc-class-name">Wojownik</div>
+      <button type="button" class="cc-arrow right" aria-label="Następna klasa"><img src="{{ url_for('static', filename='arrow-right.png') }}" alt=""></button>
+    </div>
+  </section>
+</div>
+</form>
+{% endblock %}

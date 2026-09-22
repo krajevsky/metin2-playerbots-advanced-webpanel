@@ -1,0 +1,44 @@
+seban-panel.env
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.tgz
+*.tar
+*.tar.gz
+*.zip
+
+# Ad-hoc backups made while editing directly on the VPS (app.py.bak-*,
+# .before-*, .orig, CHANGELOG.md.before-*, static/bak-*, static/icons.bak-*)
+# -- git history is the real backup now, these are just clutter.
+*.bak
+*.bak-*
+*.before-*
+*.orig
+**/bak-*/
+**/*.bak-*/
+
+# One-off build/release snapshots and old duplicate copies of the VPS-level
+# updater (the canonical copy lives outside this repo, on the host, since it
+# also touches files this repo has no business knowing about).
+/release/
+/backups/
+/updater/
+/integration/
+/static/downloads/
+
+# Loose one-off scripts from past debugging sessions, superseded by proper
+# code in app.py/collector.py -- kept on the VPS's own disk, not published.
+/deploy_*.sh
+/patch_*.py
+/rebuild_item_icons_from_item_list.sh
+/m2-updater-guarded
+
+# Stale updater docs from an earlier path layout (/opt/metin2-playerbots/...,
+# /opt/metin2/stack) that predates this VPS's actual one (/opt/metin2-mt2009/
+# 2/... + /opt/metin2-mt2009/seban-overrides/ as a systemd service) --
+# publishing them would mislead anyone trying to follow along. README.md is
+# the accurate, current description.
+/AKTUALIZATOR_PROSTO.md
+/UPDATER_VPS.md
+/UPDATE_GUARD.md

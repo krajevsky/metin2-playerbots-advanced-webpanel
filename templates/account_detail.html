@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Konto {{account.login}} · {{panel_brand}}{% endblock %}
+{% block content %}
+<a class="back" href="{{url_for('accounts')}}">← Powrót do kont</a>
+<p class="eyebrow">PODGLĄD KONTA</p>
+<h1>{{account.login}} <span class="muted">· #{{account.id}}</span></h1>
+<div class="profile-tags">
+  {% set empire=empire_info(account.empire) %}
+  {% if empire.flag %}<span class="empire-badge empire-badge--profile"><img src="{{empire_flag(account.empire)}}" alt="{{empire.name}}">{{empire.name}}</span>{% else %}<span class="muted">Brak przypisanego królestwa</span>{% endif %}
+  <span>{{'🛡 GM (' + account.authority + ')' if account.authority != 'PLAYER' else '👤 Gracz'}}</span>
+  <span>💎 {{'{:,}'.format(account.cash).replace(',', ' ')}} Smoczych Monet</span>
+  <span>✉ {{account.email or '—'}}</span>
+  <span>🗓 Utworzono: {{account.create_time.strftime('%d.%m.%Y %H:%M') if account.create_time else '—'}}</span>
+  <span>🕐 Ostatnia gra: {{account.last_play.strftime('%d.%m.%Y %H:%M') if account.last_play else '—'}}</span>
+  {% for p in account.premiums %}<span>⭐ {{p.label}} do {{p.expires.strftime('%d.%m.%Y')}}</span>{% else %}<span class="muted">⭐ Brak aktywnego VIP</span>{% endfor %}
+</div>
+
+<section class="panel table-wrap">
+  <h2>Postacie ({{characters|length}}/4)</h2>
+  <a class="button" href="{{url_for('character_creator', account_id=account.id)}}">➕ Stwórz nową postać</a>
+  <table>
+    <thead><tr><th></th><th>Nick</th><th>Poziom</th><th>Czas gry</th><th>Ostatnie logowanie</th><th>Yang</th></tr></thead>
+    <tbody>
+      {% for c in characters %}
+      <tr>
+        <td><span class="class-cell"><img class="class-portrait class-portrait--tiny" src="{{class_portrait(c.job)}}" alt="{{c.class_profile.name}}" title="{{c.class_profile.name}}"></span></td>
+        <td><a href="{{url_for('player', pid=c.id)}}">{{c.name}}</a> <span class="muted">· {{c.class_profile.name}}</span></td>
+        <td>{{c.level}}</td>
+        <td>{{c.playtime_hours}} h {{c.playtime_minutes}} min</td>
+        <td>{{c.last_play.strftime('%d.%m.%Y %H:%M') if c.last_play else '—'}}</td>
+        <td>{{'{:,}'.format(c.gold or 0).replace(',', ' ')}}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted">Brak postaci na tym koncie.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

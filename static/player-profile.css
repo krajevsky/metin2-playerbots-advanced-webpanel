@@ -1,0 +1,121 @@
+.storage-tabs{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0 9px}
+.storage-tabs button{padding:5px 8px;background:#203d63;font-size:12px}
+.storage-tabs button.active{background:#1f6fe5}
+.storage-tabs button:disabled{opacity:.4;cursor:not-allowed}
+.metin-inventory{position:relative;width:min(337px,100%);aspect-ratio:337/1140;background:#100e0b url('/static/inventory-background.svg') center/100% 100% no-repeat;isolation:isolate}
+.equipment-layer,.inventory-layer{position:absolute;inset:0;pointer-events:none}
+.equip-slot,.inv-slot{pointer-events:auto}
+.equipment-layer:has(.equip-slot:hover),.inventory-layer:has(.inv-slot:hover){z-index:4}
+.equip-slot:hover,.inv-slot:hover,.safebox-slot:hover{z-index:5}
+.equip-slot,.inv-slot,.safebox-slot{position:absolute;display:grid;place-items:center;min-width:0;border:0;background:transparent;box-sizing:border-box}
+.equip-slot{width:18.99%;height:5.96%}
+/* Coordinates are proportional to the original inventory background. */
+.equip-slot.weapon{left:6.23%;top:6.05%;width:18.99%;height:17.89%}
+.equip-slot.body{left:28.19%;top:11.93%;width:20.48%;height:12.02%}
+.equip-slot.head{left:28.19%;top:6.05%;width:20.18%;height:5.61%}
+.equip-slot.foots{left:28.19%;top:31.23%;width:20.77%;height:6.58%}
+.equip-slot.wrist{left:50.15%;top:17.63%;width:21.66%;height:6.32%}
+.equip-slot.neck{left:75.07%;top:17.63%;width:21.07%;height:6.32%}
+.equip-slot.ear{left:75.07%;top:11.93%;width:19.88%;height:5.53%}
+.equip-slot.unique1{left:5.93%;top:31.23%;width:21.66%;height:6.58%}
+.equip-slot.unique2{left:50.15%;top:31.23%;width:21.66%;height:6.58%}
+.equip-slot.arrow{left:75.07%;top:6.05%;width:19.88%;height:5.61%}
+.equip-slot.shield{left:50.15%;top:11.93%;width:21.66%;height:5.53%}
+.equip-slot.belt{left:28.19%;top:24.74%;width:20.48%;height:5.96%}
+.equip-slot img,.inv-slot img,.safebox-slot img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated}
+/* v1.57: plain themed buttons instead of the two page-1/page-2 PNGs lifted
+   from the client -- scales cleanly to 4 pages (engine now has that many)
+   without needing two more image exports for III/IV. */
+.inv-tabs{position:absolute;left:1.63%;top:38.95%;display:flex;width:96.74%;height:4.82%;z-index:3;margin:0;padding:0;gap:3px;align-items:stretch}
+.inv-tabs button{flex:1;min-width:0;min-height:0;margin:0;padding:0;border:1px solid var(--edge);border-radius:.4em;background:color-mix(in srgb,var(--blue2) 38%,var(--panel));color:var(--text);font-size:10px;font-weight:600;letter-spacing:.02em;cursor:pointer;position:relative;overflow:hidden;transition:transform .15s cubic-bezier(0,0,.2,1)}
+.inv-tabs button.active{background:var(--blue2);color:#fff;border-color:var(--blue2)}
+.inv-tabs button:active{transform:scale(.95)}
+.inv-tabs button .tab-shine{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,0),rgba(0,0,0,.25));pointer-events:none}
+.inv-tabs button .tab-ripple{transition:width .4s cubic-bezier(0,0,.2,1),height .4s cubic-bezier(0,0,.2,1);background:rgba(255,255,255,.2);border-radius:9999px;width:0;height:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+.inv-tabs button:hover .tab-ripple{width:3.2em;height:3.2em}
+.inv-tabs button .tab-label{position:relative}
+.inv-tabs button:focus-visible{outline:1px solid #fff0ba;outline-offset:-3px}
+.inventory-layer{left:4.15%;top:44.47%;right:.89%;bottom:4.04%;z-index:2}
+.inv-slot,.safebox-slot{left:calc(var(--col) * 20%);top:calc(var(--row) * 11.111%);width:20%;height:calc(var(--size) * 11.111%)}
+.inv-slot>b,.safebox-slot>b{position:absolute;right:4%;bottom:1%;font-size:11px;color:#fff;text-shadow:0 1px 2px #000;z-index:2}
+.metin-inventory .inv-slot[hidden]{display:none!important}
+.item-tip{display:none;position:absolute;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(100% + 4px);width:190px;background:#06101d;border:1px solid #5d86ba;border-radius:5px;padding:8px;color:#dcecff;font-size:12px;pointer-events:none}
+.item-tip b,.item-tip span{display:block}.item-tip b{color:#fff0a7;margin-bottom:3px}.item-tip .tip-vnum{color:#91a8c5;font-size:10px;margin-bottom:5px}.item-tip .tip-base{color:#9fd1ff}.item-tip .tip-bonus{color:#73e7ae}
+.equip-slot:hover .item-tip,.inv-slot:hover .item-tip,.safebox-slot:hover .item-tip{display:block}
+.inventory-yang{position:absolute;left:14%;right:7%;bottom:1.50%;height:2.2%;display:flex;justify-content:flex-end;align-items:center;color:#f2df9a;font:bold 12px Georgia,serif;text-shadow:1px 1px #000;z-index:3;pointer-events:none}
+/* Magazyn: sama pozycjonowanie co .inv-slot (--col/--row/--size) tak samo
+   uwzglednia przedmioty na 2+ slotach wysokosci i osobne strony -- bez
+   sylwetki ekwipunku z tla ekwipunku, ktora tu nie ma sensu. */
+.safebox-inventory{position:relative;width:100%;max-width:337px;aspect-ratio:5/9;background:#08111c;border:1px solid #294562}
+.safebox-layer{position:absolute;inset:0}
+.safebox-inventory .safebox-slot[hidden]{display:none!important}
+.safebox-tabs{display:flex;gap:4px;margin:0 0 8px}
+.safebox-tabs button{padding:5px 14px;background:#203d63;border:0;border-radius:4px;color:#dcecff;font-size:12px;cursor:pointer}
+.safebox-tabs button.active{background:#1f6fe5}
+/* v1.57: juki konne (horse saddlebag) -- same slot grid as the safebox, just
+   one page, hidden entirely for characters that never used one. */
+.horse-bag-hint{margin:0 0 8px}
+/* Umiejetnosci: ikona + ranga nalozona jak licznik sztuk w ekwipunku,
+   zamiast osobnego tekstu nazwy/rangi obok -- pelna nazwa i ranga w tooltipie. */
+.skill-icons{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.skill-slot{position:relative;width:44px;height:44px;border:1px solid #294562;background:#0a1421;border-radius:4px;display:grid;place-items:center}
+.skill-slot img{max-width:88%;max-height:88%;object-fit:contain}
+.skill-slot>b{position:absolute;right:2px;bottom:1px;font-size:11px;z-index:2}
+.skill-slot:hover{z-index:5}
+.skill-slot:hover .item-tip{display:block}
+.skill-passive{grid-template-columns:1fr auto!important}
+@media(max-width:1050px){.inventory-panel{max-width:337px}}
+@media(max-width:650px){.inventory-panel{padding:12px}.metin-inventory{margin:auto}.item-tip{width:170px;font-size:11px}}
+.bot-profile-head,.bot-profile-head *{font-family:Tahoma,Arial,sans-serif}.profile-tags span,.stat-cells div,.bot-live-details dd,.inventory-yang,.inv-slot>b,.safebox-slot>b,.skill-slot>b{color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}.skill-icon{width:30px;height:30px;display:grid;place-items:center;border:1px solid #b99854;border-radius:4px;background:linear-gradient(135deg,#355d94,#111a35);color:#ffe6a3;font:700 10px Tahoma,Arial;text-shadow:1px 1px #000;box-shadow:inset 0 0 0 1px #07101e}.skill:nth-child(3n) .skill-icon{background:linear-gradient(135deg,#913f3f,#251119)}.skill:nth-child(3n+2) .skill-icon{background:linear-gradient(135deg,#4d7f46,#132415)}
+.skill{grid-template-columns:34px minmax(0,1fr) auto!important;gap:7px}.skill-icon{width:28px!important;height:28px!important;object-fit:contain;display:block!important}.honor.knightly{color:#00ffff}.honor.noble{color:#000099}.honor.good{color:#0000ff}.honor.friendly{color:#9999ff}.honor.neutral{color:#ffff00}.honor.aggressive,.honor.dishonest{color:#ff6600}.honor.malicious,.honor.cruel{color:#ff0000}
+.item-tip{text-align:center!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}.item-tip span,.item-tip b{text-align:center}.item-tip .negative{color:#d3a9a0!important}.item-tip .tip-stone{color:#f2df9a;margin-top:5px;padding-top:4px;border-top:1px solid #594e3c}.item-tip .tip-stone:first-of-type{margin-top:7px}
+/* Dymek wyśrodkowany na slocie realnie wystawał poza lewą/prawą krawędź
+   okna przeglądarki dla skrajnych slotów/kolumn (ekwipunek: broń/unique1 po
+   lewej, naszyjnik/kolczyk/kołczan po prawej; magazyn/ekwipunek/sklep: kol.
+   0 i kol. skrajna) -- ten sam problem naprawiony najpierw w sklepie offline,
+   teraz też tutaj: skrajne sloty kotwiczą dymek do swojej wewnętrznej
+   krawędzi zamiast do środka. */
+.equip-slot.tip-left .item-tip,.inv-slot.tip-left .item-tip,.safebox-slot.tip-left .item-tip,.shop-slot.tip-left .item-tip{left:0!important;transform:none!important}
+.equip-slot.tip-right .item-tip,.inv-slot.tip-right .item-tip,.safebox-slot.tip-right .item-tip,.shop-slot.tip-right .item-tip{left:auto!important;right:0!important;transform:none!important}
+.item-tip .tip-price{color:#f2df9a;margin-top:5px;padding-top:4px;border-top:1px solid #594e3c;font-weight:700}
+
+/* Sklep offline: siatka 10x8 jak w rzeczywistym oknie kramu w kliencie gry,
+   ta sama mechanika co ekwipunek/magazyn (--col/--row, ikona + tooltip),
+   plus widoczna cena na każdym slocie. Nazwa sklepu rozwija/zwija okno. */
+.shop-name-tip{background-color:rgba(0,0,0,.85);border:1px solid #5c5446;padding:12px 18px;min-width:220px;max-width:300px;font-family:Tahoma,Arial,sans-serif;font-size:12px;line-height:1.5;text-align:center;box-shadow:0 0 10px rgba(0,0,0,.8);border-radius:3px;cursor:pointer;display:inline-block;vertical-align:middle}
+.shop-name-tip-label{display:block;color:#FFFFC7;font-weight:bold;font-size:13px}
+.shop-name-tip-premium{display:block;margin-top:3px;color:#f2c34d;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.shop-window-box{max-width:560px}
+.shop-inventory{position:relative;width:100%;max-width:560px;aspect-ratio:10/8;background:#08111c;border:1px solid #294562;margin-top:10px}
+.shop-layer{position:absolute;inset:0}
+/* Przedmioty 2/3-slotowe zajmują tyle samo pól co w ekwipunku/magazynie --
+   ta sama --size zmienna, tylko licząc wysokość jednego rzędu 10-kolumnowej
+   siatki (12.5%) zamiast 5-kolumnowej (11.111%). */
+.shop-slot{position:absolute;left:calc(var(--col) * 10%);top:calc(var(--row) * 12.5%);width:10%;height:calc(var(--size) * 12.5%);display:grid;place-items:center;border:1px solid #172a3e;box-sizing:border-box}
+.shop-slot img{max-width:80%;max-height:80%;object-fit:contain;image-rendering:pixelated}
+.shop-slot>b{position:absolute;font-size:9px;z-index:2;color:#fff;text-shadow:0 1px 2px #000}
+.shop-slot>b.shop-count{right:2px;top:1px}
+.shop-slot>b.shop-price{left:1px;bottom:0;color:#f2df9a}
+.shop-slot:hover{z-index:5}
+.shop-slot:hover .item-tip{display:block}
+.shop-total{margin:8px 0 0;max-width:560px;text-align:right;font-weight:700;color:#f2df9a}
+@media(max-width:650px){.shop-slot>b{font-size:7px}}
+.shop-inventory{background:var(--panel)!important;border-color:var(--edge)!important}
+.shop-icon{width:22px;height:22px;vertical-align:middle;margin-right:2px;object-fit:contain}
+/* #offline-shop is a .panel, and .panel has overflow-x:auto (style.css) for
+   wide tables on mobile -- that also clips any tooltip that pokes out past
+   its edge, same class of bug as .live-shell's clip-path (see style.css
+   comment above). The shop grid itself never exceeds .panel's width (it has
+   its own max-width), so overflow can just go back to visible here. */
+#offline-shop{overflow:visible}
+
+/* v1.40: player-specific assets load after enhancements, so keep their theme overrides here. */
+.storage-tabs button{background:color-mix(in srgb,var(--blue2) 38%,var(--panel))!important;border:1px solid var(--edge)!important;color:var(--text)!important}.storage-tabs button.active{background:var(--blue2)!important;color:#fff!important}.bot-live-details div,.skill{border-color:var(--edge)!important}
+.safebox-tabs button{background:color-mix(in srgb,var(--blue2) 38%,var(--panel))!important;border:1px solid var(--edge)!important;color:var(--text)!important}.safebox-tabs button.active{background:var(--blue2)!important;color:#fff!important}.safebox-inventory{background:var(--panel)!important;border-color:var(--edge)!important}
+/* v1.41: teleport-me button + offline-shop link, and gear-history event coloring. */
+.profile-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.log-lines .gear-refine-ok b,.log-lines .gear-bought b{color:#79e3af}
+.log-lines .gear-refine-fail b,.log-lines .gear-burned b{color:#ef4444}
+.log-lines .gear-vendor b,.log-lines .gear-stall-sold b{color:#f2c34d}
+.log-lines .gear-equip b,.log-lines .gear-gift-in b,.log-lines .gear-gift-out b,.log-lines .gear-safebox b,.log-lines .gear-bonus b{color:#82b6ff}
+.log-lines span small{color:var(--muted);margin-left:4px}

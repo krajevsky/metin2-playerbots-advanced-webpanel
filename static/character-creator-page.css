@@ -1,0 +1,51 @@
+.cc-layout{display:grid;grid-template-columns:290px 1fr;gap:24px;align-items:stretch;min-height:78vh}
+.cc-sidebar{display:flex;flex-direction:column;gap:22px;position:sticky;top:20px;align-self:start}
+.cc-sidebar h3{margin:0 0 10px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.cc-empire-flags{display:flex;flex-direction:column;gap:8px}
+.empire-flag-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--edge);background:transparent;color:var(--text);cursor:pointer;font:inherit}
+.empire-flag-btn img{width:30px;height:22px;object-fit:cover;border-radius:2px}
+.empire-flag-btn.active{background:var(--blue2);border-color:var(--blue2);color:#fff}
+.cc-gender-toggle{display:flex;gap:.6rem}
+.cc-gender-toggle .gender-btn{flex:1;padding:.5rem 1rem;border-radius:7px;border:1px solid var(--edge);background:transparent;color:var(--text);cursor:pointer;font-size:.9rem}
+.cc-gender-toggle .gender-btn.active{background:var(--blue2);border-color:var(--blue2);color:#fff}
+.cc-nick input{width:100%}
+.cc-confirm-row{display:flex;gap:10px}
+.cc-confirm-row button{flex:1}
+.cc-confirm-row .secondary{margin-top:0}
+#cc-submit-btn{width:100%}
+.cc-scene{position:relative;border-radius:14px;border:1px solid var(--edge);background-size:cover;background-position:center 30%;background-repeat:no-repeat;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;overflow:hidden}
+.cc-scene.fullscreen{min-height:78vh}
+.cc-orbit{position:relative;height:900px;width:100%;max-width:1000px;margin:0 auto}
+.cc-slot{position:absolute;left:50%;bottom:0;width:402px;margin-left:-201px;text-align:center;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .5s ease,filter .5s ease;cursor:pointer}
+.cc-slot img{width:100%;height:840px;object-fit:contain;display:block;pointer-events:none}
+.cc-slot-label{font-size:1rem;color:var(--muted);margin-top:.35rem;font-weight:600;opacity:0;transition:opacity .3s}
+.cc-slot[data-role="front"]{transform:translateX(0) scale(1);opacity:1;filter:none;z-index:4}
+.cc-slot[data-role="front"] .cc-slot-label{opacity:1;color:var(--gold)}
+.cc-slot[data-role="right"]{transform:translateX(420px) scale(.55);opacity:.85;filter:brightness(.85) grayscale(.1);z-index:2}
+.cc-slot[data-role="left"]{transform:translateX(-420px) scale(.55);opacity:.85;filter:brightness(.85) grayscale(.1);z-index:2}
+.cc-slot[data-role="back"]{transform:translateX(0) scale(.32) translateY(-70px);opacity:.25;filter:brightness(.4) grayscale(.5);z-index:1}
+.cc-class-row{display:flex;align-items:center;justify-content:center;gap:34px}
+.cc-arrow{flex:0 0 auto;width:10rem;height:auto;border:0;background:none;padding:6px;cursor:pointer;transition:transform .15s,filter .15s;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.cc-arrow img{width:100%;height:auto;display:block}
+.cc-arrow:hover{transform:scale(1.12);filter:drop-shadow(0 2px 8px var(--gold))}
+.cc-class-name{font-size:2.2rem;font-weight:800;letter-spacing:.5px;color:var(--gold);min-width:180px;text-align:center}
+.cc-scene.locked .cc-arrow{opacity:.35;pointer-events:none}
+@media (max-width:1000px){
+  .cc-layout{grid-template-columns:1fr}
+  .cc-sidebar{position:static}
+  .cc-orbit{height:420px}
+  .cc-slot{width:160px;margin-left:-80px}
+  .cc-slot img{height:340px}
+  .cc-slot[data-role="right"]{transform:translateX(150px) scale(.55)}
+  .cc-slot[data-role="left"]{transform:translateX(-150px) scale(.55)}
+}
+.cc-sidebar hr{border:0;border-top:1px solid var(--edge);margin:16px 0}
+.cc-sidebar select,.cc-sidebar input{width:100%;margin-top:4px}
+.cc-account-mode{display:flex;gap:8px;margin:8px 0}
+.cc-account-mode .mode-btn{flex:1;padding:.45rem .8rem;border-radius:7px;border:1px solid var(--edge);background:transparent;color:var(--text);cursor:pointer;font-size:.85rem}
+.cc-account-mode .mode-btn.active{background:var(--blue2);border-color:var(--blue2);color:#fff}
+#cc-account-select{margin-top:8px}
+#cc-account-select option{padding:6px}
+#cc-empire-warning{margin-top:10px;font-size:.85rem}
+#cc-new-account label{display:grid;gap:4px;margin:10px 0}
+#cc-nick-status{display:block;margin-top:4px;min-height:1.1em}
