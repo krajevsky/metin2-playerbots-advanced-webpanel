@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, które narzędzie AI wykonało daną zmianę — operator pracuje z Claude i Codex. Dopisuj ją na końcu każdego nowego wpisu, np. `![via Claude](https://img.shields.io/badge/via-Claude-D97757)` albo `![via Codex](https://img.shields.io/badge/via-Codex-10A37F)`.
 
+## 2026-09-22 20:37 CEST · 1.64.0 · Punkty wędek w tooltipie
+
+- **Tooltip wędki na `/player/` pokazuje teraz Poziom, Punkty X/Y oraz Bonus puli rybołówstwa** — dokładnie jak w kliencie gry. Odczytane wprost z mechaniki rybołówstwa silnika (`fishing.lua`): punkty i przynęta leżą w gniazdach przedmiotu (to samo miejsce, które chwilę wcześniej było źródłem błędu z fałszywymi "kamieniami" — teraz odczytywane poprawnie), poziom wynika wprost z numeru VNUM wędki, a próg punktów i bonus puli z danych przedmiotu w bazie.
+
+![via Claude](https://img.shields.io/badge/via-Claude-D97757)
+
 ## 2026-09-22 20:01 CEST · 1.63.0 · Nadawanie GM bez restartu, poprawki tooltipów przedmiotów
 
 **Nowa funkcja:**

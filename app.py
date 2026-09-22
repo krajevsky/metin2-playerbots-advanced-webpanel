@@ -654,6 +654,35 @@ def item_base_stats(vnum):
     return stats
 
 
+# ITEM_ROD (13). Ground truth: quest/libs/fishing/fishing.lua --
+# FISHING_ROD_SOCKET_CURRENT_POINTS=0 (current progress lives on the live
+# item's own socket0, not item_proto -- this is also exactly the column the
+# stone-lookup bug above was misreading as a gem vnum), level is not stored
+# anywhere at all but derived straight from the vnum itself
+# (get_rod_level(): (vnum-27400)/10 -- every refine level is its own +10
+# vnum, which is also why it happens to equal the "+N" in the item's own
+# name), and value0/value2/value5 are FISHING_ROD_VALUE_BONUS/_NEEDED_POINTS/
+# _BONUS_FISH_CHANCE from the same file's constant list. value0 reads 20 on
+# a rod whose real client tooltip (reported by [GA]Seban, 2026-09-22) showed
+# "+2" for that same line -- panel_bonus divides by 10 to match.
+def fishing_rod_stats(vnum, current_points):
+    vnum = int(vnum or 0)
+    proto = ITEM_DEFS.get(str(vnum), {})
+    if int(proto.get("type") or 0) != 13:
+        return []
+    stats = [f"Poziom: {max(0, (vnum - 27400) // 10)}"]
+    needed = int(proto.get("value2") or 0)
+    if needed:
+        stats.append(f"Punkty {int(current_points or 0)} / {needed}")
+    pool_bonus = int(proto.get("value0") or 0) // 10
+    if pool_bonus:
+        stats.append(f"Bonus puli rybołówstwa +{pool_bonus}")
+    catch_chance = int(proto.get("value5") or 0)
+    if catch_chance:
+        stats.append(f"Szansa na pomyślne wyłowienie +{catch_chance}%")
+    return stats
+
+
 def empire_info(empire):
     try:
         return EMPIRES.get(int(empire), {"name": "—", "flag": ""})
@@ -2613,7 +2642,7 @@ def _enrich_items(items):
     for item in items:
         item["item_name"] = resolve_item_display_name(item["vnum"], item.get("socket0"), game_text(item["item_name"]))
         item["item_size"] = max(1, min(3, int(item.get("item_size") or 1)))
-        item["base_stats"] = item_base_stats(item["vnum"])
+        item["base_stats"] = item_base_stats(item["vnum"]) + fishing_rod_stats(item["vnum"], item.get("socket0"))
         item["bonuses"] = [apply_text(item.get(f"applytype{i}"), item.get(f"applyvalue{i}")) for i in range(3) if item.get(f"applytype{i}") and item.get(f"applyvalue{i}")]
         item["bonuses"] += [apply_text(item.get(f"attrtype{i}"), item.get(f"attrvalue{i}")) for i in range(7) if item.get(f"attrtype{i}") and item.get(f"attrvalue{i}")]
     # Only weapons (type 1) and armor (type 2) actually use sockets for gems
