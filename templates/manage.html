@@ -30,17 +30,23 @@
 // Opt-in for static/ajax-forms.js: submitting any form on this page updates
 // the page live instead of a full reload (operator's ask, 2026-09-22).
 document.body.dataset.ajaxForms='1';
+// IIFE: an AJAX form submit re-executes this whole block (see runScripts()
+// in ajax-forms.js) -- a plain top-level const/let would collide with the
+// still-alive binding from the *previous* execution the moment a second
+// form gets submitted ("Identifier has already been declared"). Confirmed
+// live 2026-09-22: this crashed the redo silently until wrapped.
+(() => {
 const sourceNames={panel:'Na Twoje zlecenie z panelu',classic_panel:'Na zlecenie z panelu klasycznego / starszej kolejki',deployment:'Podczas wdrożenia aktualizacji',updaterseban:'Aktualizator Seban',external_unknown:'Uruchomienie spoza panelu — źródło nieustalone'};
 function restartDate(value){return Number(value)>0?new Date(Number(value)*1000).toLocaleString('pl-PL',{timeZone:'Europe/Warsaw'}):'brak zarejestrowanych danych'}
 function showRestart(r){document.getElementById('restart-fill').style.width=r.percent+'%';document.querySelector('.restart-progress').setAttribute('aria-valuenow',r.percent);document.getElementById('restart-stage').textContent=r.percent+'% · '+r.stage;document.getElementById('restart-last').textContent=restartDate(r.last_restart_time);document.getElementById('restart-origin').textContent=r.last_restart_time?(sourceNames[r.last_restart_source]||'Źródło nieustalone')+' · czas polski':'';document.getElementById('restart-core').textContent=r.last_core_time?'Ostatnie automatyczne podniesienie rdzenia '+r.last_core_name+': '+restartDate(r.last_core_time):'';document.querySelectorAll('.restart-submit button').forEach(b=>b.disabled=r.state==='running')}
 function showUpdater(u){if(!document.getElementById('updater-fill'))return;document.getElementById('updater-fill').style.width=u.percent+'%';document.getElementById('updater-state').textContent=u.state;document.getElementById('updater-percent').textContent=u.percent+'%';document.getElementById('updater-worker').textContent=u.watcher_ready?'gotowa':'nie uruchomiona';document.getElementById('updater-message').textContent=u.message;document.getElementById('updater-log').textContent=(u.log&&u.log.length?u.log.join('\n'):'Brak wpisów.');const button=document.getElementById('updater-submit');if(button)button.disabled=!u.watcher_ready||u.state==='running'}
 showRestart({{restart|tojson}});showUpdater({{updater|tojson}});
-// AJAX form swaps re-run this whole script block (see runScripts() in
-// ajax-forms.js) so every polling loop from a previous run must recognise
-// it's stale and stop, or they'd stack up one more per submit. Each run
+// Same re-execution concern as above applies to this polling loop: each run
 // claims a fresh generation; a loop only reschedules itself if it's still
-// the current one.
+// the current one, so stale loops from earlier submits die out instead of
+// stacking up one more fetch/2s forever.
 const myManageGen=(window.__manageGen=(window.__manageGen||0)+1);
 async function refreshManage(){if(window.__manageGen!==myManageGen)return;try{const r=await fetch('/api/manage-status',{cache:'no-store'});if(!r.ok)return;const d=await r.json();if(!d.ok)return;showRestart(d.restart);showUpdater(d.updater);document.getElementById('bot-live-count').textContent=d.bots}catch(_){}finally{if(window.__manageGen===myManageGen)setTimeout(refreshManage,2000)}}setTimeout(refreshManage,2000);
+})();
 </script>{% endblock %}
 

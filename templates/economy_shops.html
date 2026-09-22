@@ -10,6 +10,9 @@
 <form class="search" action="{{url_for('economy_shops')}}#market-items"><input name="q" value="{{query}}" placeholder="Nazwa lub VNUM przedmiotu"><button>Szukaj</button></form>
 <section id="market-items" class="panel"><h2>{% if query %}⭐ Wyniki wyszukiwania{% else %}⭐ Najpopularniejsze przedmioty w sklepach{% endif %}</h2>{% set trend_icon={'up':'▲','down':'▼','flat':'–'} %}{% set trend_color={'up':'#39e890','down':'#ef4444','flat':'#8fa5c1'} %}<table><thead><tr><th>Przedmiot</th><th>VNUM</th><th>Oferty</th><th>Sztuk</th><th>Śr. cena/szt.</th><th>Status</th></tr></thead><tbody>{% for i in market_items %}<tr><td class="item-cell">{% if item_icon(i.vnum) %}<img src="{{item_icon(i.vnum)}}" loading="lazy" alt="">{% endif %}<a href="{{url_for('economy_item',vnum=i.vnum)}}">{{i.item_name}}</a></td><td>{{i.vnum}}</td><td>{{i.offers}}</td><td>{{i.total_units}} <span style="color:{{trend_color[i.units_trend]}}" title="Zmiana od ~24h">{{trend_icon[i.units_trend]}}</span></td><td>{{'{:,}'.format(i.avg_price).replace(',', ' ')}} <span style="color:{{trend_color[i.price_trend]}}" title="Zmiana od ~24h">{{trend_icon[i.price_trend]}}</span></td><td>{% if i.on_market %}<span style="color:#39e890">● na rynku</span>{% elif i.last_seen %}<span class="muted">ostatnio {{i.last_seen}}</span>{% else %}<span class="muted">brak danych</span>{% endif %}</td></tr>{% else %}<tr><td colspan="6" class="muted">{% if query %}Brak wyników.{% else %}Brak aktywnych ofert w sklepach.{% endif %}</td></tr>{% endfor %}</tbody></table></section>
 <script>
+document.body.dataset.ajaxForms='1';
+(() => {
+if(window.__shopFeedInterval)clearInterval(window.__shopFeedInterval);
 const EMPIRE_COLORS={1:'#ef4444',2:'#f6c85f',3:'#4ea5ff'};
 const EMPIRE_NAMES={1:'Shinsoo',2:'Chunjo',3:'Jinno'};
 const EMPIRE_FLAGS={1:"{{empire_flag(1)}}",2:"{{empire_flag(2)}}",3:"{{empire_flag(3)}}"};
@@ -53,7 +56,8 @@ function renderSaleFeed(sales){
     return `<tr><td>${esc(s.time)}</td><td class="item-cell">${icon}<a href="/economy/item/${s.vnum}">${esc(s.item_name)}</a></td><td>${seller}</td><td>${flag}</td><td>${s.qty}</td><td>${s.price.toLocaleString('pl-PL')}</td></tr>`;
   }).join('');
 }
-setInterval(()=>{
+window.__shopFeedInterval=setInterval(()=>{
   fetch('{{url_for("api_shop_feed")}}').then(r=>r.json()).then(d=>{if(d.ok)renderSaleFeed(d.sales);}).catch(()=>{});
 }, 20000);
+})();
 </script>{% endblock %}

@@ -39,6 +39,16 @@
   </aside>
 </section>
 <script>
+document.body.dataset.ajaxForms='1';
+// IIFE + explicitly clearing both polling intervals before re-creating them:
+// an AJAX form submit re-executes this whole block (runScripts() in
+// ajax-forms.js), and a plain top-level const/let would collide with the
+// previous execution's still-alive binding ("Identifier has already been
+// declared") -- the intervals need the same care, or every submit leaves
+// one more of each running forever in the background.
+(() => {
+if(window.__playerRefreshInterval)clearInterval(window.__playerRefreshInterval);
+if(window.__playerLiveLogTimer)clearInterval(window.__playerLiveLogTimer);
 let invPage=0, safeboxPage=0, activeStorage='inventory';
 function setPage(n){invPage=n;document.querySelectorAll('.inv-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.inv-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('inventory-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}
 function setSafeboxPage(n){safeboxPage=n;document.querySelectorAll('.safebox-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.safebox-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('safebox-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}
@@ -64,7 +74,7 @@ async function refreshInventory(){
     bindInventoryFragment();
   } catch (_) {}
 }
-setInterval(refreshInventory, 5000);
+window.__playerRefreshInterval=setInterval(refreshInventory, 5000);
 async function runTeleport(btn, statusEl, payload){
   btn.disabled = true; statusEl.textContent = '⏳ Teleportowanie Twojej postaci w grze...';
   try {
@@ -114,11 +124,11 @@ async function fetchLiveLogs(){
 }
 liveLogToggle?.addEventListener('click', () => {
   if (liveLogTimer) {
-    clearInterval(liveLogTimer); liveLogTimer=null;
+    clearInterval(liveLogTimer); liveLogTimer=null; window.__playerLiveLogTimer=null;
     liveLogToggle.textContent='▶ Wznów śledzenie'; liveLogToggle.classList.remove('active');
   } else {
     liveLogToggle.textContent='⏸ Zatrzymaj śledzenie'; liveLogToggle.classList.add('active');
-    fetchLiveLogs(); liveLogTimer=setInterval(fetchLiveLogs, 1500);
+    fetchLiveLogs(); liveLogTimer=window.__playerLiveLogTimer=setInterval(fetchLiveLogs, 1500);
   }
 });
 liveLogCopy?.addEventListener('click', async () => {
@@ -127,6 +137,7 @@ liveLogCopy?.addEventListener('click', async () => {
   setTimeout(()=>liveLogCopy.textContent='📋 Kopiuj logi', 2000);
 });
 // Auto-start, like Tieru's panel: logs are already flowing by the time you look.
-liveLogToggle?.classList.add('active'); fetchLiveLogs(); liveLogTimer=setInterval(fetchLiveLogs, 1500);
+liveLogToggle?.classList.add('active'); fetchLiveLogs(); liveLogTimer=window.__playerLiveLogTimer=setInterval(fetchLiveLogs, 1500);
+})();
 </script>
 {% endblock %}

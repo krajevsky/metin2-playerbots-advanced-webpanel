@@ -7,8 +7,11 @@
 <p id="item-count" class="muted">{{total}} przedmiotów{% if selected_type %} w wybranej kategorii{% endif %} · pełna lista bez stron</p>
 <section id="item-catalog" class="item-catalog">{% for item in items %}<article class="item-card" data-search="{{(item.name ~ ' ' ~ item.vnum)|lower}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="">{% endif %}<div><b>{{item.name}}</b><small>VNUM {{item.vnum}} · typ {{item.type}}{% if item.subtype is not none %}/{{item.subtype}}{% endif %}</small>{% if item.gold %}<small>Cena: {{'{:,}'.format(item.gold).replace(',', ' ')}} Yang</small>{% endif %}</div></article>{% endfor %}</section>
 <script>
+document.body.dataset.ajaxForms='1';
+(() => {
 const itemSearch=document.getElementById('item-search'),itemCards=[...document.querySelectorAll('#item-catalog .item-card')],itemCount=document.getElementById('item-count');
 function filterItems(){const needle=itemSearch.value.trim().toLocaleLowerCase('pl-PL');let visible=0;itemCards.forEach(card=>{const match=!needle||card.dataset.search.includes(needle);card.hidden=!match;if(match)visible++});itemCount.textContent=`${visible} z ${itemCards.length} przedmiotów${needle?' pasuje do wyszukiwania':' w tej kategorii'} · filtrowanie na żywo`;}
 itemSearch.addEventListener('input',filterItems);if(itemSearch.value) filterItems();
+})();
 </script>
 {% endblock %}

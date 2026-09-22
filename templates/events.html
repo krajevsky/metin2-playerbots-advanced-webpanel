@@ -1,19 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Eventy · {{ panel_brand }}<script>
-function syncChestBonus(row) {
-  const kind = row.querySelector('select[name$="_kind"]').value;
-  const bonus = row.querySelector('.bonus-input');
-  const field = bonus.querySelector('input');
-  const chest = kind === 'chest';
-  bonus.classList.toggle('is-ignored', chest);
-  field.disabled = chest;
-}
-document.querySelectorAll('.planner-row').forEach(row => {
-  const select = row.querySelector('select[name$="_kind"]');
-  select.addEventListener('change', () => syncChestBonus(row));
-  syncChestBonus(row);
-});
-</script>\n{% endblock %}
+{% block title %}Eventy · {{ panel_brand }}{% endblock %}
 {% block content %}
 <p class="eyebrow">PLAYERBOTS · NA ŻYWO</p>
 <div class="events-heading"><div><h1>🎉 Planer eventów</h1><p class="muted">Uruchamiaj eventy od razu albo ustawiaj ich tygodniowy harmonogram. Rdzeń Playerbots odczytuje zmianę w ciągu pięciu sekund — restart nie jest potrzebny.</p></div><div class="events-core"><span>RDZEŃ</span><b>{{ 'połączony' if status else 'czeka na status' }}</b></div></div>
@@ -68,10 +54,30 @@ document.querySelectorAll('.planner-row').forEach(row => {
 </section>
 <section class="panel event-history-panel"><p class="eyebrow">HISTORIA</p><h2>📜 Ostatnie zakończone eventy</h2><p class="muted">Statystyki liczone ze zdarzeń w logu (zdobycie szkatułki / realnie zdobyty yang), nie ze stanu ekwipunku — dokładne niezależnie od tego co boty zrobiły z łupem.</p>{% if event_history %}<table class="event-history-table"><thead><tr><th>Event</th><th>Bonus</th><th>Od</th><th>Do</th><th>Wynik</th></tr></thead><tbody>{% for run in event_history %}<tr id="run-{{run.id}}"><td>{{run.label}}</td><td>{{'—' if run.kind=='chest' else '+' ~ run.value ~ '%'}}</td><td>{{run.started_at.strftime('%d.%m %H:%M')}}</td><td>{{run.ended_at.strftime('%d.%m %H:%M')}}</td><td>{{run.summary}}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}</section>
 <script>
+document.body.dataset.ajaxForms='1';
+(() => {
+// This lived inside the page's title block until 2026-09-22 -- <title> is a
+// raw text HTML element, so the browser never parsed it as a <script> at
+// all; it silently sat there as inert text (and made the actual browser tab
+// title show raw JS source). The chest/bonus toggle below never ran.
+function syncChestBonus(row) {
+  const kind = row.querySelector('select[name$="_kind"]').value;
+  const bonus = row.querySelector('.bonus-input');
+  const field = bonus.querySelector('input');
+  const chest = kind === 'chest';
+  bonus.classList.toggle('is-ignored', chest);
+  field.disabled = chest;
+}
+document.querySelectorAll('.planner-row').forEach(row => {
+  const select = row.querySelector('select[name$="_kind"]');
+  select.addEventListener('change', () => syncChestBonus(row));
+  syncChestBonus(row);
+});
 if (location.hash.startsWith('#run-')) {
   const row = document.getElementById(location.hash.slice(1));
   if (row) { row.scrollIntoView({behavior:'smooth', block:'center'}); row.classList.add('event-row-highlight'); setTimeout(() => row.classList.remove('event-row-highlight'), 3000); }
 }
+})();
 </script>
 {% endblock %}
 

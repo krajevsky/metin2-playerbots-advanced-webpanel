@@ -65,4 +65,5 @@
   {% for p in range(1, pages+1) %}<a class="{% if p==page %}active{% endif %}" href="{{url_for('bot_names', q=search, empire=empire, status=status, page=p)}}">{{p}}</a>{% endfor %}
 </nav>
 {% endif %}
+<script>document.body.dataset.ajaxForms='1';</script>
 {% endblock %}
