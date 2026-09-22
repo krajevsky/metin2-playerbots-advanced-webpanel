@@ -1,5 +1,20 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, które narzędzie AI wykonało daną zmianę — operator pracuje z Claude i Codex. Dopisuj ją na końcu każdego nowego wpisu, np. `![via Claude](https://img.shields.io/badge/via-Claude-D97757)` albo `![via Codex](https://img.shields.io/badge/via-Codex-10A37F)`.
 
+## 2026-09-22 20:01 CEST · 1.63.0 · Nadawanie GM bez restartu, poprawki tooltipów przedmiotów
+
+**Nowa funkcja:**
+
+- **Nadanie/odebranie rangi GM działa teraz od razu, bez restartu** — dokładnie ten sam trik co w klasycznym panelu Tieru (7788): panel prosi o to postać z rangą IMPLEMENTOR, jeśli akurat jest online (wysyła jej w kolejce polecenie `/reload a`, silnik natychmiast wczytuje `common.gmlist` na nowo). Jeśli żaden IMPLEMENTOR nie jest zalogowany, zmiana i tak zadziała — tylko dopiero przy najbliższym logowaniu tej postaci, zamiast od razu.
+
+**Poprawki tooltipów przedmiotów (`/player/`):**
+
+- **Fałszywe "kamienie duszy" w opisach przedmiotów innych niż broń/pancerz** — wędka, rękawiczka i inne pokazywały przypadkowo trafione, zupełnie niezwiązane miecze (np. "Sejmitar+5") jako rzekomo osadzony kamień. Przyczyna: te typy przedmiotów przechowują w tych samych kolumnach bazy zupełnie inne dane (np. wędka — liczniki niezwiązane z gniazdami), a panel sprawdzał każdą niezerową wartość jako potencjalny VNUM kamienia, trafiając przypadkiem w prawdziwe, istniejące przedmioty. Sprawdzanie kamieni ograniczone teraz tylko do broni i pancerza.
+- **Marmur Polimorfii i inne kamienie przemiany teraz pokazują, w jakiego potwora przemieniają** ("Przemienia w: ...") zamiast nic nie mówić.
+- **Nieprzetłumaczony "Bonus #94"** na kilku przedmiotach (np. Buty Z Brązu+0) — brakujący wpis w tabeli tłumaczeń silnika, teraz poprawnie pokazuje "Wartość obrony +%".
+- **Wszystkie hełmy pokazywały zaniżoną wartość obrony** — mnożnik bonusu z ulepszenia był błędnie ustawiony na pojedynczy zamiast podwójny (tak jak zbroja i tarcza).
+
+![via Claude](https://img.shields.io/badge/via-Claude-D97757)
+
 ## 2026-09-22 19:45 CEST · 1.62.0 · Ikony umiejętności i odznaka GM na profilach postaci
 
 **Nowe funkcje i poprawki:**

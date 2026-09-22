@@ -302,6 +302,14 @@ POINT_TO_APPLY = {6: 1, 8: 2, 13: 3, 15: 4, 12: 5, 14: 6, 17: 7, 19: 8, 21: 9, 3
  48: 22, 63: 23, 64: 24, 65: 25, 66: 26, 67: 27, 68: 28, 69: 29, 70: 30, 71: 31,
  72: 32, 73: 33, 74: 34, 75: 35, 76: 36, 77: 37, 78: 38, 79: 39, 81: 41, 82: 42,
  83: 43, 84: 44, 85: 45, 86: 46, 87: 47, 88: 48, 89: 49, 90: 50, 28: 51, 34: 52,
+ # 93/94 (POINT_ATT_BONUS/POINT_DEF_BONUS, server/common/length.h) were
+ # missing here entirely -- fell through unmapped and showed as the raw,
+ # untranslated "Bonus #93"/"Bonus #94". Sit right between the already-
+ # mapped GRADE_BONUS pair (95/96 -> flat 53/54) in the engine's own enum,
+ # same naming split elsewhere in this table between a flat and a percent
+ # variant of the same stat -- mapped to the percent pair (64/65) on that
+ # basis. Reported (Buty Z Brązu+0 showing "Bonus #94 +1"), [GA]Seban, 2026-09-22.
+ 93: 64, 94: 65,
  95: 53, 96: 54, 22: 55, 23: 56, 42: 57, 10: 58, 54: 59, 55: 60, 56: 61, 57: 62,
  53: 63, 114: 64, 115: 65, 116: 66, 117: 67, 118: 68, 119: 69, 120: 70, 121: 71,
  122: 72, 123: 73, 124: 74, 125: 75, 126: 76, 59: 78, 60: 79, 61: 80, 62: 81,
@@ -633,8 +641,12 @@ def item_base_stats(vnum):
             stats.append(f"Wartość magicznego ataku: {magic_min}–{magic_max}" if magic_min != magic_max else f"Wartość magicznego ataku: {magic_max}")
     elif item_type == 2:  # ITEM_ARMOR. Only these four subtypes show a flat
         # defense number in the client at all; jewelry (necklace/earring/
-        # wrist) shows none, same as the real tooltip.
-        multiplier = {0: 2, 1: 1, 2: 2, 4: 1}.get(subtype)
+        # wrist) shows none, same as the real tooltip. Head (subtype 1) was
+        # x1 here from launch -- an unverified guess, unlike body/shield
+        # which had a real reported example backing x2 (see docstring).
+        # Every helmet's displayed defense was wrong as a result; fixed to
+        # x2 to match body/shield once actually reported. [GA]Seban, 2026-09-22.
+        multiplier = {0: 2, 1: 2, 2: 2, 4: 1}.get(subtype)
         if multiplier:
             defense = value(1) + refine_bonus * multiplier
             if defense:
@@ -2604,20 +2616,48 @@ def _enrich_items(items):
         item["base_stats"] = item_base_stats(item["vnum"])
         item["bonuses"] = [apply_text(item.get(f"applytype{i}"), item.get(f"applyvalue{i}")) for i in range(3) if item.get(f"applytype{i}") and item.get(f"applyvalue{i}")]
         item["bonuses"] += [apply_text(item.get(f"attrtype{i}"), item.get(f"attrvalue{i}")) for i in range(7) if item.get(f"attrtype{i}") and item.get(f"attrvalue{i}")]
-    socket_vnums = sorted({int(item.get(f"socket{i}") or 0) for item in items for i in range(3) if int(item.get(f"socket{i}") or 0) > 0})
+    # Only weapons (type 1) and armor (type 2) actually use sockets for gems
+    # ("kamienie duszy") -- other item types reuse those same DB columns for
+    # completely unrelated, type-specific data (a Skill Book's socket0 is the
+    # taught skill's vnum, already excluded below by vnum; a fishing rod's
+    # socket0/1 held small numbers like 14/35 that happened to collide with
+    # real weapon vnums -- 14 is "Miecz+4", 35 is "Sejmitar+5" -- and were
+    # shown as if they were socketed gems; a Polymorph Stone's socket0 is the
+    # target mob's vnum, handled below via mob_proto instead). Reported
+    # ([GA]Seban, 2026-09-22): a Wędka+2's tooltip showing an unrelated
+    # "Sejmitar+5" as a gem, same for a Rękawica Króla Przepow.
+    stone_eligible_vnums = {int(item["vnum"]) for item in items
+                             if int((ITEM_DEFS.get(str(int(item["vnum"] or 0))) or {}).get("type") or 0) in (1, 2)}
+    socket_vnums = sorted({int(item.get(f"socket{i}") or 0) for item in items if int(item["vnum"]) in stone_eligible_vnums
+                            for i in range(3) if int(item.get(f"socket{i}") or 0) > 0})
     stone_defs = {}
     if socket_vnums:
         marks = ",".join(["%s"] * len(socket_vnums))
         for stone in rows("SELECT vnum,COALESCE(locale_name,CONCAT('VNUM ',vnum)) AS item_name,applytype0,applyvalue0,applytype1,applyvalue1,applytype2,applyvalue2 FROM player.item_proto WHERE vnum IN (" + marks + ")", socket_vnums):
             stone_defs[int(stone["vnum"])] = {"name": game_text(stone["item_name"]), "bonuses": [apply_text(stone.get(f"applytype{i}"), stone.get(f"applyvalue{i}")) for i in range(3) if stone.get(f"applytype{i}") and stone.get(f"applyvalue{i}")]}
+    # Polymorph items (type 19, "Marmur Polimorfii" and friends) store the
+    # target monster's vnum in socket0 -- show what it actually turns you
+    # into instead of silently nothing. Reported alongside the sockets bug
+    # above, same day.
+    polymorph_vnums = {int(item.get("socket0") or 0) for item in items
+                        if int((ITEM_DEFS.get(str(int(item["vnum"] or 0))) or {}).get("type") or 0) == 19
+                        and int(item.get("socket0") or 0) > 0}
+    mob_names = {}
+    if polymorph_vnums:
+        marks = ",".join(["%s"] * len(polymorph_vnums))
+        for mob in rows("SELECT vnum,COALESCE(locale_name,name) AS mob_name FROM player.mob_proto WHERE vnum IN (" + marks + ")", sorted(polymorph_vnums)):
+            mob_names[int(mob["vnum"])] = game_text(mob["mob_name"])
     for item in items:
+        vnum = int(item["vnum"] or 0)
+        item_type = int((ITEM_DEFS.get(str(vnum)) or {}).get("type") or 0)
         # A Skill Book's socket0 is the taught skill's vnum, not a gem --
         # looking it up in item_proto as a "stone" was matching unrelated
         # items by coincidence (e.g. a sword showing up in a book's tooltip).
-        if int(item["vnum"] or 0) in SKILLBOOK_VNUMS:
+        if vnum in SKILLBOOK_VNUMS or item_type not in (1, 2):
             item["stones"] = []
         else:
-            item["stones"] = [stone_defs[vnum] for vnum in (int(item.get(f"socket{i}") or 0) for i in range(3)) if vnum in stone_defs]
+            item["stones"] = [stone_defs[v] for v in (int(item.get(f"socket{i}") or 0) for i in range(3)) if v in stone_defs]
+        item["polymorph_target"] = mob_names.get(int(item.get("socket0") or 0)) if item_type == 19 else None
     return items
 
 
@@ -2905,6 +2945,42 @@ def player_action_rename(pid):
     return redirect(url_for("player", pid=pid))
 
 
+def queue_gm_reload():
+    """Ask an online IMPLEMENTOR to run /reload a for us, so a GM grant/removal
+    takes effect immediately instead of waiting for the character's next
+    login. Same trick Tieru's own classic panel (7788) uses: this engine has
+    no admin socket, so nothing can push HEADER_GD_RELOAD_ADMIN to the db
+    core directly -- only an in-game /reload a can, and interpret_command()
+    runs a queued command as the player who owns it, so only a character
+    that already holds IMPLEMENTOR (gm_level 5) can carry it (see the
+    GM_RELOAD branch in game/quest/web_admin.quest, already shipped and
+    already running -- this just starts using it from this panel too).
+    One row per current IMPLEMENTOR; whichever is actually online picks it
+    up first, the rest are withdrawn. Returns True only if one actually did
+    -- False means "wrote the gmlist row, but nobody was online to push the
+    live reload; takes effect at that character's next login instead."""
+    names = [r["mName"] for r in rows(
+        "SELECT mName FROM common.gmlist WHERE mAuthority='IMPLEMENTOR' LIMIT 8") if r["mName"]]
+    if not names:
+        return False
+    for name in names:
+        rows("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2) VALUES (%s,'GM_RELOAD','','')", (name,))
+    ids = {r["id"]: r["player_name"] for r in rows(
+        "SELECT id, player_name FROM player.web_admin_queue WHERE cmd='GM_RELOAD' AND status='pending'"
+        " AND player_name IN (" + ",".join(["%s"] * len(names)) + ")", names)}
+    if not ids:
+        return False
+    done, deadline = False, time.time() + 8.0  # a player timer ticks every 3s
+    while time.time() < deadline and not done:
+        time.sleep(0.6)
+        done = any(r["status"] == "done" for r in rows(
+            "SELECT status FROM player.web_admin_queue WHERE id IN (" +
+            ",".join(["%s"] * len(ids)) + ")", list(ids.keys())))
+    rows("DELETE FROM player.web_admin_queue WHERE status='pending' AND id IN (" +
+         ",".join(["%s"] * len(ids)) + ")", list(ids.keys()))
+    return done
+
+
 @app.route("/player/<int:pid>/action/gm-rank", methods=["POST"])
 @login_required
 def player_action_gm_rank(pid):
@@ -2912,9 +2988,11 @@ def player_action_gm_rank(pid):
     to zrobić tylko przy zakładaniu nowego konta (audyt vs /gm na 7788).
 
     common.gmlist to jedyne źródło prawdy: silnik czyta stamtąd listę GM-ów,
-    więc ten wiersz JEST nadaniem rangi. Rdzeń re-czyta listę przy starcie i
-    przy /reload a (wymaga zalogowanego IMPLEMENTORA) -- bez żadnego z tych
-    dwóch, zmiana obowiązuje dopiero od następnego logowania tej postaci.
+    więc ten wiersz JEST nadaniem rangi. Rdzeń re-czyta listę przy starcie
+    oraz przy /reload a -- queue_gm_reload() poniżej prosi o to online
+    IMPLEMENTORA automatycznie (ten sam trik co panel Tieru na 7788), więc
+    zwykle działa od razu; jeśli akurat nikt z tą rangą nie jest zalogowany,
+    zmiana i tak zacznie działać przy najbliższym logowaniu tej postaci.
     """
     rank = (request.form.get("rank", "") or "").strip()
     if rank and rank not in GM_RANK_SET:
@@ -2934,11 +3012,17 @@ def player_action_gm_rank(pid):
                 cur.execute("INSERT INTO common.gmlist (mAccount,mName,mContactIP,mServerIP,mAuthority) "
                             "VALUES (%s,%s,'','ALL',%s)", (login, name, rank))
     label = dict(GM_RANK_OPTIONS).get(rank, rank)
-    if rank:
+    reloaded = queue_gm_reload()
+    verb = "nadana" if rank else "odebrana"
+    if reloaded:
+        flash(f"Ranga GM „{label}” {verb} postaci {name}. Zadziałało od razu (online IMPLEMENTOR wykonał /reload a)."
+              if rank else f"Ranga GM odebrana postaci {name}. Zadziałało od razu (online IMPLEMENTOR wykonał /reload a).")
+    elif rank:
         flash(f"Ranga GM „{label}” nadana postaci {name}. Zacznie działać przy najbliższym zalogowaniu tej postaci "
-              f"(albo od razu, jeśli online IMPLEMENTOR zrobi /reload a).")
+              f"-- żaden IMPLEMENTOR nie był akurat online, żeby wykonać /reload a za nas.")
     else:
-        flash(f"Ranga GM odebrana postaci {name}. Postać online zachowa komendy do wylogowania.")
+        flash(f"Ranga GM odebrana postaci {name}. Postać online zachowa komendy do wylogowania "
+              f"-- żaden IMPLEMENTOR nie był akurat online, żeby wykonać /reload a za nas.")
     return redirect(url_for("player", pid=pid))
 
 
