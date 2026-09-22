@@ -1,5 +1,17 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, które narzędzie AI wykonało daną zmianę — operator pracuje z Claude i Codex. Dopisuj ją na końcu każdego nowego wpisu, np. `![via Claude](https://img.shields.io/badge/via-Claude-D97757)` albo `![via Codex](https://img.shields.io/badge/via-Codex-10A37F)`.
 
+## 2026-09-22 19:45 CEST · 1.62.0 · Ikony umiejętności i odznaka GM na profilach postaci
+
+**Nowe funkcje i poprawki:**
+
+- **Umiejętności na `/player/`** korzystają teraz z oryginalnych ikon wyciętych z klienta Metin2. Dotyczy to skilli klasowych oraz pasywnych: Dowodzenia, Combo, Wędkarstwa, Górnictwa, Kowalstwa, języków królestw, Polimorfii, Poziomu konia i Przywołania konia.
+- Ikony klasycznych umiejętności poprawnie rozróżniają zwykły poziom oraz rangi M, G i P. Brakujące wcześniej Wędkarstwo jest odczytywane z danych postaci.
+- **Poziom konia i Przywołanie konia** zachowują własną skalę liczbową, więc np. poziom 21 pokazuje `21`, zamiast błędnego `M2`.
+- Karta umiejętności używa kolorów aktualnie wybranego motywu panelu.
+- Postacie wpisane do `common.gmlist` otrzymują przy nazwie oryginalną, animowaną **odznakę GM** z klienta gry. Podpowiedź po najechaniu pokazuje zapisaną rangę GM.
+
+![via Codex](https://img.shields.io/badge/via-Codex-10A37F)
+
 ## 2026-09-22 19:27 CEST · 1.61.0 · Panel działa na żywo — koniec przeładowań strony
 
 **Nowa funkcja:**

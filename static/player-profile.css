@@ -2,6 +2,8 @@
 .storage-tabs button{padding:5px 8px;background:#203d63;font-size:12px}
 .storage-tabs button.active{background:#1f6fe5}
 .storage-tabs button:disabled{opacity:.4;cursor:not-allowed}
+.gm-badge{display:inline-block;width:72px;height:auto;margin:0 4px -9px 7px;vertical-align:middle;filter:drop-shadow(0 0 5px #f7bd33aa);animation:gm-badge-glow 2.4s ease-in-out infinite}
+@keyframes gm-badge-glow{50%{filter:drop-shadow(0 0 10px #ffe98ccc)}}
 .metin-inventory{position:relative;width:min(337px,100%);aspect-ratio:337/1140;background:#100e0b url('/static/inventory-background.svg') center/100% 100% no-repeat;isolation:isolate}
 .equipment-layer,.inventory-layer{position:absolute;inset:0;pointer-events:none}
 .equip-slot,.inv-slot{pointer-events:auto}
