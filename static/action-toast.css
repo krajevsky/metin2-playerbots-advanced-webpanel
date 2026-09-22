@@ -1,0 +1,20 @@
+/* Feedback toast for AJAX-submitted forms (starting with /manage, 2026-09-22) --
+   separate from .notif-toast (server-driven event/version/summary alerts,
+   top-right, auto-dismisses): this one is for "your click just did something",
+   slides down from the top-center, and never disappears on its own -- only a
+   click on the X closes it, per operator's ask. */
+.action-toast-stack{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:400;display:grid;gap:10px;width:440px;max-width:92vw;pointer-events:none}
+.action-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--edge);border-left:4px solid var(--blue2);border-radius:8px;padding:12px 14px;box-shadow:0 14px 34px rgba(0,0,0,.45);animation:action-toast-in .35s cubic-bezier(.2,.8,.2,1)}
+.action-toast.success{border-left-color:#49d899}
+.action-toast.error{border-left-color:#ef4444}
+.action-toast-icon{flex:0 0 auto;width:20px;height:20px;margin-top:1px}
+.action-toast-icon svg{width:100%;height:100%}
+.action-toast.success .action-toast-icon{color:#49d899}
+.action-toast.error .action-toast-icon{color:#ef4444}
+.action-toast-body{flex:1;min-width:0;font-size:13px;color:var(--text);line-height:1.45}
+.action-toast-close{flex:0 0 auto;background:none;border:0;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:3px}
+.action-toast-close:hover{color:var(--text)}
+.action-toast.is-leaving{animation:action-toast-out .25s ease forwards}
+@keyframes action-toast-in{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes action-toast-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
+@media(max-width:650px){.action-toast-stack{top:10px;width:94vw}}
