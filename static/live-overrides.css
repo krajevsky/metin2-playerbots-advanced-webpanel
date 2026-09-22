@@ -134,3 +134,18 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 .live-sidebar .live-ranking{flex:1 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow-y:auto!important}
 .live-activity{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
 }
+
+/* Lista "Boty na mapach" jest częścią panelu o stałej wysokości obok mapy.
+   Gdy jest więcej map niż wolnego miejsca, przewija się tylko sama lista —
+   nie rozciąga karty świata ani kolejnych kafelków Dashboardu. */
+@media(min-width:1351px){
+.world-overview{display:flex;flex-direction:column;overflow:hidden}
+.overview-pages{display:flex;flex:1 1 auto;flex-direction:column;min-height:0}
+.overview-page[data-page="2"]{display:flex;flex:1 1 auto;flex-direction:column;min-height:0}
+.overview-page[data-page="2"] .overview-maps{display:flex;flex:1 1 auto;flex-direction:column;min-height:0}
+.overview-page[data-page="2"] .overview-maps-list{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--live-accent) var(--live-surface-strong)}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar{width:8px}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar-track{background:var(--live-surface-strong);border-radius:999px}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar-thumb{background:linear-gradient(var(--live-accent),var(--live-progress-end));border:2px solid var(--live-surface-strong);border-radius:999px}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar-thumb:hover{background:var(--live-number)}
+}
