@@ -15,6 +15,21 @@ and changelog with that noise defeats the point of having them.
 If you're not sure whether something is "significant enough" for a version
 bump, ask the operator first instead of guessing either way.
 
+Every time `VERSION` does get bumped, also create and push a matching
+annotated git tag (`v<version>`, e.g. `v1.60.0`) once the commit is on
+`origin/main`:
+
+```sh
+git tag -a v1.60.0 -m "1.60.0: <short summary>. Full notes: CHANGELOG.md"
+git push origin v1.60.0
+```
+
+This is deliberately just a tag, not a full GitHub Release (that would need
+a Personal Access Token neither agent holds — operator's choice, 2026-09-22).
+A tag alone is enough for GitHub to offer "create a release from this tag"
+whenever the operator wants a formal release page; the tag message can be
+pasted straight in as release notes.
+
 ## 2. Tag every CHANGELOG.md entry with which agent made it
 
 End every `CHANGELOG.md` entry with an attribution badge on its own line,
