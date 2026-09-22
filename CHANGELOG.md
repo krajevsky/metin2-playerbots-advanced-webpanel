@@ -1,4 +1,6 @@
-## 2026-09-22 18:15 CEST · 1.60.0 · Sklep offline, nazwy botów, logi panelu, poprawki dashboardu
+> Wpisy oznaczone `(via Claude)` / `(via Codex)` pokazują, które narzędzie AI wykonało daną zmianę — operator pracuje z oboma. Dopisuj to oznaczenie w nagłówku każdego nowego wpisu.
+
+## 2026-09-22 18:15 CEST · 1.60.0 · Sklep offline, nazwy botów, logi panelu, poprawki dashboardu (via Claude)
 
 **Nowe funkcje:**
 
