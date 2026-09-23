@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-23 11:20 CEST · 1.69.0 · Ryby, ruda i bossy w podsumowaniu dnia
+
+- **"Podsumowanie dnia" liczy teraz też wyłowione ryby, wykopaną rudę i pokonanych bossów** (obok istniejących +9/Metinów/eventów). Ryby z `log.fish_log`, bossy z `log.log` (jak Metiny), a ruda z `log.money_log(type='DROP')` odfiltrowanego do 19 vnumów surowej rudy, które faktycznie wydaje `mining.cpp` (50601–50619) — bo `money_log` typu DROP loguje też zwykłe łupy z potworów, więc bez filtra po vnumie liczyłoby wszystko, nie tylko górnictwo.
+- Stare wpisy sprzed tej zmiany po prostu nie mają tych trzech liczb (pokazują "—"), nowe naliczają się od najbliższej granicy dnia.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-23 10:02 CEST · 1.68.0 · 10 nowych rankingów z player_special_flag
 
 - Odkrycie z 1.67.0 (tabela `player_special_flag`, źródło panelu Y) posłużyło teraz do przebudowy rankingów: 10 nowych kategorii na `/rankings`, wszystkie all-time i dokładne (nie 7-dniowe okno jak dotychczasowe "Bossy"/"Metiny" z `log.log`) — Rekord obrażeń (zwykłe/konno/umiejętność), Zdobyty Yang łącznie, Yang ze sprzedaży u NPC, Zabite potwory łącznie, Pokonane minibossy, Pokonani gracze PVP (łącznie, nie tylko 7 dni), Wygrane pojedynki, Wykopane rudy.

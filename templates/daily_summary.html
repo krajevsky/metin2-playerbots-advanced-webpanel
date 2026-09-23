@@ -6,6 +6,9 @@
 <article><span>Yang w obiegu</span><strong>{{ '{:,}'.format(s.yang_start).replace(',', ' ') if s.yang_start is not none else '—' }} → {{ '{:,}'.format(s.yang_end).replace(',', ' ') if s.yang_end is not none else '—' }}</strong></article>
 <article><span>Przedmiotów ulepszonych na +9</span><strong>{{ s.refine9_count }}</strong></article>
 <article><span>Zniszczonych kamieni Metin</span><strong>{{ s.metin_count }}</strong></article>
+<article><span>Pokonanych bossów</span><strong>{{ s.boss_count if s.boss_count is not none else '—' }}</strong></article>
+<article><span>Wyłowionych ryb</span><strong>{{ s.fish_count if s.fish_count is not none else '—' }}</strong></article>
+<article><span>Wykopanej rudy</span><strong>{{ s.mining_count if s.mining_count is not none else '—' }}</strong></article>
 <article><span>Smoczych Monet w obiegu</span><strong>{{ '{:,}'.format(s.cash_start).replace(',', ' ') if s.cash_start is not none else '—' }} → {{ '{:,}'.format(s.cash_end).replace(',', ' ') if s.cash_end is not none else '—' }}</strong></article>
 <article><span>Zorganizowane eventy</span><strong>{{ s.events_count }}</strong></article>
 <article><span>Najwyższy poziom</span><strong>Lv {{ s.level_start if s.level_start is not none else '—' }} → Lv {{ s.level_end if s.level_end is not none else '—' }}</strong></article>

@@ -191,6 +191,9 @@ def init(cur):
     cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS top_weapon_avg_damage INT NULL")
     cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS top_weapon_owner_pid INT UNSIGNED NULL")
     cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS top_weapon_owner_name VARCHAR(24) NULL")
+    cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS fish_count INT NULL")
+    cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS mining_count INT NULL")
+    cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS boss_count INT NULL")
     cur.execute("""INSERT IGNORE INTO player.web_seban_settings (name,value) VALUES
       ('panel_name','Metin2 Singleplayer'),('stuck_minutes','5'),('theme','empire'),('monitor_mode','vps'),
       ('setup_complete','1'),('auth_enabled','0'),('auth_password_hash','')""")

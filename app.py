@@ -1458,6 +1458,27 @@ def check_daily_summary():
                        (day_start, day_end)).get("n", 0)
         metins = one("SELECT COUNT(*) AS n FROM log.log WHERE how='STONE_KILL' AND time BETWEEN %s AND %s",
                       (day_start, day_end)).get("n", 0)
+        bosses = one("SELECT COUNT(*) AS n FROM log.log WHERE how='BOSS_KILL' AND time BETWEEN %s AND %s",
+                      (day_start, day_end)).get("n", 0)
+        # log.fish_log -- same table the "Wyłowione ryby" ranking reads
+        # (found 2026-09-23), has its own `time` column so a daily window
+        # works directly, unlike player_special_flag's stat_fishing which is
+        # a cumulative all-time counter with no history to diff against.
+        fish = one("SELECT COALESCE(SUM(count),0) AS n FROM log.fish_log WHERE time BETWEEN %s AND %s",
+                    (day_start, day_end)).get("n", 0)
+        # Mining has no dedicated per-event log table and no timestamped
+        # counter -- player_special_flag's stat_mining is cumulative only.
+        # The actual source is log.money_log(type='DROP'), which every ore
+        # drop writes to via mining.cpp's SendMoneyLog(MONEY_LOG_DROP,
+        # oreVnum, count) call -- but that same log entry also fires for
+        # ordinary monster-kill item drops (item_manager.cpp) and other item
+        # creation (char_item.cpp), so it only isolates mining by filtering
+        # to the 19 raw-ore vnums mining.cpp actually hands out (50601-50619,
+        # mining.cpp's `info[MAX_ORE]` table) -- confirmed against those exact
+        # vnums live before wiring this in.
+        mining = one("""SELECT COALESCE(SUM(gold),0) AS n FROM log.money_log
+          WHERE type='DROP' AND vnum BETWEEN 50601 AND 50619 AND time BETWEEN %s AND %s""",
+                      (day_start, day_end)).get("n", 0)
         events_count = one("SELECT COUNT(*) AS n FROM player.web_seban_event_runs WHERE ended_at BETWEEN %s AND %s",
                             (day_start, day_end)).get("n", 0)
         # Broń z najwyższymi średnimi obrażeniami aktualnie noszona przez
@@ -1475,11 +1496,13 @@ def check_daily_summary():
         rows("""INSERT INTO player.web_seban_daily_summary
           (summary_date,day_number,bots_start,bots_end,yang_start,yang_end,refine9_count,metin_count,
            cash_start,cash_end,events_count,level_start,level_end,shops_start,shops_end,
-           top_weapon_vnum,top_weapon_name,top_weapon_avg_damage,top_weapon_owner_pid,top_weapon_owner_name)
-          VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+           top_weapon_vnum,top_weapon_name,top_weapon_avg_damage,top_weapon_owner_pid,top_weapon_owner_name,
+           fish_count,mining_count,boss_count)
+          VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
           (target_date, day_number, bots_start, bots_end, yang_start, yang_end, refine9, metins,
            cash_start, cash_end, events_count, level_start, level_end, shops_start, shops_end,
-           top_weapon_vnum, top_weapon_name, top_weapon_avg, top_weapon_pid, top_weapon_owner))
+           top_weapon_vnum, top_weapon_name, top_weapon_avg, top_weapon_pid, top_weapon_owner,
+           fish, mining, bosses))
         new_id = one("SELECT id FROM player.web_seban_daily_summary WHERE summary_date=%s", (target_date,)).get("id")
         create_notification("daily_summary", f"Podsumowanie dnia {day_number}",
                              f"{target_date.strftime('%d.%m.%Y')} — kliknij, żeby zobaczyć szczegóły.",
