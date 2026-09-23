@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-23 09:15 CEST · 1.67.0 · Prawdziwy panel "Statystyki" (Y) na /player/
+
+- **Znaleziono realne, serwerowe źródło całego okna "Statystyki" (klawisz Y w grze) i podłączono je w pełni na `/player/`.** Wcześniejszy audyt tego panelu (na `log.log`) uznał większość pól za niezapisywane server-side — operator słusznie się z tym nie zgodził ("gra nie ma prawa brać tego znikąd, to działa niezależnie od tego gdzie się zalogujesz"). Właściwym źródłem okazała się osobna tabela silnika `player.player_special_flag` (pid, flag, value), zapisywana przy każdej zmianie przez `CHARACTER::AddPlayerStat`/`SetSpecialFlagSave` (game/src/char.cpp, char_battle.cpp, char_item.cpp, mining.cpp, shop_manager.cpp) — kompletnie pominięta przez wcześniejszy audyt, bo ten patrzył tylko na `log.log`.
+- Panel pokazuje teraz naprawdę wszystko, co silnik faktycznie liczy: zabite potwory (ogółem), pokonane bossy i minibossy osobno, zniszczone kamienie Metin, pokonanych graczy wrogiego królestwa, wygrane pojedynki, wykopane rudy, złowione ryby, śmierci (łącznie/od potworów/od graczy), trzy rekordy obrażeń (zwykłe/konno/umiejętność), udane i spalone ulepszenia, zdobyty Yang łącznie oraz Yang ze sprzedaży u NPC.
+- Cztery pola z panelu Y — ukończone lochy, zebrane kwiaty, otwarte skrzynie, ukończone księgi misji — mają zdefiniowaną w silniku "szufladkę" na wartość (`PLAYER_STATS_DUNGEON/HERBALISM/CHEST/QUESTBOOK_FLAG`), ale żaden kod gry nigdy jej nie zwiększa na tej wersji serwera — potwierdzone przeszukaniem całego `game/src`, nie zgadywane. Panel jasno to teraz opisuje, zamiast milczeć.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-23 07:28 CEST · 1.66.0 · Ranking "Wyłowione ryby"
 
 - **Nowy ranking na `/rankings` i w karuzeli na dashboardzie: "Wyłowione ryby".** Wcześniejszy audyt uznał, że silnik nigdzie nie zapisuje złowienia ryby — to była prawda tylko dla `log.log` (tam faktycznie nie ma takiego zdarzenia), ale silnik ma osobną, dedykowaną tabelę `log.fish_log`, zapisywaną przy każdym złowieniu (`LogManager::FishLog`, wywoływane wprost z questa rybackiego). Znaleziona i podłączona po zgłoszeniu operatora — 5557 realnych połowów na start.

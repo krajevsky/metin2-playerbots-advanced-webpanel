@@ -2425,53 +2425,54 @@ def guild(guild_id):
 
 
 def character_stat_summary(pid):
-    """The subset of the client's Y-panel (character records) this engine
-    actually persists server-side. Verified against a live character
-    ([GA]Seban) against the exact numbers its own client showed, not assumed
-    from another Metin2 build:
-      - player.player carries no per-character counters at all (its full,
-        47-column schema has only current gold, no kill/PVP/gather counts).
-      - The player schema's other 52 tables were checked too (including
-        `quest`'s per-character flags for this pid) -- nothing named or
-        shaped like a battle-record table exists anywhere in it.
-      - log.log has exactly 50 distinct `how` values on this world's full
-        history, all checked. The ones below matched their client-shown
-        numbers EXACTLY on a live test (bosses, metins, deaths_by_mob,
-        refine_success, refine_burned, and both pvp_kills/pvp_deaths below).
-        There is still no MOB_KILL, duel, mining/fishing/flower, dungeon-
-        clear, quest-book, or damage-record `how` at all -- confirmed absent,
-        not merely unmatched for one character.
-      - yang_earned (GET_GOLD only) is a known UNDER-count: it read 1,379,865
-        against a client-shown 6,952,633 for the same character. GM-granted
-        items/gold and a few other `how` values touch this character's
-        wallet without logging a parseable amount anywhere nearby in time,
-        so the gap could not be closed without guessing -- shown as a
-        (labelled) partial total, not corrected upward by assumption.
-      - SHOP_SELL/NPC_SELL's hint packs item/seller into a free-text string
-        with no price field anywhere in the row (checked NPC_SELL rows AND
-        every log entry in the same second, looking for a companion
-        GET_GOLD -- there isn't one), so "yang from NPC sales" has no
-        server-side source at all on this build, not just an unparsed one.
-    Whatever is missing is surfaced by simply not being a key in the
-    returned dict -- character_stats.html decides how to render that gap,
-    this function never fabricates a zero for something it cannot see.
+    """The client's Y-panel ("Statystyki") window, traced to its real
+    server-side source -- not log.log, which never held this data (the
+    engine's log.log-based guess this function used before 2026-09-23 was
+    wrong about several fields being untrackable; it simply hadn't found
+    the right table yet).
+
+    Ground truth: the engine has a whole "special flag" persistence system
+    (`CHARACTER::AddPlayerStat`/`SetPlayerStat`, game/src/char.cpp) that
+    every PLAYER_STATS_* counter goes through on every change
+    (char_battle.cpp for kills/deaths/damage records, char_item.cpp for
+    refine, mining.cpp for ore, shop_manager.cpp for NPC-shop sales). Each
+    call lands in `CHARACTER::SetSpecialFlag` -> `SetSpecialFlagSave` ->
+    a `REPLACE INTO player_special_flag (pid, aid, flag, value) ...` in
+    db/src/ClientManager.cpp -- i.e. exactly the account/character-scoped,
+    login-location-independent server table the operator insisted must
+    exist (2026-09-23), found by following AddPlayerStat(...) call sites
+    instead of log.log's `how` column.
+
+    Four PLAYER_STATS_* flags are defined in common/length.h and named in
+    constants.cpp's GET_SPECIAL_FLAG_KEY, but no file under game/src ever
+    calls AddPlayerStat/SetPlayerStat with them -- confirmed dead code on
+    this engine build, not a query gap: stat_dungeon (ukończone lochy),
+    stat_herbalism (zebrane kwiaty), stat_chest (otwarte skrzynie),
+    stat_questbook (ukończone księgi misji). They're simply not returned
+    here; character_stats.html explains the gap once, for all four.
     """
-    row = one("""SELECT
-        SUM(how='BOSS_KILL') AS bosses,
-        SUM(how='STONE_KILL') AS metins,
-        SUM(how='DEAD_BY_NPC') AS deaths_by_mob,
-        SUM(how='DEAD_BY_PC') AS pvp_deaths,
-        SUM(how='REFINE SUCCESS') AS refine_success,
-        SUM(how='REMOVE (REFINE FAIL)') AS refine_burned,
-        COALESCE(SUM(CASE WHEN how='GET_GOLD' THEN what ELSE 0 END),0) AS yang_earned
-      FROM log.log WHERE who=%s""", (pid,))
-    stats = {key: int(value or 0) for key, value in row.items()} if row else {}
-    # DEAD_BY_PC logs the loser as `who` and the killer's pid as `what` --
-    # a PVP win for this pid is therefore a second query keyed the other way
-    # round, not another column of the row above.
-    kills = one("SELECT COUNT(*) AS n FROM log.log WHERE how='DEAD_BY_PC' AND what=%s", (pid,))
-    stats["pvp_kills"] = int(kills.get("n") or 0) if kills else 0
-    return stats
+    flag_rows = rows("SELECT flag,value FROM player.player_special_flag WHERE pid=%s", (pid,))
+    flags = {r["flag"]: int(r["value"] or 0) for r in flag_rows}
+    return {
+        "monsters": flags.get("stat_monster", 0),
+        "bosses": flags.get("stat_boss", 0),
+        "minibosses": flags.get("stat_miniboss", 0),
+        "metins": flags.get("stat_stone", 0),
+        "pvp_kills": flags.get("stat_empire", 0),
+        "duel_wins": flags.get("stat_duel", 0),
+        "mining": flags.get("stat_mining", 0),
+        "fishing": flags.get("stat_fishing", 0),
+        "deaths_total": flags.get("stat_death", 0),
+        "deaths_by_mob": flags.get("stat_death_mob", 0),
+        "pvp_deaths": flags.get("stat_death_player", 0),
+        "damage_max": flags.get("stat_damage", 0),
+        "damage_max_horse": flags.get("stat_damage_horse", 0),
+        "damage_max_skill": flags.get("stat_damage_skill", 0),
+        "gold_earned": flags.get("stat_gold", 0),
+        "gold_from_shop_sale": flags.get("stat_sell_shop", 0),
+        "refine_success": flags.get("stat_refine_success", 0),
+        "refine_burned": flags.get("stat_refine_fail_smith", 0),
+    }
 
 
 # Curated subset of log.log's `how` values that make an "equipment history"
