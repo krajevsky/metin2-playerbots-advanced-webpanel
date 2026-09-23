@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-23 07:28 CEST · 1.66.0 · Ranking "Wyłowione ryby"
+
+- **Nowy ranking na `/rankings` i w karuzeli na dashboardzie: "Wyłowione ryby".** Wcześniejszy audyt uznał, że silnik nigdzie nie zapisuje złowienia ryby — to była prawda tylko dla `log.log` (tam faktycznie nie ma takiego zdarzenia), ale silnik ma osobną, dedykowaną tabelę `log.fish_log`, zapisywaną przy każdym złowieniu (`LogManager::FishLog`, wywoływane wprost z questa rybackiego). Znaleziona i podłączona po zgłoszeniu operatora — 5557 realnych połowów na start.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-22 21:47 CEST · 1.65.0 · Nowa odznaka "via" w changelogu + dołączenie Tieru
 
 - Operator i Tieru rozwijają teraz jeden wspólny panel zamiast dwóch osobnych — odznaka `via` na dole każdego wpisu dostała nową formę: praca z asystą AI to teraz `via Claude by Seban` / `via Codex by Seban` (imię operatora w panelu ma animowany, przelewający się kolor + migającą gwiazdkę obok), a kod wniesiony wprost przez Tieru (bez asysty AI) dostaje samo `via Tieru`, własnym, bursztynowym kolorem.

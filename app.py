@@ -2071,6 +2071,20 @@ def bot_ranking(kind, sort_by="avg"):
             FROM log.log l JOIN player.player p ON p.id=l.who
             WHERE {base} AND l.how='REFINE SUCCESS'
             GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name LIMIT 100""")
+    if kind == "fish":
+        # log.fish_log -- a dedicated table the engine writes to on every
+        # catch (LogManager::FishLog, called from pc_fishing_log() in
+        # questlua_pc.cpp, itself called from fishing.lua's pc.fishing_log()
+        # right after a successful catch). Missed in the original "does this
+        # engine track fishing at all" audit because that only checked
+        # log.log's `how` column, which genuinely has no fishing entry --
+        # this is a separate table entirely. Confirmed live 2026-09-22: 5557
+        # real rows, player_id joins cleanly to player.player.id.
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,SUM(fl.count) AS score,
+            CONCAT(SUM(fl.count),' złowionych ryb') AS detail
+            FROM log.fish_log fl JOIN player.player p ON p.id=fl.player_id
+            WHERE {base}
+            GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name LIMIT 100""")
     if kind == "refine_rate":
         # Ciekawostka, per operator's ask: % success needs a minimum sample
         # size, or a bot's very first-ever refine lands it at #1 forever
@@ -2323,13 +2337,17 @@ def dashboard():
     quick_rankings.append({"title": "Metiny", "subtitle": "rozbite · ostatnie 7 dni", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in metins]})
     bosses = bot_ranking("bosses")[:10]
     quick_rankings.append({"title": "Bossy", "subtitle": "zabite · ostatnie 7 dni", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in bosses]})
-    # "Ryby" used to sit here (LIKE '%ryb%' on log.log.what) but the engine
-    # never logs a catch anywhere -- confirmed zero matching rows on live
-    # data, matching character_stat_summary()'s note that fishing has no
-    # server-side record at all. Swapped for Pomyślne ulepszenia, which does
-    # have real data (same REFINE SUCCESS count /player/ already shows).
     refine = bot_ranking("refine")[:10]
     quick_rankings.append({"title": "Pomyślne ulepszenia", "subtitle": "łącznie, całościowo", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in refine]})
+    # "Ryby" used to sit here (LIKE '%ryb%' on log.log.what) and was pulled --
+    # that specific check was right (log.log has no fishing `how` at all),
+    # but the conclusion drawn from it ("the engine never logs a catch
+    # anywhere") was wrong: log.fish_log is a *separate* table the engine
+    # writes to on every catch (LogManager::FishLog, log.cpp), missed
+    # entirely because nothing was looking for it. Restored once actually
+    # found, per operator's ask 2026-09-23.
+    fish = bot_ranking("fish")[:10]
+    quick_rankings.append({"title": "Ryby", "subtitle": "wyłowione · łącznie", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in fish]})
     refine_rate = bot_ranking("refine_rate")[:10]
     quick_rankings.append({"title": "Skuteczność ulepszeń", "subtitle": "% sukcesu · min. 20 prób", "items": [{"id": row["id"], "name": row["name"], "value": f"{row['score']}%"} for row in refine_rate]})
     ranking_ids = {item["id"] for ranking in quick_rankings for item in ranking["items"]}
@@ -4012,7 +4030,7 @@ def rankings():
     kinds = {
         "level": "Poziom", "armor": "Zbroja", "weapon": "Broń", "weapon30": "Broń 30 Lv",
         "gold": "Yang", "items": "Przedmioty", "horse": "Koń", "hunting": "Polowanie", "biologist": "Biolog",
-        "shops": "Otwarte stragany", "skills": "Umiejętności", "plus9": "Przedmiot +9", "playtime": "Czas gry", "bosses": "Bossy", "refine": "Pomyślne ulepszenia", "refine_rate": "Skuteczność ulepszeń",
+        "shops": "Otwarte stragany", "skills": "Umiejętności", "plus9": "Przedmiot +9", "playtime": "Czas gry", "bosses": "Bossy", "refine": "Pomyślne ulepszenia", "refine_rate": "Skuteczność ulepszeń", "fish": "Wyłowione ryby",
     }
     kind = request.args.get("type", "level")
     if kind not in kinds:
