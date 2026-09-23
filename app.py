@@ -964,8 +964,9 @@ def live_bots():
     ids = list(statuses)
     placeholders = ",".join(["%s"] * len(ids))
     roster = rows(f"""
-        SELECT p.id, p.name, p.level, p.job, p.horse_level FROM player.player p
+        SELECT p.id, p.name, p.level, p.job, p.horse_level, """ + EMPIRE_EXPR + f""" AS empire FROM player.player p
         LEFT JOIN account.account a ON a.id=p.account_id
+        LEFT JOIN player.player_index pi ON pi.id=p.account_id
         WHERE p.id IN ({placeholders}) AND (LEFT(a.login,10)='playerbot_' OR p.name LIKE 'bot%%')
     """, ids)
     threshold = max(1, min(120, int(settings().get("stuck_minutes", "5"))))
@@ -2346,8 +2347,9 @@ def dashboard():
         "average_level": round(sum(int(bot.get("level") or 0) for bot in live_roster) / len(live_roster), 1) if live_roster else 0,
         "party_bots": sum(1 for bot in live_roster if bot.get("in_party")),
         "max_level": max((int(bot.get("level") or 0) for bot in live_roster), default=0),
-        "horse_average": round(sum(int(bot.get("horse_level") or 0) for bot in live_roster) / len(live_roster), 1) if live_roster else 0,
-        "horse_max": max((int(bot.get("horse_level") or 0) for bot in live_roster), default=0),
+        "empire_counts": [{"empire": empire, "name": empire_info(empire)["name"], "flag": empire_flag_path(empire),
+                            "count": sum(1 for bot in live_roster if int(bot.get("empire") or 0) == empire)}
+                           for empire in (1, 2, 3)],
         "guilds": bot_guilds,
         "last_restart": restart_label,
         "version": release_status["installed"],
@@ -2407,12 +2409,13 @@ def dashboard():
 @login_required
 def players():
     query = request.args.get("q", "").strip()
-    sql = "SELECT id, name, level, job, map_index, gold, playtime, last_play FROM player.player"
+    sql = ("SELECT p.id, p.name, p.level, p.job, p.map_index, p.gold, p.playtime, p.last_play, " + EMPIRE_EXPR + " AS empire"
+           " FROM player.player p LEFT JOIN player.player_index pi ON pi.id=p.account_id LEFT JOIN account.account a ON a.id=p.account_id")
     args = []
     if query:
-        sql += " WHERE name LIKE %s OR id=%s"
+        sql += " WHERE p.name LIKE %s OR p.id=%s"
         args = [f"%{query}%", query if query.isdigit() else -1]
-    sql += " ORDER BY level DESC, exp DESC LIMIT 250"
+    sql += " ORDER BY p.level DESC, p.exp DESC LIMIT 250"
     roster, live = rows(sql, args), live_statuses()
     for character in roster:
         state = live.get(character["id"])

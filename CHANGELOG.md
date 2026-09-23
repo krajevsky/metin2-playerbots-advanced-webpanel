@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-23 12:05 CEST · 1.70.0 · Królestwo na /players + boty online per królestwo
+
+- **Kolumna "Królestwo" na `/players`** — flaga i nazwa (Shinsoo/Chunjo/Jinno) przy każdej postaci.
+- **Dashboard, "Stan serwera":** usunięte "Jeździectwo · śr." i "Jeździectwo · max" (mało kto na nie patrzył), w ich miejsce "Zalogowane boty" z podziałem na trzy królestwa — trzy flagi z liczbą botów online przy każdej, żeby od razu było widać proporcje.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-23 11:20 CEST · 1.69.0 · Ryby, ruda i bossy w podsumowaniu dnia
 
 - **"Podsumowanie dnia" liczy teraz też wyłowione ryby, wykopaną rudę i pokonanych bossów** (obok istniejących +9/Metinów/eventów). Ryby z `log.fish_log`, bossy z `log.log` (jak Metiny), a ruda z `log.money_log(type='DROP')` odfiltrowanego do 19 vnumów surowej rudy, które faktycznie wydaje `mining.cpp` (50601–50619) — bo `money_log` typu DROP loguje też zwykłe łupy z potworów, więc bez filtra po vnumie liczyłoby wszystko, nie tylko górnictwo.
