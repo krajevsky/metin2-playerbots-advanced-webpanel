@@ -140,10 +140,343 @@ Ninja Archer - skille P
 /setsk 127 59 - Jezyk Chunjo P
 /setsk 128 59 - Jezyk Jinno P
 /setsk 129 59 - Polimorfia P
-/setsk 130 30 - 30 lvl konia
 /setsk 131 10 - Przywolanie konia 100%
 
 /setsk 137 59 - Ciecie z Siodla P
 /setsk 138 59 - Stapniecie Konia P
 /setsk 139 59 - Fala Mocy P
 /setsk 140 59 - skill na militara dla ninji
+
+
+================================================================================
+AUTORYTATYWNY INDEKS KOMEND MT2009 r41023 / Playerbots 2.x
+Źródło: game/src/cmd.cpp → cmd_info[] (audyt 2026-09-23).
+Każdy wpis podaje nazwę wywołania, procedurę silnika i minimalny poziom uprawnień.
+Nie są to zgadywane komendy z poradników — indeks odpowiada tej paczce serwera.
+
+Najczęściej potrzebne składnie potwierdzone w kodzie:
+/horse_level <nick> <poziom>  — ustawia poziom konia (0–30); zastępuje nieistniejące /setsk 130.
+/setskill <nazwa_umiejętności> <poziom> — ustawia umiejętność swojej postaci.
+/setskillother <nick> <nazwa_umiejętności> <poziom> — ustawia umiejętność wskazanej postaci.
+
+Poziomy: GM_PLAYER < GM_LOW_WIZARD < GM_WIZARD < GM_HIGH_WIZARD < GM_GOD < GM_IMPLEMENTOR.
+Niektóre polecenia są techniczne, deweloperskie albo zależą od włączonej funkcji w kompilacji.
+================================================================================
+
+
+[GM_PLAYER — Gracz / ogólnodostępne]
+
+/angry  — do_emotion
+/attractive  — do_emotion
+/autohunt_loot  — do_autohunt_loot
+/autohunt_target  — do_autohunt_target
+/banter  — do_emotion
+/bot_rank  — do_playerbot_rank
+/botadmin  — do_botadmin
+/build  — do_build
+/change_channel  — DoChangeChannel
+/cheer1  — do_emotion
+/cheer2  — do_emotion
+/cheerup  — do_emotion
+/clap  — do_emotion
+/click_mall  — do_click_mall
+/close_shop  — do_close_shop
+/con+  — do_stat_plus_amount
+/congratulation  — do_emotion
+/costume  — do_costume
+/dance1  — do_emotion
+/dance2  — do_emotion
+/dance3  — do_emotion
+/dance4  — do_emotion
+/dance5  — do_emotion
+/dance6  — do_emotion
+/dex+  — do_stat_plus_amount
+/dice  — do_dice
+/emotion_allow  — do_emotion_allow
+/escape  — do_escape
+/forgive  — do_emotion
+/french_kiss  — do_emotion
+/gmpanel_check_gm  — do_gmpanel_check_gm
+/gmpanel_open  — do_gmpanel_open
+/gskillup  — do_guildskillup
+/hair  — do_hair
+/in_game_mall  — do_in_game_mall
+/int+  — do_stat_plus_amount
+/inventory_arrange  — do_inventory_arrange
+/joy  — do_emotion
+/kiss  — do_emotion
+/logout  — do_cmd
+/mall_close  — do_mall_close
+/mall_password  — do_mall_password
+/messenger_auth  — do_messenger_auth
+/mount  — do_mount
+/nowar  — do_nowar
+/observer_exit  — do_observer_exit
+/party_request  — do_party_request
+/party_request_accept  — do_party_request_accept
+/party_request_deny  — do_party_request_deny
+/phase_select  — do_cmd
+/pickup_nearby  — do_pickup_nearby
+/pkmode  — do_pkmode
+/pvp  — do_pvp
+/quit  — do_cmd
+/refine_keep_open  — do_refine_keep_open
+/report_player  — do_report_player
+/restart_here  — do_restart
+/restart_town  — do_restart
+/ride  — do_ride
+/sad  — do_emotion
+/safebox_arrange  — do_safebox_arrange
+/safebox_change_password  — do_safebox_change_password
+/safebox_close  — do_safebox_close
+/safebox_move  — do_safebox_transfer
+/safebox_password  — do_safebox_password
+/safebox_put  — do_safebox_transfer
+/safebox_take  — do_safebox_transfer
+/set_run_mode  — do_set_run_mode
+/set_walk_mode  — do_set_walk_mode
+/setblockmode  — do_setblockmode
+/shy  — do_emotion
+/skillup  — do_skillup
+/slap  — do_emotion
+/stat  — do_stat
+/stat-  — do_stat_minus
+/str+  — do_stat_plus_amount
+/ungroup  — do_ungroup
+/unmount  — do_unmount
+/user_horse_back  — do_user_horse_back
+/user_horse_feed  — do_user_horse_feed
+/user_horse_ride  — do_user_horse_ride
+/war  — do_war
+/won_exchange  — do_won_exchange
+
+[GM_LOW_WIZARD — Niski GM]
+
+/gmpanel_warp_map  — do_gmpanel_warp_map
+/gmpanel_waypoint  — do_gmpanel_waypoint
+/goto  — do_goto
+/warp  — do_warp
+
+[GM_WIZARD — GM]
+
+/affect_remove  — do_affect_remove
+/aggregate  — do_aggregate
+/all_skill_master  — do_all_skill_master
+/attr_full_set  — do_attr_full_set
+/attract_ranger  — do_attract_ranger
+/block_chat  — do_block_chat
+/block_chat_list  — do_block_chat_list
+/block_pool  — do_block_pool
+/break_marriage  — do_break_marriage
+/can_dead  — do_can_dead
+/cannot_dead  — do_can_dead
+/captcha  — do_captcha
+/console  — do_console
+/dc  — do_disconnect
+/delqf  — do_delqf
+/detaillog  — do_detaillog
+/do_clear_affect  — do_clear_affect
+/duel  — do_duel
+/effect  — do_effect
+/end_all_duel  — do_end_all_duel
+/end_duel  — do_end_duel
+/forgetme  — do_forgetme
+/full_set  — do_full_set
+/get_mob_count  — do_get_mob_count
+/get_oxevent_att  — do_oxevent_get_attender
+/geteventflag  — do_get_event_flag
+/getqf  — do_getqf
+/gstate  — do_guild_state
+/gwcancel  — do_cancel_guild_war
+/gwlist  — do_gwlist
+/gwstop  — do_stop_guild_war
+/inventory  — do_inventory
+/invisible  — do_invisibility
+/item_full_set  — do_item_full_set
+/item_id_list  — do_get_item_id_list
+/level  — do_level
+/log_oxevent  — do_oxevent_log
+/monsterlog  — do_monsterlog
+/notice  — do_notice
+/notice_map  — do_map_notice
+/polymorph  — do_polymorph
+/pull_monster  — do_pull_monster
+/purge  — do_purge
+/respawn  — do_respawn
+/rewarp  — do_rewarp
+/rmcandidacy  — do_rmcandidacy
+/rmmonarch  — do_rmmonarch
+/set_socket  — do_set_socket
+/set_state  — do_set_state
+/setmonarch  — do_setmonarch
+/setqf  — do_setqf
+/setskill  — do_setskill
+/show_arena_list  — do_show_arena_list
+/show_quiz  — do_oxevent_show_quiz
+/siege  — do_siege
+/slow  — do_slow
+/spy  — do_spy
+/stat_reset  — do_stat_reset
+/state  — do_state
+/stun  — do_stun
+/tcon  — do_set_stat
+/tdex  — do_set_stat
+/threeway_info  — do_threeway_war_info
+/threeway_myinfo  — do_threeway_war_myinfo
+/tint  — do_set_stat
+/transfer  — do_transfer
+/tstr  — do_set_stat
+/use_item  — do_use_item
+/vote_block_chat  — do_vote_block_chat
+
+[GM_HIGH_WIZARD — Wysoki GM]
+
+/big_notice  — do_big_notice
+/big_notice_map  — do_map_big_notice
+/big_notice_test  — do_big_notice_test
+/block_flush  — do_block_flush
+/block_hwid  — do_block_hwid
+/block_player  — do_block
+/clear_land  — do_clear_land
+/clear_quest  — do_clear_quest
+/cooltime  — do_cooltime
+/deleteguild  — do_deleteguild
+/drop_info  — do_drop_info
+/eclipse  — do_eclipse
+/elect  — do_elect
+/eventflag  — do_event_flag
+/eventhelper  — do_event_helper
+/frog  — do_frog
+/gm_notice  — do_gm_notice
+/gmpanel_account  — do_gmpanel_account
+/gmpanel_available_bots  — do_gmpanel_available_bots
+/gmpanel_botlist  — do_gmpanel_botlist
+/gmpanel_createitem  — do_gmpanel_createitem
+/gmpanel_getaiweights  — do_gmpanel_getaiweights
+/gmpanel_getrates  — do_gmpanel_getrates
+/gmpanel_give_cash  — do_gmpanel_give_cash
+/gmpanel_give_gold  — do_gmpanel_give_gold
+/gmpanel_itemlist  — do_gmpanel_itemlist
+/gmpanel_lookup  — do_gmpanel_lookup
+/gmpanel_metinlist  — do_gmpanel_metinlist
+/gmpanel_moblist  — do_gmpanel_moblist
+/gmpanel_polyitem  — do_gmpanel_polyitem
+/gmpanel_restartserver  — do_gmpanel_restartserver
+/gmpanel_set_horse_points  — do_gmpanel_set_horse_points
+/gmpanel_set_range  — do_gmpanel_set_range
+/gmpanel_set_stat  — do_gmpanel_set_stat
+/gmpanel_setaiweight  — do_gmpanel_setaiweight
+/gmpanel_setrate  — do_gmpanel_setrate
+/gmpanel_setskill  — do_gmpanel_setskill
+/gmpanel_skilllist  — do_gmpanel_skilllist
+/gmpanel_spawn  — do_gmpanel_spawn
+/gmpanel_spawnmob  — do_gmpanel_spawnmob
+/gmpanel_spawnrandommetin  — do_gmpanel_spawnrandommetin
+/gmpanel_spawnrandommobs  — do_gmpanel_spawnrandommobs
+/gmpanel_view_equip  — do_gmpanel_view_equip
+/greset  — do_greset
+/group  — do_group
+/grrandom  — do_group_random
+/horse_level  — do_horse_level
+/horse_ride  — do_horse_ride
+/horse_set_stat  — do_horse_set_stat
+/horse_state  — do_horse_state
+/horse_summon  — do_horse_summon
+/horse_unsummon  — do_horse_unsummon
+/ipurge  — do_item_purge
+/jy  — do_block_chat
+/kill  — do_kill
+/ma  — do_mob_aggresive
+/makeguild  — do_makeguild
+/mc  — do_mob_coward
+/mm  — do_mob_map
+/mob  — do_mob
+/mob_count  — do_mob_count
+/mob_ld  — do_mob_ld
+/notice_test  — do_notice_test
+/polyitem  — do_polymorph_item
+/priv_empire  — do_priv_empire
+/priv_guild  — do_priv_guild
+/reset  — do_reset
+/reset_subskill  — do_reset_subskill
+/safebox  — do_safebox_size
+/setskillother  — do_setskillother
+/shutdown  — do_shutdown
+/special_spawn_info  — do_special_spawn_info
+/user  — do_user
+/xmas_boom  — do_xmas
+/xmas_santa  — do_xmas
+/xmas_snow  — do_xmas
+
+[GM_GOD — God]
+
+/advance  — do_advance
+/item  — do_item
+/online  — do_usage
+/usage  — do_usage
+/weaken  — do_weaken
+
+[GM_IMPLEMENTOR — Implementor]
+
+/add_attr  — do_add_attr
+/add_rare_attr  — do_add_rare_attr
+/add_socket  — do_add_socket
+/bleeding  — do_bleeding
+/book  — do_book
+/bot_despawn  — do_playerbot_despawn
+/bot_despawn_many  — do_playerbot_despawn_many
+/bot_spawn  — do_playerbot_spawn
+/bot_spawn_many  — do_playerbot_spawn_many
+/botadmin_achievements  — do_botadmin_achievements
+/botadmin_botlog  — do_botadmin_botlog
+/botadmin_give  — do_botadmin_give
+/botadmin_list  — do_botadmin_list
+/botadmin_stats  — do_botadmin_stats
+/change_attr  — do_change_attr
+/change_rare_attr  — do_change_rare_attr
+/check_mmoney  — do_check_monarch_money
+/check_mob  — do_check_mob
+/click_safebox  — do_click_safebox
+/cube  — do_cube
+/dragon_soul  — do_dragon_soul
+/ds_list  — do_ds_list
+/flush  — do_flush
+/force_logout  — do_force_logout
+/get_special_flag  — do_get_special_flag
+/gift  — do_gift
+/gmpanel_addgm  — do_gmpanel_addgm
+/list_map_spawn_delay  — do_map_spawn_delay_list
+/maintenance  — do_maintenance
+/max_pick  — do_max_pick
+/minfo  — do_monarch_info
+/mmob  — do_monarch_mob
+/mnotice  — do_monarch_notice
+/mount_test  — do_mount_test
+/mtax  — do_monarch_tax
+/mto  — do_monarch_warpto
+/mtr  — do_monarch_transfer
+/observer  — do_observer
+/offshop_force_close_shop  — do_offshop_force_close_shop
+/poison  — do_poison
+/private  — do_private
+/qf  — do_qf
+/refine_pick  — do_refine_pick
+/refine_rod  — do_refine_rod
+/reload  — do_reload
+/saveati  — do_save_attribute_to_image
+/set  — do_set
+/set_map_spawn_delay  — do_map_spawn_delay
+/set_special_flag  — do_set_special_flag
+/setjob  — do_set_skill_group
+/setskillpoint  — do_set_skill_point
+/socketitem  — do_socket_item
+/special_item  — do_special_item
+/specialshop_meta  — do_special_shop_meta
+/temp  — do_temp
+/test_hack  — do_test_hack
+/test_until_time  — do_test_until_time
+/view_equip  — do_view_equip
+/who  — do_who
+
+
+Łącznie: 296 zarejestrowanych poleceń (bez wewnętrznych skrótów blokowanych przez do_inputall i wpisu !RESERVED!).

@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-23 19:34 CEST · 1.72.0 · Baner Empire i pełny indeks komend MT2009
+
+- **Baner Empire dostał krótkie, ogniste wejście nazwy serwera:** po odsłonięciu przez przebiegającą Szamankę tytuł przez kilka sekund żarzy się płomieniem, a następnie płynnie wraca do zwykłej formy.
+- **Stojąca Szamanka jest większa:** wypełnia więcej wysokości banera, wykorzystując wolną przestrzeń nad głową i pod nogami.
+- **`/gm-commands` zawiera teraz indeks 296 komend z faktycznego `cmd_info[]` MT2009 r41023 / Playerbots 2.x**, pogrupowany według uprawnień GM i z nazwami procedur silnika. Zachowano dawną listę poradnikową; usunięto wyłącznie błędne `/setsk 130`, zastąpione potwierdzonym `/horse_level <nick> <poziom>`.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-23 18:50 CEST · 1.71.0 · Animowany baner Szamanki w motywie Empire
 
 - **Wejście na Dashboard w motywie Empire zaczyna się od krótkiej sceny:** Szamanka przebiega przez baner od lewej do prawej w 2,2 s, a cofająca się maska odsłania nazwę serwera i opis bez naruszania ich personalizacji.

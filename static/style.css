@@ -169,6 +169,23 @@ body[data-theme="empire"] .empire-hero-copy{
 }
 @keyframes empire-hero-copy-reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 
+body[data-theme="empire"] .empire-hero-title--intro{
+  position:relative;display:inline-block;isolation:isolate;
+  animation:empire-hero-fire-intro 4.2s ease-out 2.35s forwards;
+}
+body[data-theme="empire"] .empire-hero-title--intro::before{
+  content:attr(data-text);position:absolute;inset:0;color:#fb923c;filter:blur(10px);
+  opacity:0;z-index:-1;animation:empire-hero-fire-heat 1.2s ease-in-out 2.35s 3 both;
+}
+@keyframes empire-hero-fire-intro{
+  0%,18%{transform:translateY(0) scale(1);color:#fff7ed;text-shadow:0 0 6px #fed7aa,0 0 16px #fb923c,0 0 34px #f97316,0 0 70px #dc2626}
+  36%{transform:translateY(-2px) scale(1.02);color:#fff7ed;text-shadow:0 0 8px #fff7ed,0 0 22px #fdba74,0 0 50px #f97316,0 0 95px #b91c1c}
+  56%{transform:translateY(1px) scale(.99);color:#fff7ed;text-shadow:0 0 5px #fed7aa,0 0 14px #fb923c,0 0 28px #ea580c,0 0 60px #991b1b}
+  74%{transform:translateY(0) scale(1);color:#fff7ed;text-shadow:0 0 6px #fed7aa,0 0 16px #fb923c,0 0 34px #f97316,0 0 70px #dc2626}
+  100%{transform:translateY(0) scale(1);color:#fff;text-shadow:0 2px 0 #000,0 0 30px rgba(232,185,63,.45)}
+}
+@keyframes empire-hero-fire-heat{0%,100%{transform:translateY(0) scale(1);opacity:0}20%,70%{transform:translateY(-10px) scale(1.14);opacity:.82}}
+
 body[data-theme="empire"] .empire-hero-runner{
   position:absolute;bottom:0;left:-140px;height:100%;width:auto;z-index:6;
   animation:empire-hero-run 2.6s linear forwards;
@@ -176,12 +193,13 @@ body[data-theme="empire"] .empire-hero-runner{
 @keyframes empire-hero-run{from{left:-140px}to{left:calc(100% - 80px)}}
 
 body[data-theme="empire"] .empire-hero-idle{
-  position:absolute;bottom:0;right:24px;height:88%;width:auto;z-index:3;
+  position:absolute;bottom:0;right:24px;height:108%;width:auto;z-index:3;
 }
 
 @media(prefers-reduced-motion:reduce){
   body[data-theme="empire"] .empire-hero-runner{display:none}
   body[data-theme="empire"] .empire-hero-copy{animation:none;clip-path:none}
+  body[data-theme="empire"] .empire-hero-title--intro,body[data-theme="empire"] .empire-hero-title--intro::before{animation:none}
   body[data-theme="empire"] .empire-hero-idle{display:block!important}
 }
 
