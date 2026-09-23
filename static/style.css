@@ -169,20 +169,18 @@ body[data-theme="empire"] .empire-hero-sub{position:relative;z-index:4}
 body[data-theme="empire"] .empire-hero-mask{
   position:absolute;top:0;right:0;bottom:0;width:100%;z-index:5;
   background:linear-gradient(180deg,#0e0a08,#1a120c);
-  animation:empire-hero-reveal 2.2s linear forwards;pointer-events:none;
+  animation:empire-hero-reveal 2.6s linear forwards;pointer-events:none;
 }
 @keyframes empire-hero-reveal{from{width:100%}to{width:0}}
 
 body[data-theme="empire"] .empire-hero-runner{
   position:absolute;bottom:0;left:-140px;height:100%;width:auto;z-index:6;
-  mix-blend-mode:screen;
-  animation:empire-hero-run 2.2s linear forwards;
+  animation:empire-hero-run 2.6s linear forwards;
 }
 @keyframes empire-hero-run{from{left:-140px}to{left:calc(100% - 80px)}}
 
 body[data-theme="empire"] .empire-hero-idle{
   position:absolute;bottom:0;right:24px;height:88%;width:auto;z-index:3;
-  mix-blend-mode:screen;
 }
 
 @media(prefers-reduced-motion:reduce){
