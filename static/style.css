@@ -161,6 +161,33 @@ body[data-theme="empire"] .empire-hero-eyebrow{ font-family:'Cinzel',serif; font
 body[data-theme="empire"] .empire-hero-title{ font-family:'Cinzel',serif; font-weight:900; font-size:44px; margin:14px 0 8px; color:#fff; text-shadow:0 2px 0 #000,0 0 30px rgba(232,185,63,.45); }
 body[data-theme="empire"] .empire-hero-sub{ color:#c9b699; margin:0; font-size:14px; }
 
+body[data-theme="empire"] .empire-hero-eyebrow,
+body[data-theme="empire"] .empire-hero-title,
+body[data-theme="empire"] .empire-hero-sub{position:relative;z-index:4}
+
+body[data-theme="empire"] .empire-hero-mask{
+  position:absolute;top:0;right:0;bottom:0;width:100%;z-index:2;
+  background:linear-gradient(180deg,#0e0a08,#1a120c);
+  animation:empire-hero-reveal 2.2s linear forwards;pointer-events:none;
+}
+@keyframes empire-hero-reveal{from{width:100%}to{width:0}}
+
+body[data-theme="empire"] .empire-hero-runner{
+  position:absolute;bottom:0;left:-140px;height:100%;width:auto;z-index:3;
+  animation:empire-hero-run 2.2s linear forwards;
+}
+@keyframes empire-hero-run{from{left:-140px}to{left:calc(100% - 80px)}}
+
+body[data-theme="empire"] .empire-hero-idle{
+  position:absolute;bottom:0;right:24px;height:88%;width:auto;z-index:3;
+}
+
+@media(prefers-reduced-motion:reduce){
+  body[data-theme="empire"] .empire-hero-mask,
+  body[data-theme="empire"] .empire-hero-runner{display:none}
+  body[data-theme="empire"] .empire-hero-idle{display:block!important}
+}
+
 /* Klikalne wiersze na /accounts -> /account/<id>, z zipa z Windowsa 20.09. */
 .account-row{cursor:pointer}
 .account-row:hover td{background:color-mix(in srgb,var(--blue2) 16%,transparent)}
