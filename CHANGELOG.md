@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-23 10:02 CEST · 1.68.0 · 10 nowych rankingów z player_special_flag
+
+- Odkrycie z 1.67.0 (tabela `player_special_flag`, źródło panelu Y) posłużyło teraz do przebudowy rankingów: 10 nowych kategorii na `/rankings`, wszystkie all-time i dokładne (nie 7-dniowe okno jak dotychczasowe "Bossy"/"Metiny" z `log.log`) — Rekord obrażeń (zwykłe/konno/umiejętność), Zdobyty Yang łącznie, Yang ze sprzedaży u NPC, Zabite potwory łącznie, Pokonane minibossy, Pokonani gracze PVP (łącznie, nie tylko 7 dni), Wygrane pojedynki, Wykopane rudy.
+- Dwie z nich — Rekord obrażeń i Zdobyty Yang łącznie — trafiły też do karuzeli na dashboardzie, obok istniejących.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-23 09:15 CEST · 1.67.0 · Prawdziwy panel "Statystyki" (Y) na /player/
 
 - **Znaleziono realne, serwerowe źródło całego okna "Statystyki" (klawisz Y w grze) i podłączono je w pełni na `/player/`.** Wcześniejszy audyt tego panelu (na `log.log`) uznał większość pól za niezapisywane server-side — operator słusznie się z tym nie zgodził ("gra nie ma prawa brać tego znikąd, to działa niezależnie od tego gdzie się zalogujesz"). Właściwym źródłem okazała się osobna tabela silnika `player.player_special_flag` (pid, flag, value), zapisywana przy każdej zmianie przez `CHARACTER::AddPlayerStat`/`SetSpecialFlagSave` (game/src/char.cpp, char_battle.cpp, char_item.cpp, mining.cpp, shop_manager.cpp) — kompletnie pominięta przez wcześniejszy audyt, bo ten patrzył tylko na `log.log`.

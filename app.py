@@ -2071,6 +2071,18 @@ def bot_ranking(kind, sort_by="avg"):
             FROM log.log l JOIN player.player p ON p.id=l.who
             WHERE {base} AND l.how='REFINE SUCCESS'
             GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name LIMIT 100""")
+    if kind in SPECIAL_FLAG_RANKINGS:
+        # player.player_special_flag -- the same table character_stat_summary()
+        # reads for /player/'s "Statystyki (panel Y)" section (found 2026-09-23,
+        # see that function's docstring for the full trace to CHARACTER::
+        # AddPlayerStat). All-time, exact -- not a 7-day log.log window like
+        # "bosses"/"refine" above, so these numbers match /player/ 1:1.
+        flag, unit = SPECIAL_FLAG_RANKINGS[kind]
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,f.value AS score,
+            CONCAT(FORMAT(f.value,0),' {unit}') AS detail
+            FROM player.player_special_flag f JOIN player.player p ON p.id=f.pid
+            WHERE {base} AND f.flag=%s AND f.value>0
+            GROUP BY p.id,p.name,f.value ORDER BY f.value DESC,p.level DESC,p.name LIMIT 100""", (flag,))
     if kind == "fish":
         # log.fish_log -- a dedicated table the engine writes to on every
         # catch (LogManager::FishLog, called from pc_fishing_log() in
@@ -2348,6 +2360,13 @@ def dashboard():
     # found, per operator's ask 2026-09-23.
     fish = bot_ranking("fish")[:10]
     quick_rankings.append({"title": "Ryby", "subtitle": "wyłowione · łącznie", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in fish]})
+    # player_special_flag-backed rankings (2026-09-23) -- all-time exact
+    # totals, matching /player/'s Statystyki (panel Y) section 1:1, unlike
+    # the 7-day log.log windows above (Metiny/Bossy).
+    damage_max = bot_ranking("damage_max")[:10]
+    quick_rankings.append({"title": "Rekord obrażeń", "subtitle": "zwykły atak · najwyższy", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score']):,}".replace(',', ' ')} for row in damage_max]})
+    yang_earned = bot_ranking("yang_earned")[:10]
+    quick_rankings.append({"title": "Yang zdobyty", "subtitle": "łącznie · nie stan konta", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score']):,}".replace(',', ' ')} for row in yang_earned]})
     refine_rate = bot_ranking("refine_rate")[:10]
     quick_rankings.append({"title": "Skuteczność ulepszeń", "subtitle": "% sukcesu · min. 20 prób", "items": [{"id": row["id"], "name": row["name"], "value": f"{row['score']}%"} for row in refine_rate]})
     ranking_ids = {item["id"] for ranking in quick_rankings for item in ranking["items"]}
@@ -2422,6 +2441,23 @@ def guild(guild_id):
                     WHERE gm.guild_id=%s
                     ORDER BY (gm.pid=%s) DESC,gm.grade ASC,p.level DESC,p.name ASC""", (guild_id, details["leader_id"] or 0))
     return render_template("guild.html", guild=details, members=members)
+
+
+# kind -> (player_special_flag.flag, unit label for the ranking's "detail"
+# column). Shared between bot_ranking()'s SPECIAL_FLAG_RANKINGS branch and
+# the /rankings kinds dict -- add a ranking here and it appears both places.
+SPECIAL_FLAG_RANKINGS = {
+    "damage_max": ("stat_damage", "obrażeń (zwykłe, rekord)"),
+    "damage_max_horse": ("stat_damage_horse", "obrażeń (konno, rekord)"),
+    "damage_max_skill": ("stat_damage_skill", "obrażeń (umiejętność, rekord)"),
+    "yang_earned": ("stat_gold", "Yang zdobytych łącznie"),
+    "yang_npc_sale": ("stat_sell_shop", "Yang ze sprzedaży u NPC"),
+    "monsters_killed": ("stat_monster", "zabitych potworów łącznie"),
+    "minibosses": ("stat_miniboss", "pokonanych minibossów"),
+    "pvp_kills_total": ("stat_empire", "pokonanych graczy (wrogie królestwo)"),
+    "duel_wins": ("stat_duel", "wygranych pojedynków"),
+    "mining": ("stat_mining", "wykopanych rud"),
+}
 
 
 def character_stat_summary(pid):
@@ -4032,6 +4068,9 @@ def rankings():
         "level": "Poziom", "armor": "Zbroja", "weapon": "Broń", "weapon30": "Broń 30 Lv",
         "gold": "Yang", "items": "Przedmioty", "horse": "Koń", "hunting": "Polowanie", "biologist": "Biolog",
         "shops": "Otwarte stragany", "skills": "Umiejętności", "plus9": "Przedmiot +9", "playtime": "Czas gry", "bosses": "Bossy", "refine": "Pomyślne ulepszenia", "refine_rate": "Skuteczność ulepszeń", "fish": "Wyłowione ryby",
+        "damage_max": "Rekord obrażeń (zwykłe)", "damage_max_horse": "Rekord obrażeń (konno)", "damage_max_skill": "Rekord obrażeń (umiejętność)",
+        "yang_earned": "Zdobyty Yang (łącznie)", "yang_npc_sale": "Yang ze sprzedaży u NPC",
+        "monsters_killed": "Zabite potwory (łącznie)", "minibosses": "Pokonane minibossy", "pvp_kills_total": "Pokonani gracze (PVP)", "duel_wins": "Wygrane pojedynki", "mining": "Wykopane rudy",
     }
     kind = request.args.get("type", "level")
     if kind not in kinds:
