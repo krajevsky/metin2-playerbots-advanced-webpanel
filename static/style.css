@@ -162,16 +162,12 @@ body[data-theme="empire"] .empire-hero-eyebrow{ font-family:'Cinzel',serif; font
 body[data-theme="empire"] .empire-hero-title{ font-family:'Cinzel',serif; font-weight:900; font-size:44px; margin:14px 0 8px; color:#fff; text-shadow:0 2px 0 #000,0 0 30px rgba(232,185,63,.45); }
 body[data-theme="empire"] .empire-hero-sub{ color:#c9b699; margin:0; font-size:14px; }
 
-body[data-theme="empire"] .empire-hero-eyebrow,
-body[data-theme="empire"] .empire-hero-title,
-body[data-theme="empire"] .empire-hero-sub{position:relative;z-index:4}
-
-body[data-theme="empire"] .empire-hero-mask{
-  position:absolute;top:0;right:0;bottom:0;width:100%;z-index:5;
-  background:linear-gradient(180deg,#0e0a08,#1a120c);
-  animation:empire-hero-reveal 2.6s linear forwards;pointer-events:none;
+body[data-theme="empire"] .empire-hero-copy{
+  position:relative;z-index:4;
+  clip-path:inset(0 100% 0 0);
+  animation:empire-hero-copy-reveal 2.6s linear forwards;
 }
-@keyframes empire-hero-reveal{from{width:100%}to{width:0}}
+@keyframes empire-hero-copy-reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 
 body[data-theme="empire"] .empire-hero-runner{
   position:absolute;bottom:0;left:-140px;height:100%;width:auto;z-index:6;
@@ -184,8 +180,8 @@ body[data-theme="empire"] .empire-hero-idle{
 }
 
 @media(prefers-reduced-motion:reduce){
-  body[data-theme="empire"] .empire-hero-mask,
   body[data-theme="empire"] .empire-hero-runner{display:none}
+  body[data-theme="empire"] .empire-hero-copy{animation:none;clip-path:none}
   body[data-theme="empire"] .empire-hero-idle{display:block!important}
 }
 
