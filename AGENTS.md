@@ -101,8 +101,8 @@ The custom Seban Panel served on port 7790 is checked out at
 `/opt/seban-panel-custom`. Deploy a pushed `origin/main` commit with:
 
 ```sh
-sudo -n git -C /opt/seban-panel-custom fetch https://github.com/krajevsky/metin2-playerbots-advanced-webpanel.git main
-sudo -n git -C /opt/seban-panel-custom merge --ff-only FETCH_HEAD
+git -C /opt/seban-panel-custom fetch origin main
+git -C /opt/seban-panel-custom merge --ff-only FETCH_HEAD
 cd /opt/metin2-mt2009/mt2009-r41023-base/linux-port/docker
 sudo -n docker compose up -d --build --no-deps seban-panel seban-collector seban-item-grants
 ```
