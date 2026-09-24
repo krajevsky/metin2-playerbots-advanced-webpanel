@@ -86,12 +86,13 @@
     },8000);
   }
 }const slides=[...document.querySelectorAll('.quick-rank-slide')],dots=[...document.querySelectorAll('.carousel-dots button')],title=el('quick-rank-title'),subtitle=el('quick-rank-subtitle');let active=0;function show(index){if(!slides.length)return;active=(index+slides.length)%slides.length;slides.forEach((slide,i)=>{const isActive=i===active;slide.hidden=!isActive;if(isActive){slide.classList.remove('rank-enter');void slide.offsetWidth;slide.classList.add('rank-enter')}});dots.forEach((dot,i)=>dot.classList.toggle('active',i===active));title.textContent=slides[active].dataset.title;subtitle.textContent=slides[active].dataset.subtitle}
-// Auto-advance every 8s (same cadence as the map-distribution tile's own
-// rotation), paused for a bit after manual interaction so a click doesn't
-// immediately get overridden by the timer.
-let rankAutoplay=null;
-function restartRankAutoplay(){if(rankAutoplay)clearInterval(rankAutoplay);rankAutoplay=setInterval(()=>show(active+1),8000)}
-function userAdvance(index){show(index);restartRankAutoplay()}
+// Ranking remains on the selected slide by default. Autoplay is opt-in and
+// saved per browser, so manual browsing never gets unexpectedly overridden.
+const rankAutoplayToggle=el('quick-rank-autoplay'),rankAutoplayKey='seban.quickRankAutoplay';let rankAutoplay=null;
+function stopRankAutoplay(){if(rankAutoplay){clearInterval(rankAutoplay);rankAutoplay=null}}
+function syncRankAutoplay(){stopRankAutoplay();if(rankAutoplayToggle?.checked&&slides.length>1)rankAutoplay=setInterval(()=>show(active+1),8000)}
+function userAdvance(index){show(index)}
+if(rankAutoplayToggle){rankAutoplayToggle.checked=localStorage.getItem(rankAutoplayKey)==='1';rankAutoplayToggle.addEventListener('change',()=>{localStorage.setItem(rankAutoplayKey,rankAutoplayToggle.checked?'1':'0');syncRankAutoplay()})}
 el('quick-rank-prev')?.addEventListener('click',()=>userAdvance(active-1));el('quick-rank-next')?.addEventListener('click',()=>userAdvance(active+1));dots.forEach(dot=>dot.addEventListener('click',()=>userAdvance(Number(dot.dataset.slide))));
-if(slides.length>1)restartRankAutoplay();
+syncRankAutoplay();
 refresh()})();
