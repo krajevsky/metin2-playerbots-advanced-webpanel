@@ -165,7 +165,7 @@ body[data-theme="empire"] .empire-hero-sub{ color:#c9b699; margin:0; font-size:1
 body[data-theme="empire"] .empire-hero-copy{
   position:relative;z-index:4;
   clip-path:inset(0 100% 0 0);
-  animation:empire-hero-copy-reveal 2.6s linear forwards;
+  animation:empire-hero-copy-reveal 2.32s linear forwards;
 }
 @keyframes empire-hero-copy-reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 
