@@ -52,7 +52,8 @@
     const buttons = [...form.querySelectorAll('button')];
     buttons.forEach(b => b.disabled = true);
     const method = (form.getAttribute('method') || 'GET').toUpperCase();
-    let url = form.getAttribute('action') || (window.location.pathname + window.location.search);
+    const targetUrl = new URL(form.getAttribute('action') || window.location.href, window.location.href);
+    let url = targetUrl.href;
     const formData = new FormData(form, submitter);
     const opts = { method, credentials: 'same-origin' };
     if (method === 'GET' || method === 'HEAD') {
@@ -60,8 +61,11 @@
       // string instead, same as a plain <form method=get> submission would.
       const params = new URLSearchParams();
       for (const [k, v] of formData.entries()) params.append(k, v);
-      const qs = params.toString();
-      url = url.split('?')[0] + (qs ? '?' + qs : '');
+      // URLSearchParams belongs before #fragment. The shops search uses
+      // /economy/shops#market-items; appending ?q after that hash made q
+      // browser-only, so Flask always received an empty query.
+      targetUrl.search = params.toString();
+      url = targetUrl.href;
     } else {
       opts.body = formData;
     }
@@ -87,17 +91,21 @@
         runScripts(main);
         bindForms();
       }
-      if (resUrl.search !== window.location.search) {
+      if (resUrl.search !== window.location.search || targetUrl.hash !== window.location.hash) {
         // Same page, new query string (a filter/search form) -- keep the
         // address bar accurate without a real reload, and let Back undo it.
-        history.pushState(null, '', res.url);
+        history.pushState(null, '', resUrl.pathname + resUrl.search + targetUrl.hash);
+      }
+      if (targetUrl.hash) {
+        const anchor = document.getElementById(targetUrl.hash.slice(1));
+        if (anchor) anchor.scrollIntoView({ block: 'start' });
       }
       if (flashes.length) {
         flashes.forEach(f => window.showActionToast(f.message, f.category));
-      } else if (res.ok) {
-        window.showActionToast('Zmiana zapisana.', 'success');
-      } else {
+      } else if (!res.ok) {
         window.showActionToast('Coś poszło nie tak (' + res.status + ').', 'error');
+      } else if (method !== 'GET' && method !== 'HEAD') {
+        window.showActionToast('Zmiana zapisana.', 'success');
       }
     } catch (err) {
       window.showActionToast('Błąd sieci — spróbuj ponownie.', 'error');
@@ -121,7 +129,9 @@
         // the event is already marked prevented -- respect that and bail.
         if (e.defaultPrevented) return;
         e.preventDefault();
-        const submitter = clickedSubmitter;
+        // Native submitter also covers keyboard activation and keeps the
+        // clicked button's name/value (for example action=now on /events).
+        const submitter = e.submitter || clickedSubmitter;
         clickedSubmitter = null;
         submitAjax(form, submitter);
       });
