@@ -1,4 +1,5 @@
 import json
+import hashlib
 import logging
 import os
 import hmac
@@ -2230,10 +2231,10 @@ def globals_for_templates():
         return url_for("static", filename=f"empires/{flag}") if flag else ""
     def static_asset_url(filename):
         # Docker deployments replace static files while browsers may retain an
-        # older same-named stylesheet or script. The file mtime changes on each
-        # image build, so it is a safe cache-busting version without a release bump.
+        # older same-named stylesheet or script. Git preserves file mtimes,
+        # therefore use a content digest rather than the timestamp.
         try:
-            revision = int((Path(app.static_folder) / filename).stat().st_mtime)
+            revision = hashlib.sha256((Path(app.static_folder) / filename).read_bytes()).hexdigest()[:12]
         except OSError:
             revision = 0
         return url_for("static", filename=filename, v=revision)
