@@ -35,49 +35,50 @@
 </section>
 
 <section class="panel planner-panel">
-  <div class="planner-intro"><div><p class="eyebrow">TYDZIEŃ POWTARZALNY</p><h2>Harmonogram eventów</h2><p class="muted">Wybierz dni i przedział godzin. Okno 22:00–02:00 przechodzi przez północ. Dla rat wpisujesz bonus ponad bieżącą ratę serwera; 50 oznacza +50%. Harmonogram szkatułek blokuje ich drop poza wybranymi oknami.</p></div><div class="planner-legend"><span class="legend-live"></span> aktywny <span class="legend-plan"></span> zaplanowany</div></div>
-  <form method="post" class="planner-form">
-    <div class="planner-columns"><span>Event</span><span>Dni tygodnia</span><span>Godziny</span><span>Bonus</span><span>Wł.</span><span>Usuń</span></div>
-    {% for row in rows %}
-    {% set index = loop.index0 %}
-    <div class="planner-row">
-      <select name="r{{index}}_kind" aria-label="Event {{ index + 1 }}"><option value="">— wybierz —</option>{% for kind in event_kinds %}<option value="{{kind}}" {% if row.kind == kind %}selected{% endif %}>{{ event_labels[kind] }}</option>{% endfor %}</select>
-      <div class="week-days">{% for day in range(1,8) %}<label title="{{ day_names[day-1] }}"><input type="checkbox" name="r{{index}}_d{{day}}" {% if day in row.days %}checked{% endif %}><span>{{ day_names[day-1] }}</span></label>{% endfor %}</div>
-      <div class="time-range"><input type="time" name="r{{index}}_start" value="{{row.start}}" onclick="this.showPicker && this.showPicker()"><i>→</i><input type="time" name="r{{index}}_end" value="{{row.end}}" onclick="this.showPicker && this.showPicker()"></div>
-      <label class="bonus-input"><input type="number" name="r{{index}}_value" min="0" max="1000" value="{{row.value}}"><small>+%</small><em>dla Szkatułek: szansa z Zarządzania</em></label>
-      <label class="switch sw-8" title="Włącz lub wyłącz ten wiersz"><input type="checkbox" name="r{{index}}_on" {% if row.on %}checked{% endif %}><span class="track"><span class="thumb"></span></span></label>
-      <label class="delete-row"><input type="checkbox" name="r{{index}}_delete"><span>Usuń</span></label>
-    </div>
-    {% endfor %}
-    <div class="planner-footer"><p class="muted">Zostaw „— wybierz —”, aby pominąć pusty wiersz. Odznaczenie wszystkich dni zachowuje wiersz jako wyłączony czasowo.</p><button name="action" value="save">Zapisz harmonogram</button></div>
+  <div class="planner-intro"><div><p class="eyebrow">TYDZIEŃ POWTARZALNY</p><h2>Harmonogram eventów</h2><p class="muted">Kliknij wolną godzinę, aby dodać event. Kliknij istniejący blok, aby go edytować. Kalendarz zapisuje te same reguły Playerbots co dotychczas; okno 22:00–02:00 przechodzi przez północ.</p></div><div class="planner-legend"><span class="legend-live"></span> aktywny <span class="legend-plan"></span> zaplanowany</div></div>
+  <div class="calendar-toolbar"><div class="calendar-event-legend"><span class="calendar-legend-chest"><img src="{{url_for('static',filename='icons/50011.png')}}" alt="">Szkatułki</span><span class="calendar-legend-exp"><img src="{{url_for('static',filename='icons/70005.png')}}" alt="">EXP</span><span class="calendar-legend-drop"><img src="{{url_for('static',filename='icons/70043.png')}}" alt="">Drop</span><span class="calendar-legend-yang"><img src="{{url_for('static',filename='icons/money.png')}}" alt="">Yang</span></div><button type="button" id="calendar-add-event" class="secondary">＋ Dodaj event</button></div>
+  <form method="post" class="planner-form calendar-schedule-form" id="calendar-schedule-form">
+    <div id="calendar-hidden-fields"></div>
+    <div class="week-calendar" id="week-calendar" aria-label="Tygodniowy harmonogram eventów"></div>
+    <div class="planner-footer"><p class="muted">Bloki są powtarzane co tydzień. Możesz zaznaczyć wiele dni w edytorze eventu.</p><button name="action" value="save">Zapisz harmonogram</button></div>
   </form>
 </section>
-<section class="panel event-history-panel"><p class="eyebrow">HISTORIA</p><h2>📜 Ostatnie zakończone eventy</h2><p class="muted">Statystyki liczone ze zdarzeń w logu (zdobycie szkatułki / realnie zdobyty yang), nie ze stanu ekwipunku — dokładne niezależnie od tego co boty zrobiły z łupem.</p>{% if event_history %}<table class="event-history-table"><thead><tr><th>Event</th><th>Bonus</th><th>Od</th><th>Do</th><th>Wynik</th></tr></thead><tbody>{% for run in event_history %}<tr id="run-{{run.id}}"><td>{{run.label}}</td><td>{{'—' if run.kind=='chest' else '+' ~ run.value ~ '%'}}</td><td>{{run.started_at.strftime('%d.%m %H:%M')}}</td><td>{{run.ended_at.strftime('%d.%m %H:%M')}}</td><td>{{run.summary}}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}</section>
+<dialog id="calendar-editor" class="calendar-editor" data-ajax-ignore>
+  <form method="dialog" id="calendar-editor-form" data-ajax-ignore>
+    <header><div><p class="eyebrow" id="calendar-editor-eyebrow">NOWY EVENT</p><h2 id="calendar-editor-title">Dodaj event</h2></div><button type="button" class="quiet" id="calendar-editor-close" aria-label="Zamknij">×</button></header>
+    <label>Event<select id="calendar-editor-kind">{% for kind in event_kinds %}<option value="{{kind}}">{{ event_labels[kind] }}</option>{% endfor %}</select></label>
+    <fieldset><legend>Dni tygodnia</legend><div class="calendar-editor-days" id="calendar-editor-days"></div></fieldset>
+    <div class="calendar-editor-times"><label>Od<input id="calendar-editor-start" type="time" step="900"></label><label>Do<input id="calendar-editor-end" type="time" step="900"></label></div>
+    <label class="calendar-editor-bonus" id="calendar-editor-bonus">Bonus<input id="calendar-editor-value" type="number" min="0" max="1000" value="50"><small>% ponad ratę serwera</small></label>
+    <label class="calendar-editor-enabled"><input id="calendar-editor-enabled" type="checkbox" checked><span>Włączony</span></label>
+    <footer><button type="button" id="calendar-editor-delete" class="danger">Usuń</button><span></span><button type="button" class="secondary" id="calendar-editor-cancel">Anuluj</button><button type="submit">Zapisz event</button></footer>
+  </form>
+</dialog>
 <script>
 document.body.dataset.ajaxForms='1';
 (() => {
-// This lived inside the page's title block until 2026-09-22 -- <title> is a
-// raw text HTML element, so the browser never parsed it as a <script> at
-// all; it silently sat there as inert text (and made the actual browser tab
-// title show raw JS source). The chest/bonus toggle below never ran.
-function syncChestBonus(row) {
-  const kind = row.querySelector('select[name$="_kind"]').value;
-  const bonus = row.querySelector('.bonus-input');
-  const field = bonus.querySelector('input');
-  const chest = kind === 'chest';
-  bonus.classList.toggle('is-ignored', chest);
-  field.disabled = chest;
-}
-document.querySelectorAll('.planner-row').forEach(row => {
-  const select = row.querySelector('select[name$="_kind"]');
-  select.addEventListener('change', () => syncChestBonus(row));
-  syncChestBonus(row);
-});
-if (location.hash.startsWith('#run-')) {
-  const row = document.getElementById(location.hash.slice(1));
-  if (row) { row.scrollIntoView({behavior:'smooth', block:'center'}); row.classList.add('event-row-highlight'); setTimeout(() => row.classList.remove('event-row-highlight'), 3000); }
-}
+const dayNames=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
+const shortDays=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
+const labels={chest:'Szkatułki Blasku Księżyca',exp:'Doświadczenie',drop:'Drop przedmiotów',yang:'Yang'};
+const icons={chest:'{{url_for('static',filename='icons/50011.png')}}',exp:'{{url_for('static',filename='icons/70005.png')}}',drop:'{{url_for('static',filename='icons/70043.png')}}',yang:'{{url_for('static',filename='icons/money.png')}}'};
+let schedule={{ rows|tojson }}.filter(row=>row.kind);
+let editing=null;
+const $=id=>document.getElementById(id),calendar=$('week-calendar'),form=$('calendar-schedule-form'),hidden=$('calendar-hidden-fields'),dialog=$('calendar-editor'),editor=$('calendar-editor-form');
+const field={kind:$('calendar-editor-kind'),start:$('calendar-editor-start'),end:$('calendar-editor-end'),value:$('calendar-editor-value'),enabled:$('calendar-editor-enabled'),bonus:$('calendar-editor-bonus'),days:$('calendar-editor-days')};
+function minutes(time){const [h,m]=(time||'00:00').split(':').map(Number);return h*60+m}
+function timeAt(hour){return String(hour).padStart(2,'0')+':00'}
+function normal(row){return {kind:labels[row.kind]?row.kind:'chest',days:(row.days||[]).map(Number).filter(day=>day>=1&&day<=7),start:row.start||'20:00',end:row.end||'21:00',value:Number(row.value)||0,on:row.on!==false}}
+function openDialog(index,day=1,hour=20){editing=index;if(index===null){field.kind.value='chest';field.start.value=timeAt(hour);field.end.value=timeAt((hour+1)%24);field.value.value=50;field.enabled.checked=true;setDays([day])}else{const row=normal(schedule[index]);field.kind.value=row.kind;field.start.value=row.start;field.end.value=row.end;field.value.value=row.value;field.enabled.checked=row.on;setDays(row.days)}$('calendar-editor-eyebrow').textContent=index===null?'NOWY EVENT':'EDYCJA EVENTU';$('calendar-editor-title').textContent=index===null?'Dodaj event':'Edytuj event';$('calendar-editor-delete').hidden=index===null;syncBonus();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','')}
+function closeDialog(){if(dialog.close)dialog.close();else dialog.removeAttribute('open')}
+function setDays(days){field.days.innerHTML=shortDays.map((name,i)=>`<label><input type="checkbox" value="${i+1}" ${days.includes(i+1)?'checked':''}><span>${name}</span></label>`).join('')}
+function selectedDays(){return [...field.days.querySelectorAll('input:checked')].map(input=>Number(input.value))}
+function syncBonus(){const chest=field.kind.value==='chest';field.bonus.classList.toggle('is-hidden',chest);field.value.disabled=chest}
+function addBlock(day,row,index,start,end){if(end<=start)return;const block=document.createElement('button');block.type='button';block.className=`calendar-event calendar-event-${row.kind}${row.on?'':' is-disabled'}`;block.style.top=(42+start/60*48)+'px';block.style.height=Math.max(28,(end-start)/60*48-3)+'px';block.innerHTML=`<span class="calendar-event-head"><img src="${icons[row.kind]}" alt=""><small>${row.start}–${row.end}</small></span><b>${labels[row.kind]}</b>${row.kind!=='chest'?`<em>+${row.value}%</em>`:''}`;block.title='Edytuj: '+labels[row.kind];block.addEventListener('click',event=>{event.stopPropagation();openDialog(index)});calendar.querySelector(`.calendar-day[data-day="${day}"]`).append(block)}
+function render(){calendar.innerHTML=`<div class="calendar-hours"><div class="calendar-corner">Czas</div>${Array.from({length:24},(_,hour)=>`<div class="calendar-hour">${timeAt(hour)}</div>`).join('')}</div><div class="calendar-days">${dayNames.map((name,index)=>`<section class="calendar-day" data-day="${index+1}"><h3>${name}<small>${shortDays[index]}</small></h3>${Array.from({length:24},(_,hour)=>`<button type="button" class="calendar-slot" data-hour="${hour}" aria-label="Dodaj event: ${name}, ${timeAt(hour)}"></button>`).join('')}</section>`).join('')}</div>`;calendar.querySelectorAll('.calendar-slot').forEach(slot=>slot.addEventListener('click',()=>openDialog(null,Number(slot.closest('.calendar-day').dataset.day),Number(slot.dataset.hour))));schedule.forEach((raw,index)=>{const row=normal(raw);row.days.forEach(day=>{const start=minutes(row.start),end=minutes(row.end);if(end>start)addBlock(day,row,index,start,end);else{addBlock(day,row,index,start,1440);addBlock(day===7?1:day+1,row,index,0,end)}})})}
+function serialize(){hidden.innerHTML='';schedule.map(normal).slice(0,16).forEach((row,index)=>{const put=(name,value)=>{const input=document.createElement('input');input.type='hidden';input.name=`r${index}_${name}`;input.value=value;hidden.append(input)};put('kind',row.kind);put('start',row.start);put('end',row.end);put('value',row.kind==='chest'?0:row.value);row.days.forEach(day=>put('d'+day,'1'));if(row.on)put('on','1')});if(!schedule.length){const input=document.createElement('input');input.type='hidden';input.name='r0_kind';input.value='';hidden.append(input)}}
+$('calendar-add-event').addEventListener('click',()=>openDialog(null,1,20));$('calendar-editor-close').addEventListener('click',closeDialog);$('calendar-editor-cancel').addEventListener('click',closeDialog);field.kind.addEventListener('change',syncBonus);$('calendar-editor-delete').addEventListener('click',()=>{if(editing!==null){schedule.splice(editing,1);render()}closeDialog()});editor.addEventListener('submit',event=>{event.preventDefault();const days=selectedDays();if(!days.length){window.showActionToast('Wybierz co najmniej jeden dzień.', 'error');return}const row={kind:field.kind.value,days,start:field.start.value,end:field.end.value,value:field.kind.value==='chest'?0:Number(field.value.value)||0,on:field.enabled.checked};if(!row.start||!row.end){window.showActionToast('Ustaw godzinę rozpoczęcia i zakończenia.', 'error');return}if(editing===null){if(schedule.length>=16){window.showActionToast('Można zapisać maksymalnie 16 eventów.', 'error');return}schedule.push(row)}else schedule[editing]=row;render();closeDialog()});form.addEventListener('submit',serialize);render();
 })();
 </script>
+<section class="panel event-history-panel"><p class="eyebrow">HISTORIA</p><h2>📜 Ostatnie zakończone eventy</h2><p class="muted">Statystyki liczone ze zdarzeń w logu (zdobycie szkatułki / realnie zdobyty yang), nie ze stanu ekwipunku — dokładne niezależnie od tego co boty zrobiły z łupem.</p>{% if event_history %}<table class="event-history-table"><thead><tr><th>Event</th><th>Bonus</th><th>Od</th><th>Do</th><th>Wynik</th></tr></thead><tbody>{% for run in event_history %}<tr id="run-{{run.id}}"><td>{{run.label}}</td><td>{{'—' if run.kind=='chest' else '+' ~ run.value ~ '%'}}</td><td>{{run.started_at.strftime('%d.%m %H:%M')}}</td><td>{{run.ended_at.strftime('%d.%m %H:%M')}}</td><td>{{run.summary}}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}</section>
 {% endblock %}
 

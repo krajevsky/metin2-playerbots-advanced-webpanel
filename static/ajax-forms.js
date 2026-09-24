@@ -118,7 +118,7 @@
   }
 
   function bindForms() {
-    document.querySelectorAll('main form').forEach(form => {
+    document.querySelectorAll('main form:not([data-ajax-ignore])').forEach(form => {
       if (form.dataset.ajaxBound) return;
       form.dataset.ajaxBound = '1';
       let clickedSubmitter = null;
