@@ -49,12 +49,15 @@
   }
 
   async function submitAjax(form, submitter) {
+    // Capture successful controls before disabling UI. A disabled submitter
+    // is excluded from FormData, which silently dropped button values such
+    // as action=now/action=stop on the event cards.
+    const formData = new FormData(form, submitter);
     const buttons = [...form.querySelectorAll('button')];
     buttons.forEach(b => b.disabled = true);
     const method = (form.getAttribute('method') || 'GET').toUpperCase();
     const targetUrl = new URL(form.getAttribute('action') || window.location.href, window.location.href);
     let url = targetUrl.href;
-    const formData = new FormData(form, submitter);
     const opts = { method, credentials: 'same-origin' };
     if (method === 'GET' || method === 'HEAD') {
       // fetch() forbids a body on GET/HEAD -- fold the fields into the query
