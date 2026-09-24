@@ -1,5 +1,15 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-24 22:30 CEST · 1.73.0 · Tygodniowy kalendarz eventów i baner wszystkich motywów
+
+- **Harmonogram eventów na `/events` jest teraz interaktywnym kalendarzem tygodniowym:** siedem dni, format 24-godzinny, kliknięcie wolnej godziny dodaje wydarzenie, a kliknięcie bloku otwiera jego edycję. Kalendarz przewija się od razu w okolice najbliższego zaplanowanego wydarzenia.
+- **Bloki wydarzeń są zwarte i czytelne:** pokazują dużą ikonę, godziny oraz wartość bonusu; używają kolorów zależnych od rodzaju eventu. Ujednolicono też wysokość przycisków edytora i wygląd paska przewijania zgodny z aktywnym motywem.
+- **Karuzela rankingów na dashboardzie nie przełącza się samoczynnie bez zgody:** przełącznik `Auto` pozwala włączyć automatyczną rotację na życzenie.
+- **Animowany baner Szamanki działa dla każdego motywu:** Empire, Ember, Forest i Ocean otrzymują własne kolory tła oraz dopasowany efekt tytułu. Szamanka przebiega przez baner, a następnie pozostaje w jego prawej części; naprawiono też jej pozycjonowanie i tor biegu.
+- **Akcje AJAX zachowują działanie formularzy eventów i wyszukiwarek**, więc przyciski „Aktywuj teraz” oraz zapytania do sklepów przekazują właściwe dane po zmianie panelu na odświeżanie w tle.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-23 19:34 CEST · 1.72.0 · Baner Empire i pełny indeks komend MT2009
 
 - **Baner Empire dostał krótkie, ogniste wejście nazwy serwera:** po odsłonięciu przez przebiegającą Szamankę tytuł przez kilka sekund żarzy się płomieniem, a następnie płynnie wraca do zwykłej formy.
