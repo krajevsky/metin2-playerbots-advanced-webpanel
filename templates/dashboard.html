@@ -1,13 +1,11 @@
 {% extends 'base.html' %}{% block title %}Dashboard · {{ panel_brand }}{% endblock %}{% block content %}
-{% if settings.theme=='empire' %}<section class="empire-hero" id="heroBanner"><div class="empire-hero-copy"><p class="empire-hero-eyebrow">帝國 · CESARSTWO WOJOWNIKÓW</p><h1 class="empire-hero-title empire-hero-title--intro" data-text="{{panel_brand}}">{{panel_brand}}</h1><p class="empire-hero-sub">Trzy imperia. Jedno pole bitwy. Kroniki cesarstwa czuwają nad każdym wojownikiem.</p></div><img src="{{ url_for('static', filename='shaman_run.gif') }}" class="empire-hero-runner" id="bannerRunner" alt=""><img src="{{ url_for('static', filename='shaman_idle.gif') }}" class="empire-hero-idle" id="bannerIdle" alt="" style="display:none"></section>
+{% if settings.theme=='empire' %}<section class="empire-hero" id="heroBanner"><div class="empire-hero-copy"><p class="empire-hero-eyebrow">帝國 · CESARSTWO WOJOWNIKÓW</p><h1 class="empire-hero-title empire-hero-title--intro" data-text="{{panel_brand}}">{{panel_brand}}</h1><p class="empire-hero-sub">Trzy imperia. Jedno pole bitwy. Kroniki cesarstwa czuwają nad każdym wojownikiem.</p></div><img src="{{ url_for('static', filename='shaman_run.gif') }}" class="empire-hero-runner" id="bannerRunner" alt=""><img src="{{ url_for('static', filename='shaman_idle.gif') }}" class="empire-hero-idle" id="bannerIdle" alt=""></section>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var runner = document.getElementById('bannerRunner');
-  var idle = document.getElementById('bannerIdle');
   if (!runner) return;
   runner.addEventListener('animationend', function () {
     runner.style.display = 'none';
-    if (idle) idle.style.display = 'block';
   }, { once: true });
 });
 </script>

@@ -190,17 +190,23 @@ body[data-theme="empire"] .empire-hero-runner{
   position:absolute;bottom:0;left:-140px;height:100%;width:auto;z-index:6;
   animation:empire-hero-run 2.6s linear forwards;
 }
-@keyframes empire-hero-run{from{left:-140px}to{left:calc(100% - 80px)}}
+@keyframes empire-hero-run{
+  from{left:-140px;opacity:1}
+  86%{opacity:1}
+  to{left:calc(100% - 80px);opacity:0}
+}
 
 body[data-theme="empire"] .empire-hero-idle{
-  position:absolute;bottom:0;right:24px;height:108%;width:auto;z-index:3;
+  position:absolute;bottom:0;right:24px;height:108%;width:auto;z-index:3;opacity:0;
+  animation:empire-hero-idle-in .36s ease-out 2.24s forwards;
 }
+@keyframes empire-hero-idle-in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
 
 @media(prefers-reduced-motion:reduce){
   body[data-theme="empire"] .empire-hero-runner{display:none}
   body[data-theme="empire"] .empire-hero-copy{animation:none;clip-path:none}
   body[data-theme="empire"] .empire-hero-title--intro,body[data-theme="empire"] .empire-hero-title--intro::before{animation:none}
-  body[data-theme="empire"] .empire-hero-idle{display:block!important}
+  body[data-theme="empire"] .empire-hero-idle{display:block!important;opacity:1;animation:none}
 }
 
 /* Klikalne wiersze na /accounts -> /account/<id>, z zipa z Windowsa 20.09. */
