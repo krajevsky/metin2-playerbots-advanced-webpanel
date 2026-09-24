@@ -90,3 +90,26 @@ never an uncommitted VPS-only edit.
 
 Never push to `TieruYT/metin2-playerbots` (the upstream engine this panel
 sits next to) — that's not this repo's business at all.
+
+## VPS environment and deployment
+
+The production VPS runs only the MT2009 r41023 / Playerbots 2.x line. Its
+active game checkout is `/opt/metin2-mt2009/mt2009-r41023-base`; Docker Compose
+lives in `/opt/metin2-mt2009/mt2009-r41023-base/linux-port/docker`.
+
+The custom Seban Panel served on port 7790 is checked out at
+`/opt/seban-panel-custom`. Deploy a pushed `origin/main` commit with:
+
+```sh
+sudo -n git -C /opt/seban-panel-custom fetch https://github.com/krajevsky/metin2-playerbots-advanced-webpanel.git main
+sudo -n git -C /opt/seban-panel-custom merge --ff-only FETCH_HEAD
+cd /opt/metin2-mt2009/mt2009-r41023-base/linux-port/docker
+sudo -n docker compose up -d --build --no-deps seban-panel seban-collector seban-item-grants
+```
+
+Use `sudo -n` only for the explicitly required service and deployment work.
+Preserve the `account`, `common`, `player`, and `log` databases, the custom
+panel, `seban-overrides`, the `seban-updater` service, and overrides for
+Skrzynia Ucznia, Szkatułka Blasku Księżyca, and demonstration characters.
+Never remove player data, bots, databases, or directories without an explicit
+operator request and a verified backup. Never use r40250 or Playerbots 1.x.
