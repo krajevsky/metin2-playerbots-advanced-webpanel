@@ -2228,7 +2228,16 @@ def globals_for_templates():
     def empire_flag(empire):
         flag = empire_flag_path(empire)
         return url_for("static", filename=f"empires/{flag}") if flag else ""
-    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag}
+    def static_asset_url(filename):
+        # Docker deployments replace static files while browsers may retain an
+        # older same-named stylesheet or script. The file mtime changes on each
+        # image build, so it is a safe cache-busting version without a release bump.
+        try:
+            revision = int((Path(app.static_folder) / filename).stat().st_mtime)
+        except OSError:
+            revision = 0
+        return url_for("static", filename=filename, v=revision)
+    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url}
 @app.route("/login", methods=["GET", "POST"])
 def login():
     current = settings()
