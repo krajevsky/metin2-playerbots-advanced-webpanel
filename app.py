@@ -3851,9 +3851,10 @@ def scan_bot_chat_logs():
                 cur.executemany(
                     "INSERT IGNORE INTO player.web_seban_bot_chat_log (channel,pid,name,message,captured_at) VALUES (%s,%s,%s,%s,%s)",
                     new_rows)
-                # /live-chat only ever shows the newest couple hundred -- keep the table from growing forever.
+                # /live-chat only ever shows the newest 100 -- keep the table from growing forever
+                # (operator's ask 2026-09-25: bounded history, not unlimited retention).
                 cur.execute("""DELETE FROM player.web_seban_bot_chat_log WHERE id < (
-                    SELECT id FROM (SELECT id FROM player.web_seban_bot_chat_log ORDER BY id DESC LIMIT 1 OFFSET 2000) t)""")
+                    SELECT id FROM (SELECT id FROM player.web_seban_bot_chat_log ORDER BY id DESC LIMIT 1 OFFSET 100) t)""")
             for key, new_offset in updates:
                 cur.execute("REPLACE INTO player.web_seban_chat_offset (path,byte_offset) VALUES (%s,%s)", (key, new_offset))
     except pymysql.MySQLError:
@@ -3862,7 +3863,7 @@ def scan_bot_chat_logs():
         con.close()
 
 
-def playerbot_public_messages(limit=180):
+def playerbot_public_messages(limit=100):
     """Newest public Playerbot broadcasts (Wołaj / refine announcements),
     read from the persistent capture table scan_bot_chat_logs() fills
     incrementally -- see that function's docstring for why this isn't a
@@ -3890,9 +3891,12 @@ def playerbot_public_messages(limit=180):
     return result[-limit:]
 
 
-def live_chat_messages(limit=140):
-    """Newest public player and bot messages from all active MT2009 cores."""
-    limit = max(1, min(int(limit or 140), 300))
+def live_chat_messages(limit=100):
+    """Newest public player and bot messages from all active MT2009 cores.
+    Capped at 100 (operator's ask, 2026-09-25): a bounded, persistent
+    history so opening the page at any random moment shows what bots were
+    just chatting about, not just whatever shows up from that point on."""
+    limit = max(1, min(int(limit or 100), 100))
     query = """
         SELECT c.`where` AS map_index,c.who_id,c.who_name,c.type,
                c.msg,c.`when`,p.id,p.job,""" + EMPIRE_EXPR + """ AS empire
