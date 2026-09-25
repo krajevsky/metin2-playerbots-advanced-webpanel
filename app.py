@@ -838,30 +838,30 @@ _season_cache = {"at": 0.0, "weekly": [], "records": {}}
 
 
 def _news_event_source_rows(since, before=None, scan_limit=900):
-    """Raw log.log candidate rows for a rare achievement, before
-    classification. Shared by the dashboard ticker (news_feed_events) and
-    the full history page (news_feed_history) so the detection rules only
-    live in one place (_classify_news_events).
+    """Raw log.log candidate rows for a rare achievement (skill masteries,
+    Małż finds), before classification. Refines are NOT sourced from here
+    -- see _refine_event_rows()/log.refinelog, which also carries the
+    upgrade method (blacksmith vs scroll) that log.log's hint never did.
+    Shared by the dashboard ticker (news_feed_events) and the full history
+    page (news_feed_history) so the detection rules only live in one place
+    (_classify_news_events).
 
     Filter in SQL before the limit: a busy server produces thousands of
-    ordinary +0-+3 refines per minute, taking its newest rows first made
-    rare achievements disappear from the feed altogether.
+    ordinary events per minute, taking its newest rows first made rare
+    achievements disappear from the feed altogether.
     """
     clauses, params = ["l.time >= %s"], [since]
     if before:
         clauses.append("l.time < %s")
         params.append(before)
     return rows(f"""SELECT l.time,l.how,l.hint,HEX(l.hint) AS hint_hex,l.what,l.who,p.name,p.job,
-        {EMPIRE_EXPR} AS empire, i.vnum, i.socket0, HEX(proto.locale_name) AS item_name_hex
+        {EMPIRE_EXPR} AS empire
       FROM log.log l JOIN player.player p ON p.id=l.who
       LEFT JOIN player.player_index pi ON pi.id=p.account_id
       LEFT JOIN account.account a ON a.id=p.account_id
-      LEFT JOIN player.item i ON i.id=l.what
-      LEFT JOIN player.item_proto proto ON proto.vnum=i.vnum
       WHERE {' AND '.join(clauses)}
         AND (
-          (l.how='REFINE SUCCESS' AND (l.hint LIKE '%%+7%%' OR l.hint LIKE '%%+8%%' OR l.hint LIKE '%%+9%%'))
-          OR l.how='SKILLUP'
+          l.how='SKILLUP'
           OR (l.how='GET' AND LOWER(CONVERT(l.hint USING utf8mb4)) COLLATE utf8mb4_general_ci LIKE '%%małż%%')
         )
       ORDER BY l.time DESC LIMIT %s""", params + [scan_limit])
@@ -877,13 +877,8 @@ def _classify_news_events(raw):
         key = f"{how}:{row.get('who')}:{row.get('what')}:{row.get('time')}"
         if key in seen or not name:
             continue
-        message, kind, match = None, None, None
-        if how == "REFINE SUCCESS":
-            match = re.search(r"\+([789])(?:\s|$)", hint)
-            if match:
-                item_name = cp1250_hex_text(row.get("item_name_hex")) or hint.strip()
-                message, kind = f"{name} ulepszył {item_name}", "refine"
-        elif how == "SKILLUP":
+        message, kind = None, None
+        if how == "SKILLUP":
             skill_match = re.search(r"SkillUp:\s+\S+\s+(\d+)\s+(\d+)\s+(\d+)", hint)
             if skill_match:
                 vnum, master, level = map(int, skill_match.groups())
@@ -896,11 +891,72 @@ def _classify_news_events(raw):
             continue
         seen.add(key)
         events.append({
-            "key": key, "time": row["time"], "message": message, "kind": kind, "actor": name,
-            "refine_tier": int(match.group(1)) if kind == "refine" and match else 0,
-            "player_id": int(row.get("who") or 0), "job": int(row.get("job") or 0), "empire": int(row.get("empire") or 0),
-            "vnum": int(row.get("vnum") or 0) if kind == "refine" else 0,
-            "socket0": int(row.get("socket0") or 0) if row.get("socket0") else 0,
+            "key": key, "time": row["time"], "message": message, "kind": kind, "actor": name, "method": None,
+            "refine_tier": 0, "player_id": int(row.get("who") or 0), "job": int(row.get("job") or 0),
+            "empire": int(row.get("empire") or 0), "vnum": 0, "socket0": 0,
+        })
+    return events
+
+
+# log.log's REFINE SUCCESS hint is just "<item name>+<level>" -- no way to
+# tell a blacksmith refine from a scroll one. The engine's own refine log
+# (LogManager::RefineLog, char_item.cpp) writes that distinction into
+# log.refinelog.setType: "POWER" (blacksmith NPC), "GUILD" (guild forge),
+# "DEVILTOWER" (the yang-only device), or "SCROLL:<vnum>" (used an item
+# directly). Confirmed live 2026-09-25: this build only ever produces
+# POWER and SCROLL:<vnum> so far. Operator's ask the same day: show which
+# one on /world-feed.
+REFINE_METHOD_LABELS = {"POWER": "u kowala", "GUILD": "w kuźni gildii", "DEVILTOWER": "Wieżą Diabła"}
+
+
+def _refine_event_rows(since, before=None, scan_limit=200_000):
+    """Rare (+7/+8/+9) successful upgrades from log.refinelog -- a smaller,
+    purpose-built InnoDB table (280K rows vs log.log's 6.4M), so this scan
+    is cheap even without a `time` index (checked live: ~150ms)."""
+    clauses, params = ["r.time >= %s", "r.is_success=1", "r.step IN (7,8,9)"], [since]
+    if before:
+        clauses.append("r.time < %s")
+        params.append(before)
+    return rows(f"""SELECT r.pid,r.item_name,r.item_id,r.step,r.time,r.setType,p.name,p.job,{EMPIRE_EXPR} AS empire
+      FROM log.refinelog r JOIN player.player p ON p.id=r.pid
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      LEFT JOIN account.account a ON a.id=p.account_id
+      WHERE {' AND '.join(clauses)}
+      ORDER BY r.time DESC LIMIT %s""", params + [scan_limit])
+
+
+def _classify_refine_events(raw):
+    scroll_vnums = {int(r["setType"].split(":", 1)[1]) for r in raw
+                    if r.get("setType") and str(r["setType"]).startswith("SCROLL:") and str(r["setType"]).split(":", 1)[1].isdigit()}
+    scroll_names = {}
+    if scroll_vnums:
+        marks = ",".join(["%s"] * len(scroll_vnums))
+        scroll_names = {r["vnum"]: game_text(r["locale_name"]) for r in
+                        rows(f"SELECT vnum,locale_name FROM player.item_proto WHERE vnum IN ({marks})", list(scroll_vnums))}
+    events, seen = [], set()
+    for row in raw:
+        name = game_text(row.get("name"))
+        item_name = game_text(row.get("item_name"))
+        if not name or not item_name:
+            continue
+        key = f"REFINE:{row.get('pid')}:{row.get('item_id')}:{row.get('time')}"
+        if key in seen:
+            continue
+        seen.add(key)
+        set_type = str(row.get("setType") or "")
+        if set_type in REFINE_METHOD_LABELS:
+            method = REFINE_METHOD_LABELS[set_type]
+        elif set_type.startswith("SCROLL:"):
+            scroll_vnum = set_type.split(":", 1)[1]
+            scroll_name = scroll_names.get(int(scroll_vnum)) if scroll_vnum.isdigit() else None
+            method = f"zwojem ({scroll_name})" if scroll_name else "zwojem"
+        else:
+            method = "innym sposobem"
+        events.append({
+            "key": key, "time": row["time"], "message": f"{name} ulepszył {item_name}", "kind": "refine",
+            "actor": name, "method": method, "refine_tier": int(row.get("step") or 0),
+            "player_id": int(row.get("pid") or 0), "job": int(row.get("job") or 0),
+            "empire": int(row.get("empire") or 0), "vnum": 0, "socket0": 0,
         })
     return events
 
@@ -943,14 +999,14 @@ def sync_news_events():
             cur.execute("SELECT value FROM player.web_seban_settings WHERE name='news_scan_last_time'")
             cursor_row = cur.fetchone()
             since = cursor_row["value"] if cursor_row and cursor_row.get("value") else "2020-01-01 00:00:00"
-            raw = _news_event_source_rows(since=since, scan_limit=2_000_000)
-            events = _classify_news_events(raw)
+            events = _classify_news_events(_news_event_source_rows(since=since, scan_limit=2_000_000))
+            events += _classify_refine_events(_refine_event_rows(since=since))
             if events:
                 cur.executemany("""INSERT IGNORE INTO player.web_seban_news_event
-                  (event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier)
-                  VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                  (event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier,method)
+                  VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                   [(e["key"], e["time"], e["kind"], e["message"], e["actor"], e["player_id"], e["job"],
-                    e["empire"], e["vnum"], e["socket0"], e["refine_tier"]) for e in events])
+                    e["empire"], e["vnum"], e["socket0"], e["refine_tier"], e["method"]) for e in events])
                 newest = max(e["time"] for e in events)
                 cur.execute("REPLACE INTO player.web_seban_settings (name,value) VALUES ('news_scan_last_time', %s)",
                             (newest.strftime("%Y-%m-%d %H:%M:%S"),))
@@ -965,10 +1021,11 @@ def news_feed_events():
     newest 30, read from the fast local cache (see sync_news_events()).
     Shape (string HH:MM `time`) matches what static/news-feed.js expects."""
     sync_news_events()
-    raw = rows("""SELECT event_key,time,message,refine_tier FROM player.web_seban_news_event
+    raw = rows("""SELECT event_key,time,message,refine_tier,method FROM player.web_seban_news_event
       WHERE time >= NOW() - INTERVAL 12 HOUR ORDER BY time DESC LIMIT 30""")
-    return [{"key": r["event_key"], "time": r["time"].strftime("%H:%M"), "message": r["message"], "refine_tier": r["refine_tier"]}
-            for r in reversed(raw)]
+    return [{"key": r["event_key"], "time": r["time"].strftime("%H:%M"),
+             "message": f"{r['message']} — {r['method']}" if r.get("method") else r["message"],
+             "refine_tier": r["refine_tier"]} for r in reversed(raw)]
 
 
 def news_feed_day_label(when):
@@ -990,7 +1047,7 @@ def news_feed_history(before=None, limit=40, days=14):
     if before:
         clauses.append("time < %s")
         params.append(before)
-    raw = rows(f"""SELECT event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier
+    raw = rows(f"""SELECT event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier,method
       FROM player.web_seban_news_event WHERE {' AND '.join(clauses)}
       ORDER BY time DESC LIMIT %s""", params + [limit])
     events = []
@@ -998,7 +1055,7 @@ def news_feed_history(before=None, limit=40, days=14):
         events.append({
             "key": r["event_key"], "time": r["time"], "message": r["message"], "kind": r["kind"],
             "refine_tier": r["refine_tier"], "player_id": r["player_id"], "job": r["job"], "empire": r["empire"],
-            "vnum": r["vnum"], "socket0": r["socket0"], "actor": r["actor"],
+            "vnum": r["vnum"], "socket0": r["socket0"], "actor": r["actor"], "method": r["method"],
             "time_label": r["time"].strftime("%H:%M"), "time_full": r["time"].strftime("%d.%m.%Y %H:%M"),
             "day_label": news_feed_day_label(r["time"]), "cursor": r["time"].strftime("%Y-%m-%d %H:%M:%S"),
         })

@@ -19,7 +19,7 @@
       {% elif event.kind=='find' %}<span class="feed-card-badge feed-card-badge--find">🐚 Rzadkość</span>{% endif %}
       <span class="feed-card-time" title="{{event.time_full}}">{{event.time_label}}</span>
     </div>
-    <p class="feed-card-message">{% if event.kind=='refine' and item_icon(event.vnum) %}<img class="feed-card-item-icon" src="{{item_icon(event.vnum)}}" alt="">{% endif %}{{event.message}}</p>
+    <p class="feed-card-message">{% if event.kind=='refine' and item_icon(event.vnum) %}<img class="feed-card-item-icon" src="{{item_icon(event.vnum)}}" alt="">{% endif %}{{event.message}}{% if event.method %} <span class="feed-card-method">{{event.method}}</span>{% endif %}</p>
   </div>
 </article>
 {% else %}

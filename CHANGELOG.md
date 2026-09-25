@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-25 · 1.81.0 · Sposób ulepszenia w wiadomościach ze świata
+
+- **"Wiadomości ze świata" i ticker na dashboardzie pokazują teraz, jak dane ulepszenie powstało** — u kowala czy zwojem (z nazwą zwoju, np. "Zwój Błogosławieństwa"). Log gry (`log.log`) nigdy tego nie zapisywał w treści zdarzenia, ale silnik ma osobną tabelę `log.refinelog` z dokładnie tą informacją (`setType`: POWER/GUILD/DEVILTOWER/SCROLL:vnum) — znaleziona w kodzie silnika (`LogManager::RefineLog`, `char_item.cpp`) i podłączona.
+- Przy okazji rzadkie ulepszenia (+7/+8/+9) są teraz czytane z tej mniejszej, szybszej tabeli (280 tys. wierszy) zamiast z ogromnego `log.log` (6,4 mln) — trochę mniej pracy dla synchronizacji w tle.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-25 · 1.80.0 · Prawdziwa przyczyna wolnego dashboardu
 
 - **Znaleziono i naprawiono właściwe źródło długiego ładowania dashboardu** (poprzednia poprawka tickera pomogła, ale to nie było główne opóźnienie). Sprofilowałem stronę zapytanie po zapytaniu: trzy rankingi w karuzeli — "Pomyślne ulepszenia", "Skuteczność ulepszeń" i "Ryby" — liczyły pełną agregację po 200-300 tysiącach wierszy logu przy KAŻDYM wejściu na dashboard (1,3 s + 1,8 s + 1,0 s = większość z tych 5-6 sekund).

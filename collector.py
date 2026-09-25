@@ -223,6 +223,9 @@ def init(cur):
       vnum INT UNSIGNED NOT NULL DEFAULT 0, socket0 INT UNSIGNED NOT NULL DEFAULT 0, refine_tier TINYINT NOT NULL DEFAULT 0,
       UNIQUE KEY uniq_event (event_key), INDEX idx_time (time)
       ) ENGINE=InnoDB""")
+    # Upgrade method (blacksmith vs scroll, and which scroll) -- log.refinelog.setType,
+    # see app.py's REFINE_METHOD_LABELS/_classify_refine_events (operator's ask 2026-09-25).
+    cur.execute("ALTER TABLE player.web_seban_news_event ADD COLUMN IF NOT EXISTS method VARCHAR(64) NULL")
     # Small JSON-blob cache for otherwise-expensive dashboard queries
     # (cached_dashboard_ranking() in app.py) -- web_seban_settings.value is
     # VARCHAR(255) by design for small config values, too small for a
