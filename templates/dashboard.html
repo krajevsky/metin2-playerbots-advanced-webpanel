@@ -1,28 +1,4 @@
 {% extends 'base.html' %}{% block title %}Dashboard · {{ panel_brand }}{% endblock %}{% block content %}
-<div id="panelLoadingScreen" class="panel-loading-screen" style="background-image:url('{{ static_asset_url('loading/' + loading_screen) }}')">
-  <div class="panel-loading-bar-wrap">
-    <div class="panel-loading-bar">
-      <img src="{{ static_asset_url('loading/gauge_empty.png') }}" class="panel-loading-gauge panel-loading-gauge-empty" alt="">
-      <img src="{{ static_asset_url('loading/gauge_full.png') }}" class="panel-loading-gauge panel-loading-gauge-fill" id="panelLoadingFill" alt="">
-    </div>
-    <p class="panel-loading-label">Ładowanie świata Metin2…</p>
-  </div>
-</div>
-<script>
-(function () {
-  var overlay = document.getElementById('panelLoadingScreen');
-  if (!overlay) return;
-  if (sessionStorage.getItem('panelLoadingShown')) { overlay.remove(); return; }
-  sessionStorage.setItem('panelLoadingShown', '1');
-  document.body.classList.add('panel-loading-active');
-  requestAnimationFrame(function () { overlay.classList.add('panel-loading-run'); });
-  setTimeout(function () {
-    overlay.classList.add('panel-loading-done');
-    document.body.classList.remove('panel-loading-active');
-    setTimeout(function () { overlay.remove(); }, 550);
-  }, 2200);
-})();
-</script>
 {% if settings.theme=='empire' %}{% set hero_eyebrow='帝國 · CESARSTWO WOJOWNIKÓW' %}{% set hero_sub='Trzy imperia. Jedno pole bitwy. Kroniki cesarstwa czuwają nad każdym wojownikiem.' %}{% elif settings.theme=='ember' %}{% set hero_eyebrow='EMBER · CENTRUM DOWODZENIA' %}{% set hero_sub='Żar bitew nie gaśnie. Panel czuwa nad każdym wojownikiem i botem.' %}{% elif settings.theme=='forest' %}{% set hero_eyebrow='FOREST · CENTRUM DOWODZENIA' %}{% set hero_sub='Spokojna kontrola świata Playerbots, ukryta pośród zielonych krain.' %}{% else %}{% set hero_eyebrow='OCEAN · CENTRUM DOWODZENIA' %}{% set hero_sub='Nadzór nad światem Playerbots — mapy, ekonomia i wojownicy w jednym miejscu.' %}{% endif %}
 <section class="empire-hero" id="heroBanner" style="position:relative"><div class="empire-hero-copy"><p class="empire-hero-eyebrow">{{hero_eyebrow}}</p><h1 class="empire-hero-title empire-hero-title--intro" data-text="{{panel_brand}}">{{panel_brand}}</h1><p class="empire-hero-sub">{{hero_sub}}</p></div><img src="{{ static_asset_url('shaman_run.gif') }}" class="empire-hero-runner" id="bannerRunner" alt=""><img src="{{ static_asset_url('shaman_idle.gif') }}" class="empire-hero-idle" id="bannerIdle" alt=""></section>
 <script>

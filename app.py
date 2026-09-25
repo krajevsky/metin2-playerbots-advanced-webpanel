@@ -3,7 +3,6 @@ import hashlib
 import logging
 import os
 import hmac
-import random
 import socket
 import time
 import re
@@ -220,10 +219,6 @@ GM_JOB_STARTS = {0: (6, 4, 3, 3, 600, 200), 1: (4, 3, 6, 3, 650, 200), 2: (5, 3,
 GM_EMPIRE_STARTS = {1: (469300, 964200, 1), 2: (55700, 157900, 21), 3: (969600, 278400, 41)}
 GM_NAME_PATTERN = r"[A-Za-z0-9\[\]]{2,24}"
 EMPIRES = {1: {"name": "Shinsoo", "flag": "shinsoo.png"}, 2: {"name": "Chunjo", "flag": "chunjo.png"}, 3: {"name": "Jinno", "flag": "jinno.png"}}
-# Real client loading-screen art (etc/ymir work/uiloading/uprez), operator-
-# supplied 2026-09-25, for the one-time "wejście do panelu" curtain on the
-# dashboard -- see the panel-loading-screen block in dashboard.html.
-LOADING_SCREENS = ["ninja1.png", "ninja2.png", "shaman1.png", "shaman2.png", "sura1.png", "sura2.png", "warrior1.png"]
 try:
     PANEL_VERSION = os.environ.get("SEBAN_PANEL_VERSION") or PANEL_VERSION_FILE.read_text(encoding="utf-8").strip()
 except OSError:
@@ -2482,8 +2477,7 @@ def dashboard():
     return render_template("dashboard.html", totals=totals, bots=bots.get("count", 0), system=system, map_rows=map_rows,
                             channel_map_rows=channel_map_rows, dashboard_channels=dashboard_channels, shop_map_rows=shop_map_rows,
                             top=top, global_top_id=global_top_id, quick_rankings=quick_rankings, world_summary=world_summary,
-                            panel_version=PANEL_VERSION, latest_changelog=changelog_entries()[:1],
-                            loading_screen=random.choice(LOADING_SCREENS))
+                            panel_version=PANEL_VERSION, latest_changelog=changelog_entries()[:1])
 @app.route("/players")
 @login_required
 def players():
