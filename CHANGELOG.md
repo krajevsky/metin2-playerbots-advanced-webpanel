@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.83.0 · Własny kursor panelu + wybór w Zarządzaniu
+
+- **Panel ma teraz własny, niestandardowy kursor** (dostarczony przez operatora) zamiast domyślnego kursora systemowego — widoczny na każdej stronie, linki i przyciski dalej pokazują zwykłą "łapkę" przy najechaniu.
+- **Nowa opcja w Zarządzanie → Wygląd, monitoring i dostęp: "Kursor"** — "Nasz (domyślny)" albo "Systemowy". Domyślnie włączony jest nasz kursor; zmiana widoczna po odświeżeniu strony (tak samo jak zmiana kolorystyki).
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-26 · 1.82.0 · Ikony ulepszeń + naprawa lagów w bazie przedmiotów
 
 - **Wiadomości ze świata: ikonka zamiast podpisu przy ulepszeniach.** Zamiast tekstu "zwojem (Zwój Błogosławieństwa)" pokazuje się teraz ikona faktycznie użytego przedmiotu (zwój błogosławieństwa, zwój boga smoków, podręcznik kowala — cokolwiek trafi do `refinelog.setType` jako `SCROLL:<vnum>`, rozpoznawane automatycznie), a przy zwykłym ulepszeniu u kowala — własna ikonka operatora.
