@@ -3563,6 +3563,14 @@ def items_database():
 
 
 CHAT_FEED_TYPES = ("SHOUT", "TRADE")
+# Player-originated public messages reach log.chat_log directly.  Playerbots
+# broadcast without a client descriptor, so their own public output is
+# deliberately written by the engine into each core's syslog instead.
+BOT_PUBLIC_CHAT_RE = re.compile(
+    r"^(?P<stamp>[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d) :: "
+    r"(?:PLAYERBOT_TRADE: shout pid=(?P<trade_pid>\d+) name=(?P<trade_name>\S+) text=\"(?P<trade_text>.*)\""
+    r"|PLAYERBOT_SHOUT: pid=(?P<refine_pid>\d+) plus=\d+ text=(?P<refine_text>.*))$"
+)
 
 
 def chat_message_text(value, author=""):
@@ -3584,8 +3592,79 @@ def chat_message_text(value, author=""):
     return re.sub(r"^\s*(?:\[[^\]]+\]|[^:]{1,48})\s*:\s*", "", text, count=1).strip() or text
 
 
+def tail_lines(path, max_bytes=384_000):
+    """Read only a bounded tail: chat refreshes must never scan full core logs."""
+    try:
+        with path.open("rb") as handle:
+            handle.seek(0, 2)
+            size = handle.tell()
+            handle.seek(max(0, size - max_bytes))
+            data = handle.read()
+    except OSError:
+        return []
+    return data.decode("cp1250", "replace").splitlines()
+
+
+def player_chat_identities(pids):
+    if not pids:
+        return {}
+    marks = ",".join(["%s"] * len(pids))
+    query = "SELECT p.id,p.name,p.job," + EMPIRE_EXPR + " AS empire FROM player.player p " \
+            "LEFT JOIN player.player_index pi ON pi.id=p.account_id " \
+            "LEFT JOIN account.account a ON a.id=p.account_id WHERE p.id IN (" + marks + ")"
+    try:
+        return {int(row["id"]): row for row in rows(query, list(pids))}
+    except Exception:
+        app.logger.exception("Nie można odczytać tożsamości autorów czatu botów")
+        return {}
+
+
+def playerbot_public_messages(limit=180):
+    """All currently public Playerbot sends, from every core's bounded syslog.
+
+    MT2009's two Playerbot public broadcasters log arbitrary body text as
+    PLAYERBOT_TRADE: shout and PLAYERBOT_SHOUT.  These are not limited to
+    buying/selling copy; the first is the common generic broadcaster and the
+    second is a refine announcement.  Parsing both keeps the feed aligned with
+    what players see on Wołaj without needing an engine restart.
+    """
+    entries, seen, year = [], set(), datetime.now().year
+    for channel, path in channel_paths("syslog"):
+        for line in tail_lines(path):
+            match = BOT_PUBLIC_CHAT_RE.match(line)
+            if not match:
+                continue
+            groups = match.groupdict()
+            pid = int(groups.get("trade_pid") or groups.get("refine_pid") or 0)
+            raw_name = groups.get("trade_name") or ""
+            body = groups.get("trade_text") if groups.get("trade_pid") else groups.get("refine_text")
+            body = body or ""
+            try:
+                when = datetime.strptime(f"{year} {groups['stamp']}", "%Y %b %d %H:%M:%S")
+            except (KeyError, ValueError):
+                continue
+            key = (channel, pid, when, body)
+            if pid <= 0 or key in seen:
+                continue
+            seen.add(key)
+            entries.append({"when": when, "pid": pid, "name": raw_name, "message": body})
+    identities = player_chat_identities({entry["pid"] for entry in entries})
+    result = []
+    for entry in entries:
+        identity = identities.get(entry["pid"], {})
+        author = game_text(identity.get("name") or entry["name"]).strip() or "Nieznany"
+        result.append({
+            "id": f"bot:{entry['pid']}:{entry['when']}:{entry['message']}",
+            "sort_at": entry["when"], "time": entry["when"].strftime("%H:%M:%S"),
+            "type": "SHOUT", "author": author, "message": chat_message_text(entry["message"], author),
+            "player_id": int(identity.get("id") or entry["pid"]), "job": int(identity.get("job") or 0),
+            "empire": int(identity.get("empire") or 0),
+        })
+    return result[-limit:]
+
+
 def live_chat_messages(limit=140):
-    """Newest Wołaj and global trade lines logged by the running MT2009 core."""
+    """Newest public player and bot messages from all active MT2009 cores."""
     limit = max(1, min(int(limit or 140), 300))
     query = """
         SELECT c.`where` AS map_index,c.who_id,c.who_name,c.type,
@@ -3602,22 +3681,23 @@ def live_chat_messages(limit=140):
         records = rows(query, [limit])
     except Exception:
         app.logger.exception("Nie można odczytać log.chat_log")
-        return []
+        records = []
     result = []
-    for row in reversed(records):
+    for row in records:
         author = game_text(row.get("who_name")).strip() or "Nieznany"
         when = row.get("when")
         result.append({
-            "id": f"{row.get('who_id', 0)}:{when}:{game_text(row.get('msg'))}",
-            "time": when.strftime("%H:%M:%S") if hasattr(when, "strftime") else str(when)[11:19],
+            "id": f"player:{row.get('who_id', 0)}:{when}:{game_text(row.get('msg'))}",
+            "sort_at": when, "time": when.strftime("%H:%M:%S") if hasattr(when, "strftime") else str(when)[11:19],
             "type": row.get("type") if row.get("type") in CHAT_FEED_TYPES else "SHOUT",
-            "author": author,
-            "message": chat_message_text(row.get("msg"), author),
-            "player_id": int(row.get("id") or row.get("who_id") or 0),
-            "job": int(row.get("job") or 0),
+            "author": author, "message": chat_message_text(row.get("msg"), author),
+            "player_id": int(row.get("id") or row.get("who_id") or 0), "job": int(row.get("job") or 0),
             "empire": int(row.get("empire") or 0),
         })
-    return result
+    # A future source may log the same line by both paths.  The durable id
+    # keeps it visible once while preserving chronological ordering.
+    unique = {entry["id"]: entry for entry in result + playerbot_public_messages(limit)}
+    return sorted(unique.values(), key=lambda entry: entry.get("sort_at") or datetime.min)[-limit:]
 
 
 @app.get("/live-chat")
