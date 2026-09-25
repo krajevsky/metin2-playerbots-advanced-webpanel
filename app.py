@@ -2219,6 +2219,41 @@ def ranking_scope_sql(alias="p"):
     return bot_identity(alias)
 
 
+def cached_dashboard_ranking(kind, limit=10, ttl=300):
+    """Throttled cache for the three bot_ranking() kinds the dashboard
+    carousel calls that turned out to be genuinely expensive: full
+    all-time aggregates over 200-300K log rows with no useful index for
+    the GROUP BY (refine: ~1.3s, fish: ~1.0s, refine_rate: ~1.8s --
+    measured live, 2026-09-25, confirmed via EXPLAIN as "Using temporary;
+    Using filesort" over the whole matching set every time). Together
+    these were most of the dashboard's ~5-6s load time.
+
+    Same throttle-and-serve-stale pattern as sync_news_events(), just
+    simpler (a pure read-through cache, not an incremental scan) since
+    recomputing from scratch is cheap to express even if slow to run --
+    stored as JSON in web_seban_settings, refreshed by whichever request
+    is first past the ttl window. /rankings itself still calls
+    bot_ranking() directly and stays live; only the dashboard's top-10
+    carousel reads through this cache.
+    """
+    name = f"dash_rank_cache_{kind}"
+    try:
+        row = one("SELECT value FROM player.web_seban_query_cache WHERE name=%s", (name,))
+        if row and row.get("value"):
+            payload = json.loads(row["value"])
+            if time.time() - payload.get("at", 0) < ttl:
+                return payload["rows"]
+    except (pymysql.MySQLError, ValueError, KeyError):
+        pass
+    data = bot_ranking(kind)[:limit]
+    try:
+        rows("REPLACE INTO player.web_seban_query_cache (name,value) VALUES (%s,%s)",
+             (name, json.dumps({"at": time.time(), "rows": data}, default=str)))
+    except pymysql.MySQLError:
+        pass
+    return data
+
+
 def bot_ranking(kind, sort_by="avg"):
     base = ranking_scope_sql("p")
     if kind == "gold":
@@ -2568,7 +2603,7 @@ def dashboard():
     quick_rankings.append({"title": "Metiny", "subtitle": "rozbite · ostatnie 7 dni", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in metins]})
     bosses = bot_ranking("bosses")[:10]
     quick_rankings.append({"title": "Bossy", "subtitle": "zabite · ostatnie 7 dni", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in bosses]})
-    refine = bot_ranking("refine")[:10]
+    refine = cached_dashboard_ranking("refine")
     quick_rankings.append({"title": "Pomyślne ulepszenia", "subtitle": "łącznie, całościowo", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in refine]})
     # "Ryby" used to sit here (LIKE '%ryb%' on log.log.what) and was pulled --
     # that specific check was right (log.log has no fishing `how` at all),
@@ -2577,7 +2612,7 @@ def dashboard():
     # writes to on every catch (LogManager::FishLog, log.cpp), missed
     # entirely because nothing was looking for it. Restored once actually
     # found, per operator's ask 2026-09-23.
-    fish = bot_ranking("fish")[:10]
+    fish = cached_dashboard_ranking("fish")
     quick_rankings.append({"title": "Ryby", "subtitle": "wyłowione · łącznie", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score'])} szt."} for row in fish]})
     # player_special_flag-backed rankings (2026-09-23) -- all-time exact
     # totals, matching /player/'s Statystyki (panel Y) section 1:1, unlike
@@ -2586,7 +2621,7 @@ def dashboard():
     quick_rankings.append({"title": "Rekord obrażeń", "subtitle": "zwykły atak · najwyższy", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score']):,}".replace(',', ' ')} for row in damage_max]})
     yang_earned = bot_ranking("yang_earned")[:10]
     quick_rankings.append({"title": "Yang zdobyty", "subtitle": "łącznie · nie stan konta", "items": [{"id": row["id"], "name": row["name"], "value": f"{int(row['score']):,}".replace(',', ' ')} for row in yang_earned]})
-    refine_rate = bot_ranking("refine_rate")[:10]
+    refine_rate = cached_dashboard_ranking("refine_rate")
     quick_rankings.append({"title": "Skuteczność ulepszeń", "subtitle": "% sukcesu · min. 20 prób", "items": [{"id": row["id"], "name": row["name"], "value": f"{row['score']}%"} for row in refine_rate]})
     ranking_ids = {item["id"] for ranking in quick_rankings for item in ranking["items"]}
     if ranking_ids:

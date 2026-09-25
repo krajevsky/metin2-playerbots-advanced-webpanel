@@ -223,6 +223,15 @@ def init(cur):
       vnum INT UNSIGNED NOT NULL DEFAULT 0, socket0 INT UNSIGNED NOT NULL DEFAULT 0, refine_tier TINYINT NOT NULL DEFAULT 0,
       UNIQUE KEY uniq_event (event_key), INDEX idx_time (time)
       ) ENGINE=InnoDB""")
+    # Small JSON-blob cache for otherwise-expensive dashboard queries
+    # (cached_dashboard_ranking() in app.py) -- web_seban_settings.value is
+    # VARCHAR(255) by design for small config values, too small for a
+    # serialized top-10 ranking and silently truncates it, so this gets its
+    # own properly-sized table instead of repurposing settings.
+    cur.execute("""CREATE TABLE IF NOT EXISTS player.web_seban_query_cache (
+      name VARCHAR(64) NOT NULL PRIMARY KEY, value MEDIUMTEXT NOT NULL,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB""")
     cur.execute("""INSERT IGNORE INTO player.web_seban_settings (name,value) VALUES
       ('panel_name','Metin2 Singleplayer'),('stuck_minutes','5'),('theme','empire'),('monitor_mode','vps'),
       ('setup_complete','1'),('auth_enabled','0'),('auth_password_hash','')""")
