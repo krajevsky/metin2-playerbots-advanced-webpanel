@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-25 · 1.79.0 · "Czat na żywo" → "Wiadomości", nowa oś czasu świata
+
+- **"Czat na żywo" w nawigacji przerobione na sekcję "Wiadomości"** z dwiema podkategoriami: dotychczasowy **Czat na żywo** oraz nowe **Wiadomości ze świata** (`/world-feed`) — oś czasu w stylu starych statusów z IP.Board / kart Twittera-X: awatar klasy, flaga królestwa, nick, plakietka rangi ulepszenia (+7/+8/+9, złota poświata dla +9) albo mistrzostwa/rzadkiego znaleziska, ikonka przedmiotu przy ulepszeniach, dzielone na "Dziś"/"Wczoraj"/datę, z przyciskiem "Załaduj starsze wydarzenia" (pełna historia z 14 dni, nie tylko to co mieści się w tickerze na dashboardzie).
+- **Po drodze naprawiony realny problem z wydajnością**, który dotykał też starego tickera: `log.log` (6,4 mln wierszy) nie ma indeksu po czasie, więc każde pytanie "co się wydarzyło od X" kosztowało 5-7 sekund, niezależnie od okna czasowego (sprawdzone przez EXPLAIN: silnik i tak skanuje ~1,7 mln wierszy). Zamiast ruszać tabelę silnika (MyISAM, ryzykowna przebudowa na żywo) panel dostał własną, małą, zaindeksowaną kopię (`web_seban_news_event`), dociąganą przyrostowo co najwyżej raz na 5 minut — dashboard i `/world-feed` zawsze czytają tylko z niej, więc są szybkie.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-25 · 1.78.0 · Wycofano ekran ładowania
 
 - Wycofano pierwsze-wejście ekranu ładowania z 1.77.0 (art klienta + pasek postępu) — nie skracał realnego czasu ładowania dashboardu, a wizualnie nie spełnił oczekiwań operatora. Usunięte pliki graficzne i cały kod, zero pozostałości.

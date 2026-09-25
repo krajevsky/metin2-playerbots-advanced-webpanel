@@ -2,6 +2,11 @@
 {% block title %}Czat na żywo · {{panel_brand}}{% endblock %}
 {% block content %}
 <p class="eyebrow">PLAYERBOTS · NA ŻYWO</p>
+<h1>Wiadomości</h1>
+<nav class="msg-tabs" aria-label="Podkategorie wiadomości">
+  <a class="msg-tab" href="{{url_for('world_feed')}}">✦ Wiadomości ze świata</a>
+  <a class="msg-tab active" href="{{url_for('live_chat')}}">▤ Czat na żywo</a>
+</nav>
 <section class="metin-chat-window" aria-labelledby="live-chat-title">
   <header class="metin-chat-titlebar"><div><span class="metin-chat-title-gem">◆</span><h1 id="live-chat-title">Protokół wiadomości</h1></div><span class="metin-chat-status"><i></i> LIVE · odświeżanie co 4 s</span></header>
   <div class="metin-chat-tabs" role="tablist" aria-label="Kanały czatu"><button class="active" type="button" data-chat-filter="all">Wszystkie</button><button type="button" data-chat-filter="shout">Wołaj</button><button type="button" data-chat-filter="trade">Handel globalny</button><span>Wyświetlane są tylko wiadomości zapisane przez rdzeń gry.</span></div>

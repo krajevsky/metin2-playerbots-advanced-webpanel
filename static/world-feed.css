@@ -1,0 +1,58 @@
+/* "Wiadomości" section: shared pill tab-switcher between /live-chat and
+   /world-feed, plus the /world-feed activity-stream timeline itself
+   (IP.Board status-update / Twitter-ish card feed, operator's ask 2026-09-25). */
+.msg-tabs{display:flex;gap:8px;margin:14px 0 18px;flex-wrap:wrap}
+.msg-tab{padding:9px 16px;border-radius:999px;border:1px solid var(--edge);background:var(--panel);color:var(--muted);text-decoration:none;font-size:13px;font-weight:700;transition:background .15s ease,color .15s ease,border-color .15s ease}
+.msg-tab:hover{color:var(--text);border-color:var(--blue2)}
+.msg-tab.active{background:var(--blue2);border-color:var(--blue2);color:#fff}
+body[data-theme="empire"] .msg-tab.active{background:var(--gold);border-color:var(--gold);color:#241a04}
+
+.feed-timeline{position:relative;max-width:720px;margin:20px 0}
+.feed-day-divider{position:relative;display:flex;align-items:center;gap:12px;margin:22px 0 14px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.feed-day-divider:before,.feed-day-divider:after{content:'';flex:1;height:1px;background:var(--edge)}
+.feed-day-divider span{white-space:nowrap;padding:3px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--edge)}
+
+.feed-card{position:relative;display:grid;grid-template-columns:22px 44px minmax(0,1fr);gap:12px;padding:12px 14px 12px 0;margin:0 0 2px;border-radius:10px;transition:background .15s ease}
+.feed-card:hover{background:color-mix(in srgb,var(--panel) 60%,transparent)}
+.feed-card-rail{position:relative;display:flex;justify-content:center}
+.feed-card-rail:before{content:'';position:absolute;top:0;bottom:-2px;width:2px;background:var(--edge)}
+.feed-card:first-child .feed-card-rail:before{top:16px}
+.feed-card:last-child .feed-card-rail:before{bottom:calc(100% - 16px)}
+.feed-card-dot{position:relative;z-index:1;margin-top:14px;width:9px;height:9px;border-radius:50%;background:var(--blue2);box-shadow:0 0 0 3px var(--bg)}
+.feed-card--skill .feed-card-dot{background:#39e890}
+.feed-card--find .feed-card-dot{background:#a974ff}
+.feed-card--legendary .feed-card-dot{background:var(--gold);box-shadow:0 0 0 3px var(--bg),0 0 10px var(--gold)}
+
+.feed-card-avatar{position:relative;width:44px;height:44px}
+.feed-card-avatar img:first-child{width:44px;height:44px;object-fit:cover;border-radius:50%;border:2px solid var(--edge);background:#0b1625}
+.feed-card-flag{position:absolute;right:-3px;bottom:-3px;width:18px;height:13px;object-fit:contain;border:1px solid #0006;border-radius:2px;box-shadow:0 1px 4px #000a}
+
+.feed-card-body{min-width:0;padding-top:2px}
+.feed-card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.feed-card-name{color:var(--text);font-weight:800;text-decoration:none}
+.feed-card-name:hover{color:var(--blue2)}
+body[data-theme="empire"] .feed-card-name:hover{color:var(--gold)}
+.feed-card-time{margin-left:auto;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.feed-card-message{margin:4px 0 0;color:var(--text);font-size:14px;line-height:1.45;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.feed-card-item-icon{width:22px;height:22px;object-fit:contain;background:#0b1625;border:1px solid var(--edge);border-radius:4px}
+
+.feed-card-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.5px}
+.feed-card-badge--refine{background:#1a3a5c;color:#8fc4ff}
+.feed-card-badge--tier8{background:#3a1a5c;color:#c99bff}
+.feed-card-badge--tier9{background:linear-gradient(90deg,#5c3a00,#8a5a00);color:#ffe28a;animation:feed-badge-glow 1.8s ease-in-out infinite}
+.feed-card--legendary{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 10%,transparent),transparent 60%);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent)}
+.feed-card--epic{background:linear-gradient(90deg,#a974ff14,transparent 60%)}
+.feed-card-badge--skill{background:#0f3d29;color:#79e3af}
+.feed-card-badge--find{background:#2c1a4a;color:#c9a8ff}
+@keyframes feed-badge-glow{0%,100%{box-shadow:0 0 0 rgba(255,210,120,0)}50%{box-shadow:0 0 10px rgba(255,200,90,.7)}}
+
+.feed-empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.feed-empty b{display:block;margin-bottom:6px;color:var(--text);font-size:16px}
+.feed-more-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin:18px 0 30px;max-width:720px}
+
+@media(max-width:650px){
+  .feed-card{grid-template-columns:16px 36px minmax(0,1fr);gap:9px}
+  .feed-card-avatar,.feed-card-avatar img:first-child{width:36px;height:36px}
+  .feed-card-time{width:100%;margin-left:0;order:3}
+  .feed-card-message{font-size:13px}
+}

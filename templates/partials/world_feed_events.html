@@ -1,0 +1,27 @@
+{% set ns = namespace(last_day=None) %}
+{% for event in events %}
+{% if event.day_label != ns.last_day %}
+<div class="feed-day-divider"><span>{{event.day_label}}</span></div>
+{% set ns.last_day = event.day_label %}
+{% endif %}
+<article class="feed-card feed-card--{{event.kind}}{% if event.kind=='refine' and event.refine_tier>=9 %} feed-card--legendary{% elif event.kind=='refine' and event.refine_tier==8 %} feed-card--epic{% endif %}" data-cursor="{{event.cursor}}">
+  <div class="feed-card-rail"><span class="feed-card-dot"></span></div>
+  <div class="feed-card-avatar">
+    <img src="{{class_portrait(event.job)}}" alt="" aria-hidden="true">
+    {% set kingdom=empire_info(event.empire) %}
+    {% if kingdom.flag %}<img class="feed-card-flag" src="{{empire_flag(event.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}
+  </div>
+  <div class="feed-card-body">
+    <div class="feed-card-head">
+      <a class="feed-card-name" href="{{url_for('player',pid=event.player_id)}}">{{event.actor}}</a>
+      {% if event.kind=='refine' %}<span class="feed-card-badge feed-card-badge--refine feed-card-badge--tier{{event.refine_tier}}">+{{event.refine_tier}}</span>
+      {% elif event.kind=='skill' %}<span class="feed-card-badge feed-card-badge--skill">✦ Mistrzostwo</span>
+      {% elif event.kind=='find' %}<span class="feed-card-badge feed-card-badge--find">🐚 Rzadkość</span>{% endif %}
+      <span class="feed-card-time" title="{{event.time_full}}">{{event.time_label}}</span>
+    </div>
+    <p class="feed-card-message">{% if event.kind=='refine' and item_icon(event.vnum) %}<img class="feed-card-item-icon" src="{{item_icon(event.vnum)}}" alt="">{% endif %}{{event.message}}</p>
+  </div>
+</article>
+{% else %}
+<div class="feed-empty"><b>Brak wydarzeń.</b><span>Gdy ktoś ulepszy coś na +7 i wyżej, zdobędzie mistrzostwo umiejętności albo złowi Małż, pojawi się tutaj.</span></div>
+{% endfor %}

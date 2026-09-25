@@ -209,6 +209,20 @@ def init(cur):
       path VARCHAR(255) NOT NULL PRIMARY KEY, byte_offset BIGINT UNSIGNED NOT NULL DEFAULT 0,
       updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB""")
+    # Local, time-indexed cache of rare log.log achievements for the
+    # dashboard ticker and /world-feed -- log.log itself has no index on
+    # `time` (only who/what/how), so app.py's sync_news_events() keeps this
+    # caught up incrementally instead of every page load re-scanning ~1.7M
+    # rows of log.log directly (operator's call, 2026-09-25: no schema
+    # changes to the live game log table).
+    cur.execute("""CREATE TABLE IF NOT EXISTS player.web_seban_news_event (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      event_key VARCHAR(191) NOT NULL, time DATETIME NOT NULL, kind VARCHAR(16) NOT NULL,
+      message VARCHAR(255) NOT NULL, actor VARCHAR(64) NOT NULL, player_id INT UNSIGNED NOT NULL,
+      job INT NOT NULL DEFAULT 0, empire TINYINT NOT NULL DEFAULT 0,
+      vnum INT UNSIGNED NOT NULL DEFAULT 0, socket0 INT UNSIGNED NOT NULL DEFAULT 0, refine_tier TINYINT NOT NULL DEFAULT 0,
+      UNIQUE KEY uniq_event (event_key), INDEX idx_time (time)
+      ) ENGINE=InnoDB""")
     cur.execute("""INSERT IGNORE INTO player.web_seban_settings (name,value) VALUES
       ('panel_name','Metin2 Singleplayer'),('stuck_minutes','5'),('theme','empire'),('monitor_mode','vps'),
       ('setup_complete','1'),('auth_enabled','0'),('auth_password_hash','')""")

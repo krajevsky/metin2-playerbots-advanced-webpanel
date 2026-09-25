@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Wiadomości ze świata · {{panel_brand}}{% endblock %}
+{% block content %}
+<p class="eyebrow">PLAYERBOTS · KRONIKA ŚWIATA</p>
+<h1>Wiadomości ze świata</h1>
+<nav class="msg-tabs" aria-label="Podkategorie wiadomości">
+  <a class="msg-tab active" href="{{url_for('world_feed')}}">✦ Wiadomości ze świata</a>
+  <a class="msg-tab" href="{{url_for('live_chat')}}">▤ Czat na żywo</a>
+</nav>
+<p class="muted">Oś czasu najważniejszych osiągnięć: ulepszenia +7 i wyżej, zdobyte mistrzostwa umiejętności i rzadkie znaleziska — dokładnie to, co widać w tickerze na dashboardzie, tylko z pełną historią.</p>
+<section class="feed-timeline" id="worldFeedTimeline">
+  {% include 'partials/world_feed_events.html' %}
+</section>
+<div class="feed-more-wrap">
+  <button type="button" id="worldFeedMore" class="secondary" {% if events|length < 40 %}hidden{% endif %}>Załaduj starsze wydarzenia</button>
+  <p id="worldFeedEnd" class="muted" hidden>To już wszystkie wydarzenia z ostatnich 14 dni.</p>
+</div>
+<script>
+(() => {
+  const timeline = document.getElementById('worldFeedTimeline');
+  const moreButton = document.getElementById('worldFeedMore');
+  const endLabel = document.getElementById('worldFeedEnd');
+  let cursor = null, loading = false;
+  const cards = timeline.querySelectorAll('.feed-card');
+  if (cards.length) cursor = cards[cards.length - 1].dataset.cursor;
+  moreButton?.addEventListener('click', async () => {
+    if (loading || !cursor) return;
+    loading = true; moreButton.textContent = 'Wczytywanie…';
+    try {
+      const res = await fetch(`{{url_for('api_world_feed')}}?before=${encodeURIComponent(cursor)}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      const data = await res.json();
+      if (data.ok) {
+        timeline.insertAdjacentHTML('beforeend', data.html);
+        cursor = data.next_before;
+        if (!data.has_more || !cursor) { moreButton.hidden = true; endLabel.hidden = false; }
+      }
+    } catch (_) {}
+    loading = false; moreButton.textContent = 'Załaduj starsze wydarzenia';
+  });
+})();
+</script>
+{% endblock %}

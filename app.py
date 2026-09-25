@@ -837,23 +837,37 @@ def resolve_item_display_name(vnum, socket0, base_name):
 _season_cache = {"at": 0.0, "weekly": [], "records": {}}
 
 
-def news_feed_events():
-    """Curate rare achievements from the native game log with stable IDs."""
-    # Filter in SQL before the limit.  A busy server produces thousands of
-    # ordinary +0–+3 refines per minute; taking its newest 900 rows first made
-    # rare achievements disappear from the feed altogether.
-    raw = rows("""SELECT l.time,l.how,l.hint,HEX(l.hint) AS hint_hex,l.what,l.who,p.name,
-        HEX(proto.locale_name) AS item_name_hex
+def _news_event_source_rows(since, before=None, scan_limit=900):
+    """Raw log.log candidate rows for a rare achievement, before
+    classification. Shared by the dashboard ticker (news_feed_events) and
+    the full history page (news_feed_history) so the detection rules only
+    live in one place (_classify_news_events).
+
+    Filter in SQL before the limit: a busy server produces thousands of
+    ordinary +0-+3 refines per minute, taking its newest rows first made
+    rare achievements disappear from the feed altogether.
+    """
+    clauses, params = ["l.time >= %s"], [since]
+    if before:
+        clauses.append("l.time < %s")
+        params.append(before)
+    return rows(f"""SELECT l.time,l.how,l.hint,HEX(l.hint) AS hint_hex,l.what,l.who,p.name,p.job,
+        {EMPIRE_EXPR} AS empire, i.vnum, i.socket0, HEX(proto.locale_name) AS item_name_hex
       FROM log.log l JOIN player.player p ON p.id=l.who
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      LEFT JOIN account.account a ON a.id=p.account_id
       LEFT JOIN player.item i ON i.id=l.what
       LEFT JOIN player.item_proto proto ON proto.vnum=i.vnum
-      WHERE l.time >= NOW() - INTERVAL 12 HOUR
+      WHERE {' AND '.join(clauses)}
         AND (
           (l.how='REFINE SUCCESS' AND (l.hint LIKE '%%+7%%' OR l.hint LIKE '%%+8%%' OR l.hint LIKE '%%+9%%'))
           OR l.how='SKILLUP'
           OR (l.how='GET' AND LOWER(CONVERT(l.hint USING utf8mb4)) COLLATE utf8mb4_general_ci LIKE '%%małż%%')
         )
-      ORDER BY l.time DESC LIMIT 900""")
+      ORDER BY l.time DESC LIMIT %s""", params + [scan_limit])
+
+
+def _classify_news_events(raw):
     events, seen = [], set()
     for row in raw:
         # `how` is VARBINARY on mt2009 and arrives as bytes; str() of that is
@@ -863,25 +877,132 @@ def news_feed_events():
         key = f"{how}:{row.get('who')}:{row.get('what')}:{row.get('time')}"
         if key in seen or not name:
             continue
-        message = None
+        message, kind, match = None, None, None
         if how == "REFINE SUCCESS":
             match = re.search(r"\+([789])(?:\s|$)", hint)
             if match:
                 item_name = cp1250_hex_text(row.get("item_name_hex")) or hint.strip()
-                message = f"{name} ulepszył {item_name}"
+                message, kind = f"{name} ulepszył {item_name}", "refine"
         elif how == "SKILLUP":
-            match = re.search(r"SkillUp:\s+\S+\s+(\d+)\s+(\d+)\s+(\d+)", hint)
-            if match:
-                vnum, master, level = map(int, match.groups())
+            skill_match = re.search(r"SkillUp:\s+\S+\s+(\d+)\s+(\d+)\s+(\d+)", hint)
+            if skill_match:
+                vnum, master, level = map(int, skill_match.groups())
                 rank = skill_rank(master, level)
                 if (rank.startswith("M") and rank != "M1") or rank.startswith("G") or rank == "P":
-                    message = f"{name} rozwinął {SKILL_NAMES.get(vnum, f'umiejętność #{vnum}')} na {rank}"
+                    message, kind = f"{name} rozwinął {SKILL_NAMES.get(vnum, f'umiejętność #{vnum}')} na {rank}", "skill"
         elif how == "GET" and "małż" in hint.casefold():
-            message = f"{name} znalazł Małż podczas połowu"
-        if message:
-            seen.add(key)
-            events.append({"key": key, "time": row["time"].strftime("%H:%M") if hasattr(row.get("time"), "strftime") else str(row.get("time"))[11:16], "message": message, "refine_tier": int(match.group(1)) if how == "REFINE SUCCESS" and match else 0})
-    return list(reversed(events[-30:]))
+            message, kind = f"{name} znalazł Małż podczas połowu", "find"
+        if not message:
+            continue
+        seen.add(key)
+        events.append({
+            "key": key, "time": row["time"], "message": message, "kind": kind, "actor": name,
+            "refine_tier": int(match.group(1)) if kind == "refine" and match else 0,
+            "player_id": int(row.get("who") or 0), "job": int(row.get("job") or 0), "empire": int(row.get("empire") or 0),
+            "vnum": int(row.get("vnum") or 0) if kind == "refine" else 0,
+            "socket0": int(row.get("socket0") or 0) if row.get("socket0") else 0,
+        })
+    return events
+
+
+NEWS_SYNC_INTERVAL = 300  # seconds -- see sync_news_events() docstring
+
+
+def sync_news_events():
+    """Keep web_seban_news_event (a small, time-indexed local cache) caught
+    up with log.log, throttled to run the expensive underlying scan at most
+    once per NEWS_SYNC_INTERVAL system-wide -- not once per page load.
+
+    log.log has no index on `time` (only who/what/how): EXPLAIN on the
+    achievement-detection WHERE clause showed a how_idx range scan
+    examining ~1.7M rows *regardless of the time window*, taking 5-7s per
+    call either way (checked live, 2026-09-25 -- both the old 12h ticker
+    query and a 14-day history query cost the same). Operator's call the
+    same day: no schema changes to the live game log table (MyISAM, would
+    rebuild the whole 573MB table and risk blocking game writes) -- accept
+    up to ~5 minutes of lag on new achievements instead, paid by whichever
+    request happens to be first past the throttle window rather than by
+    every single one.
+    """
+    try:
+        con = db()
+    except pymysql.MySQLError:
+        return
+    try:
+        with con.cursor() as cur:
+            now = time.time()
+            cur.execute("""UPDATE player.web_seban_settings SET value=%s
+              WHERE name='news_sync_last_run' AND (value IS NULL OR value='' OR CAST(value AS DECIMAL(20,3)) < %s)""",
+              (str(now), now - NEWS_SYNC_INTERVAL))
+            claimed = cur.rowcount == 1
+            if not claimed:
+                cur.execute("INSERT IGNORE INTO player.web_seban_settings (name,value) VALUES ('news_sync_last_run', %s)", (str(now),))
+                claimed = cur.rowcount == 1
+            if not claimed:
+                return  # another request already claimed this window
+            cur.execute("SELECT value FROM player.web_seban_settings WHERE name='news_scan_last_time'")
+            cursor_row = cur.fetchone()
+            since = cursor_row["value"] if cursor_row and cursor_row.get("value") else "2020-01-01 00:00:00"
+            raw = _news_event_source_rows(since=since, scan_limit=2_000_000)
+            events = _classify_news_events(raw)
+            if events:
+                cur.executemany("""INSERT IGNORE INTO player.web_seban_news_event
+                  (event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier)
+                  VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                  [(e["key"], e["time"], e["kind"], e["message"], e["actor"], e["player_id"], e["job"],
+                    e["empire"], e["vnum"], e["socket0"], e["refine_tier"]) for e in events])
+                newest = max(e["time"] for e in events)
+                cur.execute("REPLACE INTO player.web_seban_settings (name,value) VALUES ('news_scan_last_time', %s)",
+                            (newest.strftime("%Y-%m-%d %H:%M:%S"),))
+    except pymysql.MySQLError:
+        app.logger.exception("Nie można zsynchronizować feedu wydarzeń")
+    finally:
+        con.close()
+
+
+def news_feed_events():
+    """Curate rare achievements for the dashboard's live ticker -- last 12h,
+    newest 30, read from the fast local cache (see sync_news_events()).
+    Shape (string HH:MM `time`) matches what static/news-feed.js expects."""
+    sync_news_events()
+    raw = rows("""SELECT event_key,time,message,refine_tier FROM player.web_seban_news_event
+      WHERE time >= NOW() - INTERVAL 12 HOUR ORDER BY time DESC LIMIT 30""")
+    return [{"key": r["event_key"], "time": r["time"].strftime("%H:%M"), "message": r["message"], "refine_tier": r["refine_tier"]}
+            for r in reversed(raw)]
+
+
+def news_feed_day_label(when):
+    today = datetime.now().date()
+    day = when.date()
+    if day == today:
+        return "Dziś"
+    if day == today - timedelta(days=1):
+        return "Wczoraj"
+    return day.strftime("%d.%m.%Y")
+
+
+def news_feed_history(before=None, limit=40, days=14):
+    """Full paginated history for /world-feed -- reads the same fast local
+    cache table sync_news_events() keeps caught up with log.log, so this
+    page load never has to pay that scan's cost itself."""
+    sync_news_events()
+    clauses, params = ["time >= %s"], [datetime.now() - timedelta(days=days)]
+    if before:
+        clauses.append("time < %s")
+        params.append(before)
+    raw = rows(f"""SELECT event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier
+      FROM player.web_seban_news_event WHERE {' AND '.join(clauses)}
+      ORDER BY time DESC LIMIT %s""", params + [limit])
+    events = []
+    for r in raw:
+        events.append({
+            "key": r["event_key"], "time": r["time"], "message": r["message"], "kind": r["kind"],
+            "refine_tier": r["refine_tier"], "player_id": r["player_id"], "job": r["job"], "empire": r["empire"],
+            "vnum": r["vnum"], "socket0": r["socket0"], "actor": r["actor"],
+            "time_label": r["time"].strftime("%H:%M"), "time_full": r["time"].strftime("%d.%m.%Y %H:%M"),
+            "day_label": news_feed_day_label(r["time"]), "cursor": r["time"].strftime("%Y-%m-%d %H:%M:%S"),
+        })
+    return events
 
 
 # Kolumny pliku statusu sprzed "systemu osobowości v2.0" -- rdzeń starszy niż
@@ -3781,6 +3902,21 @@ def live_chat():
 @login_required
 def api_live_chat():
     return {"ok": True, "html": render_template("partials/live_chat_messages.html", messages=live_chat_messages())}
+
+
+@app.get("/world-feed")
+@login_required
+def world_feed():
+    return render_template("world_feed.html", events=news_feed_history())
+
+
+@app.get("/api/world-feed")
+@login_required
+def api_world_feed():
+    before = request.args.get("before") or None
+    events = news_feed_history(before=before)
+    return {"ok": True, "html": render_template("partials/world_feed_events.html", events=events),
+            "next_before": events[-1]["cursor"] if events else None, "has_more": len(events) >= 40}
 
 
 @app.route("/gm-commands")
