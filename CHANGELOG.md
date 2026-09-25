@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-25 · 1.75.0 · Czat na żywo
+
+- **Nowa sekcja `/live-chat`** pokazuje na bieżąco wiadomości Wołaj oraz globalny kanał Handel, korzystając z natywnego dziennika `log.chat_log` MT2009 — bez zmiany silnika i bez restartu serwera.
+- Każdy wpis ma dokładny czas, flagę królestwa, portret klasy, nick prowadzący do karty postaci oraz oczyszczoną treść bez technicznych znaczników formatu klienta.
+- Widok ma metinową ramę, filtry kanałów i automatyczne odświeżanie co cztery sekundy; pozostaje wyłącznie podglądem, więc nie wysyła treści do gry.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-09-25 · 1.74.0 · Respawny MT2009 na żywo
 
 - **Nowa sekcja `/respawns`** daje osobne, czytelne sterowanie tempem i liczebnością świata: Metiny z bossami oraz zwykłe potwory mają własne ustawienia.

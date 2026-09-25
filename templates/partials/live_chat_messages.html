@@ -1,0 +1,13 @@
+{% for entry in messages %}
+<article class="metin-chat-line" data-channel="{{entry.type|lower}}">
+  <time>{{entry.time}}</time>
+  {% set kingdom=empire_info(entry.empire) %}
+  {% if kingdom.flag %}<img class="metin-chat-flag" src="{{empire_flag(entry.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% else %}<span class="metin-chat-flag metin-chat-flag--empty">◇</span>{% endif %}
+  <img class="metin-chat-avatar" src="{{class_portrait(entry.job)}}" alt="" aria-hidden="true">
+  <a class="metin-chat-name" href="{{url_for('player',pid=entry.player_id)}}">{{entry.author}}</a>
+  <span class="metin-chat-separator">:</span><span class="metin-chat-message">{{entry.message}}</span>
+  <span class="metin-chat-channel">{{ 'WOŁAJ' if entry.type == 'SHOUT' else 'HANDEL' }}</span>
+</article>
+{% else %}
+<div class="metin-chat-empty"><b>Brak przechwyconych wiadomości.</b><span>Gdy ktoś napisze na Wołaj lub Handel, pojawi się tutaj automatycznie.</span></div>
+{% endfor %}

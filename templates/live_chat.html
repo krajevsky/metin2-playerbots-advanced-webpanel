@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Czat na żywo · {{panel_brand}}{% endblock %}
+{% block content %}
+<p class="eyebrow">PLAYERBOTS · NA ŻYWO</p>
+<section class="metin-chat-window" aria-labelledby="live-chat-title">
+  <header class="metin-chat-titlebar"><div><span class="metin-chat-title-gem">◆</span><h1 id="live-chat-title">Protokół wiadomości</h1></div><span class="metin-chat-status"><i></i> LIVE · odświeżanie co 4 s</span></header>
+  <div class="metin-chat-tabs" role="tablist" aria-label="Kanały czatu"><button class="active" type="button" data-chat-filter="all">Wszystkie</button><button type="button" data-chat-filter="shout">Wołaj</button><button type="button" data-chat-filter="trade">Handel globalny</button><span>Wyświetlane są tylko wiadomości zapisane przez rdzeń gry.</span></div>
+  <div class="metin-chat-guide"><span>Wołaj i Handel</span><b>·</b> nick prowadzi do karty postaci <b>·</b> najnowsze wiadomości pozostają na dole</div>
+  <div id="live-chat-messages" class="metin-chat-scroll" aria-live="polite">{% include 'partials/live_chat_messages.html' %}</div>
+  <footer class="metin-chat-footer"><span class="metin-chat-prompt">Normalny</span><span>Podgląd tylko do odczytu · nie wysyła wiadomości do gry</span><button type="button" id="live-chat-refresh">↻ Odśwież</button></footer>
+</section>
+<script>
+(() => {
+  const box = document.getElementById('live-chat-messages');
+  const refresh = document.getElementById('live-chat-refresh');
+  let filter = 'all', inFlight = false;
+  const apply = () => box.querySelectorAll('.metin-chat-line').forEach(line => line.hidden = filter !== 'all' && line.dataset.channel !== filter);
+  async function update(){
+    if(inFlight) return; inFlight=true;
+    try { const res=await fetch('{{url_for("api_live_chat")}}',{headers:{'X-Requested-With':'XMLHttpRequest'}}); const data=await res.json(); if(data.ok){ const stick=box.scrollHeight-box.scrollTop-box.clientHeight<42; box.innerHTML=data.html; apply(); if(stick) box.scrollTop=box.scrollHeight; } }
+    catch (_) {} finally { inFlight=false; }
+  }
+  document.querySelectorAll('[data-chat-filter]').forEach(button => button.addEventListener('click',()=>{filter=button.dataset.chatFilter;document.querySelectorAll('[data-chat-filter]').forEach(item=>item.classList.toggle('active',item===button));apply()}));
+  refresh.addEventListener('click', update);
+  box.scrollTop=box.scrollHeight;
+  setInterval(update,4000);
+})();
+</script>
+{% endblock %}

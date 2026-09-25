@@ -3562,6 +3562,76 @@ def items_database():
     return render_template("items.html", items=records, types=types, selected_type=item_type, query=query, total=total)
 
 
+CHAT_FEED_TYPES = ("SHOUT", "TRADE")
+
+
+def chat_message_text(value, author=""):
+    """Turn the client-decorated ChatLog payload into the message itself.
+
+    The core stores the same formatted string it sends to the client, including
+    Metin hyperlink and colour tokens.  The panel already knows the author from
+    its own ChatLog column, so retaining that prefix would duplicate the nick.
+    """
+    text = game_text(value).replace("\x00", "").strip()
+    text = re.sub(r"\|c[0-9A-Fa-f]{8}", "", text)
+    text = text.replace("|r", "")
+    text = re.sub(r"\|H[^|]*\|h([^|]*)\|h", r"\1", text)
+    text = re.sub(r"\|[hH]", "", text)
+    if author:
+        for prefix in (f"[{author}] : ", f"[{author}]: ", f"{author} : ", f"{author}: "):
+            if text.startswith(prefix):
+                return text[len(prefix):].strip()
+    return re.sub(r"^\s*(?:\[[^\]]+\]|[^:]{1,48})\s*:\s*", "", text, count=1).strip() or text
+
+
+def live_chat_messages(limit=140):
+    """Newest Wołaj and global trade lines logged by the running MT2009 core."""
+    limit = max(1, min(int(limit or 140), 300))
+    query = """
+        SELECT c.`where` AS map_index,c.who_id,c.who_name,c.type,
+               c.msg,c.`when`,p.id,p.job,""" + EMPIRE_EXPR + """ AS empire
+          FROM log.chat_log c
+          LEFT JOIN player.player p ON p.id=c.who_id
+          LEFT JOIN player.player_index pi ON pi.id=p.account_id
+          LEFT JOIN account.account a ON a.id=p.account_id
+         WHERE c.type IN ('SHOUT','TRADE')
+         ORDER BY c.`when` DESC
+         LIMIT %s
+    """
+    try:
+        records = rows(query, [limit])
+    except Exception:
+        app.logger.exception("Nie można odczytać log.chat_log")
+        return []
+    result = []
+    for row in reversed(records):
+        author = game_text(row.get("who_name")).strip() or "Nieznany"
+        when = row.get("when")
+        result.append({
+            "id": f"{row.get('who_id', 0)}:{when}:{game_text(row.get('msg'))}",
+            "time": when.strftime("%H:%M:%S") if hasattr(when, "strftime") else str(when)[11:19],
+            "type": row.get("type") if row.get("type") in CHAT_FEED_TYPES else "SHOUT",
+            "author": author,
+            "message": chat_message_text(row.get("msg"), author),
+            "player_id": int(row.get("id") or row.get("who_id") or 0),
+            "job": int(row.get("job") or 0),
+            "empire": int(row.get("empire") or 0),
+        })
+    return result
+
+
+@app.get("/live-chat")
+@login_required
+def live_chat():
+    return render_template("live_chat.html", messages=live_chat_messages())
+
+
+@app.get("/api/live-chat")
+@login_required
+def api_live_chat():
+    return {"ok": True, "html": render_template("partials/live_chat_messages.html", messages=live_chat_messages())}
+
+
 @app.route("/gm-commands")
 @login_required
 def gm_commands():
