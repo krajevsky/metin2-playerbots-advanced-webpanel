@@ -3592,19 +3592,6 @@ def chat_message_text(value, author=""):
     return re.sub(r"^\s*(?:\[[^\]]+\]|[^:]{1,48})\s*:\s*", "", text, count=1).strip() or text
 
 
-def tail_lines(path, max_bytes=384_000):
-    """Read only a bounded tail: chat refreshes must never scan full core logs."""
-    try:
-        with path.open("rb") as handle:
-            handle.seek(0, 2)
-            size = handle.tell()
-            handle.seek(max(0, size - max_bytes))
-            data = handle.read()
-    except OSError:
-        return []
-    return data.decode("cp1250", "replace").splitlines()
-
-
 def player_chat_identities(pids):
     if not pids:
         return {}
@@ -3619,45 +3606,129 @@ def player_chat_identities(pids):
         return {}
 
 
-def playerbot_public_messages(limit=180):
-    """All currently public Playerbot sends, from every core's bounded syslog.
+CHAT_SCAN_BACKFILL_BYTES = 384_000
+CHAT_SCAN_MAX_READ_BYTES = 4_000_000
 
-    MT2009's two Playerbot public broadcasters log arbitrary body text as
-    PLAYERBOT_TRADE: shout and PLAYERBOT_SHOUT.  These are not limited to
-    buying/selling copy; the first is the common generic broadcaster and the
-    second is a refine announcement.  Parsing both keeps the feed aligned with
-    what players see on Wołaj without needing an engine restart.
+
+def scan_bot_chat_logs():
+    """Incrementally append new PLAYERBOT_TRADE/PLAYERBOT_SHOUT lines from
+    every core's syslog into a persistent table, so a message stays visible
+    on /live-chat for as long as the feed wants it to -- not just for as
+    long as it happens to still sit inside the syslog's last few hundred KB.
+
+    Root cause of "wiadomości pojawiają się i zaraz znikają" (operator
+    report, 2026-09-25): the previous approach re-read a fixed 384 KB tail
+    of the *live* syslog on every poll. With ~1200 bots online these files
+    grow at roughly 45 KB/s per core (measured live: +223 956 bytes in 5s
+    on channel1/game1) -- so a message scrolled out of that 384 KB window
+    within about 8 seconds, well inside two 4s poll cycles. There is no
+    log rotation to rely on either (checked: no syslog.1/syslog-DATE files
+    exist, cores just keep appending to one growing file).
+
+    Fix: track a byte offset per syslog path (web_seban_chat_offset) and on
+    each call read only what's been appended since the last read, capped at
+    CHAT_SCAN_MAX_READ_BYTES so a long gap (panel restart, etc.) can't turn
+    one poll into a multi-hundred-MB read. Matches are stored permanently
+    in web_seban_bot_chat_log (pruned to the newest 2000), decoupling what
+    /live-chat shows from what still happens to be in the log's tail. First
+    scan of a path only backfills the last CHAT_SCAN_BACKFILL_BYTES (same
+    window the old code used), not the entire multi-GB history.
+
+    Called from playerbot_public_messages() on every /api/live-chat poll
+    (4s cadence) -- no separate background thread/process needed.
     """
-    entries, seen, year = [], set(), datetime.now().year
-    for channel, path in channel_paths("syslog"):
-        for line in tail_lines(path):
-            match = BOT_PUBLIC_CHAT_RE.match(line)
-            if not match:
-                continue
-            groups = match.groupdict()
-            pid = int(groups.get("trade_pid") or groups.get("refine_pid") or 0)
-            raw_name = groups.get("trade_name") or ""
-            body = groups.get("trade_text") if groups.get("trade_pid") else groups.get("refine_text")
-            body = body or ""
-            try:
-                when = datetime.strptime(f"{year} {groups['stamp']}", "%Y %b %d %H:%M:%S")
-            except (KeyError, ValueError):
-                continue
-            key = (channel, pid, when, body)
-            if pid <= 0 or key in seen:
-                continue
-            seen.add(key)
-            entries.append({"when": when, "pid": pid, "name": raw_name, "message": body})
-    identities = player_chat_identities({entry["pid"] for entry in entries})
+    try:
+        con = db()
+    except pymysql.MySQLError:
+        return
+    try:
+        with con.cursor() as cur:
+            offsets = {row["path"]: row["byte_offset"] for row in rows("SELECT path,byte_offset FROM player.web_seban_chat_offset")}
+            year = datetime.now().year
+            new_rows, updates = [], []
+            for channel, path in channel_paths("syslog"):
+                key = str(path)
+                try:
+                    size = path.stat().st_size
+                except OSError:
+                    continue
+                start = offsets.get(key, 0)
+                if size < start:
+                    start = 0  # rotated or truncated since the last scan
+                if start == 0 and size > CHAT_SCAN_BACKFILL_BYTES:
+                    start = size - CHAT_SCAN_BACKFILL_BYTES
+                if size <= start:
+                    continue
+                read_to = min(size, start + CHAT_SCAN_MAX_READ_BYTES)
+                try:
+                    with path.open("rb") as handle:
+                        handle.seek(start)
+                        data = handle.read(read_to - start)
+                except OSError:
+                    continue
+                text = data.decode("cp1250", "replace")
+                # Only advance past complete lines -- an in-progress final
+                # line (still being written) is picked up on the next poll.
+                usable_len = text.rfind("\n") + 1
+                if usable_len == 0:
+                    continue
+                for line in text[:usable_len].splitlines():
+                    match = BOT_PUBLIC_CHAT_RE.match(line)
+                    if not match:
+                        continue
+                    groups = match.groupdict()
+                    pid = int(groups.get("trade_pid") or groups.get("refine_pid") or 0)
+                    if pid <= 0:
+                        continue
+                    name = groups.get("trade_name") or ""
+                    body = groups.get("trade_text") if groups.get("trade_pid") else groups.get("refine_text")
+                    body = (body or "").strip()
+                    if not body:
+                        continue
+                    try:
+                        when = datetime.strptime(f"{year} {groups['stamp']}", "%Y %b %d %H:%M:%S")
+                    except ValueError:
+                        continue
+                    new_rows.append((channel, pid, name[:64], body[:255], when))
+                updates.append((key, start + usable_len))
+            if new_rows:
+                cur.executemany(
+                    "INSERT IGNORE INTO player.web_seban_bot_chat_log (channel,pid,name,message,captured_at) VALUES (%s,%s,%s,%s,%s)",
+                    new_rows)
+                # /live-chat only ever shows the newest couple hundred -- keep the table from growing forever.
+                cur.execute("""DELETE FROM player.web_seban_bot_chat_log WHERE id < (
+                    SELECT id FROM (SELECT id FROM player.web_seban_bot_chat_log ORDER BY id DESC LIMIT 1 OFFSET 2000) t)""")
+            for key, new_offset in updates:
+                cur.execute("REPLACE INTO player.web_seban_chat_offset (path,byte_offset) VALUES (%s,%s)", (key, new_offset))
+    except pymysql.MySQLError:
+        app.logger.exception("Nie można zaktualizować dziennika czatu botów")
+    finally:
+        con.close()
+
+
+def playerbot_public_messages(limit=180):
+    """Newest public Playerbot broadcasts (Wołaj / refine announcements),
+    read from the persistent capture table scan_bot_chat_logs() fills
+    incrementally -- see that function's docstring for why this isn't a
+    live syslog tail anymore."""
+    scan_bot_chat_logs()
+    try:
+        records = rows("""SELECT channel,pid,name,message,captured_at FROM player.web_seban_bot_chat_log
+          ORDER BY captured_at DESC LIMIT %s""", (limit,))
+    except pymysql.MySQLError:
+        app.logger.exception("Nie można odczytać dziennika czatu botów")
+        records = []
+    identities = player_chat_identities({r["pid"] for r in records})
     result = []
-    for entry in entries:
-        identity = identities.get(entry["pid"], {})
-        author = game_text(identity.get("name") or entry["name"]).strip() or "Nieznany"
+    for r in records:
+        identity = identities.get(r["pid"], {})
+        author = game_text(identity.get("name") or r["name"]).strip() or "Nieznany"
+        when = r["captured_at"]
         result.append({
-            "id": f"bot:{entry['pid']}:{entry['when']}:{entry['message']}",
-            "sort_at": entry["when"], "time": entry["when"].strftime("%H:%M:%S"),
-            "type": "SHOUT", "author": author, "message": chat_message_text(entry["message"], author),
-            "player_id": int(identity.get("id") or entry["pid"]), "job": int(identity.get("job") or 0),
+            "id": f"bot:{r['pid']}:{when}:{r['message']}",
+            "sort_at": when, "time": when.strftime("%H:%M:%S"),
+            "type": "SHOUT", "author": author, "message": chat_message_text(r["message"], author),
+            "player_id": int(identity.get("id") or r["pid"]), "job": int(identity.get("job") or 0),
             "empire": int(identity.get("empire") or 0),
         })
     return result[-limit:]

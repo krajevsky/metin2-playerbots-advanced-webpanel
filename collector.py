@@ -194,6 +194,21 @@ def init(cur):
     cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS fish_count INT NULL")
     cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS mining_count INT NULL")
     cur.execute("ALTER TABLE player.web_seban_daily_summary ADD COLUMN IF NOT EXISTS boss_count INT NULL")
+    # /live-chat's persistent capture of PLAYERBOT_TRADE/PLAYERBOT_SHOUT
+    # syslog lines -- app.py's scan_bot_chat_logs() reads/writes these
+    # incrementally on every poll (see its docstring). message(191) in the
+    # unique key keeps the index within InnoDB's byte limit for utf8mb4.
+    cur.execute("""CREATE TABLE IF NOT EXISTS player.web_seban_bot_chat_log (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      channel TINYINT UNSIGNED NOT NULL, pid INT UNSIGNED NOT NULL,
+      name VARCHAR(64) NOT NULL, message VARCHAR(255) NOT NULL, captured_at DATETIME NOT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_msg (channel,pid,captured_at,message(191)), INDEX idx_captured (captured_at)
+      ) ENGINE=InnoDB""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS player.web_seban_chat_offset (
+      path VARCHAR(255) NOT NULL PRIMARY KEY, byte_offset BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB""")
     cur.execute("""INSERT IGNORE INTO player.web_seban_settings (name,value) VALUES
       ('panel_name','Metin2 Singleplayer'),('stuck_minutes','5'),('theme','empire'),('monitor_mode','vps'),
       ('setup_complete','1'),('auth_enabled','0'),('auth_password_hash','')""")

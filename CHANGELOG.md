@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-25 · 1.76.0 · Trwały odczyt czatu botów na /live-chat
+
+- **Naprawiono efekt "wiadomość pojawia się i zaraz znika" na `/live-chat`.** Przyczyna: wiadomości Playerbotów (Wołaj/ulepszenia) były czytane z ostatnich 384 KB rosnącego na żywo pliku syslog rdzenia — przy ~1200 zalogowanych botach jeden rdzeń dopisuje do tego pliku ok. 45 KB/s, więc wiadomość wypadała z tego okna w mniej niż 10 sekund (żadnej rotacji logów, która mogłaby to ograniczyć, też nie ma).
+- Teraz panel pamięta pozycję bajtową w każdym pliku syslog (`web_seban_chat_offset`) i przy każdym odświeżeniu (co 4 s) czyta wyłącznie dopisane od ostatniego razu bajty, zapisując dopasowane wiadomości trwale w `web_seban_bot_chat_log` (przycinane do najnowszych 2000). Wiadomość zostaje widoczna tak długo, jak długo ma być, niezależnie od tego, ile danych rdzeń dopisał do logu w międzyczasie — bez restartu silnika, bez skanowania całych, wielogigabajtowych plików.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-25 · 1.75.0 · Czat na żywo
 
 - **Nowa sekcja `/live-chat`** pokazuje na bieżąco wiadomości Wołaj oraz globalny kanał Handel, korzystając z natywnego dziennika `log.chat_log` MT2009 — bez zmiany silnika i bez restartu serwera.
