@@ -34,9 +34,9 @@
   <div class="respawn-card-head"><span class="respawn-card-icon">⌖</span><div><p class="eyebrow">DOKŁADNA MAPA</p><h2>Własny czas respawnu</h2></div><span class="respawn-restart">↻ wymaga krótkiego restartu rdzeni</span></div>
   <p class="muted">To precyzyjne ustawienie nadpisuje czas w pliku wybranej mapy. Puste pole przywraca wartość dostarczoną z wydaniem Tieru.</p>
   <form action="{{ url_for('respawns_map') }}" method="post" class="respawn-map-form">
-    <label>Mapa<select name="map_index" id="respawn-map">{% for index, label in map_options %}<option value="{{ index }}" data-stones="{{ '1' if index in stone_maps else '0' }}">{{ label }}</option>{% endfor %}</select></label>
-    <label>Rodzaj<select name="target" id="respawn-target"><option value="mob">Potwory</option><option value="stone">Metiny</option></select></label>
-    <label>Czas <input name="seconds" type="number" min="1" max="3600" placeholder="domyślny"><small>sekundy</small></label>
+    <label><span>Mapa</span><select name="map_index" id="respawn-map">{% for index, label in map_options %}<option value="{{ index }}" data-stones="{{ '1' if index in stone_maps else '0' }}">{{ label }}</option>{% endfor %}</select></label>
+    <label><span>Rodzaj</span><select name="target" id="respawn-target"><option value="mob">Potwory</option><option value="stone">Metiny</option></select></label>
+    <label><span>Czas</span><span class="respawn-time-input"><input name="seconds" type="number" min="1" max="3600" placeholder="domyślny"><em>sekundy</em></span></label>
     <button type="submit">Zapisz dla mapy</button>
   </form>
   <p class="respawn-map-hint" id="respawn-map-hint"></p>
