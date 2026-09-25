@@ -165,6 +165,11 @@ QUEUE_FINAL_STATUSES = frozenset((
     "done", "bad_args", "failed", "unknown_cmd", "cancelled", "no_gm",
 ))
 AI_WEIGHTS_FILE = RATES_SPOOL / "playerbot_weights.tsv"
+# Ported from Tieru's classic panel (admin_panel.py's /ai/items) -- confirmed
+# the engine itself reads this exact path live, like the weights file
+# (playerbot_config.h's PLAYERBOT_ITEM_POLICY_PATH), 2026-09-26 audit.
+AI_ITEM_POLICY_FILE = RATES_SPOOL / "playerbot_item_policy.tsv"
+AI_ITEM_POLICY_WORDS = ("keep", "stall", "merchant", "drop", "zostaw", "stragan", "handlarz", "wyrzuc")
 AI_WEIGHT_KEYS = (
     ("RESTOCK", "Mikstury", "🧪"), ("REFINE", "Kowal", "🔨"),
     ("SKILL", "Księgi umiejętności", "📖"), ("HORSE", "Koń", "🐎"),
@@ -1845,6 +1850,36 @@ def write_ai_weights(values):
     os.replace(temporary, AI_WEIGHTS_FILE)
 
 
+def read_ai_item_policy():
+    try:
+        return AI_ITEM_POLICY_FILE.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+def check_ai_item_policy(text):
+    """Line numbers the core would silently skip, so a typo is caught here
+    instead of a bot just ignoring the rule with no error anywhere."""
+    bad = []
+    for number, raw in enumerate(text.splitlines(), 1):
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        parts = line.split()
+        key = parts[0].lower()
+        ok_key = key.isdigit() or (key.startswith("type:") and key[5:].isdigit())
+        if len(parts) != 2 or not ok_key or parts[1].lower() not in AI_ITEM_POLICY_WORDS:
+            bad.append(number)
+    return bad
+
+
+def write_ai_item_policy(text):
+    RATES_SPOOL.mkdir(parents=True, exist_ok=True)
+    temporary = AI_ITEM_POLICY_FILE.with_suffix(".tsv.new")
+    temporary.write_text(text.replace("\r\n", "\n").rstrip("\n") + "\n", encoding="utf-8", newline="\n")
+    os.replace(temporary, AI_ITEM_POLICY_FILE)
+
+
 BOT_HOLD_FILE = RATES_SPOOL / "playerbot_hold"
 
 
@@ -1969,14 +2004,20 @@ def queue_spawn_plan(window, late_joiners, late_hours):
 def read_bot_count():
     """The bot-count target the game side will use on its next start.
 
-    Mirrors read_rates(): m2-botcount publishes botcount.status on every
-    boot and after every change, so this is the truth even across a
-    container recreate the panel never saw happen. Falls back to counting
+    PLAYERBOT_AUTOSPAWN_COUNT is read once, at core boot, only when
+    CPlayerBotManager::GetCount()==0 (game/src/input_db.cpp) -- there is no
+    live/hot-reload path for it, matching Tieru's own launcher slider
+    ("Zmiana suwaka działa dopiero po restarcie serwera", panel CHANGELOG
+    1.33.2). A change therefore needs a real container recreate of `game`,
+    exactly like the spawn-plan feature already does -- so this reads/writes
+    through the SAME update-spool volume and watcher as queue_spawn_plan(),
+    not RATES_SPOOL (that one is polled live, in-process, from inside the
+    game container by m2-rates; there is no equivalent poller for bot count,
+    confirmed missing from the image, 2026-09-26). Falls back to counting
     who is actually alive right now (never zero on a running world) only
-    when the spool has nothing at all, i.e. an image built before this
-    existed.
+    when the spool has nothing at all.
     """
-    status = read_spool_values(RATES_SPOOL / "botcount.status")
+    status = read_spool_values(UPDATE_SPOOL / "botcount.status")
     value = status.get("count", "")
     if value.isdigit():
         return int(value)
@@ -1984,26 +2025,19 @@ def read_bot_count():
 
 
 def queue_botcount_change(count):
-    """Ask the game side for a new playerbot target.
-
-    Separate spool file from the rates on purpose: PLAYERBOT_AUTOSPAWN_COUNT
-    is an environment variable a running container cannot be handed a new
-    value for, so m2-botcount keeps the wanted number on the state volume
-    and m2-supervise's start_core exports it fresh before every core exec
-    (see m2-botcount's own header for the whole shape of it). Submitting
-    this alongside a rates/respawn change can cost two restarts back to
-    back instead of one combined one -- both are polled independently, a
-    few seconds apart at most, which is a fair trade against merging two
-    unrelated request formats into one.
-    """
+    """Ask for a new playerbot target -- writes PLAYERBOT_AUTOSPAWN_COUNT
+    into .env and force-recreates the `game` container, via the same
+    isolated host-side watcher (seban-updater-watch.sh) that already
+    handles the spawn-plan feature. See read_bot_count()'s docstring for
+    why this can't be a live in-process reload."""
     stamp = int(time.time() * 1000)
-    request_data = "\n".join((f"id=seban-{stamp}", f"count={count}", f"time={int(time.time())}", ""))
-    RATES_SPOOL.mkdir(parents=True, exist_ok=True)
-    temporary = RATES_SPOOL / "botcount.request.new"
+    request_data = "\n".join((f"id=seban-botcount-{stamp}", f"count={count}", f"time={int(time.time())}", ""))
+    UPDATE_SPOOL.mkdir(parents=True, exist_ok=True)
+    temporary = UPDATE_SPOOL / "botcount.request.new"
     temporary.write_text(request_data, encoding="utf-8")
-    os.replace(temporary, RATES_SPOOL / "botcount.request")
-    (RATES_SPOOL / "botcount.status").write_text(
-        "state=running\ntime=%s\ncount=%s\nmessage=restart requested by Seban Panel\n" %
+    os.replace(temporary, UPDATE_SPOOL / "botcount.request")
+    (UPDATE_SPOOL / "botcount.status").write_text(
+        "state=oczekuje\ntime=%s\ncount=%s\nmessage=Żądanie zapisane; oczekiwanie na restart gry.\n" %
         (int(time.time()), count), encoding="utf-8")
 
 
@@ -2862,6 +2896,37 @@ GEAR_HISTORY_HOWS = {
     "EXCHANGE_TAKE": ("gift-in", "Z wymiany"),
     "EXCHANGE_GIVE": ("gift-out", "Oddane w wymianie"),
 }
+
+
+# Word-boundary match: a name is bounded by space, "=", ":", "[", a bracket
+# or line end, never by a letter/digit of its own -- bot names are numbered
+# suffixes of a shared stem ("botgrom" must not match "botgrom2"). Ported
+# from Tieru's classic panel (admin_panel.py's api_bot_logs), which the
+# operator asked to compare our panel against, 2026-09-26.
+def bot_debug_logs(name, limit=60, scan_lines=800):
+    """Recent syslog lines mentioning this bot's name, across every core.
+    Read-only, bounded (scan_lines per file so this never reads full,
+    multi-GB syslogs -- same reasoning as scan_bot_chat_logs())."""
+    name = (name or "").strip()
+    if not name:
+        return []
+    name_re = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(name) + r"(?![A-Za-z0-9_])", re.IGNORECASE)
+    matched = []
+    for channel, path in channel_paths("syslog"):
+        try:
+            with path.open("rb") as handle:
+                handle.seek(0, 2)
+                size = handle.tell()
+                handle.seek(max(0, size - 4_000_000))
+                data = handle.read()
+        except OSError:
+            continue
+        lines = data.decode("cp1250", "replace").splitlines()
+        recent = lines[-scan_lines:] if len(lines) > scan_lines else lines
+        for line in recent:
+            if name_re.search(line):
+                matched.append(line.strip())
+    return matched[-limit:]
 
 
 def bot_gear_history(pid, limit=60):
@@ -4975,7 +5040,7 @@ def manage():
     current_settings = settings()
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count(), spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled(), custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines(), bots_held=read_bot_hold())
+    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count(), spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled(), custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines(), bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
 
 
 @app.post("/manage/update")
@@ -5238,6 +5303,26 @@ def manage_behavior():
         flash("Nie udało się zapisać wag Playerbots.", "error")
     else:
         flash("Zachowanie botów zapisane — nowy plan działania wejdzie w życie do 5 sekund, bez restartu.")
+    return redirect(url_for("manage"))
+
+
+@app.post("/manage/item-policy")
+@login_required
+def manage_item_policy():
+    """Per-item keep/stall/merchant/drop rules -- ported from Tieru's classic
+    panel (2026-09-26 audit), confirmed the engine reads this exact file
+    live (playerbot_config.h), same as the behaviour weights above."""
+    text = request.form.get("policy", "")
+    bad_lines = check_ai_item_policy(text)
+    if bad_lines:
+        flash("Odrzucono -- błędne linie: " + ", ".join(str(n) for n in bad_lines) + ". Format: <vnum lub type:N> <keep|stall|merchant|drop>.", "error")
+        return redirect(url_for("manage"))
+    try:
+        write_ai_item_policy(text)
+    except OSError:
+        flash("Nie udało się zapisać polityki przedmiotów.", "error")
+    else:
+        flash("Polityka przedmiotów zapisana — rdzeń odczytuje ją na żywo, bez restartu.")
     return redirect(url_for("manage"))
 
 

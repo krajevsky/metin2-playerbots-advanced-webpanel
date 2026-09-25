@@ -1,5 +1,14 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.84.0 · Aktualizacja do 2.2.19, naprawa suwaka botów, audyt vs panel Tieru
+
+- **Playerbots zaktualizowane do 2.2.19** (z 2.2.9), przez oficjalny, odizolowany aktualizator panelu — pełny backup bazy (>1,2 GB) zrobiony automatycznie przed czymkolwiek. Panel webowy (ten) pozostał nietknięty, zgodnie z ustawieniem.
+- **Naprawiony realnie zepsuty suwak "Docelowa liczba botów" w Zarządzaniu.** Nigdy nie działał — odwoływał się do mechanizmu (`m2-botcount`) który nie istnieje i nigdy nie istniał w obrazie gry. Naprawione tak, jak realnie robi to silnik: zmiana `PLAYERBOT_AUTOSPAWN_COUNT` w `.env` i pełne odtworzenie kontenera gry (silnik czyta tę liczbę tylko raz, przy starcie od zera — potwierdzone w kodzie C++ i własnym changelogu Tieru: "Zmiana suwaka działa dopiero po restarcie serwera"). Ten sam, już sprawdzony mechanizm co plan wejścia spóźnionych botów.
+- **Pełny audyt panelu Tieru (port 7788) w wersji dołączonej do 2.2.19** vs nasz panel — wynik: nasz panel już pokrywa niemal wszystko po stronie admina (mapa na żywo, ranking botów, wagi zachowań, teleport do bota, historia ekwipunku, sklepy offline, magazyn, sezon, restart z planem wejścia, aktualizator) — Tieru ma dodatkowo strony rejestracji/konta/pobierania klienta, które nie mają zastosowania w tym single-operatorskim wdrożeniu.
+- **Dodana jedna realnie brakująca funkcja: "📦 Polityka przedmiotów"** w Zarządzaniu — reguły keep/stall/merchant/drop per VNUM albo typ przedmiotu, edytowane jako zwykły tekst, odczytywane przez rdzeń na żywo (bez restartu). Ta sama ścieżka co wagi zachowań (`/opt/m2spool`), potwierdzona w kodzie silnika (`playerbot_config.h`).
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-26 · 1.83.0 · Własny kursor panelu + wybór w Zarządzaniu
 
 - **Panel ma teraz własny, niestandardowy kursor** (dostarczony przez operatora) zamiast domyślnego kursora systemowego — widoczny na każdej stronie, linki i przyciski dalej pokazują zwykłą "łapkę" przy najechaniu.
