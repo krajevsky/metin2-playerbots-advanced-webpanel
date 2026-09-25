@@ -35,7 +35,7 @@ body[data-theme="empire"] .feed-card-name:hover{color:var(--gold)}
 .feed-card-time{margin-left:auto;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 .feed-card-message{margin:4px 0 0;color:var(--text);font-size:14px;line-height:1.45;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .feed-card-method{color:var(--muted);font-size:12px;font-style:italic}
-.feed-card-item-icon{width:22px;height:22px;object-fit:contain;background:#0b1625;border:1px solid var(--edge);border-radius:4px}
+.feed-card-item-icon,.feed-card-method-icon{width:22px;height:22px;object-fit:contain;background:#0b1625;border:1px solid var(--edge);border-radius:4px;vertical-align:middle;margin-left:2px}
 
 .feed-card-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.5px}
 .feed-card-badge--refine{background:#1a3a5c;color:#8fc4ff}

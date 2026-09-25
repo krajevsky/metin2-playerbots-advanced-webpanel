@@ -944,11 +944,13 @@ def _classify_refine_events(raw):
             continue
         seen.add(key)
         set_type = str(row.get("setType") or "")
+        method_vnum = 0
         if set_type in REFINE_METHOD_LABELS:
             method = REFINE_METHOD_LABELS[set_type]
         elif set_type.startswith("SCROLL:"):
             scroll_vnum = set_type.split(":", 1)[1]
-            scroll_name = scroll_names.get(int(scroll_vnum)) if scroll_vnum.isdigit() else None
+            method_vnum = int(scroll_vnum) if scroll_vnum.isdigit() else 0
+            scroll_name = scroll_names.get(method_vnum)
             method = f"zwojem ({scroll_name})" if scroll_name else "zwojem"
         else:
             method = "innym sposobem"
@@ -956,7 +958,13 @@ def _classify_refine_events(raw):
             "key": key, "time": row["time"], "message": f"{name} ulepszył {item_name}", "kind": "refine",
             "actor": name, "method": method, "refine_tier": int(row.get("step") or 0),
             "player_id": int(row.get("pid") or 0), "job": int(row.get("job") or 0),
-            "empire": int(row.get("empire") or 0), "vnum": 0, "socket0": 0,
+            # `vnum` doubles as "which item was used to refine" here (the
+            # item that was upgraded is destroyed, so there's no vnum for
+            # it to show anyway) -- item_icon(vnum) in the template shows
+            # the scroll/manual actually used instead of a text label
+            # (operator's ask, 2026-09-26); 0 for plain blacksmith (POWER),
+            # rendered with static/refine-method/kowal.png instead.
+            "empire": int(row.get("empire") or 0), "vnum": method_vnum, "socket0": 0,
         })
     return events
 
@@ -3773,6 +3781,43 @@ def items_database():
         index = int(category["type"])
         category["label"] = ITEM_TYPE_NAMES[index] if 0 <= index < len(ITEM_TYPE_NAMES) else f"ITEM_TYPE_{index}"
     return render_template("items.html", items=records, types=types, selected_type=item_type, query=query, total=total)
+
+
+@app.get("/api/items")
+@login_required
+def api_items():
+    """Debounced AJAX search backing /items -- see items.html's JS.
+
+    The old client-side filter rendered all 6001 item_proto rows (every
+    category combined) into the DOM up front, each with its own <img>, and
+    re-scanned every single one of those 6001 nodes on every keystroke with
+    no debounce -- fine typed fast (the browser drops/coalesces rapid
+    `input` events), but typing slowly meant paying that full 6001-node
+    scan-and-reflow *and* nothing had lazy-loaded the images either, so the
+    browser also kept re-triggering layout for thousands of <img> tags.
+    Operator's report, 2026-09-26: browser and PC fans struggling on a
+    high-end machine. This now asks the server (which already had the
+    fast, indexed vnum/locale_name query the "Szukaj" button used) instead
+    of ever touching thousands of DOM nodes client-side.
+    """
+    query = request.args.get("q", "").strip()
+    item_type = request.args.get("type", "").strip()
+    where, params = [], []
+    if query:
+        where.append("(p.vnum=%s OR p.locale_name LIKE %s OR p.name LIKE %s)")
+        params += [int(query) if query.isdigit() else -1, f"%{query}%", f"%{query}%"]
+    if item_type.isdigit():
+        where.append("p.type=%s")
+        params.append(int(item_type))
+    predicate = " WHERE " + " AND ".join(where) if where else ""
+    total = one("SELECT COUNT(*) AS count FROM player.item_proto p" + predicate, params).get("count", 0)
+    records = rows("SELECT p.vnum,p.name,p.locale_name,p.type,p.subtype,p.size,p.gold,p.shop_buy_price FROM player.item_proto p" + predicate + " ORDER BY p.vnum LIMIT 500", params)
+    for item in records:
+        item["name"] = game_text(item.get("locale_name") or item.get("name"))
+    count_label = f"{total} przedmiotów" + (" pasuje do wyszukiwania" if query else (" w wybranej kategorii" if item_type else " · pełna lista bez stron"))
+    if total > 500:
+        count_label += " (pokazano pierwsze 500 — zawęź wyszukiwanie)"
+    return {"ok": True, "html": render_template("partials/items_catalog.html", items=records), "count_label": count_label}
 
 
 CHAT_FEED_TYPES = ("SHOUT", "TRADE")

@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.82.0 · Ikony ulepszeń + naprawa lagów w bazie przedmiotów
+
+- **Wiadomości ze świata: ikonka zamiast podpisu przy ulepszeniach.** Zamiast tekstu "zwojem (Zwój Błogosławieństwa)" pokazuje się teraz ikona faktycznie użytego przedmiotu (zwój błogosławieństwa, zwój boga smoków, podręcznik kowala — cokolwiek trafi do `refinelog.setType` jako `SCROLL:<vnum>`, rozpoznawane automatycznie), a przy zwykłym ulepszeniu u kowala — własna ikonka operatora.
+- **Naprawiony realny problem z laggami przy wpisywaniu w "Bazie przedmiotów".** Stara wersja renderowała od razu wszystkie 6001 przedmiotów do strony i przy każdym naciśnięciu klawisza przeszukiwała wszystkie te węzły w przeglądarce od nowa, bez żadnego opóźnienia — przy szybkim pisaniu przeglądarka częściowo to znosiła, ale wolne, pojedyncze naciśnięcia klawiszy płaciły pełny koszt za każdym razem (stąd spowolnienie całego komputera). Wyszukiwanie pyta teraz serwer (z opóźnieniem 300 ms), zwracając tylko pasujące przedmioty zamiast przeglądać wszystko lokalnie.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-25 · 1.81.0 · Sposób ulepszenia w wiadomościach ze świata
 
 - **"Wiadomości ze świata" i ticker na dashboardzie pokazują teraz, jak dane ulepszenie powstało** — u kowala czy zwojem (z nazwą zwoju, np. "Zwój Błogosławieństwa"). Log gry (`log.log`) nigdy tego nie zapisywał w treści zdarzenia, ale silnik ma osobną tabelę `log.refinelog` z dokładnie tą informacją (`setType`: POWER/GUILD/DEVILTOWER/SCROLL:vnum) — znaleziona w kodzie silnika (`LogManager::RefineLog`, `char_item.cpp`) i podłączona.
