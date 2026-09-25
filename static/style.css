@@ -245,3 +245,8 @@ body[data-theme="empire"] .empire-hero{--hero-accent:var(--gold);--hero-accent-s
 /* Anchor animated character to the dashboard banner. */
 #heroBanner{position:relative!important}
 #heroBanner .empire-hero-runner,#heroBanner .empire-hero-idle{position:absolute!important;bottom:0!important;height:170px!important;max-height:170px!important;width:auto!important}
+
+/* Operator's own cursor (static/cursor.cur, "Selección Normal.cur", 2026-09-25).
+   Only the base pointer -- links/buttons keep the normal hand cursor on hover
+   via their own more specific `cursor:pointer` rules above. */
+html{cursor:url('cursor.cur'),auto}
