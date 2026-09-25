@@ -157,6 +157,13 @@ GAME_HOST = os.environ.get("PLAYERBOTS_GAME_HOST", "metin2-game")
 GAME_LOGIN_PORT = int(os.environ.get("PLAYERBOTS_LOGIN_PORT", "11000"))
 GAME_WORLD_PORT = int(os.environ.get("PLAYERBOTS_WORLD_PORT", "13000"))
 RATE_NAMES = ("exp", "drop", "yang")
+REGEN_DELAY_FLAGS = {"boss": "fastBossSpawn", "mob": "fastMobSpawn"}
+REGEN_COUNT_FLAGS = {"boss": "m2_boss_count", "mob": "m2_mob_count"}
+REGEN_DELAY_MIN = 10
+REGEN_COUNT_CHOICES = (100, 150, 200, 250, 300, 400)
+QUEUE_FINAL_STATUSES = frozenset((
+    "done", "bad_args", "failed", "unknown_cmd", "cancelled", "no_gm",
+))
 AI_WEIGHTS_FILE = RATES_SPOOL / "playerbot_weights.tsv"
 AI_WEIGHT_KEYS = (
     ("RESTOCK", "Mikstury", "🧪"), ("REFINE", "Kowal", "🔨"),
@@ -428,6 +435,62 @@ def rows(sql, params=()):
 def one(sql, params=()):
     result = rows(sql, params)
     return result[0] if result else {}
+
+
+def read_regen_settings():
+    """Read MT2009's persistent global respawn flags (100 means defaults)."""
+    result = {"delay": {kind: 100 for kind in REGEN_DELAY_FLAGS},
+              "count": {kind: 100 for kind in REGEN_COUNT_FLAGS}}
+    try:
+        with db() as con, con.cursor() as cur:
+            for kind, flag in REGEN_DELAY_FLAGS.items():
+                cur.execute("SELECT lValue FROM player.quest WHERE dwPID=0 AND szName=%s LIMIT 1", (flag,))
+                row = cur.fetchone()
+                if row and REGEN_DELAY_MIN <= int(row["lValue"]) < 100:
+                    result["delay"][kind] = int(row["lValue"])
+            for kind, flag in REGEN_COUNT_FLAGS.items():
+                cur.execute("SELECT lValue FROM player.quest WHERE dwPID=0 AND szName=%s LIMIT 1", (flag,))
+                row = cur.fetchone()
+                if row and 100 < int(row["lValue"]) <= max(REGEN_COUNT_CHOICES):
+                    result["count"][kind] = int(row["lValue"])
+    except (KeyError, TypeError, ValueError, pymysql.MySQLError):
+        pass
+    return result
+
+
+def persist_regen_settings(kind, values):
+    flags = REGEN_DELAY_FLAGS if kind == "delay" else REGEN_COUNT_FLAGS
+    with db() as con, con.cursor() as cur:
+        for target, flag in flags.items():
+            value = int(values[target])
+            stored = 0 if (kind == "delay" and value >= 100) or (kind == "count" and value <= 100) else value
+            cur.execute("REPLACE INTO player.quest (dwPID, szName, szState, lValue) VALUES (0, %s, '', %s)",
+                        (flag, stored))
+
+
+def queue_game_admin_command(command, arg1, wait=12.0):
+    """Use the same queue processed by MT2009's web_admin.quest."""
+    with db() as con, con.cursor() as cur:
+        cur.execute("INSERT INTO player.web_admin_queue (player_name, cmd, arg1, arg2) VALUES ('', %s, %s, '')",
+                    (command, str(arg1)))
+        queue_id = cur.lastrowid
+    deadline = time.time() + wait
+    while time.time() < deadline:
+        time.sleep(0.5)
+        result = one("SELECT status FROM player.web_admin_queue WHERE id=%s", (queue_id,))
+        status = result.get("status")
+        if not result:
+            return "gone", queue_id
+        if status in QUEUE_FINAL_STATUSES:
+            return status, queue_id
+    return "timeout", queue_id
+
+
+def cancel_pending_admin_command(queue_id):
+    try:
+        rows("UPDATE player.web_admin_queue SET status='cancelled' WHERE id=%s AND status='pending'", (queue_id,))
+    except pymysql.MySQLError:
+        pass
 
 
 def _ensure_collector_tables():
@@ -4257,6 +4320,83 @@ def daily_summary(summary_id):
     if not summary:
         abort(404)
     return render_template("daily_summary.html", s=summary)
+
+
+@app.get("/respawns")
+@login_required
+def respawns():
+    return render_template("respawns.html", regen=read_regen_settings(),
+                           count_choices=REGEN_COUNT_CHOICES,
+                           map_options=MAP_RESPAWN_OPTIONS,
+                           stone_maps=MAP_STONE_RESPAWN_IDS,
+                           map_status=read_map_regen_status())
+
+
+@app.post("/respawns/delay")
+@login_required
+def respawns_delay():
+    try:
+        values = {key: int(request.form.get(f"delay_{key}", "")) for key in REGEN_DELAY_FLAGS}
+        if any(not REGEN_DELAY_MIN <= value <= 100 for value in values.values()):
+            raise ValueError(f"Szybkość odrodzenia musi mieścić się w zakresie {REGEN_DELAY_MIN}–100%.")
+        persist_regen_settings("delay", values)
+        status, queue_id = queue_game_admin_command("REGEN", f"{0 if values['boss'] == 100 else values['boss']},{0 if values['mob'] == 100 else values['mob']}")
+        if status != "done":
+            if status == "timeout": cancel_pending_admin_command(queue_id)
+            raise RuntimeError("Ustawienie zapisano na następny start, ale rdzeń nie potwierdził zmiany na żywo.")
+    except (TypeError, ValueError) as exc:
+        flash(str(exc) or "Wprowadź prawidłowe wartości.", "error")
+    except (RuntimeError, pymysql.MySQLError) as exc:
+        flash(str(exc) or "Nie udało się połączyć z kolejką gry.", "error")
+    else:
+        flash("Czasy odrodzenia zmienione na żywo. Kolejny cykl użyje nowych wartości.")
+    return redirect(url_for("respawns"))
+
+
+@app.post("/respawns/count")
+@login_required
+def respawns_count():
+    try:
+        values = {key: int(request.form.get(f"count_{key}", "")) for key in REGEN_COUNT_FLAGS}
+        if any(value not in REGEN_COUNT_CHOICES for value in values.values()):
+            raise ValueError("Wybierz jeden z dostępnych mnożników liczby potworów.")
+        persist_regen_settings("count", values)
+        status, queue_id = queue_game_admin_command("REGEN_COUNT", f"{values['boss']},{values['mob']}")
+        if status != "done":
+            if status == "timeout": cancel_pending_admin_command(queue_id)
+            raise RuntimeError("Ustawienie zapisano na następny start, ale rdzeń nie potwierdził zmiany na żywo.")
+    except (TypeError, ValueError) as exc:
+        flash(str(exc) or "Wybierz prawidłowe wartości.", "error")
+    except (RuntimeError, pymysql.MySQLError) as exc:
+        flash(str(exc) or "Nie udało się połączyć z kolejką gry.", "error")
+    else:
+        flash("Liczebność respawnów zmieniona na żywo. Brakujące jednostki pojawią się przy kolejnym odrodzeniu.")
+    return redirect(url_for("respawns"))
+
+
+@app.post("/respawns/map")
+@login_required
+def respawns_map():
+    known = {str(index) for index, _label in MAP_RESPAWN_OPTIONS}
+    map_index, target = request.form.get("map_index", ""), request.form.get("target", "mob")
+    try:
+        if map_index not in known or target not in ("mob", "stone"):
+            raise ValueError("Wybierz prawidłową mapę i rodzaj respawnu.")
+        if target == "stone" and int(map_index) not in MAP_STONE_RESPAWN_IDS:
+            raise ValueError("Ta mapa nie ma osobnego pliku respawnu Metinów.")
+        raw = request.form.get("seconds", "").strip()
+        value = "reset" if not raw else int(raw)
+        if value != "reset" and not 1 <= value <= 3600:
+            raise ValueError("Czas respawnu musi mieścić się w zakresie 1–3600 sekund.")
+        key = f"stone_{map_index}" if target == "stone" else map_index
+        queue_map_regen_changes({key: value})
+    except (TypeError, ValueError) as exc:
+        flash(str(exc) or "Wprowadź prawidłową wartość.", "error")
+    except OSError:
+        flash("Nie udało się zlecić zmiany dla mapy.", "error")
+    else:
+        flash("Zlecono dokładny czas dla mapy. Ta operacja odtwarza rdzenie, aby wczytać pliki respawnu.")
+    return redirect(url_for("respawns"))
 
 
 @app.route("/events", methods=["GET", "POST"])

@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-25 · 1.74.0 · Respawny MT2009 na żywo
+
+- **Nowa sekcja `/respawns`** daje osobne, czytelne sterowanie tempem i liczebnością świata: Metiny z bossami oraz zwykłe potwory mają własne ustawienia.
+- **Globalne ustawienia działają na żywo przez natywną kolejkę `web_admin.quest` MT2009:** panel czeka na potwierdzenie rdzenia i pokazuje eleganckie powiadomienie AJAX bez przeładowania strony. Wartości są też zapisywane, więc przetrwają następny restart.
+- **Dokładny czas dla pojedynczej mapy** pozostał dostępny jako osobne ustawienie plikowe. Interfejs uczciwie oznacza, że po jego zapisaniu rdzenie są krótko odtwarzane; puste pole przywraca czas dostarczony z wydaniem Tieru.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-24 22:30 CEST · 1.73.0 · Tygodniowy kalendarz eventów i baner wszystkich motywów
 
 - **Harmonogram eventów na `/events` jest teraz interaktywnym kalendarzem tygodniowym:** siedem dni, format 24-godzinny, kliknięcie wolnej godziny dodaje wydarzenie, a kliknięcie bloku otwiera jego edycję. Kalendarz przewija się od razu w okolice najbliższego zaplanowanego wydarzenia.
