@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-25 · 1.77.0 · Ekran ładowania z prawdziwym artem klienta
+
+- **Pierwsze wejście do panelu w danej sesji przeglądarki** pokazuje teraz pełnoekranowy ekran ładowania zbudowany z prawdziwego artu klienta Metin2 (losowy z 7 oryginalnych loading screenów: ninja, szaman, sura, wojownik) i oryginalnym paskiem postępu z gry (gauge_empty/gauge_full), zamiast pustego ekranu podczas ładowania dashboardu.
+- Płynnie znika po ok. 2,2 s i odsłania w pełni załadowany dashboard. Przy kolejnych wejściach na dashboard w tej samej sesji (przełączanie zakładek itp.) ekran się już nie pojawia — zapamiętane w `sessionStorage`.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-25 · 1.76.0 · Trwały odczyt czatu botów na /live-chat
 
 - **Naprawiono efekt "wiadomość pojawia się i zaraz znika" na `/live-chat`.** Przyczyna: wiadomości Playerbotów (Wołaj/ulepszenia) były czytane z ostatnich 384 KB rosnącego na żywo pliku syslog rdzenia — przy ~1200 zalogowanych botach jeden rdzeń dopisuje do tego pliku ok. 45 KB/s, więc wiadomość wypadała z tego okna w mniej niż 10 sekund (żadnej rotacji logów, która mogłaby to ograniczyć, też nie ma).
