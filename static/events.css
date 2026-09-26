@@ -45,3 +45,4 @@
 .event-bot-share h2{margin:3px 0 6px}.event-bot-share p{margin:0}.event-bot-share label{display:grid;grid-template-columns:1fr 54px;align-items:center;gap:10px}.event-bot-share output{font-weight:800;color:var(--blue2)}
 .calendar-event-body b,.calendar-event-legend b{font-size:19px;line-height:1}.calendar-event-tanaka{background:#51451ee8!important;border-color:#e4bc45!important}.calendar-event-zuo{background:#693c27e8!important;border-color:#ff8a55!important}.calendar-legend-tanaka{color:#ffe391;background:#8f6a2433}.calendar-legend-zuo{color:#ffb28f;background:#b24a2433}.calendar-editor-map.is-hidden{display:none}
 @media(max-width:760px){.event-bot-share{grid-template-columns:1fr}.event-bot-share button{width:100%}}
+.calendar-event .calendar-event-body b,.calendar-event-legend b{display:inline}
