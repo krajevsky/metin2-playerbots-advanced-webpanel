@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.92.0 · Oryginalne mapy klienta i filtry historii ekwipunku
+
+- **Grota Wygnańców V1 i V2 korzysta teraz z prawdziwych minimap klienta gry**, złożonych z 36 kafli każda z paczki `season2`, zamiast poglądowych grafik generowanych przez AI.
+- **Ognista Ziemia została dodana do przeglądarki map i ustawień respawnu** z oficjalnym atlasem oraz granicami z `atlasinfo.txt`. Czerwony Las otrzymał poprawny, pełny atlas bez wcześniejszego błędnego kadrowania.
+- **Historia ekwipunku na karcie gracza ma filtry** Handel, Bonusy, Ulepszanie, Inne i Wszystko, zgodne z podziałem zdarzeń panelu Tieru.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-26 · 1.91.0 · Pełna zgodność z Playerbots 2.2.24
 
 - **Dodano eventy świata z 2.2.22:** Pirat Tanaka i Zuo mają szybki start, tygodniowy harmonogram, wybór mapy, liczbę jednostek oraz regulowany udział botów. Status pokazuje także żywe i pokonane jednostki, boty uczestniczące i fazę eventu.

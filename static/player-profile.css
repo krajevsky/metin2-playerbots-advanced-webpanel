@@ -125,4 +125,8 @@
 .log-lines .gear-vendor b,.log-lines .gear-stall-sold b{color:#f2c34d}
 .log-lines .gear-equip b,.log-lines .gear-gift-in b,.log-lines .gear-gift-out b,.log-lines .gear-safebox b,.log-lines .gear-bonus b{color:#82b6ff}
 .log-lines span small{color:var(--muted);margin-left:4px}
+.gear-history-filters{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+.gear-history-filters button{min-height:34px;padding:7px 12px;border:1px solid var(--border);border-radius:7px;background:var(--panel);color:var(--muted);font-weight:700;cursor:pointer}
+.gear-history-filters button:hover,.gear-history-filters button.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--panel));color:var(--text)}
+.log-lines>[data-gear-tab][hidden]{display:none!important}
 .shop-name-tip-expired{margin-left:7px;padding:2px 7px;border:1px solid #db5a5a;border-radius:999px;color:#ff8c8c;font-size:10px;text-transform:uppercase}.shop-expired-note{color:#ff8c8c}

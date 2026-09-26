@@ -41,7 +41,7 @@ MAP_NAMES = {
     21: "Chunjo M1 — Joan", 23: "Chunjo M2 — Bokjung",
     24: "Chunjo M3 — Waryong", 25: "Loch Małp Chunjo",
     41: "Jinno M1 — Pyongmoo", 43: "Jinno M2 — Bakra",
-    61: "Góra Sohan", 63: "Pustynia Yongbi", 64: "Dolina Orków", 104: "Loch Pająków V1",
+    61: "Góra Sohan", 62: "Ognista Ziemia", 63: "Pustynia Yongbi", 64: "Dolina Orków", 104: "Loch Pająków V1",
     65: "Świątynia Hwang", 71: "Loch Pająków V2",
     108: "Loch Małp Normalny", 109: "Loch Małp Trudny",
     67: "Las", 68: "Czerwony Las", 66: "Wieża Demonów",
@@ -54,7 +54,8 @@ MAP_BOUNDS = {
     44: (230400, 0, 51200, 51200), 45: (921600, 435200, 76800, 76800),
     21: (0, 102400, 102400, 128000), 23: (102400, 204800, 102400, 102400),
     24: (179200, 0, 51200, 51200), 25: (844800, 435200, 76800, 76800),
-    61: (358400, 153600, 153600, 153600), 63: (204800, 486400, 153600, 153600),
+    61: (358400, 153600, 153600, 153600), 62: (588800, 614400, 153600, 153600),
+    63: (204800, 486400, 153600, 153600),
     64: (256000, 665600, 153600, 153600), 104: (51200, 486400, 76800, 76800),
     65: (537600, 51200, 102400, 102400), 71: (665600, 435200, 102400, 102400),
     108: (128000, 640000, 76800, 76800), 109: (128000, 716800, 76800, 76800),
@@ -94,7 +95,7 @@ MAP_RESPAWN_OPTIONS = (
     (23, "Chunjo M2 — Bokjung"), (41, "Jinno M1 — Pyongmoo"), (43, "Jinno M2 — Bakra"),
     (4, "Shinsoo M3 — Jungrang"), (24, "Chunjo M3 — Waryong"), (44, "Jinno M3 — Imha"),
     (5, "Loch Małp Shinsoo"), (45, "Loch Małp Jinno"),
-    (25, "Loch Małp Chunjo"), (61, "Góra Sohan"), (63, "Pustynia Yongbi"), (64, "Dolina Orków"),
+    (25, "Loch Małp Chunjo"), (61, "Góra Sohan"), (62, "Ognista Ziemia"), (63, "Pustynia Yongbi"), (64, "Dolina Orków"),
     (104, "Loch Pająków V1"), (71, "Loch Pająków V2"), (108, "Loch Małp Normalny"), (109, "Loch Małp Trudny"),
     (72, "Grota Wygnańców V1"), (73, "Grota Wygnańców V2"),
 )
@@ -3163,6 +3164,20 @@ GEAR_HISTORY_HOWS = {
     "EXCHANGE_GIVE": ("gift-out", "Oddane w wymianie"),
 }
 
+GEAR_HISTORY_TABS = {
+    "trade": {"PLAYERBOT_STALL_SOLD", "SHOP_BUY", "PLAYERBOT_SHOP_SELL", "EXCHANGE_TAKE",
+              "EXCHANGE_GIVE", "PLAYERBOT_GIFT_OUT", "PLAYERBOT_GIFT_IN", "PLAYERBOT_NPC_BUY"},
+    "bonus": {"PLAYERBOT_BONUS", "PLAYERBOT_BONUS_ADD", "PLAYERBOT_BONUS_CHANGE",
+              "PLAYERBOT_BONUS_MARBLE", "PLAYERBOT_DUST_MARBLE"},
+    "refine": {"REFINE SUCCESS", "REFINE FAIL", "REMOVE (REFINE FAIL)",
+               "REFINE FISH_ROD SUCCESS", "REFINE FISH_ROD FAIL"},
+    "other": {"PLAYERBOT_EQUIP", "SAFEBOX PUT", "SAFEBOX GET", "MOONLIGHT_GET"},
+}
+
+
+def gear_history_tab(how):
+    return next((tab for tab, values in GEAR_HISTORY_TABS.items() if how in values), "other")
+
 
 # Word-boundary match: a name is bounded by space, "=", ":", "[", a bracket
 # or line end, never by a letter/digit of its own -- bot names are numbered
@@ -3228,7 +3243,7 @@ def bot_gear_history(pid, limit=60):
         result.append({
             "sort_time": r["time"],
             "time": r["time"].strftime("%d.%m %H:%M") if hasattr(r["time"], "strftime") else str(r["time"]),
-            "kind": kind, "label": label,
+            "kind": kind, "tab": gear_history_tab(how), "label": label,
             "item": _item_display_name(vnum, socket0) if vnum else "",
             "detail": detail,
         })
@@ -3250,7 +3265,7 @@ def bot_gear_history(pid, limit=60):
         result.append({
             "sort_time": buy["time"],
             "time": buy["time"].strftime("%d.%m %H:%M") if hasattr(buy["time"], "strftime") else str(buy["time"]),
-            "kind": "bought", "label": "Kupione w sklepie offline",
+            "kind": "bought", "tab": "trade", "label": "Kupione w sklepie offline",
             "item": _item_display_name(int(buy.get("vnum") or 0)), "detail": detail,
         })
     result.sort(key=lambda item: item.get("sort_time") or datetime.min, reverse=True)

@@ -20,7 +20,7 @@
       {% if offline_shop.offers %}<p class="shop-total">💰 Potencjalny zarobek: {{'{:,}'.format(offline_shop.total_value).replace(',', ' ')}} Yang</p>{% else %}<p class="muted">Stragan jest otwarty, ale nic nie ma wystawione.</p>{% endif %}
     </div>
     </section>{% endif %}
-    <section class="panel bot-log"><h2>📜 Historia ekwipunku</h2><div class="log-lines">{% for line in gear_history %}<div class="gear-{{line.kind}}"><time>{{line.time}}</time><span><b>{{line.label}}</b> {{line.item}}{% if line.detail %} <small>{{line.detail}}</small>{% endif %}</span></div>{% else %}<p class="muted">Brak zapisanych zdarzeń ekwipunku.</p>{% endfor %}</div></section>
+    <section class="panel bot-log"><h2>📜 Historia ekwipunku</h2><div class="gear-history-filters" role="group" aria-label="Filtr historii ekwipunku"><button type="button" data-gear-filter="trade">Handel</button><button type="button" data-gear-filter="bonus">Bonusy</button><button type="button" data-gear-filter="refine">Ulepszanie</button><button type="button" data-gear-filter="other">Inne</button><button type="button" class="active" data-gear-filter="all">Wszystko</button></div><div class="log-lines" id="gear-history-lines">{% for line in gear_history %}<div class="gear-{{line.kind}}" data-gear-tab="{{line.tab}}"><time>{{line.time}}</time><span><b>{{line.label}}</b> {{line.item}}{% if line.detail %} <small>{{line.detail}}</small>{% endif %}</span></div>{% else %}<p class="muted">Brak zapisanych zdarzeń ekwipunku.</p>{% endfor %}</div></section>
     <section class="panel bot-log"><h2>📟 Dziennik zdarzeń bota (logi na żywo)</h2><p class="muted">Linie z logu rdzenia gry wspominające tę postać — zbierane od otwarcia tej strony, nie znikają między odświeżeniami.</p><div class="live-log-actions"><button type="button" class="secondary" id="live-log-toggle" data-pid="{{character.id}}">⏸ Zatrzymaj śledzenie</button><button type="button" class="secondary" id="live-log-copy">📋 Kopiuj logi</button></div><div id="live-log-box" class="live-log-box">Wczytywanie logów…</div></section>
     <section class="panel"><h2>🏆 Statystyki postaci (panel Y)</h2><table><tbody>
         <tr><td>Zabite potwory (ogółem)</td><td>{{'{:,}'.format(character_stats.monsters).replace(',', ' ')}}</td></tr>
@@ -158,6 +158,11 @@ liveLogCopy?.addEventListener('click', async () => {
 });
 // Auto-start, like Tieru's panel: logs are already flowing by the time you look.
 liveLogToggle?.classList.add('active'); fetchLiveLogs(); liveLogTimer=window.__playerLiveLogTimer=setInterval(fetchLiveLogs, 1500);
+document.querySelectorAll('[data-gear-filter]').forEach(button=>button.addEventListener('click',()=>{
+  const selected=button.dataset.gearFilter;
+  document.querySelectorAll('[data-gear-filter]').forEach(item=>item.classList.toggle('active',item===button));
+  document.querySelectorAll('#gear-history-lines [data-gear-tab]').forEach(row=>row.hidden=selected!=='all'&&row.dataset.gearTab!==selected);
+}));
 })();
 </script>
 {% endblock %}
