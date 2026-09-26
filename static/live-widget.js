@@ -105,6 +105,7 @@
   const levelOK = (level) => { if (currentLevel === 'all') return true; if (currentLevel.endsWith('+')) return level >= Number.parseInt(currentLevel, 10); const [from, to] = currentLevel.split('-').map(Number); return level >= from && level <= to; };
   const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const portrait = job => { const files = ["warrior_m.bmp","assassin_w.bmp","sura_m.bmp","shaman_w.bmp","warrior_w.bmp","assassin_m.bmp","sura_w.bmp","shaman_m.bmp"]; const index = Number.isInteger(Number(job)) && Number(job) >= 0 && Number(job) < files.length ? Number(job) : 0; return `/static/class-portraits/${files[index]}`; };
+  const empireFlag = empire => ({ 1: 'shinsoo.png', 2: 'chunjo.png', 3: 'jinno.png' })[Number(empire)] || 'chunjo.png';
   // Audyt 2026-09-19: goal 0 (`BOT_GOALS[0]`) to bazowe "Zdobywanie poziomu",
   // czyli domyślny cel niemal każdego bota, który akurat nie robi nic
   // szczególnego -- celowo pominięty tutaj, żeby w tym najczęstszym stanie
@@ -149,7 +150,7 @@
       const point = document.createElement('a'); point.className = `bot-point ch-${bot.channel || 1} ${bot.in_party ? 'is-pt' : ''}${bot.stuck ? ' is-stuck' : ''}${bot.fighting_metin ? ' is-metin' : ''}`;
       point.href = `/player/${bot.id}`; point.style.left = `${Math.max(1,Math.min(99,bot.px))}%`; point.style.top = `${Math.max(1,Math.min(99,bot.py))}%`;
       point.title = `${bot.name} · poziom ${bot.level}${knownChannels.length > 1 ? ' · CH' + (bot.channel || 1) : ''}${bot.in_party ? ' · PT' : ''}${bot.stuck ? ' · możliwie zablokowany' : ''}${bot.fighting_metin ? ' · walczy z Metinem' : ''}`;
-      if ($('show-names').checked) point.innerHTML = `<em>${escape(bot.name)} (${bot.level})</em>`;
+      point.innerHTML = `<img class="bot-point-flag" src="/static/empires/${empireFlag(bot.empire)}" alt="" aria-hidden="true">${bot.stuck ? '<i class="bot-point-stuck" aria-label="Możliwie zawieszony">!</i>' : ''}${$('show-names').checked ? `<em>${escape(bot.name)} (${bot.level})</em>` : ''}`;
       map.appendChild(point);
     });
     const average = bots.length ? (bots.reduce((sum,b)=>sum+b.level,0)/bots.length).toFixed(1) : '—';
