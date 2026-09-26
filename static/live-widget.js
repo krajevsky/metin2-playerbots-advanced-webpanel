@@ -135,10 +135,6 @@
     const total = bots.length || 1;
     box.innerHTML = entries.map(([label,count]) => `<div class="activity-line"><span title="${escape(label)}">${escape(label)}</span><b>${count}</b><i style="--share:${Math.max(4,Math.round(count/total*100))}%"></i></div>`).join('') || '<p class="muted">Brak aktywnych botów na tej mapie.</p>';
   }
-  const regenNode=document.getElementById('live-regen-data'),regenInfo=regenNode?JSON.parse(regenNode.textContent||'{}'):{global:{delay:{mob:100,boss:100},count:{mob:100,boss:100}},maps:{values:{},stones:{}}};
-  function insightRows(id, rows, colors){const total=rows.reduce((n,x)=>n+x[1],0)||1,node=$(id);if(!node)return;node.innerHTML=rows.map(([label,count],i)=>`<div class="map-insight-row"><span>${escape(label)}</span><i style="--share:${Math.round(count/total*100)}%;--chart-color:${colors[i]}"></i><b>${count}</b></div>`).join('')}
-  function renderInsights(mapId,bots){insightRows('map-channel-chart',[...new Set(snapshot.map(b=>Number(b.channel||1)))].sort((a,b)=>a-b).map(ch=>[`CH${ch}`,bots.filter(b=>Number(b.channel||1)===ch).length]),['#ff8c00','#800080','#30b6ff']);insightRows('map-empire-chart',[[1,'Shinsoo'],[2,'Chunjo'],[3,'Jinno']].map(([e,n])=>[n,bots.filter(b=>Number(b.empire||0)===e).length]),['#d95a54','#e8b93f','#4f86d9']);const m=regenInfo.maps||{},g=regenInfo.global||{delay:{mob:100,boss:100},count:{mob:100,boss:100}},v=m.values||{},st=m.stones||{},n=$('map-respawn-summary');if(n)n.innerHTML=`<div><b>⚔ Potwory</b><small>${v[mapId]?`Nadpisanie mapy · ${v[mapId]} s`:`Globalnie · ${g.delay.mob}% czasu podstawowego`}</small></div><div><b>🗿 Metiny i bossy</b><small>${st[mapId]?`Nadpisanie mapy · ${st[mapId]} s`:`Globalnie · ${g.delay.boss}% czasu podstawowego`}</small></div><div><b>✦ Liczebność</b><small>Potwory ${g.count.mob}% · Metiny/bossy ${g.count.boss}%</small></div>`}
-  document.querySelectorAll('[data-insight]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-insight]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-insight-page]').forEach(x=>x.classList.toggle('active',x.dataset.insightPage===b.dataset.insight))}));
   function render() {
     if (mode.value !== 'live') return;
     const mapId = Number(select.value), needle = search.value.trim().toLowerCase();
@@ -158,7 +154,6 @@
     $('map-caption').textContent = select.options[select.selectedIndex].text;
 $('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCompare(b.name)).slice(0,10).map((b,i)=>`<a class="${b.id === globalTopId ? 'is-global-leader' : ''}" href="/player/${b.id}"><b>#${i+1}</b><img class="class-portrait class-portrait--live" src="${portrait(b.job)}" alt=""> ${escape(b.name)}${b.in_party?'<mark class="pt-mark">PT</mark>':''}${b.stuck?'<mark class="stuck-mark">⚠</mark>':''} <span>Lv ${b.level}</span></a>`).join('') || '<p class="muted">Brak botów spełniających filtr.</p>';
     renderActivities(bots);
-    renderInsights(mapId,bots);
   }
   async function load() {
     try {
