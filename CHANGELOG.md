@@ -1,5 +1,15 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.86.0 · Dashboard mapy świata z diagramami i stanem respawnów
+
+- **Mapa świata botów na szerokich ekranach otrzymała trzy niezależne karty danych dla aktualnie wybranej mapy:** rozkład botów na kanałach, konfigurację respawnów oraz dominację królestw. Nie zmieniają wielkości mapy, rankingu ani listy aktywności; na węższych ekranach cały zestaw nadal jest dostępny pod jednym przyciskiem.
+- **Kanały i królestwa są pokazane jako wykresy kołowe** z procentem dominującej grupy oraz legendą liczbową. Karty dostosowują kolory do motywu panelu i korzystają z tego samego ciemnobrązowego tła co ranking oraz aktywności mapy.
+- **Karta respawnów opisuje faktyczny stan konfiguracji:** globalny procent czasu podstawowego albo własny czas mapy w sekundach. Techniczny zapis `reset s` nie jest już widoczny.
+- **Usprawniono sterowanie liczbą botów w Zarządzaniu:** suwak i pole liczbowe pozostają zsynchronizowane, a stara, zdublowana sekcja respawnów została usunięta, ponieważ ma już własną stronę `/respawns`.
+- **Czat na żywo otrzymał prostsze, działające filtry widoku**, bez nieaktywnych kart, które sugerowały funkcję niedostępną w danych gry.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-26 · 1.85.0 · Ranking Broń/Zbroja liczy realną moc, nie tylko "+N"
 
 - **Rankingi "Broń" i "Zbroja" wystawiały na górę cokolwiek miało wyższy "+N", niezależnie od tego, na jaki poziom w ogóle jest ten przedmiot** — +9 na przedmiocie z niskiego poziomu potrafiło wyprzedzić +7 na dużo lepszej bazie. Sprawdzone bezpośrednio w bazie: same wartości ataku/obrony w tabeli przedmiotów okazały się niespójne między rodzinami (część zbroi ma zapisane rosnące obrażenia/obronę per "+", większość ma płaskie liczby identyczne od +0 do +9), więc nie dało się na nich polegać jako mierniku mocy.
