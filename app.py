@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 import pymysql
+import markdown
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 from markupsafe import escape
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -583,6 +584,45 @@ def changelog_entries():
     if current:
         entries.append(current)
     return entries
+
+
+TIERU_CHANGELOG_URL = "https://raw.githubusercontent.com/TieruYT/metin2-playerbots/main/CHANGELOG.md"
+TIERU_CHANGELOG_CACHE_SECONDS = 3600
+_tieru_changelog_cache = {"checked_at": 0.0, "entries": [], "error": None}
+
+
+def tieru_changelog_entries(limit=25):
+    """Tieru's own engine changelog, fetched straight from GitHub (operator's
+    ask, 2026-09-26) and cached for an hour -- it's a 300+ release, 800KB
+    file, nobody needs it re-fetched on every /changelog view. Heading
+    format is "## VERSION — DATE" (em dash), unlike our own "## DATE ·
+    VERSION" -- a separate parser, not a shared one, because the two
+    files don't otherwise agree on anything (this one has ### subsections
+    and prose, ours is a flat bullet list)."""
+    now = time.time()
+    if now - _tieru_changelog_cache["checked_at"] < TIERU_CHANGELOG_CACHE_SECONDS and _tieru_changelog_cache["entries"]:
+        return _tieru_changelog_cache["entries"][:limit], _tieru_changelog_cache["error"]
+    entries, error = [], None
+    try:
+        request_github = Request(TIERU_CHANGELOG_URL, headers={"User-Agent": "Metin2-Singleplayer-Panel"})
+        with urlopen(request_github, timeout=8) as response:
+            text = response.read().decode("utf-8", errors="replace")
+        sections = re.split(r"(?m)^## ", text)[1:]  # drop the file's own intro before the first release
+        for section in sections[:limit]:
+            heading, _, body = section.partition("\n")
+            version, separator, date = heading.partition(" — ")
+            entries.append({
+                "version": version.strip() if separator else heading.strip(),
+                "date": date.strip() if separator else "",
+                "html": markdown.markdown(body.strip(), extensions=["fenced_code"]),
+            })
+    except (OSError, ValueError, HTTPError, URLError) as exc:
+        error = str(exc)[:160] or "Nie udało się pobrać changelogu Tieru."
+    if entries:
+        _tieru_changelog_cache.update({"checked_at": now, "entries": entries, "error": None})
+    elif error:
+        _tieru_changelog_cache["error"] = error
+    return entries[:limit] if entries else _tieru_changelog_cache["entries"][:limit], error or _tieru_changelog_cache["error"]
 
 
 def settings():
@@ -4827,7 +4867,12 @@ def maps():
 @app.route("/changelog")
 @login_required
 def changelog():
-    return render_template("changelog.html", entries=changelog_entries(), panel_version=PANEL_VERSION)
+    source = request.args.get("source", "seban")
+    if source not in ("seban", "tieru"):
+        source = "seban"
+    tieru_entries, tieru_error = ([], None) if source != "tieru" else tieru_changelog_entries()
+    return render_template("changelog.html", entries=changelog_entries(), panel_version=PANEL_VERSION,
+                            source=source, tieru_entries=tieru_entries, tieru_error=tieru_error)
 
 
 @app.route("/accounts/<int:aid>/characters")

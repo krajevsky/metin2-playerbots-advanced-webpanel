@@ -1,4 +1,15 @@
 {% extends 'base.html' %}{% block title %}Changelog · {{ panel_brand }}{% endblock %}{% block content %}
-<p class="eyebrow">SEBAN LATINO PANEL · v{{ panel_version }}</p><h1>Changelog</h1><p class="muted">Każdy hotfix i zmiana panelu jest od tej chwili zapisywana z czasem wdrożenia.</p>
+<p class="eyebrow">SEBAN LATINO PANEL · v{{ panel_version }}</p><h1>Changelog</h1>
+<nav class="msg-tabs changelog-source-tabs" aria-label="Źródło changelogu">
+  <a class="msg-tab{% if source=='seban' %} active{% endif %}" href="{{url_for('changelog', source='seban')}}">🛠 Advanced Seban Webpanel</a>
+  <a class="msg-tab{% if source=='tieru' %} active{% endif %}" href="{{url_for('changelog', source='tieru')}}">⚔ Playerbots by Tieru</a>
+</nav>
+{% if source=='tieru' %}
+<p class="muted">Prosto z <a href="https://github.com/TieruYT/metin2-playerbots/blob/main/CHANGELOG.md" target="_blank" rel="noopener">repozytorium Tieru</a> — najnowsze {{tieru_entries|length}} wydań silnika. Pobierane raz na godzinę.</p>
+{% if tieru_error and not tieru_entries %}<article class="panel"><p class="muted">Nie udało się pobrać changelogu Tieru: {{tieru_error}}</p></article>{% endif %}
+<section class="changelog-list">{% for entry in tieru_entries %}<article class="panel changelog-entry"><header><strong>{{entry.version}}</strong><time>{{entry.date}}</time></header><div class="changelog-tieru-body">{{entry.html|safe}}</div></article>{% else %}{% if not tieru_error %}<article class="panel"><p class="muted">Brak wpisów.</p></article>{% endif %}{% endfor %}</section>
+{% else %}
+<p class="muted">Każdy hotfix i zmiana panelu jest od tej chwili zapisywana z czasem wdrożenia.</p>
 <section class="changelog-list">{% for entry in entries %}<article class="panel changelog-entry"><header><strong>{{entry.version}}</strong><time>{{entry.timestamp}}</time></header><ul>{% for change in entry.changes %}<li>{{change}}</li>{% endfor %}</ul>{% if entry.via_agent %}<div class="changelog-via via-{{entry.via_agent|lower}}"><span class="changelog-via-dot"></span>via {{entry.via_agent}}{% if entry.via_author %} by <span class="via-rainbow">{{entry.via_author}}<i class="via-star">✦</i></span>{% endif %}</div>{% endif %}</article>{% else %}<article class="panel"><p class="muted">Brak wpisów.</p></article>{% endfor %}</section>
+{% endif %}
 {% endblock %}

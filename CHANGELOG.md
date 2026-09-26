@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.89.0 · Changelog: nasz panel i silnik Tieru osobno
+
+- **`/changelog` ma teraz dwie zakładki na środku góry strony**: "Advanced Seban Webpanel" (jak dotychczas) i "Playerbots by Tieru" — pobierane bezpośrednio z jego repozytorium ([CHANGELOG.md na GitHub](https://github.com/TieruYT/metin2-playerbots/blob/main/CHANGELOG.md)), najnowsze 25 wydań silnika, ładnie sformatowane (nagłówki, listy, pogrubienia). Pobierane raz na godzinę, nie za każdym wejściem.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-26 · 1.88.0 · Kartoteka misji na karcie postaci
 
 - **Nowa sekcja "📋 Kartoteka misji" na `/player/`**, w stylu pasków PŻ/PM/EXP: pokazuje aktualny postęp w konkretnych, śledzonych misjach bota — Biolog ("Zęby Orka: X/10 oddanych", albo "misja N z 7" dla wcześniejszych etapów), Koń bojowy ("X/100 pokonanych" na pustynnej próbie) i Polowanie ("Polowanie nr N: X/Y {nazwa potwora} pokonanych").
