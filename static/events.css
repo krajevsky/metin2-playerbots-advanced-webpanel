@@ -39,3 +39,9 @@
 .calendar-view-actions .quiet,.calendar-view-actions .secondary{height:40px}.calendar-editor footer button{height:42px}
 
 .calendar-event{display:grid;grid-template-columns:1fr;grid-template-rows:12px minmax(0,1fr);gap:2px;padding:4px!important}.calendar-event-time{display:block;text-align:center;font-size:9px!important;line-height:12px!important;white-space:nowrap;opacity:.78}.calendar-event-body{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0}.calendar-event-body img{width:28px;height:28px}.calendar-event-body em{font-size:12px;line-height:1;font-weight:800;white-space:nowrap}.calendar-event-meta{display:none}@media(max-width:650px){.calendar-event-body img{width:24px;height:24px}.calendar-event-body em{font-size:10px}.calendar-event-time{font-size:8px!important}}
+/* Playerbots 2.2.22: six event types, including world events. */
+.event-status-grid,.quick-event-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.event-bot-share{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,420px) auto;align-items:center;gap:18px;margin:18px 0}
+.event-bot-share h2{margin:3px 0 6px}.event-bot-share p{margin:0}.event-bot-share label{display:grid;grid-template-columns:1fr 54px;align-items:center;gap:10px}.event-bot-share output{font-weight:800;color:var(--blue2)}
+.calendar-event-body b,.calendar-event-legend b{font-size:19px;line-height:1}.calendar-event-tanaka{background:#51451ee8!important;border-color:#e4bc45!important}.calendar-event-zuo{background:#693c27e8!important;border-color:#ff8a55!important}.calendar-legend-tanaka{color:#ffe391;background:#8f6a2433}.calendar-legend-zuo{color:#ffb28f;background:#b24a2433}.calendar-editor-map.is-hidden{display:none}
+@media(max-width:760px){.event-bot-share{grid-template-columns:1fr}.event-bot-share button{width:100%}}

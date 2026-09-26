@@ -45,6 +45,7 @@ MAP_NAMES = {
     65: "Świątynia Hwang", 71: "Loch Pająków V2",
     108: "Loch Małp Normalny", 109: "Loch Małp Trudny",
     67: "Las", 68: "Czerwony Las", 66: "Wieża Demonów",
+    72: "Grota Wygnańców V1", 73: "Grota Wygnańców V2",
 }
 MAP_BOUNDS = {
     1: (409600, 896000, 102400, 128000), 3: (307200, 819200, 102400, 102400),
@@ -65,6 +66,7 @@ MAP_BOUNDS = {
     # flagged by Tieru testing the exported panel.
     67: (281600, 0, 51200, 51200), 68: (1049600, 0, 76800, 76800),
     66: (128000, 793600, 76800, 76800),
+    72: (0, 1203200, 153600, 153600), 73: (153600, 1203200, 153600, 153600),
 }
 # "Boty CH1/CH2 na mapach" tile (dashboard-charts.js) used to draw the full
 # map name under each bar in 9px text -- fine for "M1"/"M2"/"M3" (matched by
@@ -94,10 +96,11 @@ MAP_RESPAWN_OPTIONS = (
     (5, "Loch Małp Shinsoo"), (45, "Loch Małp Jinno"),
     (25, "Loch Małp Chunjo"), (61, "Góra Sohan"), (63, "Pustynia Yongbi"), (64, "Dolina Orków"),
     (104, "Loch Pająków V1"), (71, "Loch Pająków V2"), (108, "Loch Małp Normalny"), (109, "Loch Małp Trudny"),
+    (72, "Grota Wygnańców V1"), (73, "Grota Wygnańców V2"),
 )
 # Monkey Dungeons and Spider Dungeon V1 ship no stone.txt, so only their mob
 # respawns can be configured. The explicit allowlist also protects the helper.
-MAP_STONE_RESPAWN_IDS = frozenset(index for index, _name in MAP_RESPAWN_OPTIONS if index not in {5, 25, 45, 104, 71, 108, 109})
+MAP_STONE_RESPAWN_IDS = frozenset(index for index, _name in MAP_RESPAWN_OPTIONS if index not in {5, 25, 45, 104, 71, 72, 73, 108, 109})
 CHANNEL_VAR_ROOT = Path(os.environ.get("PLAYERBOTS_VAR_ROOT", "/opt/metin2/var"))
 GUILD_TIERS = {0: "Elitarna", 1: "Silna", 2: "Średnia", 3: "Zwykła"}
 
@@ -182,7 +185,7 @@ AI_WEIGHT_KEYS = (
 AI_WEIGHT_MIN, AI_WEIGHT_MAX, AI_WEIGHT_NEUTRAL = 25, 250, 100
 # These values share the live weight file with goal weights, but the core treats
 # them as switches or direct settings rather than 25–250% goal weights.
-AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "ISHOP": 1, "PERSONA": 1,
+AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1, "PERSONA": 1,
                      "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1, "CHEST": None, "CHEST_STONE": None}
 AI_SPECIAL_WEIGHT_KEYS = frozenset(AI_LIVE_DEFAULTS)
 BIOLOGIST_COMPLETE_STATE = 557528158
@@ -1506,13 +1509,27 @@ def queue_tieru_update(update_seban_panel=False):
 
 
 EVENTS_FILE = RATES_SPOOL / "playerbot_events.tsv"
-EVENT_KINDS = ("chest", "exp", "drop", "yang")
+EVENT_KINDS = ("chest", "exp", "drop", "yang", "tanaka", "zuo")
+EVENT_WORLD_KINDS = ("tanaka", "zuo")
+EVENT_WORLD_DEFAULT = {"tanaka": 3, "zuo": 8}
+EVENT_WORLD_MAX = {"tanaka": 20, "zuo": 30}
+EVENT_BOTS_DEFAULT = 50
+EVENT_MAPS = (
+    (0, "Wybiera event"), (64, "Dolina Orków"), (63, "Pustynia Yongbi"),
+    (61, "Góra Sohan"), (65, "Świątynia Hwang"), (62, "Ognista Ziemia"),
+    (67, "Las"), (68, "Czerwony Las"), (1, "Yongan"), (21, "Joan"),
+    (41, "Pyongmoo"), (3, "Jayang"), (23, "Bokjung"), (43, "Bakra"),
+)
+EVENT_MAP_IDS = frozenset(index for index, _label in EVENT_MAPS)
 EVENT_LABELS = {
     "chest": "Szkatułki Blasku Księżyca",
     "exp": "Doświadczenie",
     "drop": "Drop przedmiotów",
     "yang": "Yang",
+    "tanaka": "Pirat Tanaka",
+    "zuo": "Zuo: deszcz Metinów",
 }
+EVENT_ICONS = {"chest": "🎁", "exp": "⚡", "drop": "📦", "yang": "💰", "tanaka": "🏴‍☠️", "zuo": "☄️"}
 EVENT_DAY_NAMES = ("Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd")
 EVENT_NOW_MINUTES = (15, 30, 60, 120, 180, 360)
 EVENT_HHMM = re.compile(r"^([01]?\d|2[0-4]):([0-5]\d)$")
@@ -1526,6 +1543,28 @@ def event_hhmm(text):
     if hour == 24 and minute != 0:
         return None
     return f"{hour:02d}:{minute:02d}"
+
+
+def event_world_value(kind, value):
+    if value <= 0:
+        return EVENT_WORLD_DEFAULT[kind]
+    return min(EVENT_WORLD_MAX[kind], value)
+
+
+def read_event_settings():
+    result = {"bots": EVENT_BOTS_DEFAULT}
+    try:
+        lines = EVENTS_FILE.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return result
+    for line in lines:
+        fields = line.split("#", 1)[0].split()
+        if len(fields) >= 2 and fields[0] == "bots":
+            try:
+                result["bots"] = max(0, min(100, int(fields[1])))
+            except ValueError:
+                pass
+    return result
 
 
 def read_events():
@@ -1546,7 +1585,11 @@ def read_events():
         fields = line.split("\t")
         if len(fields) >= 4 and fields[0] == "now" and fields[1] in EVENT_KINDS:
             try:
-                nows[fields[1]] = {"until": int(fields[2]), "value": int(fields[3])}
+                item = {"until": int(fields[2]), "value": int(fields[3]), "map": 0, "since": 0}
+                if fields[1] in EVENT_WORLD_KINDS:
+                    item["map"] = int(fields[4]) if len(fields) >= 5 and fields[4] else 0
+                    item["since"] = int(fields[5]) if len(fields) >= 6 and fields[5] else 0
+                nows[fields[1]] = item
             except ValueError:
                 pass
             continue
@@ -1560,27 +1603,40 @@ def read_events():
         except ValueError:
             value = 0
         days = list(range(1, 8)) if fields[1] == "*" else [day for day in range(1, 8) if str(day) in fields[1].split(",")]
+        map_id = 0
+        if fields[0] in EVENT_WORLD_KINDS and len(fields) >= 6:
+            try:
+                map_id = int(fields[5])
+            except ValueError:
+                pass
         rows.append({"kind": fields[0], "days": days, "start": start, "end": end,
-                     "value": value, "on": enabled})
+                     "value": value, "on": enabled, "map": map_id})
     return rows, nows
 
 
-def write_events(rows, nows):
+def write_events(rows, nows, event_settings=None):
     RATES_SPOOL.mkdir(parents=True, exist_ok=True)
     body = [
         "# Metin2 Playerbots -- timed events, written by Seban Panel.",
-        "# kind<TAB>days<TAB>from<TAB>to<TAB>value | now<TAB>kind<TAB>until_epoch<TAB>value",
+        "# kind<TAB>days<TAB>from<TAB>to<TAB>value[<TAB>map] | now<TAB>kind<TAB>until_epoch<TAB>value[<TAB>map<TAB>since]",
         "# days: * or 1..7 (1 = Monday); #off keeps a disabled plan row.",
         "",
     ]
     for row in rows:
         days = "*" if len(row["days"]) == 7 else (",".join(str(day) for day in row["days"]) or "-")
         line = "%s\t%s\t%s\t%s\t%d" % (row["kind"], days, row["start"], row["end"], int(row["value"]))
+        if row["kind"] in EVENT_WORLD_KINDS:
+            line += "\t%d" % int(row.get("map", 0))
         body.append(line if row.get("on", True) else "#off\t" + line)
     for kind in EVENT_KINDS:
         now_event = nows.get(kind)
         if now_event and int(now_event.get("until", 0)) > time.time():
-            body.append("now\t%s\t%d\t%d" % (kind, int(now_event["until"]), int(now_event.get("value", 0))))
+            if kind in EVENT_WORLD_KINDS:
+                body.append("now\t%s\t%d\t%d\t%d\t%d" % (kind, int(now_event["until"]), int(now_event.get("value", 0)), int(now_event.get("map", 0)), int(now_event.get("since", 0))))
+            else:
+                body.append("now\t%s\t%d\t%d" % (kind, int(now_event["until"]), int(now_event.get("value", 0))))
+    event_settings = event_settings or read_event_settings()
+    body.append("bots\t%d" % max(0, min(100, int(event_settings.get("bots", EVENT_BOTS_DEFAULT)))))
     temporary = EVENTS_FILE.with_suffix(".tsv.new")
     temporary.write_text("\n".join(body) + "\n", encoding="utf-8")
     os.replace(temporary, EVENTS_FILE)
@@ -1588,6 +1644,7 @@ def write_events(rows, nows):
 
 def read_events_status():
     newest, newest_written = {}, 0
+    hosts, host_written = {}, {}
     for _channel, path in channel_paths("playerbot_events_status.tsv"):
         try:
             lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -1599,19 +1656,31 @@ def read_events_status():
             if len(fields) < 8 or fields[0] not in EVENT_KINDS:
                 continue
             try:
-                current[fields[0]] = {"scheduled": fields[1] == "1", "active": fields[2] == "1", "value": int(fields[3]), "until": int(fields[4]), "next_start": int(fields[5]), "next_value": int(fields[6])}
+                item = {"scheduled": fields[1] == "1", "active": fields[2] == "1", "value": int(fields[3]), "until": int(fields[4]), "next_start": int(fields[5]), "next_value": int(fields[6]), "map": 0, "since": 0, "next_map": 0, "host": False, "alive": 0, "killed": 0, "bots": 0, "phase": ""}
+                if len(fields) >= 16:
+                    item.update({"map": int(fields[8]), "since": int(fields[9]), "next_map": int(fields[10]), "host": fields[11] == "1", "alive": int(fields[12]), "killed": int(fields[13]), "bots": int(fields[14]), "phase": "" if fields[15] == "-" else fields[15]})
+                current[fields[0]] = item
                 written = int(fields[7])
             except ValueError:
                 continue
+        for kind, item in current.items():
+            if item.get("host") and written > host_written.get(kind, 0):
+                hosts[kind], host_written[kind] = item, written
         if current and written > newest_written:
             newest, newest_written = current, written
     if not newest or time.time() - newest_written > 300:
         return {}
+    for kind, item in hosts.items():
+        if time.time() - host_written[kind] <= 300:
+            newest[kind] = item
+    today = time.localtime()
     for item in newest.values():
         for key in ("until", "next_start"):
             stamp = item.get(key, 0)
             if stamp:
-                item[key + "_text"] = time.strftime("%H:%M" if time.localtime(stamp).tm_yday == time.localtime().tm_yday else "%d.%m %H:%M", time.localtime(stamp))
+                local = time.localtime(stamp)
+                same_day = (local.tm_year, local.tm_yday) == (today.tm_year, today.tm_yday)
+                item[key + "_text"] = time.strftime("%H:%M" if same_day else "%d.%m %H:%M", local)
     return newest
 
 
@@ -1830,7 +1899,7 @@ def read_ai_weights():
             if len(fields) >= 2 and fields[0].upper() in values:
                 try:
                     key, raw_value = fields[0].upper(), fields[1]
-                    if key in ("CHAT", "BOOKS", "NIGHT", "LIFE", "WARS", "TOWER", "ISHOP", "PERSONA"):
+                    if key in ("CHAT", "BOOKS", "NIGHT", "LIFE", "WARS", "TOWER", "CATACOMB", "ISHOP", "PERSONA"):
                         values[key] = 0 if raw_value.lower() in ("0", "off", "no") else 1
                     elif key in ("SCRAP", "REST", "KINGDOMPVP"):
                         values[key] = max(0, min(100, int(raw_value)))
@@ -1879,6 +1948,7 @@ def write_ai_weights(values):
     content.append(f"LIFE\t{1 if values.get('LIFE', 0) else 0}")
     content.append(f"WARS\t{1 if values.get('WARS', 1) else 0}")
     content.append(f"TOWER\t{1 if values.get('TOWER', 1) else 0}")
+    content.append(f"CATACOMB\t{1 if values.get('CATACOMB', 1) else 0}")
     content.append(f"ISHOP\t{1 if values.get('ISHOP', 1) else 0}")
     content.append(f"PERSONA\t{1 if values.get('PERSONA', 1) else 0}")
     content.append(f"SCRAP\t{max(0, min(100, int(values.get('SCRAP', 0))))}")
@@ -1953,6 +2023,14 @@ def queue_tower_now():
     najazd, jeśli żaden akurat nie trwa."""
     RATES_SPOOL.mkdir(parents=True, exist_ok=True)
     path = RATES_SPOOL / "playerbot_tower_now"
+    path.touch(exist_ok=True)
+    os.utime(path, None)
+
+
+def queue_catacomb_now():
+    """Ask the 2.2.21+ core to call an Azrael raid on its next check."""
+    RATES_SPOOL.mkdir(parents=True, exist_ok=True)
+    path = RATES_SPOOL / "playerbot_catacomb_now"
     path.touch(exist_ok=True)
     os.utime(path, None)
 
@@ -3076,6 +3154,8 @@ GEAR_HISTORY_HOWS = {
     "PLAYERBOT_BONUS_ADD": ("bonus", "Dodano bonus (Wzmocnienie)"),
     "PLAYERBOT_BONUS_CHANGE": ("bonus", "Zmieniono bonusy (Zmiana)"),
     "PLAYERBOT_BONUS_MARBLE": ("bonus", "Dodano 5. bonus (Marmur)"),
+    "PLAYERBOT_NPC_BUY": ("bought", "Kupione u handlarza"),
+    "PLAYERBOT_DUST_MARBLE": ("bonus", "Marmur z Magicznego Pyłu"),
     "SAFEBOX PUT": ("safebox", "Do magazynu"),
     "SAFEBOX GET": ("safebox", "Z magazynu"),
     "MOONLIGHT_GET": ("get", "Ze Szkatułki Blasku"),
@@ -3146,12 +3226,37 @@ def bot_gear_history(pid, limit=60):
             if len(parts) == 2 and parts[1].isdigit() and int(parts[1]) > 1:
                 detail = "x" + parts[1]
         result.append({
+            "sort_time": r["time"],
             "time": r["time"].strftime("%d.%m %H:%M") if hasattr(r["time"], "strftime") else str(r["time"]),
             "kind": kind, "label": label,
             "item": _item_display_name(vnum, socket0) if vnum else "",
             "detail": detail,
         })
-    return result
+    # IkarusShop does not mirror purchases into log.log. Playerbots 2.2.24
+    # records them in its dedicated table, so merge that feed into the same
+    # chronology used by the player card.
+    try:
+        buys = rows("""SELECT l.time,l.vnum,l.count,l.yang,l.shop_owner,p.name AS seller
+          FROM log.ikarusshop_log l LEFT JOIN player.player p ON p.id=l.shop_owner
+          WHERE l.who=%s AND l.what='BUY_ITEM' ORDER BY l.id DESC LIMIT %s""", (pid, limit))
+    except Exception:
+        buys = []
+    for buy in buys:
+        count, yang = int(buy.get("count") or 0), int(buy.get("yang") or 0)
+        seller = game_text(buy.get("seller")).strip()
+        detail = (f"x{count} za " if count > 1 else "za ") + "{:,}".format(yang).replace(",", " ") + " yang"
+        if seller:
+            detail += " · od " + seller
+        result.append({
+            "sort_time": buy["time"],
+            "time": buy["time"].strftime("%d.%m %H:%M") if hasattr(buy["time"], "strftime") else str(buy["time"]),
+            "kind": "bought", "label": "Kupione w sklepie offline",
+            "item": _item_display_name(int(buy.get("vnum") or 0)), "detail": detail,
+        })
+    result.sort(key=lambda item: item.get("sort_time") or datetime.min, reverse=True)
+    for item in result:
+        item.pop("sort_time", None)
+    return result[:limit]
 
 
 def bot_offline_shop(pid):
@@ -3167,7 +3272,7 @@ def bot_offline_shop(pid):
     pos is laid out by the engine as a 10-wide grid (confirmed against live
     stalls: positions jump 4->10, 14->21 etc, i.e. row breaks every 10), which
     is also what the in-game offline shop window itself displays as."""
-    shop = one("SELECT map, x, y, name, is_premium FROM player.ikashop_offlineshop WHERE owner=%s", (pid,))
+    shop = one("SELECT map, x, y, name, is_premium, duration FROM player.ikashop_offlineshop WHERE owner=%s", (pid,))
     if not shop:
         return None
     offers = rows("""SELECT i.id, i.vnum, i.count, i.pos, i.socket0,i.socket1,i.socket2,
@@ -3176,7 +3281,7 @@ def bot_offline_shop(pid):
         COALESCE(p.locale_name, CONCAT('VNUM ', i.vnum)) AS item_name,
         CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED) AS price
       FROM player.item i LEFT JOIN player.item_proto p ON p.vnum=i.vnum
-      WHERE i.owner_id=%s AND i.window='IKASHOP_OFFLINESHOP' ORDER BY i.pos""", (pid,))
+      WHERE i.owner_id=%s AND i.window='IKASHOP_OFFLINESHOP' AND i.ikashop_data IS NOT NULL AND i.ikashop_data<>'' ORDER BY i.pos""", (pid,))
     _enrich_items(offers)
     for offer in offers:
         offer["icon_url"] = item_icon_url(offer["vnum"])
@@ -3185,7 +3290,8 @@ def bot_offline_shop(pid):
         offer["row"] = (int(offer["pos"] or 0) // 10) % 8
     return {
         "name": game_text(shop["name"]) or "Bez nazwy", "map_index": int(shop["map"]), "map_name": map_name(shop["map"]),
-        "x": int(shop["x"]), "y": int(shop["y"]), "is_premium": bool(shop["is_premium"]), "offers": offers,
+        "x": int(shop["x"]), "y": int(shop["y"]), "is_premium": bool(shop["is_premium"]),
+        "expired": int(shop.get("duration") or 0) == 0, "offers": offers,
         "total_value": sum(o["price"] * max(1, int(o.get("count") or 1)) for o in offers),
     }
 
@@ -5174,6 +5280,15 @@ def events():
     rows, nows = read_events()
     if request.method == "POST":
         action = request.form.get("action", "")
+        if action == "bots":
+            try:
+                bot_share = max(0, min(100, int(request.form.get("bots") or EVENT_BOTS_DEFAULT)))
+                write_events(rows, nows, {"bots": bot_share})
+            except (ValueError, OSError):
+                flash("Nie udało się zapisać udziału botów w eventach.", "error")
+            else:
+                flash("Udział botów w eventach Tanaka i Zuo został zapisany.", "success")
+            return redirect(url_for("events"))
         if action == "save":
             new_rows = []
             for index in range(16):
@@ -5192,8 +5307,17 @@ def events():
                     flash(f"Wiersz {index + 1}: podaj poprawne godziny i wartość 0–1000%.", "error")
                     return redirect(url_for("events"))
                 days = [day for day in range(1, 8) if request.form.get(f"r{index}_d{day}")]
+                map_id = 0
+                if kind in EVENT_WORLD_KINDS:
+                    value = event_world_value(kind, value)
+                    try:
+                        map_id = int(request.form.get(f"r{index}_map") or 0)
+                    except ValueError:
+                        map_id = 0
+                    if map_id not in EVENT_MAP_IDS:
+                        map_id = 0
                 new_rows.append({"kind": kind, "days": days, "start": start, "end": end,
-                                 "value": 0 if kind == "chest" else value,
+                                 "value": 0 if kind == "chest" else value, "map": map_id,
                                  "on": bool(request.form.get(f"r{index}_on"))})
             try:
                 write_events(new_rows, nows)
@@ -5211,7 +5335,18 @@ def events():
                 value = max(1, min(1000, int(request.form.get("value") or 50)))
             except ValueError:
                 minutes, value = 60, 50
-            nows[kind] = {"until": int(time.time()) + minutes * 60, "value": 0 if kind == "chest" else value}
+            map_id = 0
+            if kind in EVENT_WORLD_KINDS:
+                value = event_world_value(kind, value)
+                try:
+                    map_id = int(request.form.get("map") or 0)
+                except ValueError:
+                    map_id = 0
+                if map_id not in EVENT_MAP_IDS:
+                    map_id = 0
+            started = int(time.time())
+            nows[kind] = {"until": started + minutes * 60, "value": 0 if kind == "chest" else value,
+                           "map": map_id, "since": started}
             write_events(rows, nows)
             flash(f"Event aktywowany na {minutes} min. Rdzeń odczyta go w ciągu pięciu sekund.", "success")
         elif action == "stop":
@@ -5219,11 +5354,14 @@ def events():
             write_events(rows, nows)
             flash("Natychmiastowy event został zatrzymany.", "success")
         return redirect(url_for("events"))
-    shown = list(rows) + [{"kind": "", "days": list(range(1, 8)), "start": "20:00", "end": "21:00", "value": 50, "on": True} for _ in range(max(0, 4 - len(rows)))]
+    shown = list(rows) + [{"kind": "", "days": list(range(1, 8)), "start": "20:00", "end": "21:00", "value": 50, "on": True, "map": 0} for _ in range(max(0, 4 - len(rows)))]
     return render_template("events.html", rows=shown, nows=nows, status=read_events_status(),
                            event_kinds=EVENT_KINDS, event_labels=EVENT_LABELS,
                            day_names=EVENT_DAY_NAMES, now_minutes=EVENT_NOW_MINUTES,
-                           now_epoch=int(time.time()), event_history=event_history)
+                           now_epoch=int(time.time()), event_history=event_history,
+                           event_icons=EVENT_ICONS, world_kinds=EVENT_WORLD_KINDS,
+                           world_defaults=EVENT_WORLD_DEFAULT, world_max=EVENT_WORLD_MAX,
+                           event_maps=EVENT_MAPS, event_settings=read_event_settings())
 
 @app.route("/manage")
 @login_required
@@ -5561,6 +5699,30 @@ def manage_tower_now():
         flash("Zlecono najazd na Wieżę Demonów — rdzeń wywoła go przy najbliższym sprawdzeniu, jeśli żaden akurat nie trwa.")
     except OSError:
         flash("Nie udało się zlecić najazdu (spool nie do zapisu).", "error")
+    return redirect(url_for("manage"))
+
+
+@app.post("/manage/catacomb-now")
+@login_required
+def manage_catacomb_now():
+    try:
+        queue_catacomb_now()
+        flash("Zlecono rajd na Azraela — rdzeń zwoła go przy najbliższym sprawdzeniu, jeśli żaden nie trwa i są dostępne boty.")
+    except OSError:
+        flash("Nie udało się zlecić rajdu na Azraela.", "error")
+    return redirect(url_for("manage"))
+
+
+@app.post("/manage/catacomb")
+@login_required
+def manage_catacomb():
+    values = read_ai_weights()
+    values["CATACOMB"] = 1 if "1" in request.form.getlist("CATACOMB") else 0
+    try:
+        write_ai_weights(values)
+        flash("Rajdy botów na Azraela zostały " + ("włączone." if values["CATACOMB"] else "wyłączone."))
+    except OSError:
+        flash("Nie udało się zapisać ustawienia rajdów na Azraela.", "error")
     return redirect(url_for("manage"))
 
 

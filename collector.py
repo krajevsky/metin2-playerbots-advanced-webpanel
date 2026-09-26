@@ -417,11 +417,16 @@ def collect(con, previous):
           JOIN player.player p ON p.id = o.owner
           JOIN player.player_index pi ON pi.id = p.account_id
           LEFT JOIN player.item i ON i.owner_id = o.owner AND i.window = 'IKASHOP_OFFLINESHOP'
+            AND i.ikashop_data IS NOT NULL AND i.ikashop_data <> ''
+          WHERE o.duration > 0
           GROUP BY o.map, pi.empire""", (now,))
         cur.execute("""INSERT IGNORE INTO player.web_seban_shop_item_snapshot (captured_at, vnum, socket0, offers, total_units, total_value)
           SELECT %s, vnum, IF(vnum=50300, socket0, 0), COUNT(*), SUM(count),
                  COALESCE(SUM(CAST(JSON_UNQUOTE(JSON_EXTRACT(ikashop_data,'$.yang')) AS UNSIGNED)),0)
-          FROM player.item WHERE window = 'IKASHOP_OFFLINESHOP' GROUP BY vnum, IF(vnum=50300, socket0, 0)""", (now,))
+          FROM player.item i JOIN player.ikashop_offlineshop o ON o.owner=i.owner_id
+          WHERE i.window = 'IKASHOP_OFFLINESHOP' AND o.duration > 0
+            AND i.ikashop_data IS NOT NULL AND i.ikashop_data <> ''
+          GROUP BY vnum, IF(vnum=50300, socket0, 0)""", (now,))
         cur.execute("SELECT COALESCE(SUM(gold),0) FROM player.player WHERE name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')")
         yang = cur.fetchone()[0]
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'total_yang',%s)", (now, yang))
@@ -434,7 +439,7 @@ def collect(con, previous):
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'max_level',%s)", (now, cur.fetchone()[0]))
         cur.execute("SELECT COALESCE(SUM(cash),0) FROM account.account")
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'dragon_coins',%s)", (now, cur.fetchone()[0]))
-        cur.execute("SELECT COUNT(DISTINCT owner) FROM player.ikashop_offlineshop")
+        cur.execute("SELECT COUNT(DISTINCT owner) FROM player.ikashop_offlineshop WHERE duration > 0")
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'shops_count',%s)", (now, cur.fetchone()[0]))
         check_plus9_refines(cur)
     return previous

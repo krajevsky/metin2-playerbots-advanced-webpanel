@@ -1,5 +1,15 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.91.0 · Pełna zgodność z Playerbots 2.2.24
+
+- **Dodano eventy świata z 2.2.22:** Pirat Tanaka i Zuo mają szybki start, tygodniowy harmonogram, wybór mapy, liczbę jednostek oraz regulowany udział botów. Status pokazuje także żywe i pokonane jednostki, boty uczestniczące i fazę eventu.
+- **Dodano rajdy na Azraela z 2.2.21:** osobny przełącznik zachowania `CATACOMB` oraz przycisk uruchomienia rajdu natychmiast, bez restartu serwera.
+- **Mapa na żywo obsługuje Grotę Wygnańców V1 i V2** wraz z prawidłowymi granicami, grafikami i wyborem mapy. Groty dodano też do ustawień czasu respawnu potworów.
+- **Karta postaci i gospodarka uwzględniają poprawki 2.2.23–2.2.24:** wygasłe sklepy są oznaczone i wyłączone ze statystyk aktywnego rynku, a historia wyposażenia pokazuje zakupy u NPC, Marmur z Magicznego Pyłu oraz zakupy w sklepach offline z ceną i sprzedawcą.
+- Pełna macierz porównawcza znajduje się w `AUDIT_PLAYERBOTS_2.2.24.md`. Rejestrację kont pominięto świadomie zgodnie z konfiguracją tego serwera.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-26 · 1.90.0 · Osobne zarządzanie grą i panelem
 
 - **Zarządzanie zostało rozdzielone na dwie czytelne strony:** `/manage` zawiera wyłącznie sterowanie grą, Playerbots i serwerem, a nowe `/manage/panel` skupia nazwę panelu, motyw, monitoring, kursor oraz ochronę hasłem.
