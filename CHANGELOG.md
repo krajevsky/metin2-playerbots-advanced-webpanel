@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.88.0 · Kartoteka misji na karcie postaci
+
+- **Nowa sekcja "📋 Kartoteka misji" na `/player/`**, w stylu pasków PŻ/PM/EXP: pokazuje aktualny postęp w konkretnych, śledzonych misjach bota — Biolog ("Zęby Orka: X/10 oddanych", albo "misja N z 7" dla wcześniejszych etapów), Koń bojowy ("X/100 pokonanych" na pustynnej próbie) i Polowanie ("Polowanie nr N: X/Y {nazwa potwora} pokonanych").
+- Progi zweryfikowane wprost w skryptach questów i silniku (`collect_quest_lv30.quest`, `playerbot_battle_horse.h`, `hunting_data.lua`), nie zgadywane — łącznie z pełną tabelą 79 etapów polowania przepisaną z silnika, żeby liczyć realny cel dla każdej misji.
+- Sekcja pokazuje się tylko wtedy, gdy dana misja jest faktycznie w toku (nie zaczęta lub ukończona = nic do pokazania) — bez zmyślania zerowego postępu tam, gdzie danych po prostu nie ma.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-26 · 1.87.0 · Nowa strona: Osobowości botów
 
 - **Gracze i boty → Osobowości botów** — nowa lista wszystkich aktualnie zalogowanych botów, filtrowalna po osobowości (kafelki z licznikami, jak na Bazie przedmiotów) i przeszukiwalna po nicku, ucięta do 200 wyników (posortowana jak ranking: poziom, potem EXP).

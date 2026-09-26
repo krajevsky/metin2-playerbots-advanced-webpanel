@@ -2247,6 +2247,105 @@ def biologist_missions():
     return tuple(sorted(names, key=mission_order))
 
 
+# Verified directly in the engine/quest scripts, 2026-09-26 (operator's ask
+# for a per-character "mission dossier" on /player/):
+#   - collect_quest_lv30.quest ("Biolog: Zęby Orka"): pc.getqf("collect_count")
+#     caps at 10 before the item is handed in (see the quest's own
+#     `if pc.getqf("collect_count") < 9 then` gate).
+#   - playerbot_battle_horse.h: PLAYERBOT_BATTLE_HORSE_KILLS = 100.
+BIOLOGIST_COLLECT_TARGET = 10
+PLAYERBOT_BATTLE_HORSE_KILLS_TARGET = 100
+# hunting.quest's HUNTING_QUEST_DATA (quest/libs/other/hunting_data.lua),
+# transcribed: {huntingProgress index: [(mobVnum, requiredCount), ...]}.
+# huntingProgress selects the row (0-based here, matches the Lua table's
+# 1-based HUNTING_QUEST_DATA[huntingProgress+1] exactly since this list
+# starts at the same first row, reqLvl=2); huntingMobVnum picks which of
+# the row's mob choices the bot is on, huntingMobCount COUNTS DOWN from
+# that choice's required count to 0. Static data lifted from that file
+# (no path from inside this container to read it live) -- a future
+# Playerbots hunting-quest rebalance could make this stale.
+HUNTING_QUEST_TARGETS = {
+    0: [(171, 10), (172, 5)], 1: [(171, 20), (172, 10)], 2: [(172, 15), (173, 5)],
+    3: [(173, 10), (174, 10)], 4: [(174, 20), (178, 10)], 5: [(178, 10), (175, 5)],
+    6: [(178, 20), (175, 10)], 7: [(175, 15), (179, 5)], 8: [(175, 20), (179, 10)],
+    9: [(179, 10), (180, 5)], 10: [(180, 15), (176, 10)], 11: [(176, 20), (181, 5)],
+    12: [(181, 15), (177, 5)], 13: [(181, 20), (177, 10)], 14: [(177, 15), (184, 5)],
+    15: [(177, 20), (184, 10)], 16: [(184, 20), (182, 10)], 17: [(182, 20), (183, 10)],
+    18: [(183, 20), (352, 15)], 19: [(352, 20), (185, 10)], 20: [(185, 25), (303, 10)],
+    21: [(303, 20), (401, 40)], 22: [(401, 60), (402, 80)], 23: [(551, 80), (454, 20)],
+    24: [(552, 80), (456, 20)], 25: [(456, 30), (554, 20)], 26: [(651, 20), (554, 30)],
+    27: [(651, 40), (652, 30)], 28: [(652, 40), (2102, 30)], 29: [(652, 50), (2102, 45)],
+    30: [(653, 50), (2051, 40)], 31: [(751, 35), (2103, 30)], 32: [(751, 40), (2103, 40)],
+    33: [(752, 40), (2052, 40)], 34: [(754, 20), (2106, 20)], 35: [(773, 30), (2003, 20)],
+    36: [(774, 40), (2004, 20)], 37: [(756, 40), (2005, 30)], 38: [(757, 40), (2158, 20)],
+    39: [(931, 40), (5123, 25)], 40: [(932, 30), (5123, 30)], 41: [(932, 40), (2031, 35)],
+    42: [(933, 40), (2031, 40)], 43: [(771, 50), (2032, 45)], 44: [(772, 35), (5124, 30)],
+    45: [(933, 35), (5125, 35)], 46: [(934, 40), (5125, 35)], 47: [(773, 40), (2033, 45)],
+    48: [(774, 40), (5126, 30)], 49: [(5126, 30), (775, 50)], 50: [(2034, 45), (934, 45)],
+    51: [(2034, 50), (934, 50)], 52: [(1001, 30), (776, 40)], 53: [(1301, 45), (777, 40)],
+    54: [(1002, 30), (935, 50)], 55: [(1002, 40), (936, 60)], 56: [(1303, 40), (936, 45)],
+    57: [(1303, 50), (936, 45)], 58: [(1003, 40), (937, 45)], 59: [(1004, 50), (2061, 60)],
+    60: [(1305, 45), (2131, 55)], 61: [(1305, 50), (1101, 45)], 62: [(2062, 50), (1102, 45)],
+    63: [(1104, 40), (2063, 40)], 64: [(2301, 50), (1105, 45)], 65: [(2301, 55), (1105, 50)],
+    66: [(1106, 50), (1061, 50)], 67: [(1107, 45), (1031, 40)], 68: [(2302, 55), (2201, 55)],
+    69: [(2303, 55), (2202, 55)], 70: [(2303, 60), (2202, 60)], 71: [(2304, 55), (1033, 55)],
+    72: [(2305, 50), (1033, 55)], 73: [(2204, 50), (1034, 50)], 74: [(2205, 45), (1035, 50)],
+    75: [(2311, 50), (1068, 50)], 76: [(1070, 50), (1066, 55)], 77: [(1069, 50), (1070, 50)],
+    78: [(1071, 50), (2312, 55)],
+}
+
+
+def character_mission_progress(pid):
+    """Kartoteka postaci: a small, deliberately-scoped set of trackable
+    missions (Biolog, Koń bojowy, Polowanie) rather than every quest --
+    Metin2's quest system has dozens of ad-hoc scripts, most without any
+    persistent numeric counter worth showing. These three are the ones
+    that do, verified against their actual quest/engine source, 2026-09-26.
+    """
+    quest_names = list(biologist_missions()) + ["playerbot", "hunting"]
+    marks = ",".join(["%s"] * len(quest_names))
+    quest_rows = rows(f"SELECT szName,szState,lValue FROM player.quest WHERE dwPID=%s AND szName IN ({marks})", [pid] + quest_names)
+    by_quest = {}
+    for r in quest_rows:
+        by_quest.setdefault(r["szName"], {})[r["szState"]] = r["lValue"]
+
+    missions = []
+
+    bio_missions = biologist_missions()
+    done = sum(1 for name in bio_missions if by_quest.get(name, {}).get("__status") == BIOLOGIST_COMPLETE_STATE)
+    if done < len(bio_missions):
+        active = bio_missions[done]
+        if active == "collect_quest_lv30" and "collect_count" in by_quest.get(active, {}):
+            current = max(0, int(by_quest[active]["collect_count"]))
+            missions.append({"label": "Biolog: Zęby Orka", "current": min(current, BIOLOGIST_COLLECT_TARGET),
+                              "target": BIOLOGIST_COLLECT_TARGET, "unit": "oddanych"})
+        else:
+            missions.append({"label": f"Biolog: misja {done + 1} z {len(bio_missions)}", "current": done,
+                              "target": len(bio_missions), "unit": "ukończonych misji"})
+
+    horse_kills = by_quest.get("playerbot", {}).get("battle_horse_kills")
+    if horse_kills is not None and 0 <= int(horse_kills) < PLAYERBOT_BATTLE_HORSE_KILLS_TARGET:
+        current = int(horse_kills)
+        missions.append({"label": "Koń bojowy: próba na pustyni", "current": current,
+                          "target": PLAYERBOT_BATTLE_HORSE_KILLS_TARGET, "unit": "pokonanych"})
+
+    hunt = by_quest.get("hunting", {})
+    progress_idx, mob_vnum, remaining = hunt.get("huntingProgress"), hunt.get("huntingMobVnum"), hunt.get("huntingMobCount")
+    if progress_idx is not None and mob_vnum is not None and remaining is not None:
+        pairs = HUNTING_QUEST_TARGETS.get(int(progress_idx))
+        target = next((count for vnum, count in pairs if vnum == int(mob_vnum)), None) if pairs else None
+        if target:
+            current = max(0, target - int(remaining))
+            mob_row = one("SELECT locale_name FROM player.mob_proto WHERE vnum=%s", (int(mob_vnum),))
+            mob_name = game_text(mob_row.get("locale_name")).strip() if mob_row else f"potwora #{mob_vnum}"
+            missions.append({"label": f"Polowanie nr {int(progress_idx) + 1}: {mob_name}", "current": current,
+                              "target": target, "unit": "pokonanych"})
+
+    for mission in missions:
+        mission["percent"] = min(100, round(mission["current"] * 100 / mission["target"])) if mission["target"] else 0
+    return missions
+
+
 # ---------------------------------------------------------------------------
 # What makes a character a bot, in one place instead of eight.
 #
@@ -3306,12 +3405,13 @@ def player(pid):
     gear_history = bot_gear_history(pid)
     offline_shop = bot_offline_shop(pid)
     character_stats = character_stat_summary(pid)
+    mission_progress = character_mission_progress(pid)
     gm_row = one("SELECT mAuthority FROM common.gmlist WHERE mName=%s LIMIT 1", (character["name"],))
     character["gm_rank"] = gm_row["mAuthority"] if gm_row else ""
     return render_template("player.html", character=character, equipment=equipment, inventory=inventory, safebox=safebox,
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
-                            gm_ranks=GM_RANK_OPTIONS)
+                            mission_progress=mission_progress, gm_ranks=GM_RANK_OPTIONS)
 
 
 @app.route("/api/player/<int:pid>/inventory-fragment")
