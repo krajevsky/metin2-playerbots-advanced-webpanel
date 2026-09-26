@@ -2746,7 +2746,7 @@ def dashboard():
     return render_template("dashboard.html", totals=totals, bots=bots.get("count", 0), system=system, map_rows=map_rows,
                             channel_map_rows=channel_map_rows, dashboard_channels=dashboard_channels, shop_map_rows=shop_map_rows,
                             top=top, global_top_id=global_top_id, quick_rankings=quick_rankings, world_summary=world_summary,
-                            panel_version=PANEL_VERSION, latest_changelog=changelog_entries()[:1])
+                            panel_version=PANEL_VERSION, latest_changelog=changelog_entries()[:1], live_regen=read_regen_settings(), live_map_regens=read_map_regen_status())
 @app.route("/players")
 @login_required
 def players():

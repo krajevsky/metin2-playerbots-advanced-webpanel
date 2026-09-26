@@ -39,4 +39,6 @@
 .playerbot-count-value{display:flex;align-items:center;gap:8px;white-space:nowrap}
 .playerbot-count-value input[type="number"]{width:82px;flex:none}
 .playerbot-count-value small{color:var(--muted);font-size:.85rem}
-@media(max-width:650px){.playerbot-count-row{grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important}.playerbot-count-controls{grid-column:1/-1;grid-row:2}.playerbot-count-value{justify-self:end}}
+@media(max-width:650px){.playerbot-count-row{grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important}.playerbot-count-controls{grid-column:1/-1;grid-row:2}.playerbot-count-value{justify-self:end}}/* Theme-aware editor for item policy. */
+.item-policy-editor{background:color-mix(in srgb,var(--panel) 86%,#000)!important;border-color:var(--edge)!important;color:var(--text)!important;caret-color:var(--blue2)}
+.item-policy-editor:focus{border-color:var(--blue2)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--blue2) 28%,transparent)}
