@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Osobowości botów · {{panel_brand}}{% endblock %}
+{% block content %}
+<p class="eyebrow">GRACZE I BOTY</p><h1>Osobowości botów</h1><p class="muted">Tylko boty aktualnie zalogowane — osobowość, czynność i mapa są odczytywane na żywo, offline boty tego nie mają.</p>
+<nav class="item-types"><a class="{% if not selected %}active{% endif %}" href="{{url_for('bot_personalities',q=query)}}">Wszystkie <small>{{personalities|sum(attribute='count')}}</small></a>{% for p in personalities %}<a class="{% if selected==p.id|string %}active{% endif %}" href="{{url_for('bot_personalities',q=query,personality=p.id)}}" style="{% if selected==p.id|string %}background:{{p.color}}22;border-color:{{p.color}}{% endif %}"><span style="color:{{p.color}}">{{p.label}}</span> <small>{{p.count}}</small></a>{% endfor %}</nav>
+<form class="item-filters" method="get"><input type="hidden" name="personality" value="{{selected}}"><input id="personality-search" name="q" value="{{query}}" placeholder="Szukaj po nicku" autocomplete="off"><button>Szukaj</button>{% if query or selected %}<a class="button secondary" href="{{url_for('bot_personalities')}}">Wyczyść</a>{% endif %}</form>
+<p class="muted">{{total}} bot{{'a' if total==1 else 'ów'}}{% if selected %} z tą osobowością{% endif %} · pokazano do 200</p>
+<section class="panel table-wrap"><table><thead><tr><th>Bot</th><th>Klasa</th><th>Poziom</th><th>EXP</th><th>Osobowość</th><th>Czynność</th><th>Mapa</th></tr></thead><tbody>
+{% for bot in roster %}<tr class="account-row" data-href="{{url_for('player',pid=bot.id)}}" tabindex="0" title="Pokaż kartę postaci">
+  <td><span class="class-cell">{% set kingdom=empire_info(bot.empire) %}{% if kingdom.flag %}<img class="empire-flag-inline" src="{{empire_flag(bot.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}<img class="class-portrait class-portrait--tiny" src="{{class_portrait(bot.job)}}" alt="" aria-hidden="true"><a href="{{url_for('player',pid=bot.id)}}">{{bot.name}}</a></span></td>
+  <td>{{job_name(bot.job)}}</td>
+  <td>Lv {{bot.level}}</td>
+  <td><span class="exp-orbs" title="{{bot.experience.percent}}% doświadczenia">{% for n in range(4) %}<i class="{% if bot.experience.percent >= (n + 1) * 25 %}full{% elif bot.experience.percent > n * 25 %}part{% endif %}"></i>{% endfor %}<b>{{bot.experience.percent}}%</b></span></td>
+  <td><b style="color:{{bot.personality_color}}">{{bot.personality_label}}</b></td>
+  <td>{{bot.action_label}}</td>
+  <td>{{bot.map_display}}</td>
+</tr>{% else %}<tr><td colspan="7" class="muted">Brak botów pasujących do filtra.</td></tr>{% endfor %}
+</tbody></table></section>
+<script>document.querySelectorAll('table tbody tr.account-row').forEach(row=>{row.addEventListener('click',()=>{window.location=row.dataset.href});row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();window.location=row.dataset.href}})});</script>
+{% endblock %}

@@ -243,6 +243,10 @@ except (OSError, ValueError):
 # czytal sie jako wedrowiec, a piec dopisanych od tamtej pory osobowosci
 # nie czytalo sie wcale.
 BOT_PERSONALITIES = {0: "Wytrwały poszukiwacz", 1: "Pogromca Metinów", 2: "Towarzysz drużyny", 3: "Mistrz ekwipunku", 4: "Rozważny zbieracz", 5: "Handlarz", 6: "Wędrowiec", 7: "Dropek Metinów", 8: "Dropek z M3", 9: "Dropek z M2", 10: "Dropek medali"}
+# One colour per personality, for /players/personalities -- purely cosmetic,
+# picked for contrast against the dark theme and against each other.
+BOT_PERSONALITY_COLORS = {0: "#69a6ff", 1: "#ff6b6b", 2: "#79e3af", 3: "#f2c34d", 4: "#c084fc",
+                           5: "#4dd0e1", 6: "#ffa94d", 7: "#ff8fa3", 8: "#a3e635", 9: "#38bdf8", 10: "#fbbf24"}
 BOT_AMBITIONS = {0: "Poziom", 1: "Ekwipunek", 2: "Metiny", 3: "Koń", 4: "Biolog", 5: "Umiejętności", 6: "Handel"}
 BOT_GOALS = {0: "Zdobywanie poziomu", 1: "Przetrwanie", 2: "Wybór profesji", 3: "Zdobycie ekwipunku", 4: "Uzupełnienie zapasów", 5: "Ulepszanie EQ", 6: "Rozwój umiejętności", 7: "Polowanie na Metiny", 8: "Silne cele w PT", 9: "Misja Biologa", 10: "Misja Polowania", 11: "Rozwój konia"}
 # 18 (Kopie rudę) byla dopisana do playerbot_types.h u Tieru, ale nie tutaj -
@@ -1222,7 +1226,7 @@ def live_bots():
     ids = list(statuses)
     placeholders = ",".join(["%s"] * len(ids))
     roster = rows(f"""
-        SELECT p.id, p.name, p.level, p.job, p.horse_level, """ + EMPIRE_EXPR + f""" AS empire FROM player.player p
+        SELECT p.id, p.name, p.level, p.exp, p.job, p.horse_level, """ + EMPIRE_EXPR + f""" AS empire FROM player.player p
         LEFT JOIN account.account a ON a.id=p.account_id
         LEFT JOIN player.player_index pi ON pi.id=p.account_id
         WHERE p.id IN ({placeholders}) AND (LEFT(a.login,10)='playerbot_' OR p.name LIKE 'bot%%')
@@ -2765,6 +2769,38 @@ def players():
         if state:
             character["map_index"] = state["map_index"]
     return render_template("players.html", players=roster, query=query)
+
+
+@app.route("/players/personalities")
+@login_required
+def bot_personalities():
+    """Live playerbot roster grouped/filterable by personality
+    (BOT_PERSONALITIES -- the base "system osobowości", distinct from the
+    newer Iwakura persona/mood layer). Only ever shows bots that are
+    currently online: personality, current action and map are all read
+    from the live status file, never persisted to the database, so an
+    offline bot has none of these to show. Operator's ask, 2026-09-26."""
+    query = request.args.get("q", "").strip().lower()
+    selected = request.args.get("personality", "").strip()
+    roster = live_bots()
+    counts = {}
+    for bot in roster:
+        key = int(bot.get("personality") or 0)
+        counts[key] = counts.get(key, 0) + 1
+    if query:
+        roster = [bot for bot in roster if query in bot["name"].lower()]
+    if selected.isdigit() and int(selected) in BOT_PERSONALITIES:
+        roster = [bot for bot in roster if int(bot.get("personality") or 0) == int(selected)]
+    roster.sort(key=lambda bot: (-(int(bot.get("level") or 0)), -(int(bot.get("exp") or 0))))
+    total = len(roster)
+    roster = roster[:200]
+    for bot in roster:
+        bot["experience"] = experience_progress(bot.get("level"), bot.get("exp"))
+        bot["map_display"] = map_name(bot.get("map_index"))
+        bot["personality_color"] = BOT_PERSONALITY_COLORS.get(int(bot.get("personality") or 0), "#cfe1fb")
+    personalities = [{"id": pid, "label": label, "color": BOT_PERSONALITY_COLORS.get(pid, "#cfe1fb"), "count": counts.get(pid, 0)}
+                      for pid, label in sorted(BOT_PERSONALITIES.items())]
+    return render_template("bot_personalities.html", roster=roster, total=total, query=query, selected=selected, personalities=personalities)
 
 
 @app.route("/guilds")

@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.87.0 · Nowa strona: Osobowości botów
+
+- **Gracze i boty → Osobowości botów** — nowa lista wszystkich aktualnie zalogowanych botów, filtrowalna po osobowości (kafelki z licznikami, jak na Bazie przedmiotów) i przeszukiwalna po nicku, ucięta do 200 wyników (posortowana jak ranking: poziom, potem EXP).
+- Każdy wiersz: flaga królestwa, portret klasy, nick, poziom, pasek EXP, **kolorowana nazwa osobowości**, aktualna czynność bota i mapa, na której teraz jest — cały wiersz klikalny, prowadzi prosto do karty postaci.
+- Osobowość/czynność/mapa są odczytywane z live'owego statusu rdzenia, więc lista pokazuje tylko boty aktualnie online (offline nie mają tych danych do pokazania — nigdy nie trafiają do bazy).
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-26 · 1.86.0 · Dashboard mapy świata z diagramami i stanem respawnów
 
 - **Mapa świata botów na szerokich ekranach otrzymała trzy niezależne karty danych dla aktualnie wybranej mapy:** rozkład botów na kanałach, konfigurację respawnów oraz dominację królestw. Nie zmieniają wielkości mapy, rankingu ani listy aktywności; na węższych ekranach cały zestaw nadal jest dostępny pod jednym przyciskiem.
