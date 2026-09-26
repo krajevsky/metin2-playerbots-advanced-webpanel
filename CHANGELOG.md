@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.85.0 · Ranking Broń/Zbroja liczy realną moc, nie tylko "+N"
+
+- **Rankingi "Broń" i "Zbroja" wystawiały na górę cokolwiek miało wyższy "+N", niezależnie od tego, na jaki poziom w ogóle jest ten przedmiot** — +9 na przedmiocie z niskiego poziomu potrafiło wyprzedzić +7 na dużo lepszej bazie. Sprawdzone bezpośrednio w bazie: same wartości ataku/obrony w tabeli przedmiotów okazały się niespójne między rodzinami (część zbroi ma zapisane rosnące obrażenia/obronę per "+", większość ma płaskie liczby identyczne od +0 do +9), więc nie dało się na nich polegać jako mierniku mocy.
+- Znaleziono spójny, wiarygodny wskaźnik: **wymagany poziom postaci przedmiotu** rośnie razem z jego prawdziwą jakością bazową w każdej sprawdzonej rodzinie. Ranking liczy teraz `poziom_wymagany × 10 + poziom_ulepszenia`, więc zbroja na 34 poziom +7 wyprzedza zbroję na 18 poziom +9, dokładnie jak powinno być. Wynik w tabeli pokazuje wprost, jaki poziom wymaga dany przedmiot, żeby kolejność była zrozumiała na pierwszy rzut oka.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-26 · 1.84.0 · Aktualizacja do 2.2.19, naprawa suwaka botów, audyt vs panel Tieru
 
 - **Playerbots zaktualizowane do 2.2.19** (z 2.2.9), przez oficjalny, odizolowany aktualizator panelu — pełny backup bazy (>1,2 GB) zrobiony automatycznie przed czymkolwiek. Panel webowy (ten) pozostał nietknięty, zgodnie z ustawieniem.
