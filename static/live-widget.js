@@ -239,5 +239,7 @@ $('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCom
   [select, search, $('show-names'), $('party-only'), mode, $('map-autoplay')].forEach(node => node.addEventListener('input', markInteraction));
   window.addEventListener('pointerdown', markInteraction, {passive:true});
   setInterval(() => { if (!$('map-autoplay').checked || Date.now() - lastInteraction < 15000) return; const next=(select.selectedIndex+1)%select.options.length; select.selectedIndex=next; mode.value === 'live' ? render() : loadHeat(); }, 8000);
+  const insightToggle=$('live-insights-toggle');
+  if(insightToggle)insightToggle.addEventListener('click',()=>{const shell=document.querySelector('.live-shell'),visible=shell.classList.toggle('show-map-insights');insightToggle.setAttribute('aria-expanded',String(visible));insightToggle.textContent=visible?'← Ranking i aktywności':'▦ Diagramy mapy'});
   load(); refreshRestartInfo(); tickRateBonusCountdowns(); setInterval(load, 1500); setInterval(refreshRestartInfo, 30000); setInterval(tickRateBonusCountdowns, 1000);
 })();
