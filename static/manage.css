@@ -30,3 +30,13 @@
 .updater-rules .updater-panel-update{grid-template-columns:minmax(0,1fr) 130px 25px}@media(max-width:650px){.updater-rules .updater-panel-update{grid-template-columns:minmax(0,1fr) 92px 20px}}
 .spawn-plan-panel{display:grid;gap:12px}.spawn-plan-panel h2,.spawn-plan-panel p{margin:0}.spawn-plan-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end}.spawn-plan-form label{display:grid;gap:5px;color:var(--muted);font-size:13px}.spawn-plan-form small{font-size:11px}.spawn-plan-form input{width:100%;box-sizing:border-box}.spawn-plan-form button{white-space:nowrap}.spawn-plan-status b{color:var(--accent)}@media(max-width:850px){.spawn-plan-form{grid-template-columns:repeat(2,minmax(0,1fr))}.spawn-plan-form button{grid-column:1/-1}}@media(max-width:520px){.spawn-plan-form{grid-template-columns:1fr}}
 .bot-hold-panel{display:grid;gap:10px}.bot-hold-panel h2,.bot-hold-panel>p{margin:0}.bot-hold-status{padding:3px 10px;border-radius:999px;font-size:13px}.bot-hold-status.held{background:#5b1e2b;color:#ffb3c0}.bot-hold-status.released{background:#164e35;color:#7cf0ae}.bot-hold-panel .behavior-actions{margin:0}
+
+/* Dedicated /respawns owns map timing. Keep the restart form focused and the bot target readable. */
+.playerbot-count-settings{display:block!important}
+.playerbot-count-row{display:grid!important;grid-template-columns:minmax(180px,1fr) minmax(260px,1.5fr) auto!important;align-items:center!important;gap:16px!important}
+.playerbot-count-label{min-width:0;font-weight:600}
+.playerbot-count-controls{min-width:0}
+.playerbot-count-value{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.playerbot-count-value input[type="number"]{width:82px;flex:none}
+.playerbot-count-value small{color:var(--muted);font-size:.85rem}
+@media(max-width:650px){.playerbot-count-row{grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important}.playerbot-count-controls{grid-column:1/-1;grid-row:2}.playerbot-count-value{justify-self:end}}
