@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-26 · 1.90.0 · Osobne zarządzanie grą i panelem
+
+- **Zarządzanie zostało rozdzielone na dwie czytelne strony:** `/manage` zawiera wyłącznie sterowanie grą, Playerbots i serwerem, a nowe `/manage/panel` skupia nazwę panelu, motyw, monitoring, kursor oraz ochronę hasłem.
+- **Nawigacja ma teraz rozwijaną sekcję Zarządzanie** z bezpośrednimi odnośnikami do obu części. Na górze obu ekranów znajduje się też spójny przełącznik „Gra i serwer / Panel webowy”.
+- Zapis ustawień panelu wraca na właściwą stronę panelową również po błędzie walidacji, więc obsługa formularza nie przenosi już operatora do ustawień gry.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-26 · 1.89.0 · Changelog: nasz panel i silnik Tieru osobno
 
 - **`/changelog` ma teraz dwie zakładki na środku góry strony**: "Advanced Seban Webpanel" (jak dotychczas) i "Playerbots by Tieru" — pobierane bezpośrednio z jego repozytorium ([CHANGELOG.md na GitHub](https://github.com/TieruYT/metin2-playerbots/blob/main/CHANGELOG.md)), najnowsze 25 wydań silnika, ładnie sformatowane (nagłówki, listy, pogrubienia). Pobierane raz na godzinę, nie za każdym wejściem.

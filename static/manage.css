@@ -31,6 +31,12 @@
 .spawn-plan-panel{display:grid;gap:12px}.spawn-plan-panel h2,.spawn-plan-panel p{margin:0}.spawn-plan-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end}.spawn-plan-form label{display:grid;gap:5px;color:var(--muted);font-size:13px}.spawn-plan-form small{font-size:11px}.spawn-plan-form input{width:100%;box-sizing:border-box}.spawn-plan-form button{white-space:nowrap}.spawn-plan-status b{color:var(--accent)}@media(max-width:850px){.spawn-plan-form{grid-template-columns:repeat(2,minmax(0,1fr))}.spawn-plan-form button{grid-column:1/-1}}@media(max-width:520px){.spawn-plan-form{grid-template-columns:1fr}}
 .bot-hold-panel{display:grid;gap:10px}.bot-hold-panel h2,.bot-hold-panel>p{margin:0}.bot-hold-status{padding:3px 10px;border-radius:999px;font-size:13px}.bot-hold-status.held{background:#5b1e2b;color:#ffb3c0}.bot-hold-status.released{background:#164e35;color:#7cf0ae}.bot-hold-panel .behavior-actions{margin:0}
 
+.manage-section-tabs{display:flex;justify-content:center;gap:8px;margin:0 auto 24px;padding:5px;width:max-content;max-width:100%;border:1px solid var(--edge);border-radius:999px;background:var(--panel)}
+.manage-section-tabs a{padding:10px 18px;border-radius:999px;color:var(--muted);font-weight:700;text-decoration:none;white-space:nowrap;transition:background .18s ease,color .18s ease,box-shadow .18s ease}
+.manage-section-tabs a:hover{color:var(--text)}.manage-section-tabs a.active{background:var(--blue2);color:#fff;box-shadow:0 4px 18px color-mix(in srgb,var(--blue2) 35%,transparent)}
+.panel-settings-card{max-width:820px;margin:24px auto}.panel-settings-card .settings-form{max-width:none}.panel-settings-card button{justify-self:end;min-width:220px}
+@media(max-width:650px){.manage-section-tabs{width:100%;box-sizing:border-box}.manage-section-tabs a{flex:1;padding:9px 8px;text-align:center}.panel-settings-card button{justify-self:stretch;width:100%}}
+
 /* Dedicated /respawns owns map timing. Keep the restart form focused and the bot target readable. */
 .playerbot-count-settings{display:block!important}
 .playerbot-count-row{display:grid!important;grid-template-columns:minmax(180px,1fr) minmax(260px,1.5fr) auto!important;align-items:center!important;gap:16px!important}

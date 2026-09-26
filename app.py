@@ -5235,6 +5235,12 @@ def manage():
     return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count(), spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled(), custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines(), bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
 
 
+@app.route("/manage/panel")
+@login_required
+def manage_panel():
+    return render_template("manage_panel.html", settings=settings())
+
+
 @app.post("/manage/update")
 @login_required
 def manage_update():
@@ -5262,25 +5268,25 @@ def manage_settings():
     values, error = validate_display_settings(request.form)
     if error:
         flash(error, "error")
-        return redirect(url_for("manage"))
+        return redirect(url_for("manage_panel"))
     current = settings()
     enable_auth = request.form.get("auth_enabled") == "1"
     password = request.form.get("panel_password", "")
     if enable_auth:
         if password and len(password) < 8:
             flash("Nowe hasło musi mieć co najmniej 8 znaków.", "error")
-            return redirect(url_for("manage"))
+            return redirect(url_for("manage_panel"))
         password_hash = generate_password_hash(password) if password else current.get("auth_password_hash", "")
         if not password_hash:
             flash("Aby włączyć ochronę, ustaw hasło panelu.", "error")
-            return redirect(url_for("manage"))
+            return redirect(url_for("manage_panel"))
     else:
         password_hash = ""
         session.clear()
     values.update({"auth_enabled": "1" if enable_auth else "0", "auth_password_hash": password_hash, "setup_complete": "1"})
     write_settings(values)
     flash("Ustawienia panelu zapisane.")
-    return redirect(url_for("manage"))
+    return redirect(url_for("manage_panel"))
 
 
 @app.post("/manage/overrides")
