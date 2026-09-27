@@ -2621,10 +2621,18 @@ def cached_dashboard_ranking(kind, limit=10, ttl=300):
     return data
 
 
-def bot_ranking(kind, sort_by="avg"):
+def bot_ranking(kind, sort_by="avg", limit=100, offset=0):
     base = ranking_scope_sql("p")
+    # Fetches one extra row past `limit` so the route can tell whether a
+    # next page exists (len(ranking) > limit) without a separate COUNT(*)
+    # per ranking kind -- 17 different queries here, each with its own
+    # joins/grouping, would need 17 different count queries to be exact.
+    # Total rows are bounded by the character count anyway (~2500), so
+    # OFFSET is cheap even for a "last page" click. Added 2026-09-27 per
+    # operator request for pagination + a 100/200/500/1000 page-size choice.
+    limit_clause = f"LIMIT {limit + 1} OFFSET {offset}"
     if kind == "gold":
-        return rows(f"SELECT p.id,p.name,p.level,p.gold,CONCAT(FORMAT(p.gold,0),' Yang') AS detail FROM player.player p WHERE {base} ORDER BY p.gold DESC,p.level DESC LIMIT 100")
+        return rows(f"SELECT p.id,p.name,p.level,p.gold,CONCAT(FORMAT(p.gold,0),' Yang') AS detail FROM player.player p WHERE {base} ORDER BY p.gold DESC,p.level DESC {limit_clause}")
     if kind == "armor":
         # Body armor's real defense = item_proto.value1 (flat per tier,
         # confirmed live: same value1 across all 10 refine vnums of the same
@@ -2644,7 +2652,7 @@ def bot_ranking(kind, sort_by="avg"):
             COALESCE(ip.value1,0)+6*MOD(COALESCE(i.vnum,0),10) AS power_score
             FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos=0
             LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum WHERE {base}
-            ORDER BY power_score DESC,i.vnum DESC,p.level DESC LIMIT 100""")
+            ORDER BY power_score DESC,i.vnum DESC,p.level DESC {limit_clause}""")
     if kind == "weapon":
         # Weapon attack power isn't covered by the operator's armor table --
         # left on the tier*10+refine heuristic (2026-09-26) rather than
@@ -2654,7 +2662,7 @@ def bot_ranking(kind, sort_by="avg"):
             COALESCE(CASE WHEN ip.limittype0=1 THEN ip.limitvalue0 WHEN ip.limittype1=1 THEN ip.limitvalue1 END,0)*10+MOD(COALESCE(i.vnum,0),10) AS power_score
             FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos=4
             LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum WHERE {base}
-            ORDER BY power_score DESC,i.vnum DESC,p.level DESC LIMIT 100""")
+            ORDER BY power_score DESC,i.vnum DESC,p.level DESC {limit_clause}""")
     if kind == "weapon30":
         weapon30_order = {
             "avg": "avg_damage DESC, skill_damage DESC, p.level DESC",
@@ -2671,7 +2679,7 @@ def bot_ranking(kind, sort_by="avg"):
             IF(GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)=-999,0,GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)) AS avg_damage
             FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
             WHERE {base} AND ((i.vnum BETWEEN 290 AND 299) OR (i.vnum BETWEEN 1170 AND 1179) OR (i.vnum BETWEEN 2150 AND 2159) OR (i.vnum BETWEEN 3210 AND 3219) OR (i.vnum BETWEEN 5110 AND 5119) OR (i.vnum BETWEEN 7160 AND 7169))
-            ORDER BY {weapon30_order} LIMIT 100""")
+            ORDER BY {weapon30_order} LIMIT {offset + limit + 1}""")
         # 71 is APPLY_SKILL_DAMAGE_BONUS and 72 is APPLY_NORMAL_HIT_DAMAGE_BONUS in
         # common/length.h, and the query names them so. A swap used to live
         # here, justified by "this build stores them the other way round" -
@@ -2684,15 +2692,15 @@ def bot_ranking(kind, sort_by="avg"):
                 (int(row.get("vnum") or 0) % 10, int(row.get("avg_damage") or 0), int(row.get("skill_damage") or 0), int(row.get("level") or 0))
             ),
             reverse=True,
-        )
+        )[offset:offset + limit + 1]
     if kind == "playtime":
-        return rows(f"SELECT p.id,p.name,p.level,p.gold,p.playtime AS score,CONCAT(FLOOR(p.playtime/60),' h') AS detail FROM player.player p WHERE {base} ORDER BY p.playtime DESC,p.level DESC LIMIT 100")
+        return rows(f"SELECT p.id,p.name,p.level,p.gold,p.playtime AS score,CONCAT(FLOOR(p.playtime/60),' h') AS detail FROM player.player p WHERE {base} ORDER BY p.playtime DESC,p.level DESC {limit_clause}")
     if kind == "bosses":
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,COUNT(*) AS score,
             CONCAT(COUNT(*),' zabitych bossów · 7 dni') AS detail
             FROM log.log l JOIN player.player p ON p.id=l.who
             WHERE {base} AND l.how='BOSS_KILL' AND l.time >= NOW() - INTERVAL 7 DAY
-            GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name LIMIT 100""")
+            GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name {limit_clause}""")
     if kind == "refine":
         # Same REFINE SUCCESS count character_stat_summary() already shows
         # on /player/ as "Pomyślne ulepszenia" -- all-time, not windowed,
@@ -2701,7 +2709,7 @@ def bot_ranking(kind, sort_by="avg"):
             CONCAT(COUNT(*),' pomyślnych ulepszeń') AS detail
             FROM log.log l JOIN player.player p ON p.id=l.who
             WHERE {base} AND l.how='REFINE SUCCESS'
-            GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name LIMIT 100""")
+            GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name {limit_clause}""")
     if kind in SPECIAL_FLAG_RANKINGS:
         # player.player_special_flag -- the same table character_stat_summary()
         # reads for /player/'s "Statystyki (panel Y)" section (found 2026-09-23,
@@ -2713,7 +2721,7 @@ def bot_ranking(kind, sort_by="avg"):
             CONCAT(FORMAT(f.value,0),' {unit}') AS detail
             FROM player.player_special_flag f JOIN player.player p ON p.id=f.pid
             WHERE {base} AND f.flag=%s AND f.value>0
-            GROUP BY p.id,p.name,f.value ORDER BY f.value DESC,p.level DESC,p.name LIMIT 100""", (flag,))
+            GROUP BY p.id,p.name,f.value ORDER BY f.value DESC,p.level DESC,p.name {limit_clause}""", (flag,))
     if kind == "fish":
         # log.fish_log -- a dedicated table the engine writes to on every
         # catch (LogManager::FishLog, called from pc_fishing_log() in
@@ -2727,7 +2735,7 @@ def bot_ranking(kind, sort_by="avg"):
             CONCAT(SUM(fl.count),' złowionych ryb') AS detail
             FROM log.fish_log fl JOIN player.player p ON p.id=fl.player_id
             WHERE {base}
-            GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name LIMIT 100""")
+            GROUP BY p.id,p.name ORDER BY score DESC,p.level DESC,p.name {limit_clause}""")
     if kind == "refine_rate":
         # Ciekawostka, per operator's ask: % success needs a minimum sample
         # size, or a bot's very first-ever refine lands it at #1 forever
@@ -2744,30 +2752,30 @@ def bot_ranking(kind, sort_by="avg"):
             FROM log.log l JOIN player.player p ON p.id=l.who
             WHERE {base} AND l.how IN ('REFINE SUCCESS','REMOVE (REFINE FAIL)')
             GROUP BY p.id,p.name HAVING COUNT(*) >= {min_attempts}
-            ORDER BY score DESC,COUNT(*) DESC,p.level DESC LIMIT 100""")
+            ORDER BY score DESC,COUNT(*) DESC,p.level DESC {limit_clause}""")
     if kind == "items":
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,COUNT(i.id) AS score,CONCAT(COUNT(i.id),' przedmiotów') AS detail
             FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='INVENTORY'
-            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC LIMIT 100""")
+            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""")
     if kind == "horse":
-        return rows(f"SELECT p.id,p.name,p.level,p.gold,p.horse_level AS score,CONCAT('Koń Lv ',p.horse_level) AS detail FROM player.player p WHERE {base} ORDER BY p.horse_level DESC,p.level DESC LIMIT 100")
+        return rows(f"SELECT p.id,p.name,p.level,p.gold,p.horse_level AS score,CONCAT('Koń Lv ',p.horse_level) AS detail FROM player.player p WHERE {base} ORDER BY p.horse_level DESC,p.level DESC {limit_clause}")
     if kind == "biologist":
         missions = biologist_missions()
         marks = ",".join(["%s"] * len(missions))
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,COUNT(DISTINCT q.szName) AS score,CONCAT(COUNT(DISTINCT q.szName),' / {len(missions)} misji') AS detail
             FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id AND q.szName IN ({marks}) AND q.szState='__status' AND q.lValue=%s
-            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC LIMIT 100""", (*missions, BIOLOGIST_COMPLETE_STATE))
+            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""", (*missions, BIOLOGIST_COMPLETE_STATE))
     if kind == "hunting":
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,MAX(CASE WHEN q.szState='complete' THEN q.lValue ELSE 0 END) AS score,
             CONCAT('Ukończone do Lv ',MAX(CASE WHEN q.szState='complete' THEN q.lValue ELSE 0 END)) AS detail
             FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id AND q.szName='levelup'
-            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC LIMIT 100""")
+            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""")
     if kind == "shops":
         keeper_ids = [pid for pid, state in live_statuses().items() if int(state.get("action") or 0) == 13]
         if not keeper_ids:
             return []
         placeholders = ",".join(["%s"] * len(keeper_ids))
-        return rows(f"SELECT p.id,p.name,p.level,p.gold,'Stragan otwarty' AS detail FROM player.player p WHERE p.id IN ({placeholders}) ORDER BY p.level DESC LIMIT 100", keeper_ids)
+        return rows(f"SELECT p.id,p.name,p.level,p.gold,'Stragan otwarty' AS detail FROM player.player p WHERE p.id IN ({placeholders}) ORDER BY p.level DESC {limit_clause}", keeper_ids)
     if kind == "skills":
         # Kazdy bot z profesja, a nie czterysta najwyzszych poziomem.
         # Ranking umiejetnosci posortowany najpierw po poziomie odpowiada
@@ -2780,7 +2788,7 @@ def bot_ranking(kind, sort_by="avg"):
             best = max(parse_skills(bot.get("skill_level"), bot.get("job"), bot.get("skill_group")), key=lambda skill: (3 if skill["rank"] == "P" else 2 if skill["rank"].startswith("G") else 1 if skill["rank"].startswith("M") else 0, skill["level"]), default=None)
             bot["score"] = (3 if best and best["rank"] == "P" else 2 if best and best["rank"].startswith("G") else 1 if best and best["rank"].startswith("M") else 0, best["level"] if best else 0)
             bot["detail"] = f"{best['name']} · {best['rank']}" if best else "Brak rozwiniętych umiejętności"
-        return sorted(roster, key=lambda bot: (bot["score"], bot["level"]), reverse=True)[:100]
+        return sorted(roster, key=lambda bot: (bot["score"], bot["level"]), reverse=True)[offset:offset + limit + 1]
     if kind == "plus9":
         # Ktore vnumy sa sprzetem, rozstrzyga item_proto, a nie liczba:
         # "ponizej 12000" mialo odsiac materialy, a odsiewalo kazda tarcze
@@ -2794,8 +2802,8 @@ def bot_ranking(kind, sort_by="avg"):
         # id konta wlasciciela skrytki.
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)) AS detail
             FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
-            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY') AND ip.type IN (1,2) AND MOD(i.vnum,10)=9 ORDER BY i.vnum DESC,p.level DESC LIMIT 100""")
-    return rows(f"SELECT p.id,p.name,p.level,p.gold,p.level AS score,'Poziom' AS detail FROM player.player p WHERE {base} ORDER BY p.level DESC,p.exp DESC LIMIT 100")
+            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY') AND ip.type IN (1,2) AND MOD(i.vnum,10)=9 ORDER BY i.vnum DESC,p.level DESC {limit_clause}""")
+    return rows(f"SELECT p.id,p.name,p.level,p.gold,p.level AS score,'Poziom' AS detail FROM player.player p WHERE {base} ORDER BY p.level DESC,p.exp DESC {limit_clause}")
 
 
 def login_required(view):
@@ -5261,7 +5269,19 @@ def rankings():
     weapon30_sort = request.args.get("sort", "avg") if kind == "weapon30" else "avg"
     if weapon30_sort not in ("avg", "skill", "upgrade"):
         weapon30_sort = "avg"
-    ranking = bot_ranking(kind, weapon30_sort)
+    try:
+        per_page = int(request.args.get("per_page", 100))
+    except (TypeError, ValueError):
+        per_page = 100
+    if per_page not in (100, 200, 500, 1000):
+        per_page = 100
+    try:
+        page = max(0, int(request.args.get("page", 0)))
+    except (TypeError, ValueError):
+        page = 0
+    ranking = bot_ranking(kind, weapon30_sort, limit=per_page, offset=page * per_page)
+    has_next = len(ranking) > per_page
+    ranking = ranking[:per_page]
     ids = [row["id"] for row in ranking]
     if ids:
         # Which kingdom each of them belongs to. player_index.empire, because
@@ -5277,19 +5297,28 @@ def rankings():
         empires = {row["id"]: row["empire"] for row in empire_rows}
         for row in ranking:
             row["empire"] = empires.get(row["id"], 0)
-        progress_rows = rows("SELECT id,level,exp,job FROM player.player WHERE id IN (" + ",".join(["%s"] * len(ids)) + ")", ids)
+        progress_rows = rows("SELECT id,level,exp,job FROM player.player WHERE id IN (" + marks + ")", ids)
         progress = {row["id"]: experience_progress(row["level"], row["exp"]) for row in progress_rows}
         jobs = {row["id"]: row["job"] for row in progress_rows}
         for row in ranking:
             row["job"] = jobs.get(row["id"], 0)
             row["experience"] = progress.get(row["id"], {"percent": 0})
+        # Guild name per ranked bot/player, requested alongside pagination
+        # (2026-09-27) -- same join /player/ uses for its own guild_name.
+        guild_rows = rows(
+            "SELECT gm.pid AS id, g.name AS guild_name FROM player.guild_member gm"
+            " JOIN player.guild g ON g.id=gm.guild_id WHERE gm.pid IN (" + marks + ")", ids)
+        guild_names = {row["id"]: game_text(row["guild_name"]) for row in guild_rows}
+        for row in ranking:
+            row["guild_name"] = guild_names.get(row["id"])
     for row in ranking:
         if kind == "weapon30":
             row["detail"] = "Średnie obrażenia: %s%% · Obrażenia umiejętności: %s%% · %s" % (
                 int(row.get("avg_damage") or 0), int(row.get("skill_damage") or 0), game_text(row.get("item_name")))
         else:
             row["detail"] = game_text(row.get("detail"))
-    return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort)
+    return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
+                           per_page=per_page, page=page, has_next=has_next)
 
 
 @app.route("/season")

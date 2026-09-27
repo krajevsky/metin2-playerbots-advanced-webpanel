@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.98.0 · Gildia i paginacja w rankingach
+
+- **Rankingi botów pokazują teraz kolumnę "Gildia"** przy każdym graczu/bocie.
+- **Dodano stronicowanie** ("Poprzednia"/"Następna") zamiast sztywnych 100 pozycji.
+- **Dodano wybór liczby wyników na stronę**: 100 / 200 / 500 / 1000.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.97.1 · Naprawiono ranking zbroi
 
 - **Ranking `/rankings?type=armor` źle porównywał zbroje**: liczył `poziom_wymagany × 10 + stopień_ulepszenia`, więc np. zbroja poziom 42 +7 (realnie 97 obrony) wychodziła wyżej niż zbroja poziom 34 +9 (realnie 101 obrony). Naprawione na dokładny wzór gry: obrona = wartość bazowa zbroi + 6 punktów za każdy stopień ulepszenia — zweryfikowane wprost w bazie na graczach top1/top6 i zgodne z tabelą przysłaną przez operatora. Ranking pokazuje teraz realną wartość obrony zamiast wymaganego poziomu.
