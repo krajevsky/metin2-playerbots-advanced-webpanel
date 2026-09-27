@@ -1896,7 +1896,7 @@ def daily_summary_details(summary_date):
       GROUP BY p.id,p.name ORDER BY score DESC,p.name LIMIT 1""", (day_start, day_end))
 
     plus9 = rows(f"""SELECT l.who AS owner_pid,p.name AS owner_name,l.what AS item_id,l.time,l.hint,
-      i.vnum,COALESCE(ip.locale_name,l.hint) AS item_name,ip.type,ip.subtype,ip.value1,
+      i.vnum,HEX(COALESCE(ip.locale_name,l.hint)) AS item_name_hex,ip.type,ip.subtype,ip.value1,
       COALESCE(CASE WHEN ip.limittype0=1 THEN ip.limitvalue0 WHEN ip.limittype1=1 THEN ip.limitvalue1 END,0) AS required_level,
       i.attrtype0,i.attrvalue0,i.attrtype1,i.attrvalue1,i.attrtype2,i.attrvalue2,
       i.attrtype3,i.attrvalue3,i.attrtype4,i.attrvalue4,i.attrtype5,i.attrvalue5,i.attrtype6,i.attrvalue6
@@ -1907,7 +1907,7 @@ def daily_summary_details(summary_date):
     for item in plus9:
         item["owner_pid"] = int(item.get("owner_pid") or 0)
         item["vnum"] = int(item.get("vnum") or 0)
-        item["item_name"] = game_text(item.get("item_name") or item.get("hint") or "Przedmiot +9")
+        item["item_name"] = cp1250_hex_text(item.get("item_name_hex")) or game_text(item.get("hint") or "Przedmiot +9")
         damages = [int(item.get(f"attrvalue{i}") or 0) for i in range(7)
                    if int(item.get(f"attrtype{i}") or 0) == ATTR_AVG_DAMAGE]
         item["avg_damage"] = max(damages, default=0)
@@ -1968,7 +1968,7 @@ def daily_summary_details(summary_date):
                       f"broń na {int(item.get('required_level') or 0)} poziom")
             kind = "weapon"
         elif int(item.get("type") or 0) == 2 and int(item.get("subtype") or 0) == 0:
-            detail, kind = f"{item['armor_power']} obrony · najlepsza zbroja +9 dnia", "armor"
+            detail, kind = f"{item['armor_power']} obrony · wyróżniająca się zbroja +9", "armor"
         else:
             detail, kind = "wyróżniające się ulepszenie do +9", "item"
         highlights.append({"kind": kind, "vnum": item["vnum"], "name": item["item_name"], "detail": detail,
