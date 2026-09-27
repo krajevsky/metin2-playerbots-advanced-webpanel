@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.98.1 · Numerowane strony i pole "Idź do strony"
+
+- **Paginacja rankingów ma teraz numerowane strony** (1, 2, 3…ostatnia, ze zwijaniem "…" pomiędzy) zamiast samego Poprzednia/Następna, plus pole do wpisania numeru strony i przejścia od razu.
+- **Przyciski paginacji dopasowują się do aktywnego motywu** panelu (Ocean/Ember/Forest/Empire) zamiast sztywnego niebieskiego.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.98.0 · Gildia i paginacja w rankingach
 
 - **Rankingi botów pokazują teraz kolumnę "Gildia"** przy każdym graczu/bocie.

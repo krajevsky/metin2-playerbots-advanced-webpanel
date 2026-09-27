@@ -2621,16 +2621,16 @@ def cached_dashboard_ranking(kind, limit=10, ttl=300):
     return data
 
 
-def bot_ranking(kind, sort_by="avg", limit=100, offset=0):
+def bot_ranking(kind, sort_by="avg"):
     base = ranking_scope_sql("p")
-    # Fetches one extra row past `limit` so the route can tell whether a
-    # next page exists (len(ranking) > limit) without a separate COUNT(*)
-    # per ranking kind -- 17 different queries here, each with its own
-    # joins/grouping, would need 17 different count queries to be exact.
-    # Total rows are bounded by the character count anyway (~2500), so
-    # OFFSET is cheap even for a "last page" click. Added 2026-09-27 per
-    # operator request for pagination + a 100/200/500/1000 page-size choice.
-    limit_clause = f"LIMIT {limit + 1} OFFSET {offset}"
+    # Fetches every matching row (up to a generous safety cap, not a
+    # per-page one) -- /rankings paginates in Python instead of pushing
+    # LIMIT/OFFSET into 17 differently-shaped queries, so it can show an
+    # exact page count and numbered page links (added 2026-09-27 per
+    # operator request) without a separate COUNT(*) per ranking kind.
+    # Cheap either way: every kind here is bounded by the character count
+    # (~2500), nowhere near where an unbounded fetch would start to hurt.
+    limit_clause = "LIMIT 3000"
     if kind == "gold":
         return rows(f"SELECT p.id,p.name,p.level,p.gold,CONCAT(FORMAT(p.gold,0),' Yang') AS detail FROM player.player p WHERE {base} ORDER BY p.gold DESC,p.level DESC {limit_clause}")
     if kind == "armor":
@@ -2679,7 +2679,7 @@ def bot_ranking(kind, sort_by="avg", limit=100, offset=0):
             IF(GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)=-999,0,GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)) AS avg_damage
             FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
             WHERE {base} AND ((i.vnum BETWEEN 290 AND 299) OR (i.vnum BETWEEN 1170 AND 1179) OR (i.vnum BETWEEN 2150 AND 2159) OR (i.vnum BETWEEN 3210 AND 3219) OR (i.vnum BETWEEN 5110 AND 5119) OR (i.vnum BETWEEN 7160 AND 7169))
-            ORDER BY {weapon30_order} LIMIT {offset + limit + 1}""")
+            ORDER BY {weapon30_order} LIMIT 3000""")
         # 71 is APPLY_SKILL_DAMAGE_BONUS and 72 is APPLY_NORMAL_HIT_DAMAGE_BONUS in
         # common/length.h, and the query names them so. A swap used to live
         # here, justified by "this build stores them the other way round" -
@@ -2692,7 +2692,7 @@ def bot_ranking(kind, sort_by="avg", limit=100, offset=0):
                 (int(row.get("vnum") or 0) % 10, int(row.get("avg_damage") or 0), int(row.get("skill_damage") or 0), int(row.get("level") or 0))
             ),
             reverse=True,
-        )[offset:offset + limit + 1]
+        )
     if kind == "playtime":
         return rows(f"SELECT p.id,p.name,p.level,p.gold,p.playtime AS score,CONCAT(FLOOR(p.playtime/60),' h') AS detail FROM player.player p WHERE {base} ORDER BY p.playtime DESC,p.level DESC {limit_clause}")
     if kind == "bosses":
@@ -2788,7 +2788,7 @@ def bot_ranking(kind, sort_by="avg", limit=100, offset=0):
             best = max(parse_skills(bot.get("skill_level"), bot.get("job"), bot.get("skill_group")), key=lambda skill: (3 if skill["rank"] == "P" else 2 if skill["rank"].startswith("G") else 1 if skill["rank"].startswith("M") else 0, skill["level"]), default=None)
             bot["score"] = (3 if best and best["rank"] == "P" else 2 if best and best["rank"].startswith("G") else 1 if best and best["rank"].startswith("M") else 0, best["level"] if best else 0)
             bot["detail"] = f"{best['name']} · {best['rank']}" if best else "Brak rozwiniętych umiejętności"
-        return sorted(roster, key=lambda bot: (bot["score"], bot["level"]), reverse=True)[offset:offset + limit + 1]
+        return sorted(roster, key=lambda bot: (bot["score"], bot["level"]), reverse=True)
     if kind == "plus9":
         # Ktore vnumy sa sprzetem, rozstrzyga item_proto, a nie liczba:
         # "ponizej 12000" mialo odsiac materialy, a odsiewalo kazda tarcze
@@ -5275,13 +5275,30 @@ def rankings():
         per_page = 100
     if per_page not in (100, 200, 500, 1000):
         per_page = 100
+    all_ranking = bot_ranking(kind, weapon30_sort)
+    total = len(all_ranking)
+    total_pages = max(1, -(-total // per_page))  # ceil division
+    # "goto_page" (the jump-to-page box, 1-based, what the operator actually
+    # types) takes priority over "page" (0-based, what the Prev/Next/numbered
+    # links already on the page use) when both are present.
+    goto_raw = request.args.get("goto_page")
     try:
-        page = max(0, int(request.args.get("page", 0)))
+        page_query = int(goto_raw) - 1 if goto_raw is not None else int(request.args.get("page", 0))
     except (TypeError, ValueError):
-        page = 0
-    ranking = bot_ranking(kind, weapon30_sort, limit=per_page, offset=page * per_page)
-    has_next = len(ranking) > per_page
-    ranking = ranking[:per_page]
+        page_query = 0
+    page = max(0, min(total_pages - 1, page_query))
+    ranking = all_ranking[page * per_page:(page + 1) * per_page]
+    # Compact page-number list for the pager: first 2, last 2, current-1..
+    # current+1, "None" as a gap marker in between -- otherwise a 100-per-page
+    # ranking over ~2500 characters would print 25+ page links in a row.
+    page_numbers, shown = [], set()
+    for candidate in (0, 1, page - 1, page, page + 1, total_pages - 2, total_pages - 1):
+        if 0 <= candidate < total_pages:
+            shown.add(candidate)
+    for index in sorted(shown):
+        if page_numbers and index - page_numbers[-1] > 1:
+            page_numbers.append(None)
+        page_numbers.append(index)
     ids = [row["id"] for row in ranking]
     if ids:
         # Which kingdom each of them belongs to. player_index.empire, because
@@ -5318,7 +5335,7 @@ def rankings():
         else:
             row["detail"] = game_text(row.get("detail"))
     return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
-                           per_page=per_page, page=page, has_next=has_next)
+                           per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers)
 
 
 @app.route("/season")
