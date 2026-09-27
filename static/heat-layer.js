@@ -16,11 +16,18 @@
     const ctx=canvas.getContext('2d',{willReadFrequently:true}); ctx.clearRect(0,0,width,height);
     if(!points.length)return;
     ctx.globalCompositeOperation='lighter';
-    const radius=Math.max(24*scale,Math.min(width,height)*.105), weight=Math.min(1,.42+5/Math.sqrt(points.length+4));
+    // One event must remain a cool, low-density trace.  The previous formula
+    // produced alpha ~= 1 for practically every point, so even isolated
+    // events looked like red hotspots and the result appeared random.  With a
+    // low per-event weight only genuinely overlapping observations become
+    // yellow/red.  Large samples use a slightly lower weight to keep a busy
+    // map from saturating completely.
+    const radius=Math.max(24*scale,Math.min(width,height)*.095);
+    const weight=Math.max(.055,Math.min(.16,1.5/Math.sqrt(points.length+20)));
     points.forEach(point=>{const x=point.x/100*width,y=point.y/100*height,g=ctx.createRadialGradient(x,y,0,x,y,radius);g.addColorStop(0,`rgba(255,255,255,${weight})`);g.addColorStop(.32,`rgba(255,255,255,${weight*.74})`);g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(x-radius,y-radius,radius*2,radius*2)});
     ctx.globalCompositeOperation='source-over';
     const image=ctx.getImageData(0,0,width,height), data=image.data;
-    for(let i=0;i<data.length;i+=4){const intensity=Math.min(1,data[i+3]/210);if(intensity<.025){data[i+3]=0;continue}const [r,g,b]=palette(intensity);data[i]=r;data[i+1]=g;data[i+2]=b;data[i+3]=Math.round(45+intensity*205)}
+    for(let i=0;i<data.length;i+=4){const intensity=Math.min(1,data[i+3]/210);if(intensity<.018){data[i+3]=0;continue}const [r,g,b]=palette(intensity);data[i]=r;data[i+1]=g;data[i+2]=b;data[i+3]=Math.round(32+intensity*215)}
     ctx.putImageData(image,0,0);
   }
   function clear(container){container.querySelector(':scope > canvas.density-heat-layer')?.remove()}
