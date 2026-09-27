@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.94.6 · Mapa na 1920×1080 mieści się bez przewijania
+
+- **Poszerzona mapa (492×616px) była wyższa niż zostawało miejsca w jednym ekranie** na 1920×1080 — trzeba było przewijać stronę, żeby zobaczyć ją w całości. Wysokość mapy jest teraz ograniczona do ~520px z zachowaniem proporcji (szerokość dopasowuje się do wysokości, nie na odwrót) — cała mapa mieści się na ekranie bez przewijania w jej obrębie. Dotyczy tylko 1351–2199px, monitor 2K bez zmian.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.94.5 · Poprawki mapy tylko do 2199px, 2K bez zmian
 
 - **Dzisiejsze poprawki mapy (1.94.1–1.94.3) dotyczą teraz wyłącznie ekranów 1351–2199px.** Monitor 2K (2560×1440) wraca do dokładnie oryginalnego układu sprzed tych poprawek — bez zakładek Ranking/Aktywności, ten sam wzór skalowania mapy co wcześniej. Operator poprosił o to wprost: jego monitor nigdy nie miał problemu ze ściśniętą mapą, więc nie powinien dostawać zmian pomyślanych dla mniejszych ekranów (np. 1920×1080).

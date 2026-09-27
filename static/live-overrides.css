@@ -232,3 +232,18 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
   .live-insights{position:static!important;inset:auto!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;grid-column:3!important;grid-row:1!important;width:auto!important;z-index:auto!important}
   .live-grid>.map-legend{grid-column:1/3!important}
 }
+
+/* On a 1920x1080 screen the widened map (width:100% of a much bigger column
+   now that the phantom column is gone) came out ~616px tall for the 4:5-ratio
+   maps -- taller than the space left below the header/filters in one
+   viewport, so seeing the whole map needed scrolling mid-map. Reported
+   [GA]Seban 2026-09-27: "mapa jest wysoka a wąska że nie da się jej całej
+   wyświetlić". Capping height directly (letting width follow the aspect
+   ratio down, instead of the other way around) keeps the same proportions at
+   a size that fits. Same 1351-2199px scope as the rest of this session's
+   fixes -- a real 2K monitor is untouched. */
+@media(min-width:1351px) and (max-width:2199px){
+  .world-map{width:auto!important;max-height:520px!important}
+  .world-map[data-map-index="21"],.world-map[data-map-index="1"],.world-map[data-map-index="41"]{max-width:416px!important}
+  .world-map[data-map-index="23"],.world-map[data-map-index="24"],.world-map[data-map-index="25"],.world-map[data-map-index="61"],.world-map[data-map-index="63"],.world-map[data-map-index="64"],.world-map[data-map-index="104"],.world-map[data-map-index="108"],.world-map[data-map-index="109"],.world-map[data-map-index="65"],.world-map[data-map-index="4"],.world-map[data-map-index="44"],.world-map[data-map-index="5"],.world-map[data-map-index="45"],.world-map[data-map-index="3"],.world-map[data-map-index="43"],.world-map[data-map-index="67"],.world-map[data-map-index="68"],.world-map[data-map-index="62"],.world-map[data-map-index="72"],.world-map[data-map-index="73"]{max-width:520px!important}
+}
