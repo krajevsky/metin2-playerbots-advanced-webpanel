@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.94.4 · Naprawiono cache przeglądarki dla stylów mapy
+
+- **`live-overrides.css` (style mapy świata botów) był ładowany z JS pod stałym adresem, bez numeru wersji w URL-u** — jedyny plik CSS w panelu pomijający mechanizm cache-busting. Przeglądarka mogła latami trzymać starą wersję tego pliku niezależnie od wdrożeń, przez co dzisiejsze poprawki mapy (1.94.1–1.94.3) mogły nie być widoczne bez twardego odświeżenia (Ctrl+Shift+R). Dołączony teraz normalnie w `base.html`, tak jak reszta arkuszy stylów.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.94.3 · Zakładki Ranking/Aktywności przy mapie
 
 - **Sekcja "Aktywności na tej mapie" znikała za rankingiem** na desktopie: ranking miał sztywne 380px, a aktywnościom zostawało ledwie ~30px (sam nagłówek, bez treści) — widoczne jako pusta "dziura" pod rankingiem, szczególnie po powiększeniu mapy. Panel boczny dostał zakładki "Ranking"/"Aktywności" (jak istniejący przycisk "Diagramy mapy") — aktywna zakładka zajmuje całą dostępną wysokość.

@@ -1,5 +1,4 @@
 (() => {
-  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/static/live-overrides.css'; document.head.appendChild(css);
   let snapshot = [], globalTopId = null, currentLevel = 'all', currentChannel = 'all', knownChannels = [1];
   const $ = id => document.getElementById(id);
   const map = $('world-map'), select = $('map-select'), search = $('bot-search');
