@@ -1843,6 +1843,22 @@ def daily_max_level(when):
     return int(result.get("v") or 0) if result else 0
 
 
+def daily_level_bounds(day_start, day_end):
+    """Prefer clean aggregate snapshots; reconstruct older days from level-up logs."""
+    start = metric_at_or_after("max_level_regular", day_start)
+    end = metric_at_or_before("max_level_regular", day_end)
+    if start is not None and end is not None:
+        return start, end
+    end = daily_max_level(day_end)
+    start = daily_max_level(day_start)
+    if not start and end:
+        reached = one(f"""SELECT MIN(ll.time) AS t FROM log.levellog ll JOIN player.player p ON p.id=ll.pid
+          WHERE ll.level=%s AND ll.time>=%s AND ll.time<%s AND {daily_player_scope_sql('p')}""",
+                      (end, day_start, day_end))
+        start = max(0, end - 1) if reached and reached.get("t") else end
+    return start, end
+
+
 def _daily_leader(query, params):
     result = one(query, params)
     if not result or not int(result.get("score") or 0):
@@ -1916,16 +1932,18 @@ def daily_summary_details(summary_date):
         AND SUM(COALESCE(ip.locale_name,'') LIKE '%%+9')=8 AND completed_at>=%s AND completed_at<%s
       ORDER BY completed_at ASC""", (day_start, day_end))
 
-    highlights = []
+    highlights, highlighted_ids = [], set()
     if weapons:
         item = weapons[0]
         highlights.append({"kind": "weapon", "vnum": item["vnum"], "name": item["item_name"],
                            "detail": f"{item['avg_damage']}% średnich obrażeń · broń na {int(item.get('required_level') or 0)} poziom",
                            "player_id": item["owner_pid"], "player_name": item["owner_name"]})
+        highlighted_ids.add(int(item.get("item_id") or 0))
     if armor:
         highlights.append({"kind": "armor", "vnum": armor["vnum"], "name": armor["item_name"],
                            "detail": f"{armor['armor_power']} obrony · nowy rekord zbroi +9",
                            "player_id": armor["owner_pid"], "player_name": armor["owner_name"]})
+        highlighted_ids.add(int(armor.get("item_id") or 0))
     if hammer_rows:
         hammer = hammer_rows[0]
         highlights.append({"kind": "hammer", "vnum": 0, "name": "Złoty Młot Kowala",
@@ -1937,7 +1955,26 @@ def daily_summary_details(summary_date):
         highlights.append({"kind": "weapon", "vnum": item["vnum"], "name": item["item_name"],
                            "detail": f"{item['avg_damage']}% średnich obrażeń · broń na {int(item.get('required_level') or 0)} poziom",
                            "player_id": item["owner_pid"], "player_name": item["owner_name"]})
-    return {"level_start": daily_max_level(day_start), "level_end": daily_max_level(day_end),
+        highlighted_ids.add(int(item.get("item_id") or 0))
+    fallback = sorted((item for item in plus9 if int(item.get("item_id") or 0) not in highlighted_ids and item["vnum"]),
+                      key=lambda item: (item["avg_damage"] * 1000 if int(item.get("type") or 0) == 1 else
+                                        item["armor_power"] if int(item.get("type") or 0) == 2 else
+                                        int(item.get("required_level") or 0), item["vnum"]), reverse=True)
+    for item in fallback:
+        if len(highlights) >= 3:
+            break
+        if int(item.get("type") or 0) == 1:
+            detail = ((f"{item['avg_damage']}% średnich obrażeń · " if item["avg_damage"] else "") +
+                      f"broń na {int(item.get('required_level') or 0)} poziom")
+            kind = "weapon"
+        elif int(item.get("type") or 0) == 2 and int(item.get("subtype") or 0) == 0:
+            detail, kind = f"{item['armor_power']} obrony · najlepsza zbroja +9 dnia", "armor"
+        else:
+            detail, kind = "wyróżniające się ulepszenie do +9", "item"
+        highlights.append({"kind": kind, "vnum": item["vnum"], "name": item["item_name"], "detail": detail,
+                           "player_id": item["owner_pid"], "player_name": item["owner_name"]})
+    level_start, level_end = daily_level_bounds(day_start, day_end)
+    return {"level_start": level_start, "level_end": level_end,
             "pvp": pvp, "refine_success": refine_success, "refine_burned": refine_burned,
             "shop": shop, "highlights": highlights[:3], "hammer_count": len(hammer_rows)}
 
@@ -1970,7 +2007,7 @@ def check_daily_summary():
         yang_start, yang_end = bounds("total_yang")
         cash_start, cash_end = bounds("dragon_coins")
         shops_start, shops_end = bounds("shops_count")
-        level_start, level_end = daily_max_level(day_start), daily_max_level(day_end)
+        level_start, level_end = daily_level_bounds(day_start, day_end)
         refine9 = one("SELECT COUNT(*) AS n FROM log.log WHERE how='REFINE SUCCESS' AND hint LIKE '%%+9' AND time BETWEEN %s AND %s",
                        (day_start, day_end)).get("n", 0)
         metins = one("SELECT COUNT(*) AS n FROM log.log WHERE how='STONE_KILL' AND time BETWEEN %s AND %s",
