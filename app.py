@@ -2834,6 +2834,39 @@ def top_level_rank_map():
     return cached
 
 
+def top_level_badge_settings():
+    cached = getattr(g, "_top_level_badge_settings", None)
+    if cached is not None:
+        return cached
+    try:
+        stored = {row["name"]: str(row.get("value") or "") for row in rows(
+            "SELECT name,value FROM common.m2_switches WHERE name IN "
+            "('top_level_badges_enabled','top_level_badge_places')")}
+    except pymysql.MySQLError:
+        stored = {}
+    enabled = stored.get("top_level_badges_enabled", "1") == "1"
+    raw_places = stored.get("top_level_badge_places", "1,2,3,4,5,6,7,8,9,10")
+    places = {int(value) for value in raw_places.split(",") if value.strip().isdigit() and 1 <= int(value) <= 10}
+    cached = {"enabled": enabled, "places": places}
+    g._top_level_badge_settings = cached
+    return cached
+
+
+def top_level_badge_rank_map():
+    config = top_level_badge_settings()
+    if not config["enabled"]:
+        return {}
+    return {pid: rank for pid, rank in top_level_rank_map().items() if rank in config["places"]}
+
+
+def write_top_level_badge_settings(enabled, places):
+    selected = sorted({int(place) for place in places if 1 <= int(place) <= 10})
+    rows("""INSERT INTO common.m2_switches (name,value) VALUES
+        ('top_level_badges_enabled',%s),('top_level_badge_places',%s)
+        ON DUPLICATE KEY UPDATE value=VALUES(value)""",
+        ("1" if enabled else "0", ",".join(map(str, selected))))
+
+
 @app.context_processor
 def globals_for_templates():
     tieru_url = os.environ.get("TIERU_PANEL_URL", "http://127.0.0.1:7788")
@@ -2857,7 +2890,7 @@ def globals_for_templates():
         return url_for("static", filename=filename, v=revision)
     def level_badge(pid, level, prefix=""):
         label = f"{prefix}{int(level or 0)}"
-        rank = top_level_rank_map().get(int(pid or 0))
+        rank = top_level_badge_rank_map().get(int(pid or 0))
         if not rank:
             return escape(label)
         return Markup('<span class="top-level-badge" title="Top 10 poziomu · #%d">%s</span>') % (rank, escape(label))
@@ -3064,7 +3097,7 @@ def _dashboard_deferred_context():
     refine_rate = cached_dashboard_ranking("refine_rate")
     quick_rankings.append({"title": "Skuteczność ulepszeń", "subtitle": "% sukcesu · min. 20 prób", "items": [{"id": row["id"], "name": row["name"], "value": f"{row['score']}%"} for row in refine_rate]})
     ranking_ids = {item["id"] for ranking in quick_rankings for item in ranking["items"]}
-    level_ranks = top_level_rank_map()
+    level_ranks = top_level_badge_rank_map()
     if ranking_ids:
         placeholders = ",".join(["%s"] * len(ranking_ids))
         jobs_by_id = {row["id"]: row["job"] for row in rows("SELECT id,job FROM player.player WHERE id IN (" + placeholders + ")", list(ranking_ids))}
@@ -5131,9 +5164,10 @@ def account_characters(aid):
 @app.route("/api/live-bots")
 @login_required
 def api_live_bots():
-    level_ranks = top_level_rank_map()
+    all_level_ranks = top_level_rank_map()
+    level_ranks = top_level_badge_rank_map()
     return {"ok": True, "updated_at": int(datetime.now().timestamp() * 1000), "maps": MAP_NAMES, "bounds": MAP_BOUNDS,
-            "global_top_id": next((pid for pid, rank in level_ranks.items() if rank == 1), None),
+            "global_top_id": next((pid for pid, rank in all_level_ranks.items() if rank == 1), None),
             "top_level_ranks": level_ranks, "bots": live_bots(), "channels": discovered_channels()}
 
 
@@ -5507,9 +5541,10 @@ def events():
 def manage():
     map_counts = live_map_counts()
     current_settings = settings()
+    badge_settings = top_level_badge_settings()
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
+    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
 
 
 @app.route("/manage/panel")
@@ -5689,6 +5724,17 @@ def manage_ranking_scope():
     else:
         flash("Rankingi liczą teraz znowu wyłącznie boty.")
     return redirect(url_for("manage"))
+
+
+@app.post("/manage/top-level-badges")
+@login_required
+def manage_top_level_badges():
+    enabled = "1" in request.form.getlist("enabled")
+    places = {int(value) for value in request.form.getlist("places")
+              if value.isdigit() and 1 <= int(value) <= 10}
+    write_top_level_badge_settings(enabled, places)
+    flash("Ustawienia gradientowych odznak poziomu zostały zapisane — działają od razu.")
+    return redirect(url_for("manage") + "#top-level-badges")
 
 
 @app.post("/manage/plus9-announce")
