@@ -2867,6 +2867,24 @@ def write_top_level_badge_settings(enabled, places):
         ("1" if enabled else "0", ",".join(map(str, selected))))
 
 
+def full_plus9_badges_enabled():
+    cached = getattr(g, "_full_plus9_badges_enabled", None)
+    if cached is not None:
+        return cached
+    try:
+        stored = one("SELECT value FROM common.m2_switches WHERE name='full_plus9_badges_enabled'")
+        cached = not stored or str(stored.get("value") or "1") == "1"
+    except pymysql.MySQLError:
+        cached = True
+    g._full_plus9_badges_enabled = cached
+    return cached
+
+
+def write_full_plus9_badges_enabled(enabled):
+    rows("""INSERT INTO common.m2_switches (name,value) VALUES ('full_plus9_badges_enabled',%s)
+        ON DUPLICATE KEY UPDATE value=VALUES(value)""", ("1" if enabled else "0",))
+
+
 @app.context_processor
 def globals_for_templates():
     tieru_url = os.environ.get("TIERU_PANEL_URL", "http://127.0.0.1:7788")
@@ -3657,6 +3675,8 @@ def is_full_plus9_equipment(equipment):
 
 def full_plus9_equipment_ids(player_ids):
     """Batch equivalent of is_full_plus9_equipment() for the /players roster."""
+    if not full_plus9_badges_enabled():
+        return set()
     ids = sorted({int(pid) for pid in player_ids if int(pid or 0) > 0})
     if not ids:
         return set()
@@ -3743,7 +3763,7 @@ def player(pid):
     character["skills"] = parse_skills(skill_raw, character.get("job"), character.get("skill_group"))
     character["passive_skills"] = parse_passive_skills(skill_raw)
     equipment, inventory, safebox, horse_bag = load_character_items(pid, character["account_id"])
-    character["full_plus9_equipment"] = is_full_plus9_equipment(equipment)
+    character["full_plus9_equipment"] = full_plus9_badges_enabled() and is_full_plus9_equipment(equipment)
     gear_history = bot_gear_history(pid)
     offline_shop = bot_offline_shop(pid)
     character_stats = character_stat_summary(pid)
@@ -5570,17 +5590,17 @@ def events():
 def manage():
     map_counts = live_map_counts()
     current_settings = settings()
-    badge_settings = top_level_badge_settings()
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
+    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
 
 
 @app.route("/manage/panel")
 @login_required
 def manage_panel():
     current = settings()
-    return render_template("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED)
+    badge_settings = top_level_badge_settings()
+    return render_template("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED, top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], full_plus9_badges_enabled=full_plus9_badges_enabled())
 
 
 @app.post("/manage/panel/features")
@@ -5763,7 +5783,16 @@ def manage_top_level_badges():
               if value.isdigit() and 1 <= int(value) <= 10}
     write_top_level_badge_settings(enabled, places)
     flash("Ustawienia gradientowych odznak poziomu zostały zapisane — działają od razu.")
-    return redirect(url_for("manage") + "#top-level-badges")
+    return redirect(url_for("manage_panel") + "#top-level-badges")
+
+
+@app.post("/manage/panel/full-plus9-badges")
+@login_required
+def manage_full_plus9_badges():
+    enabled = "1" in request.form.getlist("enabled")
+    write_full_plus9_badges_enabled(enabled)
+    flash("Ustawienie odznaki pełnego ekwipunku +9 zostało zapisane — działa od razu.")
+    return redirect(url_for("manage_panel") + "#full-plus9-badges")
 
 
 @app.post("/manage/plus9-announce")
