@@ -5939,17 +5939,38 @@ def api_heat_events():
     event_type = request.args.get("type", "deaths").strip().lower()
     event_types = {"deaths": "DEAD_BY_NPC", "metins": "STONE_KILL", "bosses": "BOSS_KILL"}
     how = event_types.get(event_type)
-    if not how:
+    try:
+        map_index = int(request.args.get("map", 21))
+    except (TypeError, ValueError):
+        map_index = 21
+    bound = MAP_BOUNDS.get(map_index)
+    if not how or not bound:
         abort(400)
-    raw = rows("""SELECT l.x,l.y,l.time,p.name FROM log.log l LEFT JOIN player.player p ON p.id=l.who
-        WHERE l.type='CHARACTER' AND l.how=%s AND l.time >= NOW() - INTERVAL 24 HOUR ORDER BY l.time DESC LIMIT 4000""", (how,))
-    events = []
-    for event in raw:
-        for index, bound in MAP_BOUNDS.items():
-            if bound[0] <= event["x"] < bound[0] + bound[2] and bound[1] <= event["y"] < bound[1] + bound[3]:
-                events.append({"map_index": index, "x": event["x"], "y": event["y"], "time": event["time"].isoformat(), "name": event.get("name")})
-                break
-    return {"ok": True, "type": event_type, "events": events, "bounds": MAP_BOUNDS}
+    base_x, base_y, width, height = bound
+    grid = 72
+    cell_w, cell_h = max(1, width // grid), max(1, height // grid)
+    grouped = rows("""SELECT FLOOR((l.x-%s)/%s) AS gx, FLOOR((l.y-%s)/%s) AS gy, COUNT(*) AS n
+        FROM log.log l WHERE l.type='CHARACTER' AND l.how=%s
+          AND l.x >= %s AND l.x < %s AND l.y >= %s AND l.y < %s
+        GROUP BY gx,gy HAVING n > 0""",
+        (base_x, cell_w, base_y, cell_h, how,
+         base_x, base_x + width, base_y, base_y + height))
+    cells, peak, total = [], 0, 0
+    for row in grouped:
+        count, gx, gy = int(row.get("n") or 0), int(row.get("gx") or 0), int(row.get("gy") or 0)
+        px = ((gx + .5) * cell_w) / float(width) * 100
+        py = ((gy + .5) * cell_h) / float(height) * 100
+        if 0 <= px <= 100 and 0 <= py <= 100:
+            cells.append({"px": round(px, 2), "py": round(py, 2), "n": count})
+            peak, total = max(peak, count), total + count
+    recent = rows("""SELECT l.time,p.name FROM log.log l LEFT JOIN player.player p ON p.id=l.who
+        WHERE l.type='CHARACTER' AND l.how=%s
+          AND l.x >= %s AND l.x < %s AND l.y >= %s AND l.y < %s
+        ORDER BY l.time DESC LIMIT 15""",
+        (how, base_x, base_x + width, base_y, base_y + height))
+    events = [{"time": row["time"].isoformat(), "name": row.get("name")} for row in recent]
+    return {"ok": True, "type": event_type, "map_index": map_index,
+            "cells": cells, "max": peak, "total": total, "events": events}
 
 
 from item_grants import install as install_item_grants

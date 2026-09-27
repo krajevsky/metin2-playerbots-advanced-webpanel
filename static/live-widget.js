@@ -194,18 +194,17 @@ $('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCom
   }
   async function loadHeat() {
     try {
-      const response = await fetch(`/api/heat-events?type=${encodeURIComponent(mode.value)}`, {cache:'no-store'}), data = await response.json();
+      const mapId = Number(select.value);
+      const response = await fetch(`/api/heat-events?type=${encodeURIComponent(mode.value)}&map=${mapId}`, {cache:'no-store'}), data = await response.json();
       if (!data.ok) return;
-      const mapId = Number(select.value), bound = data.bounds[String(mapId)] || data.bounds[mapId];
-      const events = data.events.filter(event => event.map_index === mapId);
+      const events = data.events || [];
       map.dataset.mapIndex = String(mapId);
       map.querySelectorAll('.bot-point,.heat-point').forEach(node => node.remove());
-      const points=bound?events.map(event=>({x:Math.max(1,Math.min(99,(event.x-bound[0])/bound[2]*100)),y:Math.max(1,Math.min(99,(event.y-bound[1])/bound[3]*100))})):[];
-      window.SebanHeatmap.render(map,points);
+      window.SebanHeatmap.render(map,data.cells||[],data.max||0,mode.value);
     const label = ({deaths:'zgonów botów',metins:'rozbitych Metinów',bosses:'zabitych bossów'})[mode.value] || 'zdarzeń';
-      $('live-count').textContent = `${events.length} ${label} / 24 h`;
+      $('live-count').textContent = `${data.total||0} ${label}`;
       $('map-caption').textContent = `${select.options[select.selectedIndex].text} · ${label}`;
-      $('stat-visible').textContent = events.length; $('stat-pt').textContent = '—'; $('stat-avg').textContent = '24 h'; $('stat-max').textContent = '●';
+      $('stat-visible').textContent = data.total||0; $('stat-pt').textContent = '—'; $('stat-avg').textContent = 'historia'; $('stat-max').textContent = '●';
       $('live-ranking').innerHTML = events.slice(0,15).map((event,i)=>`<a href="#"><b>#${i+1}</b> ${escape(event.name||'Zdarzenie')} <span>${String(event.time).slice(11,16)}</span></a>`).join('') || '<p class="muted">Brak zdarzeń na tej mapie.</p>';
       const activity = $('live-activity'); if (activity) activity.innerHTML = '<p class="muted">W trybie mapy cieplnej aktywności nie są wyświetlane.</p>';
     } catch (_) { $('live-count').textContent = 'Brak danych heatmapy'; }
