@@ -1,5 +1,5 @@
 (() => {
-  const widgets = document.getElementById('dashboard-widgets');
+  const widgets = document.getElementById('dashboard-widgets') || document.querySelector('.dashboard-widgets');
   if (!widgets) return;
 
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -30,7 +30,7 @@
   }
 
   function renderSystem(system) {
-    const panel = widgets.querySelector('[data-dashboard-widget="system"]');
+    const panel = widgets.querySelector('[data-dashboard-widget="system"]') || widgets.querySelector('.system-dashboard');
     if (!panel) return;
     const title = panel.querySelector('h2')?.textContent || 'Obciążenie VPS';
     if (!system || !Object.keys(system).length) {
