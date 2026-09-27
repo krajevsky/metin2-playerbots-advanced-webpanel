@@ -3,6 +3,7 @@
 ## 2026-09-27 · 1.93.1 · Poprawka wyceny sklepiku offline
 
 - **Naprawiono "Potencjalny zarobek" na karcie gracza**: cena z `ikashop_data` to cena za cały stos, nie za sztukę — panel mnożył ją jeszcze raz przez ilość, zawyżając sumę dla przedmiotów w stosach (mikstury, księgi, peleryny).
+- **Dodano odznakę stałego towarzysza przy nicku** na liście graczy; działa również dla towarzyszy offline i ma opis po najechaniu.
 
 ![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
 
