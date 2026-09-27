@@ -1452,9 +1452,10 @@ def latest_playerbots_release():
     return dict(result)
 
 
-def playerbots_release_status():
+def playerbots_release_status(check_remote=True):
     installed = installed_playerbots_version().strip()
-    latest_info = latest_playerbots_release()
+    # Dashboard first paint must not wait on an external GitHub request.
+    latest_info = latest_playerbots_release() if check_remote else {"latest": None, "error": None}
     latest = latest_info.get("latest")
     installed_key, latest_key = version_key(installed), version_key(latest)
     if installed_key and latest_key:
@@ -2905,7 +2906,7 @@ def dashboard():
         restart_label = datetime.fromtimestamp(int(restart_time)).strftime("%d.%m.%Y, %H:%M:%S")
     except (TypeError, ValueError, OSError):
         restart_label = "Brak danych"
-    release_status = playerbots_release_status()
+    release_status = playerbots_release_status(check_remote=False)
     world_summary = {
         "bots": len(live_roster),
         "average_level": round(sum(int(bot.get("level") or 0) for bot in live_roster) / len(live_roster), 1) if live_roster else 0,

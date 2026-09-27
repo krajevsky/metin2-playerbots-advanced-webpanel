@@ -252,3 +252,26 @@ body[data-theme="empire"] .empire-hero{--hero-accent:var(--gold);--hero-accent-s
    (data-cursor="custom", see DEFAULT_SETTINGS in app.py); togglable from
    /manage -> "system" drops back to the browser/OS default cursor. */
 body[data-cursor="custom"]{cursor:url('cursor.cur'),auto}
+
+/* Responsive audit 2026-09: keep the full navigation reachable on short
+   screens and switch to the drawer before the fixed rail crowds the content. */
+html,body{max-width:100%;overflow-x:hidden}
+main{min-width:0;width:auto}
+aside.site-nav{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}
+aside.site-nav nav{min-height:0;padding-bottom:12px}
+aside.site-nav nav a,aside.site-nav nav summary{min-width:0;overflow-wrap:anywhere}
+.panel,.live-shell,.cards article{min-width:0}
+table{max-width:100%}
+@media(max-width:1100px){
+  .nav-toggle{display:block}
+  aside.site-nav{position:fixed;inset:0 auto 0 0;width:250px;max-width:86vw;transform:translateX(-100%);transition:transform .25s ease;z-index:200;box-shadow:4px 0 24px #0008}
+  body.nav-open aside.site-nav{transform:translateX(0)}
+  body.nav-open{overflow:hidden}
+  .nav-backdrop{display:none}
+  body.nav-open .nav-backdrop{display:block}
+  aside.site-nav nav{grid-template-columns:1fr}
+  aside.site-nav nav details.nav-group{display:flex;grid-column:1/-1}
+  aside.site-nav nav details.nav-group>summary{display:block;width:100%}
+  aside.site-nav nav details.nav-group[open]>a{display:block;width:100%;padding:8px 9px 8px 26px;white-space:normal}
+  main{margin:0;padding:26px clamp(16px,4vw,42px);padding-top:70px}
+}
