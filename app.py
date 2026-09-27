@@ -2625,25 +2625,34 @@ def bot_ranking(kind, sort_by="avg"):
     base = ranking_scope_sql("p")
     if kind == "gold":
         return rows(f"SELECT p.id,p.name,p.level,p.gold,CONCAT(FORMAT(p.gold,0),' Yang') AS detail FROM player.player p WHERE {base} ORDER BY p.gold DESC,p.level DESC LIMIT 100")
-    if kind in ("weapon", "armor"):
-        # Ranking a weapon/armor purely by its "+N" step (old: MOD(vnum,10))
-        # let a +9 starter-tier item outrank a +7 endgame-tier one, because
-        # refine level and item tier live in the same vnum without any
-        # weighting between them. item_proto's own attack/defense value
-        # columns turned out to be inconsistently authored across families
-        # (checked live: some armor lines scale value1 with the refine step
-        # baked in, most don't -- e.g. Zbr. Płyt. Tygrysa is flat 29 from +0
-        # to +9), so they can't be trusted as a power proxy either.
-        # limitvalue0 (the item's required character level, limittype0=1)
-        # turned out to be reliable and monotonic with real tier across
-        # every family checked -- score = tier*10 + refine step puts a
-        # level-34 +7 armor above an level-18 +9 one, matching what the
-        # operator asked for, 2026-09-26.
-        pos = 4 if kind == "weapon" else 0
+    if kind == "armor":
+        # Body armor's real defense = item_proto.value1 (flat per tier,
+        # confirmed live: same value1 across all 10 refine vnums of the same
+        # base item, e.g. Sm. Zbroja Plytowa is 47 from +0 to +9) PLUS a flat
+        # +6 defense per refine step, confirmed against the operator's own
+        # reference table (2026-09-27: level 1/9/18/26/34/42/48/54/61/66-70
+        # tiers, +0 through +9) and cross-checked live against two real
+        # players -- id 2104 (Mistyczna Zbroja Plyt.+7, tier 42, value1=55)
+        # computes to 55+6*7=97, id 149 (Sm. Zbroja Plytowa+9, tier 34,
+        # value1=47) computes to 47+6*9=101, matching the operator's own
+        # measured 97/101 exactly. Replaces the previous tier*10+refine
+        # heuristic (2026-09-26), which got exactly this pair backwards --
+        # value1 turned out to be reliable after all, just missing the
+        # refine bonus, not "inconsistently authored" as first assumed.
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,
+            CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)),' (',COALESCE(ip.value1,0)+6*MOD(COALESCE(i.vnum,0),10),' obrony)') AS detail,
+            COALESCE(ip.value1,0)+6*MOD(COALESCE(i.vnum,0),10) AS power_score
+            FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos=0
+            LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum WHERE {base}
+            ORDER BY power_score DESC,i.vnum DESC,p.level DESC LIMIT 100""")
+    if kind == "weapon":
+        # Weapon attack power isn't covered by the operator's armor table --
+        # left on the tier*10+refine heuristic (2026-09-26) rather than
+        # guessing at a similar flat-bonus-per-refine formula unverified.
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,
             CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)),' (wymagany poziom ',COALESCE(CASE WHEN ip.limittype0=1 THEN ip.limitvalue0 WHEN ip.limittype1=1 THEN ip.limitvalue1 END,0),')') AS detail,
             COALESCE(CASE WHEN ip.limittype0=1 THEN ip.limitvalue0 WHEN ip.limittype1=1 THEN ip.limitvalue1 END,0)*10+MOD(COALESCE(i.vnum,0),10) AS power_score
-            FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos={pos}
+            FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos=4
             LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum WHERE {base}
             ORDER BY power_score DESC,i.vnum DESC,p.level DESC LIMIT 100""")
     if kind == "weapon30":
