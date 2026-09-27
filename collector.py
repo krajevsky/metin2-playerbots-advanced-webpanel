@@ -435,7 +435,10 @@ def collect(con, previous):
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'bots_count',%s)", (now, len(positions)))
         # Tylko boty -- konto GM/admina z wysokim poziomem fałszowałoby to.
         cur.execute("""SELECT COALESCE(MAX(p.level),0) FROM player.player p
-          LEFT JOIN account.account a ON a.id=p.account_id WHERE LEFT(a.login,10)='playerbot_'""")
+          WHERE p.name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')
+            AND NOT EXISTS (SELECT 1 FROM player.playerbot_sidekick s WHERE s.sidekick_pid=p.id)
+            AND NOT EXISTS (SELECT 1 FROM player.player gp JOIN common.gmlist gl ON gl.mName=gp.name
+                            WHERE gp.account_id=p.account_id AND gl.mAuthority<>'PLAYER')""")
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'max_level',%s)", (now, cur.fetchone()[0]))
         cur.execute("SELECT COALESCE(SUM(cash),0) FROM account.account")
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'dragon_coins',%s)", (now, cur.fetchone()[0]))

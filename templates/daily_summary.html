@@ -1,24 +1,34 @@
 {% extends 'base.html' %}{% block title %}Podsumowanie dnia {{ s.day_number }} · {{ panel_brand }}{% endblock %}{% block content %}
 <a class="back" href="{{ url_for('dashboard') }}">← Dashboard</a>
-<p class="eyebrow">DZIEŃ {{ s.day_number }} · {{ s.summary_date.strftime('%d.%m.%Y') }}</p><h1>📅 Podsumowanie dnia</h1><p class="muted">Start i koniec dnia (00:00–24:00), z migawek zbieranych co 5 minut. Ulepszenia +9 i zniszczone Metiny to liczba zdarzeń w tym dniu, nie stan na koniec.</p>
+<p class="eyebrow">DZIEŃ {{ s.day_number }} · {{ s.summary_date.strftime('%d.%m.%Y') }}</p><h1>📅 Podsumowanie dnia</h1><p class="muted">Pełna doba 00:00–24:00. Liczniki ryb, rudy, walk, ulepszeń i sprzedaży pochodzą z dziennych logów gry; konta GM i stali towarzysze graczy są pomijani w osiągnięciach.</p>
 <section class="cards">
 <article><span>Boty w grze</span><strong>{{ s.bots_start if s.bots_start is not none else '—' }} → {{ s.bots_end if s.bots_end is not none else '—' }}</strong></article>
 <article><span>Yang w obiegu</span><strong>{{ '{:,}'.format(s.yang_start).replace(',', ' ') if s.yang_start is not none else '—' }} → {{ '{:,}'.format(s.yang_end).replace(',', ' ') if s.yang_end is not none else '—' }}</strong></article>
 <article><span>Przedmiotów ulepszonych na +9</span><strong>{{ s.refine9_count }}</strong></article>
 <article><span>Zniszczonych kamieni Metin</span><strong>{{ s.metin_count }}</strong></article>
 <article><span>Pokonanych bossów</span><strong>{{ s.boss_count if s.boss_count is not none else '—' }}</strong></article>
-<article><span>Wyłowionych ryb</span><strong>{{ s.fish_count if s.fish_count is not none else '—' }}</strong></article>
-<article><span>Wykopanej rudy</span><strong>{{ s.mining_count if s.mining_count is not none else '—' }}</strong></article>
+<article><span>Wyłowionych ryb</span><strong>{{ '{:,}'.format(s.fish_count).replace(',', ' ') if s.fish_count is not none else '—' }}</strong></article>
+<article><span>Wykopanej rudy</span><strong>{{ '{:,}'.format(s.mining_count).replace(',', ' ') if s.mining_count is not none else '—' }}</strong></article>
 <article><span>Smoczych Monet w obiegu</span><strong>{{ '{:,}'.format(s.cash_start).replace(',', ' ') if s.cash_start is not none else '—' }} → {{ '{:,}'.format(s.cash_end).replace(',', ' ') if s.cash_end is not none else '—' }}</strong></article>
 <article><span>Zorganizowane eventy</span><strong>{{ s.events_count }}</strong></article>
 <article><span>Najwyższy poziom</span><strong>Lv {{ s.level_start if s.level_start is not none else '—' }} → Lv {{ s.level_end if s.level_end is not none else '—' }}</strong></article>
 <article><span>Sklepów offline</span><strong>{{ s.shops_start if s.shops_start is not none else '—' }} → {{ s.shops_end if s.shops_end is not none else '—' }}</strong></article>
 </section>
-{% if s.top_weapon_name %}
-<section class="panel"><h2>⚔️ Najwyższe średnie obrażenia w broni</h2>
-<div class="item-cell top-weapon-cell">{% if item_icon(s.top_weapon_vnum) %}<img src="{{item_icon(s.top_weapon_vnum)}}" alt="">{% endif %}
-<div><strong>{{s.top_weapon_name}}</strong><span class="muted"> · średnie obrażenia {{s.top_weapon_avg_damage}}</span><br>
-<span class="muted">Właściciel: </span>{% if s.top_weapon_owner_pid %}<a href="{{url_for('player', pid=s.top_weapon_owner_pid)}}">{{s.top_weapon_owner_name}}</a>{% else %}{{s.top_weapon_owner_name}}{% endif %}</div></div>
+<section class="panel daily-achievements"><p class="eyebrow">LIDERZY DNIA</p><h2>🏆 Najlepsze wyniki</h2><div class="cards compact daily-leader-cards">
+{% for label,icon,leader,suffix in [
+  ('Najwięcej pokonanych graczy','⚔',details.pvp,' pokonanych'),
+  ('Najwięcej udanych ulepszeń','✨',details.refine_success,' udanych'),
+  ('Najwięcej spalonych przedmiotów','🔥',details.refine_burned,' spalonych'),
+  ('Największy zarobek ze sklepu','💰',details.shop,' Yang')
+] %}<article><span>{{icon}} {{label}}</span>{% if leader %}<strong><a href="{{url_for('player',pid=leader.id)}}">{{leader.name}}</a></strong><small>{{'{:,}'.format(leader.score).replace(',', ' ')}}{{suffix}}</small>{% else %}<strong>—</strong><small>brak zdarzeń</small>{% endif %}</article>{% endfor %}
+</div></section>
+{% if details.highlights %}
+<section class="panel daily-plus9-highlights"><p class="eyebrow">NAJCENNIEJSZE OSIĄGNIĘCIA</p><h2>🔨 Najlepsze +9 dnia</h2><div class="daily-highlight-grid">
+{% for item in details.highlights %}<article class="daily-highlight daily-highlight--{{item.kind}}">
+{% if item.kind == 'hammer' %}<img src="{{static_asset_url('icons/plus9-set-badge.png')}}" alt="Złoty Młot Kowala">{% elif item.vnum and item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.name}}">{% endif %}
+<div><strong>{{item.name}}</strong><span>{{item.detail}}</span><small>Gracz: <a href="{{url_for('player',pid=item.player_id)}}">{{item.player_name}}</a></small></div>
+</article>{% endfor %}
+</div>
 </section>
 {% endif %}
 <p class="muted">Ta strona nie ma linku w nawigacji — dociera się tu z powiadomienia albo bezpośredniego linku.</p>

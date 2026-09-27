@@ -1,5 +1,14 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.99.0 · Pełne dzienne osiągnięcia świata
+
+- **Podsumowanie dnia pokazuje teraz prawdziwe dzienne rekordy:** najwięcej pokonanych graczy, udanych ulepszeń, spalonych przedmiotów oraz największy zarobek netto ze sklepu offline.
+- **Dodano trzy najcenniejsze osiągnięcia +9 dnia:** broń poziomu 30/75 z co najmniej 40% średnich obrażeń, nowy rekord zbroi +9 oraz zdobycie odznaki Złotego Młota Kowala za pełny założony zestaw +9.
+- **Naprawiono najwyższy poziom dnia:** historyczny wynik pochodzi z logu awansów i pomija całe konta GM oraz stałych towarzyszy graczy. Dotychczasowe Lv 99 pochodziło właśnie z tych wykluczonych postaci.
+- **Duże liczniki ryb i rudy są formatowane czytelnie** z odstępami tysięcy; istniejące podsumowania również korzystają z nowych obliczeń po otwarciu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-27 · 1.98.1 · Numerowane strony i pole "Idź do strony"
 
 - **Paginacja rankingów ma teraz numerowane strony** (1, 2, 3…ostatnia, ze zwijaniem "…" pomiędzy) zamiast samego Poprzednia/Następna, plus pole do wpisania numeru strony i przejścia od razu.

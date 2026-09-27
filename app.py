@@ -1827,6 +1827,121 @@ def metric_at_or_after(name, when):
     return int(row["value"]) if row else None
 
 
+def daily_player_scope_sql(alias="p"):
+    """Regular characters: bots and players, without GM accounts or sidekicks."""
+    ref = alias + "." if alias else ""
+    return (f"{ref}name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman') "
+            f"AND NOT EXISTS (SELECT 1 FROM player.playerbot_sidekick ds WHERE ds.sidekick_pid={ref}id) "
+            f"AND NOT EXISTS (SELECT 1 FROM player.player dgp JOIN common.gmlist dgl ON dgl.mName=dgp.name "
+            f"WHERE dgp.account_id={ref}account_id AND dgl.mAuthority<>'PLAYER')")
+
+
+def daily_max_level(when):
+    """Highest level reached before a boundary, reconstructed from log.levellog."""
+    result = one(f"""SELECT COALESCE(MAX(ll.level),0) AS v FROM log.levellog ll
+      JOIN player.player p ON p.id=ll.pid WHERE ll.time<%s AND {daily_player_scope_sql('p')}""", (when,))
+    return int(result.get("v") or 0) if result else 0
+
+
+def _daily_leader(query, params):
+    result = one(query, params)
+    if not result or not int(result.get("score") or 0):
+        return None
+    result["score"] = int(result["score"])
+    result["id"] = int(result.get("id") or 0)
+    return result
+
+
+def daily_summary_details(summary_date):
+    """Live reconstruction of a finished day's achievements for old and new summaries."""
+    day_start = datetime.combine(summary_date, datetime.min.time())
+    day_end = day_start + timedelta(days=1)
+    scope = daily_player_scope_sql("p")
+    pvp = _daily_leader(f"""SELECT p.id,p.name,COUNT(*) AS score FROM log.log l
+      JOIN player.player p ON p.name=SUBSTRING_INDEX(CONVERT(l.hint USING latin1),' ',-1)
+      WHERE l.how='DEAD_BY_PC' AND l.time>=%s AND l.time<%s AND {scope}
+      GROUP BY p.id,p.name ORDER BY score DESC,p.name LIMIT 1""", (day_start, day_end))
+    refines = rows(f"""SELECT p.id,p.name,
+      SUM(l.how='REFINE SUCCESS') AS successes,
+      SUM(l.how='REMOVE (REFINE FAIL)') AS burned
+      FROM log.log l JOIN player.player p ON p.id=l.who
+      WHERE l.time>=%s AND l.time<%s AND l.how IN ('REFINE SUCCESS','REMOVE (REFINE FAIL)') AND {scope}
+      GROUP BY p.id,p.name""", (day_start, day_end))
+    refine_success = max(refines, key=lambda r: int(r.get("successes") or 0), default=None)
+    refine_burned = max(refines, key=lambda r: int(r.get("burned") or 0), default=None)
+    if refine_success:
+        refine_success = {"id": int(refine_success["id"]), "name": refine_success["name"], "score": int(refine_success.get("successes") or 0)}
+    if refine_burned:
+        refine_burned = {"id": int(refine_burned["id"]), "name": refine_burned["name"], "score": int(refine_burned.get("burned") or 0)}
+    shop = _daily_leader(f"""SELECT p.id,p.name,
+      SUM(GREATEST(0,l.yang-IF(l.extra LIKE 'TAX: %%',CAST(SUBSTRING_INDEX(l.extra,' ',-1) AS UNSIGNED),0))) AS score
+      FROM log.ikarusshop_log l JOIN player.player p ON p.id=l.shop_owner
+      WHERE l.what='BUY_ITEM' AND l.time>=%s AND l.time<%s AND {scope}
+      GROUP BY p.id,p.name ORDER BY score DESC,p.name LIMIT 1""", (day_start, day_end))
+
+    plus9 = rows(f"""SELECT l.who AS owner_pid,p.name AS owner_name,l.what AS item_id,l.time,l.hint,
+      i.vnum,COALESCE(ip.locale_name,l.hint) AS item_name,ip.type,ip.subtype,ip.value1,
+      COALESCE(CASE WHEN ip.limittype0=1 THEN ip.limitvalue0 WHEN ip.limittype1=1 THEN ip.limitvalue1 END,0) AS required_level,
+      i.attrtype0,i.attrvalue0,i.attrtype1,i.attrvalue1,i.attrtype2,i.attrvalue2,
+      i.attrtype3,i.attrvalue3,i.attrtype4,i.attrvalue4,i.attrtype5,i.attrvalue5,i.attrtype6,i.attrvalue6
+      FROM log.log l JOIN player.player p ON p.id=l.who
+      LEFT JOIN player.item i ON i.id=l.what LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
+      WHERE l.how='REFINE SUCCESS' AND l.hint LIKE '%%+9' AND l.time>=%s AND l.time<%s AND {scope}""",
+      (day_start, day_end))
+    for item in plus9:
+        item["owner_pid"] = int(item.get("owner_pid") or 0)
+        item["vnum"] = int(item.get("vnum") or 0)
+        item["item_name"] = game_text(item.get("item_name") or item.get("hint") or "Przedmiot +9")
+        damages = [int(item.get(f"attrvalue{i}") or 0) for i in range(7)
+                   if int(item.get(f"attrtype{i}") or 0) == ATTR_AVG_DAMAGE]
+        item["avg_damage"] = max(damages, default=0)
+        item["armor_power"] = int(item.get("value1") or 0) + 6 * (item["vnum"] % 10)
+    weapons = sorted((item for item in plus9 if int(item.get("type") or 0) == 1
+                      and int(item.get("required_level") or 0) in (30, 75) and item["avg_damage"] >= 40),
+                     key=lambda item: (item["avg_damage"], int(item.get("required_level") or 0)), reverse=True)
+    armor = max((item for item in plus9 if int(item.get("type") or 0) == 2 and int(item.get("subtype") or 0) == 0),
+                key=lambda item: item["armor_power"], default=None)
+    best_previous_armor = one(f"""SELECT MAX(COALESCE(ip.value1,0)+6*MOD(i.vnum,10)) AS score
+      FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
+      JOIN log.log rl ON rl.what=i.id AND rl.how='REFINE SUCCESS' AND rl.hint LIKE '%%+9' AND rl.time<%s
+      WHERE i.window='EQUIPMENT' AND i.pos=0 AND MOD(i.vnum,10)=9 AND {scope}""", (day_start,))
+    if armor and armor["armor_power"] <= int((best_previous_armor or {}).get("score") or 0):
+        armor = None
+
+    hammer_rows = rows(f"""SELECT p.id,p.name,MAX(l.time) AS completed_at FROM player.player p
+      JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos IN (0,1,2,3,4,5,6,10)
+      LEFT JOIN log.log l ON l.what=i.id AND l.how='REFINE SUCCESS' AND l.hint LIKE '%%+9'
+      LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum WHERE {scope}
+      GROUP BY p.id,p.name HAVING COUNT(DISTINCT i.pos)=8
+        AND SUM(COALESCE(ip.locale_name,'') LIKE '%%+9')=8 AND completed_at>=%s AND completed_at<%s
+      ORDER BY completed_at ASC""", (day_start, day_end))
+
+    highlights = []
+    if weapons:
+        item = weapons[0]
+        highlights.append({"kind": "weapon", "vnum": item["vnum"], "name": item["item_name"],
+                           "detail": f"{item['avg_damage']}% średnich obrażeń · broń na {int(item.get('required_level') or 0)} poziom",
+                           "player_id": item["owner_pid"], "player_name": item["owner_name"]})
+    if armor:
+        highlights.append({"kind": "armor", "vnum": armor["vnum"], "name": armor["item_name"],
+                           "detail": f"{armor['armor_power']} obrony · nowy rekord zbroi +9",
+                           "player_id": armor["owner_pid"], "player_name": armor["owner_name"]})
+    if hammer_rows:
+        hammer = hammer_rows[0]
+        highlights.append({"kind": "hammer", "vnum": 0, "name": "Złoty Młot Kowala",
+                           "detail": "skompletowany i założony pełny ekwipunek +9",
+                           "player_id": int(hammer["id"]), "player_name": hammer["name"]})
+    for item in weapons[1:]:
+        if len(highlights) >= 3:
+            break
+        highlights.append({"kind": "weapon", "vnum": item["vnum"], "name": item["item_name"],
+                           "detail": f"{item['avg_damage']}% średnich obrażeń · broń na {int(item.get('required_level') or 0)} poziom",
+                           "player_id": item["owner_pid"], "player_name": item["owner_name"]})
+    return {"level_start": daily_max_level(day_start), "level_end": daily_max_level(day_end),
+            "pvp": pvp, "refine_success": refine_success, "refine_burned": refine_burned,
+            "shop": shop, "highlights": highlights[:3], "hammer_count": len(hammer_rows)}
+
+
 def check_daily_summary():
     """Wykrywa przekroczenie granicy dnia (00:00) i generuje "Podsumowanie
     dnia" za dzień, który się właśnie skończył -- start/koniec kilku metryk
@@ -1855,14 +1970,7 @@ def check_daily_summary():
         yang_start, yang_end = bounds("total_yang")
         cash_start, cash_end = bounds("dragon_coins")
         shops_start, shops_end = bounds("shops_count")
-        # Tylko postacie Playerbots -- konto GM/admina z wysokim poziomem
-        # fałszowałoby "najwyższy poziom" (audyt operatora, 2026-09-21).
-        level_start = one("""SELECT COALESCE(MAX(p.level),0) AS v FROM player.player p
-          LEFT JOIN account.account a ON a.id=p.account_id
-          WHERE LEFT(a.login,10)='playerbot_' AND p.last_play<%s""", (day_end,)).get("v", 0)
-        level_end = one("""SELECT COALESCE(MAX(p.level),0) AS v FROM player.player p
-          LEFT JOIN account.account a ON a.id=p.account_id
-          WHERE LEFT(a.login,10)='playerbot_'""").get("v", 0)
+        level_start, level_end = daily_max_level(day_start), daily_max_level(day_end)
         refine9 = one("SELECT COUNT(*) AS n FROM log.log WHERE how='REFINE SUCCESS' AND hint LIKE '%%+9' AND time BETWEEN %s AND %s",
                        (day_start, day_end)).get("n", 0)
         metins = one("SELECT COUNT(*) AS n FROM log.log WHERE how='STONE_KILL' AND time BETWEEN %s AND %s",
@@ -5449,7 +5557,9 @@ def daily_summary(summary_id):
     summary = one("SELECT * FROM player.web_seban_daily_summary WHERE id=%s", (summary_id,))
     if not summary:
         abort(404)
-    return render_template("daily_summary.html", s=summary)
+    details = daily_summary_details(summary["summary_date"])
+    summary["level_start"], summary["level_end"] = details["level_start"], details["level_end"]
+    return render_template("daily_summary.html", s=summary, details=details)
 
 
 @app.get("/respawns")
