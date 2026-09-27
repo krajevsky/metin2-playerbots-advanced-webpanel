@@ -3130,7 +3130,9 @@ def players():
         args = [f"%{query}%", query if query.isdigit() else -1]
     sql += " ORDER BY p.level DESC, p.exp DESC LIMIT 250"
     roster, live = rows(sql, args), live_statuses()
+    full_plus9_ids = full_plus9_equipment_ids(character["id"] for character in roster)
     for character in roster:
+        character["full_plus9_equipment"] = character["id"] in full_plus9_ids
         state = live.get(character["id"])
         character["map_live"] = bool(state)
         if state:
@@ -3644,6 +3646,32 @@ def load_character_items(pid, account_id):
     return equipment, inventory, safebox, horse_bag
 
 
+PLUS9_EQUIPMENT_SLOTS = {0: "body", 1: "head", 2: "foots", 3: "wrist", 4: "weapon", 5: "neck", 6: "ear", 10: "shield"}
+
+
+def is_full_plus9_equipment(equipment):
+    """True only for a complete set of the eight ordinary refinable wear slots."""
+    return all(slot in equipment and re.search(r"\+9\s*$", str(equipment[slot].get("item_name") or ""))
+               for slot in PLUS9_EQUIPMENT_SLOTS.values())
+
+
+def full_plus9_equipment_ids(player_ids):
+    """Batch equivalent of is_full_plus9_equipment() for the /players roster."""
+    ids = sorted({int(pid) for pid in player_ids if int(pid or 0) > 0})
+    if not ids:
+        return set()
+    marks = ",".join(["%s"] * len(ids))
+    equipped = rows(f"""SELECT i.owner_id,i.pos,COALESCE(p.locale_name,CONCAT('VNUM ',i.vnum)) AS item_name
+      FROM player.item i LEFT JOIN player.item_proto p ON p.vnum=i.vnum
+      WHERE i.owner_id IN ({marks}) AND i.window='EQUIPMENT' AND i.pos IN (0,1,2,3,4,5,6,10)""", ids)
+    slots = {}
+    for item in equipped:
+        if re.search(r"\+9\s*$", game_text(item.get("item_name") or "")):
+            slots.setdefault(int(item["owner_id"]), set()).add(int(item["pos"]))
+    required = set(PLUS9_EQUIPMENT_SLOTS)
+    return {pid for pid, positions in slots.items() if positions == required}
+
+
 @app.route("/player/<int:pid>")
 @login_required
 def player(pid):
@@ -3715,6 +3743,7 @@ def player(pid):
     character["skills"] = parse_skills(skill_raw, character.get("job"), character.get("skill_group"))
     character["passive_skills"] = parse_passive_skills(skill_raw)
     equipment, inventory, safebox, horse_bag = load_character_items(pid, character["account_id"])
+    character["full_plus9_equipment"] = is_full_plus9_equipment(equipment)
     gear_history = bot_gear_history(pid)
     offline_shop = bot_offline_shop(pid)
     character_stats = character_stat_summary(pid)
