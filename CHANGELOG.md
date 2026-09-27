@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.94.1 · Poprawka mapy na szerokich ekranach
+
+- **Naprawiono ściśniętą mapę świata botów na szerokich monitorach** (np. 1920×1080): siatka mapy rezerwowała widmową, niewykorzystywaną kolumnę 300px, a panel "Stan serwera" zabierał sztywno połowę szerokości strony, przez co mapa robiła się wąska i wysoka. Mapa dostaje teraz całą wolną przestrzeń, a diagramy (Rozkład kanałów, Respawny, Królestwa) na bardzo szerokich ekranach (≥1700px) mają własną kolumnę zamiast nachodzić na ranking.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.94.0 · Szybszy dashboard i ładowanie widgetów w tle
 
 - **Dashboard wysyła teraz szybki shell natychmiast po wejściu**, a cięższe rankingi, agregacje logów, snapshoty sklepów i monitoring są pobierane osobno po renderze.
