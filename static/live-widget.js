@@ -135,9 +135,25 @@
     const total = bots.length || 1;
     box.innerHTML = entries.map(([label,count]) => `<div class="activity-line"><span title="${escape(label)}">${escape(label)}</span><b>${count}</b><i style="--share:${Math.max(4,Math.round(count/total*100))}%"></i></div>`).join('') || '<p class="muted">Brak aktywnych botów na tej mapie.</p>';
   }
-  const rN=document.getElementById('live-regen-data'),rI=rN?JSON.parse(rN.textContent||'{}'):{global:{delay:{mob:100,boss:100},count:{mob:100,boss:100}},maps:{values:{},stones:{}}};
+  // Read fresh each call, not once at module load: dashboard-deferred.js
+  // replaces this script tag's JSON once the real data finishes loading in
+  // the background (fast dashboard shell, 1.94.0) -- a one-time read here
+  // would keep showing the placeholder forever. Defensively falls back to
+  // the same 100%/100% defaults if a shape mismatch slips through again
+  // (was previously an uncaught TypeError on "global.delay.mob", which
+  // aborted the whole render() and left the live badge stuck on "Brak
+  // danych live" permanently, not just on real fetch failures -- reported
+  // [GA]Seban 2026-09-27).
+  function regenInfo() {
+    const fallback = {delay:{mob:100,boss:100},count:{mob:100,boss:100}};
+    const rN = document.getElementById('live-regen-data');
+    try {
+      const parsed = rN ? JSON.parse(rN.textContent || '{}') : {};
+      return {global: (parsed.global && parsed.global.delay && parsed.global.count) ? parsed.global : fallback, maps: parsed.maps || {values:{},stones:{}}};
+    } catch (_) { return {global: fallback, maps: {values:{},stones:{}}}; }
+  }
   function donut(id,rows,colors){const n=$(id),t=rows.reduce((a,x)=>a+x[1],0)||1;if(!n)return;let at=0;const slices=rows.map(([l,v],i)=>{const from=at/t*360;at+=v;return `${colors[i]} ${from}deg ${at/t*360}deg`}).join(',');const lead=rows.reduce((a,x)=>x[1]>a[1]?x:a,rows[0]||['—',0]),pct=Math.round(lead[1]/t*100);n.innerHTML=`<div class="map-donut" style="--map-donut:conic-gradient(${slices})"><b>${escape(lead[0])}</b><small>${pct}%</small></div><div class="map-donut-legend">${rows.map(([l,v],i)=>`<span><i style="--dot:${colors[i]}"></i>${escape(l)} <b>${v}</b></span>`).join('')}</div>`}
-  function insights(mapId,bots){donut('map-channel-chart',[...new Set(snapshot.map(x=>+x.channel||1))].sort().map(c=>[`CH${c}`,bots.filter(x=>(+x.channel||1)===c).length]),['#ff8c00','#800080','#30b6ff']);donut('map-empire-chart',[[1,'Shinsoo'],[2,'Chunjo'],[3,'Jinno']].map(([e,l])=>[l,bots.filter(x=>+x.empire===e).length]),['#d95a54','#e8b93f','#4f86d9']);const m=rI.maps||{},g=rI.global||{delay:{mob:100,boss:100},count:{mob:100,boss:100}},n=$('map-respawn-summary'),v=(m.values||{}),st=(m.stones||{}),mapSeconds=value=>value === 'reset' || value === undefined || value === null || value === '' ? null : Number(value);const mobSeconds=mapSeconds(v[mapId]),stoneSeconds=mapSeconds(st[mapId]);if(n)n.innerHTML=`<div><b>⚔ Potwory</b><small>${mobSeconds?`Własny czas mapy · ${mobSeconds} s`:`Globalnie · ${g.delay.mob}% czasu podstawowego`}</small></div><div><b>🗿 Metiny i bossy</b><small>${stoneSeconds?`Własny czas mapy · ${stoneSeconds} s`:`Globalnie · ${g.delay.boss}% czasu podstawowego`}</small></div><div><b>✦ Liczebność</b><small>Potwory ${g.count.mob}% · Metiny/bossy ${g.count.boss}%</small></div>`}
+  function insights(mapId,bots){donut('map-channel-chart',[...new Set(snapshot.map(x=>+x.channel||1))].sort().map(c=>[`CH${c}`,bots.filter(x=>(+x.channel||1)===c).length]),['#ff8c00','#800080','#30b6ff']);donut('map-empire-chart',[[1,'Shinsoo'],[2,'Chunjo'],[3,'Jinno']].map(([e,l])=>[l,bots.filter(x=>+x.empire===e).length]),['#d95a54','#e8b93f','#4f86d9']);const rI=regenInfo(),m=rI.maps,g=rI.global,n=$('map-respawn-summary'),v=(m.values||{}),st=(m.stones||{}),mapSeconds=value=>value === 'reset' || value === undefined || value === null || value === '' ? null : Number(value);const mobSeconds=mapSeconds(v[mapId]),stoneSeconds=mapSeconds(st[mapId]);if(n)n.innerHTML=`<div><b>⚔ Potwory</b><small>${mobSeconds?`Własny czas mapy · ${mobSeconds} s`:`Globalnie · ${g.delay.mob}% czasu podstawowego`}</small></div><div><b>🗿 Metiny i bossy</b><small>${stoneSeconds?`Własny czas mapy · ${stoneSeconds} s`:`Globalnie · ${g.delay.boss}% czasu podstawowego`}</small></div><div><b>✦ Liczebność</b><small>Potwory ${g.count.mob}% · Metiny/bossy ${g.count.boss}%</small></div>`}
   document.querySelectorAll('[data-insight]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-insight]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-insight-page]').forEach(x=>x.classList.toggle('active',x.dataset.insightPage===b.dataset.insight))});
   function render() {
     if (mode.value !== 'live') return;
@@ -154,7 +170,7 @@
     });
     const average = bots.length ? (bots.reduce((sum,b)=>sum+b.level,0)/bots.length).toFixed(1) : '—';
     $('stat-visible').textContent = bots.length; $('stat-pt').textContent = bots.filter(b=>b.in_party).length; $('stat-avg').textContent = average; $('stat-max').textContent = bots.length ? Math.max(...bots.map(b=>b.level)) : '—';
-    $('live-count').textContent = `${bots.length} botów na mapie`;
+    $('live-count').textContent = `Zaktualizowano ${new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
     $('map-caption').textContent = select.options[select.selectedIndex].text;
 $('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCompare(b.name)).slice(0,10).map((b,i)=>`<a class="${b.id === globalTopId ? 'is-global-leader' : ''}" href="/player/${b.id}"><b>#${i+1}</b><img class="class-portrait class-portrait--live" src="${portrait(b.job)}" alt=""> ${escape(b.name)}${b.in_party?'<mark class="pt-mark">PT</mark>':''}${b.stuck?'<mark class="stuck-mark">⚠</mark>':''} <span>Lv ${b.level}</span></a>`).join('') || '<p class="muted">Brak botów spełniających filtr.</p>';
     renderActivities(bots);
@@ -173,7 +189,7 @@ $('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCom
       if ($('overview-max')) $('overview-max').textContent = snapshot.length ? Math.max(...snapshot.map(bot=>bot.level)) : '0';
       renderOverviewMaps();
       if (mode.value === 'live') render();
-    } catch (_) { $('live-count').textContent = 'Brak danych live'; }
+    } catch (err) { console.error('live-widget load()', err); $('live-count').textContent = 'Brak danych live'; }
   }
   async function loadHeat() {
     try {

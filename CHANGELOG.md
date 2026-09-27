@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.94.8 · Naprawiono "Brak danych live" i plakietkę mapy
+
+- **Zielona plakietka "X botów na mapie" dublowała się z "Widoczne" obok mapy** — zamieniona na znacznik czasu ostatniej aktualizacji ("Zaktualizowano HH:MM:SS"), żeby potwierdzać że dane faktycznie odświeżają się na żywo.
+- **Znaleziono i naprawiono prawdziwą przyczynę "Brak danych live"**: szybka wersja dashboardu (1.94.0) wysyłała danym o czasach respawnu zły kształt, przez co JS rzucał błąd przy każdym odświeżeniu mapy (nie tylko przy realnych problemach z siecią) i przerywał całe renderowanie — obok plakietki gasły też diagramy "Respawny na mapie". Naprawione po stronie Python (poprawny domyślny kształt danych) i JS (dane respawnu wczytywane na bieżąco zamiast raz przy starcie strony, plus zabezpieczenie na przyszłość gdyby kształt znów się nie zgadzał).
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.94.7 · Ikonki botów i lista rankingu na węższych ekranach
 
 - **Ikonki botów na mapie skalują się teraz razem z mapą** zamiast być zawsze 18px — na węższych ekranach (np. 1366×768, gdzie mapa jest mniejsza) były nieproporcjonalnie duże i nakładały się na siebie.

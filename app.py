@@ -2868,7 +2868,18 @@ def dashboard():
                            channel_map_rows=[], dashboard_channels=[], shop_map_rows=[], top=[],
                            global_top_id=None, quick_rankings=empty_rankings, world_summary=empty_world,
                            dashboard_deferred=True, panel_version=PANEL_VERSION,
-                           latest_changelog=changelog_entries()[:1], live_regen={"global": {}, "maps": {}},
+                           # Placeholder shape must match read_regen_settings()'s own
+                           # ({"delay":{...},"count":{...}}), not an arbitrary {} -- the
+                           # template nests this straight into #live-regen-data's JSON as
+                           # "global", and live-widget.js's insights() reads
+                           # global.delay.mob unconditionally. The old {"global":{},...}
+                           # here produced global.delay === undefined, throwing on every
+                           # single render() call and permanently stuck the live badge on
+                           # "Brak danych live", not just on genuine fetch failures
+                           # (reported [GA]Seban 2026-09-27).
+                           latest_changelog=changelog_entries()[:1],
+                           live_regen={"delay": {kind: 100 for kind in REGEN_DELAY_FLAGS},
+                                       "count": {kind: 100 for kind in REGEN_COUNT_FLAGS}},
                            live_map_regens={})
 
 
