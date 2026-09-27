@@ -30,7 +30,8 @@
   </form>
 </section>
 
-<section class="panel respawn-map-panel">
+<section class="panel respawn-map-panel {{ '' if feature_enabled('map_respawns') else 'feature-locked' }}">
+  {% if not feature_enabled('map_respawns') %}<p class="feature-lock-note"><span>🔒 Dokładne czasy jednej mapy wymagają helpera <code>m2-map-regens</code>.</span><a href="{{ url_for('manage_panel') }}#compatibility">Wymaga akcji</a></p>{% endif %}
   <div class="respawn-card-head"><span class="respawn-card-icon">⌖</span><div><p class="eyebrow">DOKŁADNA MAPA</p><h2>Własny czas respawnu</h2></div><span class="respawn-restart">↻ wymaga krótkiego restartu rdzeni</span></div>
   <p class="muted">To precyzyjne ustawienie nadpisuje czas w pliku wybranej mapy. Puste pole przywraca wartość dostarczoną z wydaniem Tieru.</p>
   <form action="{{ url_for('respawns_map') }}" method="post" class="respawn-map-form">

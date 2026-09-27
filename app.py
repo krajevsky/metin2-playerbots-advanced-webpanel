@@ -317,6 +317,15 @@ ENGINE_MT2009 = PANEL_ENGINE == "mt2009"
 # testing the exported zip on a clean install, 2026-09-15; +9 announcements
 # added same day and gated the same way from the start.
 CUSTOM_PATCHES_ENABLED = os.environ.get("M2_PANEL_CUSTOM_PATCHES", "0").strip().lower() in ("1", "true", "yes", "on")
+
+PANEL_FEATURES = {
+    "bot_count": {"title": "Docelowa liczba botów", "icon": "🤖", "scope": "Zarządzanie grą · liczba botów", "requirement": "Hostowy watcher obsługujący botcount.request i odtworzenie kontenera game.", "setup": "Uruchom updater/install-seban-updater.sh dla katalogu stosu. Watcher zapisze PLAYERBOT_AUTOSPAWN_COUNT w .env i odtworzy usługę game."},
+    "spawn_plan": {"title": "Plan wejścia botów", "icon": "🌅", "scope": "Zarządzanie grą · plan wejścia", "requirement": "Hostowy watcher obsługujący spawn-plan.request.", "setup": "Zainstaluj updater/install-seban-updater.sh. Integracja zapisuje okno wejścia w .env i bezpiecznie odtwarza game."},
+    "map_respawns": {"title": "Dokładne respawny map", "icon": "⌖", "scope": "Respawny · własny czas mapy", "requirement": "Helper m2-map-regens w obrazie gry oraz wolumen rates-spool.", "setup": "Wdróż integration/m2-map-regens do obrazu game, przebuduj usługę game i pozostaw podłączony wolumen rates-spool."},
+    "student_chest": {"title": "Skrzynia startowa na żywo", "icon": "🎒", "scope": "Zarządzanie grą · skrzynia ucznia", "requirement": "Zmodyfikowany starter_chest.quest i tabela common.m2_switches.", "setup": "Zastosuj patch questa skrzyni startowej, skompiluj questy i ustaw M2_PLAYERBOT_DISABLE_STUDENT_CHEST zgodnie z wyborem dla botów."},
+    "plus9_announcements": {"title": "Ogłoszenia ulepszeń +9", "icon": "📢", "scope": "Zarządzanie grą · rankingi", "requirement": "Komenda NOTICE w web_admin.quest oraz działający seban-collector.", "setup": "Wdróż do web_admin.quest obsługę NOTICE, skompiluj quest i uruchom usługę seban-collector."},
+    "seban_updater": {"title": "Aktualizator Seban", "icon": "⬆", "scope": "Zarządzanie grą · aktualizacje", "requirement": "Usługa systemowa seban-updater i wspólny wolumen update-spool.", "setup": "Uruchom: sudo updater/install-seban-updater.sh /pełna/ścieżka/do/serwera [projekt-compose]. Następnie włącz funkcję tutaj."},
+}
 ATTR_SKILL_DAMAGE = 121 if ENGINE_MT2009 else 71
 ATTR_AVG_DAMAGE = 122 if ENGINE_MT2009 else 72
 POINT_TO_APPLY = {6: 1, 8: 2, 13: 3, 15: 4, 12: 5, 14: 6, 17: 7, 19: 8, 21: 9, 32: 10, 33: 11,
@@ -633,7 +642,7 @@ def settings():
     values = dict(DEFAULT_SETTINGS)
     try:
         for row in rows("SELECT name,value FROM player.web_seban_settings"):
-            if row["name"] in values:
+            if row["name"] in values or row["name"].startswith("feature_"):
                 values[row["name"]] = str(row["value"])
     except pymysql.MySQLError:
         pass
@@ -651,6 +660,32 @@ def write_settings(values):
                 "INSERT INTO player.web_seban_settings (name,value) VALUES (%s,%s) ON DUPLICATE KEY UPDATE value=VALUES(value)",
                 tuple(values.items()),
             )
+
+
+def panel_feature_enabled(name, current=None):
+    if name not in PANEL_FEATURES:
+        return True
+    current = current or settings()
+    value = current.get(f"feature_{name}")
+    return CUSTOM_PATCHES_ENABLED if value is None else value == "1"
+
+
+def panel_feature_states(current=None):
+    current = current or settings()
+    result = {}
+    for name, definition in PANEL_FEATURES.items():
+        item = dict(definition)
+        item["enabled"] = panel_feature_enabled(name, current)
+        item["explicit"] = f"feature_{name}" in current
+        result[name] = item
+    return result
+
+
+def require_panel_feature(name):
+    if panel_feature_enabled(name):
+        return None
+    flash(f"Funkcja „{PANEL_FEATURES[name]['title']}” wymaga dodatkowej integracji. Włącz ją dopiero po wykonaniu instrukcji w ustawieniach panelu.", "error")
+    return redirect(url_for("manage_panel", _anchor="compatibility"))
 
 
 def validate_display_settings(form):
@@ -2800,7 +2835,7 @@ def globals_for_templates():
         except OSError:
             revision = 0
         return url_for("static", filename=filename, v=revision)
-    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url}
+    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings)}
 @app.route("/login", methods=["GET", "POST"])
 def login():
     current = settings()
@@ -5311,6 +5346,8 @@ def respawns_count():
 @app.post("/respawns/map")
 @login_required
 def respawns_map():
+    if blocked := require_panel_feature("map_respawns"):
+        return blocked
     known = {str(index) for index, _label in MAP_RESPAWN_OPTIONS}
     map_index, target = request.form.get("map_index", ""), request.form.get("target", "mob")
     try:
@@ -5440,18 +5477,30 @@ def manage():
     current_settings = settings()
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count(), spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled(), custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines(), bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
+    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
 
 
 @app.route("/manage/panel")
 @login_required
 def manage_panel():
-    return render_template("manage_panel.html", settings=settings())
+    current = settings()
+    return render_template("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED)
+
+
+@app.post("/manage/panel/features")
+@login_required
+def manage_panel_features():
+    values = {f"feature_{name}": "1" if request.form.get(f"feature_{name}") == "1" else "0" for name in PANEL_FEATURES}
+    write_settings(values)
+    flash("Dostępność funkcji zapisana. Wyłączone integracje pozostają widoczne jako wymagające akcji.", "success")
+    return redirect(url_for("manage_panel", _anchor="compatibility"))
 
 
 @app.post("/manage/update")
 @login_required
 def manage_update():
+    if blocked := require_panel_feature("seban_updater"):
+        return blocked
     current = settings()
     if current.get("auth_enabled") != "1" or not session.get("seban_admin"):
         flash("Aktualizacje z panelu wymagają włączonej ochrony hasłem.", "error")
@@ -5500,6 +5549,8 @@ def manage_settings():
 @app.post("/manage/overrides")
 @login_required
 def manage_overrides():
+    if blocked := require_panel_feature("seban_updater"):
+        return blocked
     values = {key: "1" if request.form.get(key) == "1" else "0" for key in ("allow_student_chest", "allow_moonlight_chest", "keep_demo_characters", "update_seban_panel")}
     write_settings(values)
     flash("Override'y zapisane. Zostaną zastosowane przy następnej aktualizacji Playerbots.")
@@ -5522,7 +5573,7 @@ def manage_restart_config():
             # Older browser tabs opened before this field existed do not send
             # it -- leave the game side's current target alone rather than
             # snapping it to some default.
-            if "playerbot_count" in request.form:
+            if "playerbot_count" in request.form and panel_feature_enabled("bot_count"):
                 bot_count = int(request.form["playerbot_count"])
                 if not 1 <= bot_count <= 2500:
                     raise ValueError("Liczba botów musi mieścić się w zakresie 1–2500.")
@@ -5562,6 +5613,8 @@ def manage_restart_config():
 @app.post("/manage/spawn-plan")
 @login_required
 def manage_spawn_plan():
+    if blocked := require_panel_feature("spawn_plan"):
+        return blocked
     try:
         window = int(request.form.get("spawn_window_minutes", ""))
         late_joiners = int(request.form.get("late_joiners", ""))
@@ -5583,6 +5636,8 @@ def manage_spawn_plan():
 @app.post("/manage/student-chest")
 @login_required
 def manage_student_chest():
+    if blocked := require_panel_feature("student_chest"):
+        return blocked
     disabled = "1" in request.form.getlist("disable_student_chest")
     write_student_chest_disabled(disabled)
     if disabled:
@@ -5607,6 +5662,8 @@ def manage_ranking_scope():
 @app.post("/manage/plus9-announce")
 @login_required
 def manage_plus9_announce():
+    if blocked := require_panel_feature("plus9_announcements"):
+        return blocked
     enabled = "1" in request.form.getlist("announce_plus9_refines")
     write_announce_plus9_refines(enabled)
     if enabled:
@@ -5637,6 +5694,8 @@ def manage_restart_clear_stale():
 @app.post("/manage/map-respawns")
 @login_required
 def manage_map_respawns():
+    if blocked := require_panel_feature("map_respawns"):
+        return blocked
     known_maps = {str(index) for index, _name in MAP_RESPAWN_OPTIONS}
     map_index = request.form.get("map_index", "")
     action = request.form.get("action", "")

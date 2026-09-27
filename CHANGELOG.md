@@ -1,5 +1,15 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.95.0 · Koniec funkcji-widm na czystych instalacjach
+
+- **Pełny audyt zgodności z Playerbots 2.2.29:** sprawdzone zostały oficjalne archiwum serwera, compose, questy, rdzeń, panel Tieru i usługi dołączone do wydania. Wynik wraz z macierzą funkcji znajduje się w `AUDIT_COMPATIBILITY_2.2.29.md`.
+- **Nowa konsola zgodności w `/manage/panel`:** operator może osobno udostępnić sześć integracji, których czysta instalacja nie gwarantuje: docelową liczbę botów, plan wejścia, dokładne respawny map, skrzynię startową na żywo, ogłoszenia +9 i Aktualizator Seban. Każda karta podaje wymaganie oraz instrukcję wdrożenia.
+- **Funkcje-widma już nie udają działających:** wyłączone integracje pozostają widoczne na szaro z komunikatem „Wymaga akcji”, a backend blokuje również ręczne wywołanie ich endpointów. Czysta instalacja ma je domyślnie wyłączone.
+- **Bezpieczna migracja istniejącego serwera:** instalacje z `M2_PANEL_CUSTOM_PATCHES=1` zachowują dotychczasowe działanie. Po pierwszym zapisie konsoli każdą funkcją steruje już jej własny przełącznik.
+- **Funkcje natywne 2.2.29 pozostają dostępne:** raty, globalne respawny, zachowanie AI, ItemShop, rajdy, polityka przedmiotów, trzymanie botów przy wejściu, kolejka przedmiotów i monitoring nie dostały zbędnych blokad.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-27 · 1.94.8 · Naprawiono "Brak danych live" i plakietkę mapy
 
 - **Zielona plakietka "X botów na mapie" dublowała się z "Widoczne" obok mapy** — zamieniona na znacznik czasu ostatniej aktualizacji ("Zaktualizowano HH:MM:SS"), żeby potwierdzać że dane faktycznie odświeżają się na żywo.
