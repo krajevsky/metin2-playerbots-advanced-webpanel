@@ -2538,10 +2538,17 @@ def ranking_scope_sql(alias="p"):
     (Admin/AdminNinja/AdminSura/AdminSzaman, 500M gold each -- see the same
     exclusion for "yang w obiegu") would otherwise top every single
     category and bury any actual player under it."""
+    ref = (alias + ".") if alias else ""
+    # Tieru's permanent companions are ordinary playerbot identities, but the
+    # engine records their stable role in player.playerbot_sidekick. They must
+    # remain visible on their own profile and in the player list; rankings are
+    # the one place where counting them as independent competitors is wrong.
+    not_sidekick = ("NOT EXISTS (SELECT 1 FROM player.playerbot_sidekick sb"
+                    " WHERE sb.sidekick_pid = " + ref + "id)")
     if include_real_players_in_rankings():
-        ref = (alias + ".") if alias else ""
-        return ref + "name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')"
-    return bot_identity(alias)
+        return (ref + "name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')"
+                " AND " + not_sidekick)
+    return "(" + bot_identity(alias) + " AND " + not_sidekick + ")"
 
 
 def cached_dashboard_ranking(kind, limit=10, ttl=300):
