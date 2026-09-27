@@ -2856,6 +2856,31 @@ def dashboard():
           (SELECT COUNT(*) FROM player.item) AS item_stacks,
           (SELECT COALESCE(SUM(gold),0) FROM player.player WHERE name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')) AS yang
     """)
+    empty_rankings = [{"title": "Ładowanie…", "subtitle": "Pobieranie danych", "items": []} for _ in range(11)]
+    empty_world = {
+        "bots": 0, "average_level": 0, "party_bots": 0, "max_level": 0,
+        "empire_counts": [{"empire": empire, "name": empire_info(empire)["name"], "flag": empire_flag_path(empire), "count": 0} for empire in (1, 2, 3)],
+        "guilds": 0, "last_restart": "Ładowanie…", "version": "—",
+        "release": {"installed": "—", "latest": None, "behind": False, "tone": "", "label": "Ładowanie…"},
+        "rates": {"exp": 0, "drop": 0, "yang": 0}, "events": {},
+    }
+    return render_template("dashboard.html", totals=totals, bots=0, system={}, map_rows=[],
+                           channel_map_rows=[], dashboard_channels=[], shop_map_rows=[], top=[],
+                           global_top_id=None, quick_rankings=empty_rankings, world_summary=empty_world,
+                           dashboard_deferred=True, panel_version=PANEL_VERSION,
+                           latest_changelog=changelog_entries()[:1], live_regen={"global": {}, "maps": {}},
+                           live_map_regens={})
+
+
+def _dashboard_deferred_context():
+    """Build data for the dashboard widgets after the fast shell is visible."""
+    totals = one("""
+        SELECT
+          (SELECT COUNT(*) FROM player.player) AS characters,
+          (SELECT COUNT(*) FROM account.account) AS accounts,
+          (SELECT COUNT(*) FROM player.item) AS item_stacks,
+          (SELECT COALESCE(SUM(gold),0) FROM player.player WHERE name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')) AS yang
+    """)
     bots = one("SELECT COUNT(*) AS count FROM player.player WHERE account_id BETWEEN 4 AND 1003")
     # The collector creates this table with its first snapshot; before that -
     # the first minutes of a fresh installation - the dashboard has no host
@@ -2973,10 +2998,17 @@ def dashboard():
         for quick_ranking in quick_rankings:
             for item in quick_ranking["items"]:
                 item["job"] = jobs_by_id.get(item["id"], 0)
-    return render_template("dashboard.html", totals=totals, bots=bots.get("count", 0), system=system, map_rows=map_rows,
-                            channel_map_rows=channel_map_rows, dashboard_channels=dashboard_channels, shop_map_rows=shop_map_rows,
-                            top=top, global_top_id=global_top_id, quick_rankings=quick_rankings, world_summary=world_summary,
-                            panel_version=PANEL_VERSION, latest_changelog=changelog_entries()[:1], live_regen=read_regen_settings(), live_map_regens=read_map_regen_status())
+    return {"totals": totals, "bots": bots.get("count", 0), "system": system, "map_rows": map_rows,
+            "channel_map_rows": channel_map_rows, "dashboard_channels": dashboard_channels,
+            "shop_map_rows": shop_map_rows, "top": top, "global_top_id": global_top_id,
+            "quick_rankings": quick_rankings, "world_summary": world_summary,
+            "live_regen": read_regen_settings(), "live_map_regens": read_map_regen_status()}
+
+
+@app.route("/api/dashboard-deferred")
+@login_required
+def api_dashboard_deferred():
+    return jsonify(ok=True, **_dashboard_deferred_context())
 @app.route("/players")
 @login_required
 def players():
