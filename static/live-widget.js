@@ -157,6 +157,7 @@
   document.querySelectorAll('[data-insight]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-insight]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-insight-page]').forEach(x=>x.classList.toggle('active',x.dataset.insightPage===b.dataset.insight))});
   function render() {
     if (mode.value !== 'live') return;
+    if (window.SebanHeatmap) window.SebanHeatmap.clear(map);
     const mapId = Number(select.value), needle = search.value.trim().toLowerCase();
     map.dataset.mapIndex = String(mapId);
     const bots = snapshot.filter(b => b.map_index === mapId && levelOK(b.level) && (!$('party-only').checked || b.in_party) && (!needle || b.name.toLowerCase().includes(needle)) && (currentChannel === 'all' || Number(b.channel) === Number(currentChannel)));
@@ -199,7 +200,8 @@ $('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCom
       const events = data.events.filter(event => event.map_index === mapId);
       map.dataset.mapIndex = String(mapId);
       map.querySelectorAll('.bot-point,.heat-point').forEach(node => node.remove());
-      events.forEach(event => { const dot=document.createElement('i'); dot.className='heat-point'; dot.style.left=`${Math.max(1,Math.min(99,(event.x-bound[0])/bound[2]*100))}%`; dot.style.top=`${Math.max(1,Math.min(99,(event.y-bound[1])/bound[3]*100))}%`; dot.title=`${event.name||'Zdarzenie'} · ${event.time}`; map.appendChild(dot); });
+      const points=bound?events.map(event=>({x:Math.max(1,Math.min(99,(event.x-bound[0])/bound[2]*100)),y:Math.max(1,Math.min(99,(event.y-bound[1])/bound[3]*100))})):[];
+      window.SebanHeatmap.render(map,points);
     const label = ({deaths:'zgonów botów',metins:'rozbitych Metinów',bosses:'zabitych bossów'})[mode.value] || 'zdarzeń';
       $('live-count').textContent = `${events.length} ${label} / 24 h`;
       $('map-caption').textContent = `${select.options[select.selectedIndex].text} · ${label}`;

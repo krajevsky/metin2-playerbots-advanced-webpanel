@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Komendy GM · {{panel_brand}}{% endblock %}
 {% block content %}
-<p class="eyebrow">NARZĘDZIA ADMINISTRATORA</p><h1>Komendy GM</h1><p class="muted">Lista komend dla tej paczki MT2009. Parametry w nawiasach ostrokątnych zastępuj własną wartością.</p>
+<p class="eyebrow">NARZĘDZIA ADMINISTRATORA</p><h1>Komendy GM</h1><p class="muted">Parametry w nawiasach ostrokątnych zastępuj własną wartością.</p>
+<aside class="command-disclaimer" role="note"><b>⚠ Informacja o zgodności</b><span>Niektóre komendy mogą nie działać w tej paczce plików. Część listy pochodzi z ogólnych poradników Metin2 dostępnych w internecie, a dostępność komendy zależy od wersji i kompilacji rdzenia serwera.</span></aside>
 <section class="panel command-reference"><pre>{{commands}}</pre></section>
 {% endblock %}

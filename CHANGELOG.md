@@ -1,5 +1,16 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.96.0 · Prawdziwa mapa cieplna i porządki w tabelach
+
+- **Mapa cieplna na `/maps` i dashboardzie pokazuje teraz faktyczne zagęszczenie zdarzeń:** pojedyncze punkty zastąpiła płynna warstwa od niebieskiego przez zieleń i żółć do czerwieni. Ten sam renderer obsługuje zgony botów, rozbite Metiny i zabitych bossów.
+- **Dodano brakujące mapy Season 2 do wyboru mapy cieplnej:** Ognistą Ziemię, Loch Pająków V2 oraz obie Groty Wygnańców.
+- **Naprawiono poziome przepełnienia w `/manage`:** rajdy na Azraela i ustawienie prawdziwych graczy w rankingach mieszczą się w panelu także na węższych ekranach.
+- **Uporządkowano kolejkę nicków:** wolne nicki oczekujące na użycie są pierwsze, w kolejności priorytetu; zajęte i zablokowane pozycje trafiają niżej. Pole dodawania respektuje aktywny motyw, a kolumna akcji zachowuje wysokość pozostałych komórek.
+- **Wyrównano kolumnę wyniku w rankingach** dla wszystkich zestawień poza poziomem.
+- **Dodano informację o zgodności komend GM:** panel jasno zaznacza, że komendy pochodzące z ogólnych poradników mogą być niedostępne w konkretnej kompilacji rdzenia.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-27 · 1.95.0 · Koniec funkcji-widm na czystych instalacjach
 
 - **Pełny audyt zgodności z Playerbots 2.2.29:** sprawdzone zostały oficjalne archiwum serwera, compose, questy, rdzeń, panel Tieru i usługi dołączone do wydania. Wynik wraz z macierzą funkcji znajduje się w `AUDIT_COMPATIBILITY_2.2.29.md`.

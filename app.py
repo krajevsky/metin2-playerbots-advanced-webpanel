@@ -4732,7 +4732,8 @@ def bot_names():
     total = one("SELECT COUNT(*) AS n " + join_sql, params).get("n", 0)
     entries = rows("""SELECT np.name, np.empire, np.pool_order, np.source, np.priority, np.blocked, np.note,
         h.pid, p.name AS current_name, p.level """ + join_sql +
-        " ORDER BY np.priority DESC, np.pool_order ASC LIMIT %s OFFSET %s",
+        " ORDER BY CASE WHEN np.blocked=0 AND h.pid IS NULL THEN 0 WHEN np.blocked=1 THEN 2 ELSE 1 END, "
+        "np.priority DESC, np.pool_order ASC LIMIT %s OFFSET %s",
         params + [per_page, (page - 1) * per_page])
     stats = one("""SELECT COUNT(*) AS total, SUM(np.blocked) AS blocked_count,
         SUM(CASE WHEN h.pid IS NOT NULL THEN 1 ELSE 0 END) AS used_count,
@@ -5072,7 +5073,8 @@ def maps():
     latest = {"all": build_latest(None)}
     for channel in channels:
         latest[str(channel)] = build_latest(channel)
-    return render_template("maps.html", charts=charts, latest=latest, channels=channels)
+    return render_template("maps.html", charts=charts, latest=latest, channels=channels,
+                           heat_map_options=TRACKED_MAP_OPTIONS)
 
 
 @app.route("/changelog")
