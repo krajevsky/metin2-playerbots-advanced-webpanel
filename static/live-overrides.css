@@ -142,17 +142,26 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 .live-ranking::-webkit-scrollbar-thumb,#live-activity::-webkit-scrollbar-thumb{background:var(--live-line);border-radius:999px}
 .live-ranking::-webkit-scrollbar-thumb:hover,#live-activity::-webkit-scrollbar-thumb:hover{background:var(--live-accent)}
 
-/* v1.46: na desktopie .live-ranking-section (flex:1, baza 0%) i .live-activity
-   (baza auto, pełna treść) walczyły o tę samą, ograniczoną wysokość panelu
-   bocznego -- gdy razem nie mieściły się, ranking dostawał dosłownie 0px
-   (potwierdzone w devtools) i nachodził wizualnie na nagłówek "Aktywności"
-   pod spodem. Ranking dostaje teraz stały, capnięty rozmiar (jak na
-   telefonie) i własny scroll, aktywności elastycznie zajmują resztę ze
-   swoim wewnętrznym scrollem -- żadne z nich już nie może zejść do zera. */
+/* v1.46: na desktopie .live-ranking-section i .live-activity walczyly o te
+   sama, ograniczona wysokosc panelu bocznego -- ranking dostal stale 380px,
+   aktywnosci resztę. Dzialalo dopoki mapa (a wiec i cala kolumna boczna) byla
+   niska; po poprawce szerokiego ekranu (1.94.1) kolumna urosla razem z mapa,
+   wiec "reszta" po 380px rankingu bywa raptem ~30px -- sam naglowek
+   "Aktywnosci na tej mapie" bez tresci, widziane jako pusta "dziura" pod
+   rankingiem (zgloszone [GA]Seban 2026-09-27). Zamiast dzielic wysokosc na
+   sztywno, karta boczna dostaje teraz zakladki (jak istniejacy przycisk
+   "Diagramy mapy") -- aktywna zakladka zajmuje cala wysokosc, druga jest
+   ukryta, wiec zadna nigdy nie jest scisniete do prawie zera. */
+.live-sidebar-tabs{display:none}
 @media(min-width:1351px){
-.live-ranking-section{flex:0 0 auto!important;max-height:380px!important;min-height:0!important;overflow:hidden!important}
-.live-sidebar .live-ranking{flex:1 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow-y:auto!important}
-.live-activity{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+.live-sidebar-tabs{display:flex;gap:6px;margin:10px 0}
+.live-sidebar-tabs button{flex:1;padding:7px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text);font:inherit;font-size:12px;cursor:pointer}
+.live-sidebar-tabs button.active{background:var(--live-accent);color:#fff}
+.live-ranking-section,.live-activity{display:none!important}
+.live-sidebar[data-sidebar-tab="ranking"] .live-ranking-section{display:flex!important;flex:1 1 auto!important;max-height:none!important;min-height:0!important;overflow:hidden!important}
+.live-sidebar[data-sidebar-tab="ranking"] .live-ranking{flex:1 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow-y:auto!important}
+.live-sidebar[data-sidebar-tab="activity"] .live-activity{display:flex!important;flex-direction:column;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+.live-sidebar[data-sidebar-tab="activity"] #live-activity{flex:1 1 auto!important;max-height:none!important;overflow-y:auto!important}
 }
 
 /* Lista "Boty na mapach" jest częścią panelu o stałej wysokości obok mapy.

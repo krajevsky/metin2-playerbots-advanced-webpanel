@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.94.3 · Zakładki Ranking/Aktywności przy mapie
+
+- **Sekcja "Aktywności na tej mapie" znikała za rankingiem** na desktopie: ranking miał sztywne 380px, a aktywnościom zostawało ledwie ~30px (sam nagłówek, bez treści) — widoczne jako pusta "dziura" pod rankingiem, szczególnie po powiększeniu mapy. Panel boczny dostał zakładki "Ranking"/"Aktywności" (jak istniejący przycisk "Diagramy mapy") — aktywna zakładka zajmuje całą dostępną wysokość.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.94.2 · Pułap rozmiaru mapy na monitorach 2K+
 
 - **Mapa świata botów miała brak górnego limitu rozmiaru** po poprzedniej poprawce — na monitorze 2K (2560 px) rosła wraz z szerokością ekranu i robiła się zbyt duża. Obszar mapy jest teraz zamrożony na rozmiarze potwierdzonym jako dobry na 1920×1080; szersze ekrany dostają po prostu większy margines z prawej, a nie większą mapę.
