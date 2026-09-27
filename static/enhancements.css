@@ -132,11 +132,14 @@ button.danger{background:#7a2331!important}
 @keyframes via-rainbow-shift{0%{background-position:0% 50%}100%{background-position:400% 50%}}
 @keyframes via-star-twinkle{0%,100%{opacity:.35;transform:scale(.8) rotate(0deg)}50%{opacity:1;transform:scale(1.2) rotate(20deg)}}
 @media(prefers-reduced-motion:reduce){.via-rainbow,.via-star{animation:none}}
-.ld-shimmer{display:flex;flex-direction:column;gap:8px;width:96px;color:var(--text)}
-.ld-shimmer i{height:10px;border-radius:5px;background:linear-gradient(90deg,color-mix(in srgb,var(--ink,var(--text)) 12%,transparent) 25%,color-mix(in srgb,var(--ink,var(--text)) 38%,transparent) 50%,color-mix(in srgb,var(--ink,var(--text)) 12%,transparent) 75%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+.ld-shimmer{--ink:var(--blue2);display:flex;flex-direction:column;justify-content:center;gap:8px;width:calc(100% - 32px);max-width:440px;height:100%;min-height:120px;margin:0 auto;color:var(--ink)}
+.ld-shimmer i{display:block;width:100%;height:10px;border-radius:5px;background:linear-gradient(90deg,color-mix(in srgb,var(--ink) 12%,transparent) 25%,color-mix(in srgb,var(--ink) 38%,transparent) 50%,color-mix(in srgb,var(--ink) 12%,transparent) 75%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
 .ld-shimmer i:nth-child(2){width:70%}.ld-shimmer i:nth-child(3){width:45%}
 @keyframes shimmer{to{background-position:-200% 0}}
-.dashboard-widget-loader{width:96px;margin:30px auto;color:var(--text)}
+.dashboard-widget-loader{position:absolute;inset:16px;width:auto;margin:0;pointer-events:none}
+.panel:not(.is-loading) .dashboard-widget-loader{display:none}
+.ld-shimmer--compact{position:static;width:72px;min-height:0;height:10px;display:flex;justify-content:center}.ld-shimmer--compact i{width:72px;height:8px}
+.empire-bots-cell.is-loading .empire-bots-breakdown{width:100%;min-height:29px}
 .dashboard-widgets--loading .panel{position:relative;overflow:hidden}
 .dashboard-widgets--loading .panel>.dashboard-widget-loader{display:flex}
 .dashboard-widget-loader i{display:block}

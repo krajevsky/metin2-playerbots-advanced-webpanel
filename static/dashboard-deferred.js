@@ -7,11 +7,17 @@
     const files = ['warrior_m.bmp','assassin_w.bmp','sura_m.bmp','shaman_w.bmp','warrior_w.bmp','assassin_m.bmp','sura_w.bmp','shaman_m.bmp'];
     return `/static/class-portraits/${files[Math.max(0, Math.min(files.length - 1, Number(job) || 0))]}`;
   };
-  const shimmer = label => `<div class="dashboard-widget-loader ld-shimmer" aria-label="${escape(label)}"><i></i><i></i><i></i></div>`;
+  const shimmer = (label, compact = false) => `<div class="dashboard-widget-loader ld-shimmer${compact ? ' ld-shimmer--compact' : ''}" aria-label="${escape(label)}"><i></i>${compact ? '' : '<i></i><i></i>'}</div>`;
   widgets.querySelectorAll('.panel').forEach(panel => {
     panel.classList.add('is-loading');
     if (!panel.querySelector('.dashboard-widget-loader')) panel.insertAdjacentHTML('beforeend', shimmer('Ładowanie danych'));
   });
+  const empireCell = document.querySelector('.empire-bots-cell');
+  const empireBreakdown = empireCell?.querySelector('.empire-bots-breakdown');
+  if (empireCell && empireBreakdown) {
+    empireCell.classList.add('is-loading');
+    empireBreakdown.innerHTML = shimmer('Ładowanie zalogowanych botów', true);
+  }
 
   function updateWorld(summary) {
     const values = {
@@ -26,6 +32,7 @@
     const empireBreakdown = document.querySelector('.empire-bots-breakdown');
     if (empireBreakdown && Array.isArray(summary.empire_counts)) {
       empireBreakdown.innerHTML = summary.empire_counts.map(empire => `<span class="empire-bots-item">${empire.flag ? `<img class="empire-flag-inline" src="/static/empires/${escape(empire.flag)}" alt="${escape(empire.name)}" title="${escape(empire.name)}">` : ''}${escape(empire.count)}</span>`).join('');
+      document.querySelector('.empire-bots-cell')?.classList.remove('is-loading');
     }
     const installed = document.querySelector('.playerbots-installed');
     if (installed && summary.version !== undefined) installed.textContent = summary.version;
