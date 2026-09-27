@@ -33,8 +33,14 @@
    monitor that handed the status list (a simple label/value stack that never
    needed more room) half the page, while the map -- the one thing meant to
    grow -- was capped to two-thirds of what was left. Stan serwera gets a
-   fixed, generous-but-bounded width instead; the map claims everything else. */
-@media(min-width:1351px){.live-shell{box-sizing:border-box;width:calc(100% - 400px - 18px);position:relative}.live-dashboard-grid{display:block}.world-overview{position:absolute;left:calc(100% + 18px);top:0;bottom:0;width:400px;box-sizing:border-box;min-height:0}.live-map-section{width:100%}}
+   fixed, generous-but-bounded width instead; the map claims everything else,
+   up to a cap: uncapped it grew with the viewport with no ceiling, and on a
+   2K/2560px monitor the map ballooned to a size the operator didn't want
+   (reported [GA]Seban 2026-09-27, right after the 1920x1080 fix landed and
+   looked right). 1130px freezes the map area at exactly the size confirmed
+   good on a 1920px screen; anything wider just gets a bit more right margin
+   instead of a bigger map. */
+@media(min-width:1351px){.live-shell{box-sizing:border-box;width:calc(100% - 400px - 18px);max-width:1130px;position:relative}.live-dashboard-grid{display:block}.world-overview{position:absolute;left:calc(100% + 18px);top:0;bottom:0;width:400px;box-sizing:border-box;min-height:0}.live-map-section{width:100%}}
 
 /* Seban Panel palette: the live widget no longer borrows Tieru's gold/brown skin. */
 .live-shell{background:linear-gradient(135deg,#101d2d,#0c1726);border-color:#213852}
