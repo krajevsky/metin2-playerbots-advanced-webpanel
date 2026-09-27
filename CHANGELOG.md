@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.94.7 · Ikonki botów i lista rankingu na węższych ekranach
+
+- **Ikonki botów na mapie skalują się teraz razem z mapą** zamiast być zawsze 18px — na węższych ekranach (np. 1366×768, gdzie mapa jest mniejsza) były nieproporcjonalnie duże i nakładały się na siebie.
+- **Naprawiono nakładanie się powiększonej mapy na diagramy** po kliknięciu "Diagramy mapy" — mapa przestała "wylewać się" poza swoją kolumnę siatki na węższych ekranach.
+- **Lista "Ranking na mapie"/"Aktywności na tej mapie" miała ledwie ~15-27px wysokości** na węższych ekranach (mapa, do której dopasowana była wysokość panelu bocznego, sama była bardzo niska) — panel boczny ma teraz minimalną wysokość, więc lista mieści kilka czytelnych pozycji nawet gdy mapa jest niska.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-27 · 1.94.6 · Mapa na 1920×1080 mieści się bez przewijania
 
 - **Poszerzona mapa (492×616px) była wyższa niż zostawało miejsca w jednym ekranie** na 1920×1080 — trzeba było przewijać stronę, żeby zobaczyć ją w całości. Wysokość mapy jest teraz ograniczona do ~520px z zachowaniem proporcji (szerokość dopasowuje się do wysokości, nie na odwrót) — cała mapa mieści się na ekranie bez przewijania w jej obrębie. Dotyczy tylko 1351–2199px, monitor 2K bez zmian.

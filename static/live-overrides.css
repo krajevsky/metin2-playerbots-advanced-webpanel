@@ -172,6 +172,18 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
    poprawce powyzej. Zgloszone [GA]Seban 2026-09-27. */
 .live-sidebar-tabs{display:none}
 @media(min-width:1351px) and (max-width:2199px){
+/* JS mirrors .live-sidebar's height to the map's own (live-widget.js,
+   syncSidebarHeight) so they line up side by side -- fine on a wide screen,
+   but at ~1366px the map itself is short (its width, hence height via
+   aspect-ratio, is squeezed by the fixed 300px sidebar column), and
+   mini-stats (~163px) + the tabs bar (~53px incl. margin) alone ate almost
+   all of it, leaving the active tab (ranking or aktywnosci) too short to
+   show even one row (~15-27px measured). min-height overrides JS's inline
+   style height (CSS min/max-height always win over an explicit height,
+   inline or not), so the sidebar can be taller than a short map when needed
+   -- a short map next to a taller list is normal, nothing breaks visually.
+   Reported [GA]Seban 2026-09-27. */
+.live-sidebar{min-height:460px!important}
 .live-sidebar-tabs{display:flex;gap:6px;margin:10px 0}
 .live-sidebar-tabs button{flex:1;padding:7px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text);font:inherit;font-size:12px;cursor:pointer}
 .live-sidebar-tabs button.active{background:var(--live-accent);color:#fff}
@@ -244,6 +256,37 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
    fixes -- a real 2K monitor is untouched. */
 @media(min-width:1351px) and (max-width:2199px){
   .world-map{width:auto!important;max-height:520px!important}
-  .world-map[data-map-index="21"],.world-map[data-map-index="1"],.world-map[data-map-index="41"]{max-width:416px!important}
-  .world-map[data-map-index="23"],.world-map[data-map-index="24"],.world-map[data-map-index="25"],.world-map[data-map-index="61"],.world-map[data-map-index="63"],.world-map[data-map-index="64"],.world-map[data-map-index="104"],.world-map[data-map-index="108"],.world-map[data-map-index="109"],.world-map[data-map-index="65"],.world-map[data-map-index="4"],.world-map[data-map-index="44"],.world-map[data-map-index="5"],.world-map[data-map-index="45"],.world-map[data-map-index="3"],.world-map[data-map-index="43"],.world-map[data-map-index="67"],.world-map[data-map-index="68"],.world-map[data-map-index="62"],.world-map[data-map-index="72"],.world-map[data-map-index="73"]{max-width:520px!important}
+  /* max-width was a bare px cap -- fine on 1920px where the grid column is
+     wide, but at ~1366px (narrower column, sidebar still fixed at 300px) the
+     cap was WIDER than the actual column, so the aspect-ratio-sized map
+     (width:auto, sized off max-height) overflowed its grid cell sideways and
+     visually sat on top of the sidebar/insights next to it -- exactly the
+     "Diagramy mapy nie wyswietlaja sie" bug reported [GA]Seban 2026-09-27.
+     min(<cap>,100%) never exceeds the column's own width either. */
+  .world-map[data-map-index="21"],.world-map[data-map-index="1"],.world-map[data-map-index="41"]{max-width:min(416px,100%)!important}
+  .world-map[data-map-index="23"],.world-map[data-map-index="24"],.world-map[data-map-index="25"],.world-map[data-map-index="61"],.world-map[data-map-index="63"],.world-map[data-map-index="64"],.world-map[data-map-index="104"],.world-map[data-map-index="108"],.world-map[data-map-index="109"],.world-map[data-map-index="65"],.world-map[data-map-index="4"],.world-map[data-map-index="44"],.world-map[data-map-index="5"],.world-map[data-map-index="45"],.world-map[data-map-index="3"],.world-map[data-map-index="43"],.world-map[data-map-index="67"],.world-map[data-map-index="68"],.world-map[data-map-index="62"],.world-map[data-map-index="72"],.world-map[data-map-index="73"]{max-width:min(520px,100%)!important}
+}
+
+/* Bot markers (18x18px, fixed since the map was always ~500-1000px wide) were
+   never scaled to the map itself -- on a narrower rendered map (e.g. ~260px
+   at 1366px wide with the ranking sidebar showing) they turned into an
+   unreadable overlapping blob. container queries key off .world-map's own
+   rendered width, not the viewport, so this also helps the map at any other
+   narrow size (tablet, "Diagramy mapy" toggled, etc.) without a separate
+   breakpoint per case. Above ~600px the markers are untouched (matches the
+   size the map already had everywhere before today, including 2K). Reported
+   [GA]Seban 2026-09-27. */
+.world-map{container-type:inline-size}
+@container (max-width:320px){
+  .bot-point{width:11px!important;height:11px!important}
+  .bot-point em{font-size:8px!important;top:-12px!important;left:6px!important}
+  .bot-point-stuck{right:-5px!important;top:-6px!important;font-size:10px!important}
+}
+@container (min-width:321px) and (max-width:450px){
+  .bot-point{width:13px!important;height:13px!important}
+  .bot-point em{font-size:9px!important;top:-13px!important}
+  .bot-point-stuck{right:-6px!important;top:-7px!important;font-size:11px!important}
+}
+@container (min-width:451px) and (max-width:600px){
+  .bot-point{width:15px!important;height:15px!important}
 }
