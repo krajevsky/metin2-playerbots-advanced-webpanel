@@ -3316,7 +3316,10 @@ def bot_offline_shop(pid):
         "name": game_text(shop["name"]) or "Bez nazwy", "map_index": int(shop["map"]), "map_name": map_name(shop["map"]),
         "x": int(shop["x"]), "y": int(shop["y"]), "is_premium": bool(shop["is_premium"]),
         "expired": int(shop.get("duration") or 0) == 0, "offers": offers,
-        "total_value": sum(o["price"] * max(1, int(o.get("count") or 1)) for o in offers),
+        # price is already the whole-stack listing price (confirmed live:
+        # e.g. 40x Peleryna Meestwa for 3 250 000, not 3 250 000 each) --
+        # multiplying by count again inflated the total for any stack >1.
+        "total_value": sum(o["price"] for o in offers),
     }
 
 
