@@ -2981,7 +2981,8 @@ def dashboard():
 @login_required
 def players():
     query = request.args.get("q", "").strip()
-    sql = ("SELECT p.id, p.name, p.level, p.job, p.map_index, p.gold, p.playtime, p.last_play, " + EMPIRE_EXPR + " AS empire"
+    sql = ("SELECT p.id, p.name, p.level, p.job, p.map_index, p.gold, p.playtime, p.last_play, " + EMPIRE_EXPR + ", "
+           "EXISTS (SELECT 1 FROM player.playerbot_sidekick sb WHERE sb.sidekick_pid=p.id) AS is_sidekick"
            " FROM player.player p LEFT JOIN player.player_index pi ON pi.id=p.account_id LEFT JOIN account.account a ON a.id=p.account_id")
     args = []
     if query:

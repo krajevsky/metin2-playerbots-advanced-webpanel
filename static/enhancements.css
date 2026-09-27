@@ -132,3 +132,5 @@ button.danger{background:#7a2331!important}
 @keyframes via-rainbow-shift{0%{background-position:0% 50%}100%{background-position:400% 50%}}
 @keyframes via-star-twinkle{0%,100%{opacity:.35;transform:scale(.8) rotate(0deg)}50%{opacity:1;transform:scale(1.2) rotate(20deg)}}
 @media(prefers-reduced-motion:reduce){.via-rainbow,.via-star{animation:none}}
+.sidekick-badge{display:inline-block;width:17px;height:17px;margin:0 5px 0 2px;vertical-align:-3px;object-fit:contain;filter:drop-shadow(0 0 3px color-mix(in srgb,var(--gold) 55%,transparent))}
+@media(max-width:650px){.sidekick-badge{width:15px;height:15px;margin-right:4px;vertical-align:-2px}}
