@@ -73,6 +73,11 @@
     // dashboard-charts.js was already loaded against empty placeholders. Run
     // it once more after the data and canvases exist; its own code remains the
     // single source of truth for Chart.js rendering.
+    const mapCanvas = document.getElementById('map-donut');
+    if (window.Chart && mapCanvas) {
+      const existingChart = Chart.getChart(mapCanvas);
+      if (existingChart) existingChart.destroy();
+    }
     const script = document.createElement('script');
     script.src = '/static/dashboard-charts.js?v=deferred';
     script.onload = () => widgets.querySelectorAll('.panel').forEach(panel => panel.classList.remove('is-loading'));
