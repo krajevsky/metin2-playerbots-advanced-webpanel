@@ -23,6 +23,14 @@
     Object.entries(values).forEach(([id, value]) => { const node = document.getElementById(id); if (node) node.textContent = value; });
     const guild = document.querySelector('.world-summary-grid > div:nth-child(6) b');
     if (guild) guild.textContent = summary.guilds ?? 0;
+    const empireBreakdown = document.querySelector('.empire-bots-breakdown');
+    if (empireBreakdown && Array.isArray(summary.empire_counts)) {
+      empireBreakdown.innerHTML = summary.empire_counts.map(empire => `<span class="empire-bots-item">${empire.flag ? `<img class="empire-flag-inline" src="/static/empires/${escape(empire.flag)}" alt="${escape(empire.name)}" title="${escape(empire.name)}">` : ''}${escape(empire.count)}</span>`).join('');
+    }
+    const installed = document.querySelector('.playerbots-installed');
+    if (installed && summary.version !== undefined) installed.textContent = summary.version;
+    const releaseLabel = document.querySelector('.playerbots-version small:not(.playerbots-available)');
+    if (releaseLabel && summary.release?.label) releaseLabel.textContent = summary.release.label;
     ['exp','drop','yang'].forEach(key => {
       const node = document.getElementById(`overview-rate-${key}`);
       if (node && summary.rates) node.textContent = `${summary.rates[key] ?? 0}%`;
