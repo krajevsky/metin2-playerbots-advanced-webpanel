@@ -18,8 +18,8 @@ from functools import wraps
 
 import pymysql
 import markdown
-from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, session, url_for
-from markupsafe import escape
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
+from markupsafe import Markup, escape
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
@@ -2814,6 +2814,17 @@ def item_icon_url(vnum):
     return url_for("static", filename=f"icons/{quote(icon)}") if icon else None
 
 
+def top_level_rank_map():
+    """Top ten by the same level/EXP ordering used by the level ranking."""
+    cached = getattr(g, "_top_level_rank_map", None)
+    if cached is None:
+        leaders = rows("SELECT id FROM player.player WHERE " + ranking_scope_sql("") +
+                       " ORDER BY level DESC,exp DESC LIMIT 10")
+        cached = {int(row["id"]): rank for rank, row in enumerate(leaders, 1)}
+        g._top_level_rank_map = cached
+    return cached
+
+
 @app.context_processor
 def globals_for_templates():
     tieru_url = os.environ.get("TIERU_PANEL_URL", "http://127.0.0.1:7788")
@@ -2835,7 +2846,13 @@ def globals_for_templates():
         except OSError:
             revision = 0
         return url_for("static", filename=filename, v=revision)
-    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings)}
+    def level_badge(pid, level, prefix=""):
+        label = f"{prefix}{int(level or 0)}"
+        rank = top_level_rank_map().get(int(pid or 0))
+        if not rank:
+            return escape(label)
+        return Markup('<span class="top-level-badge" title="Top 10 poziomu · #%d">%s</span>') % (rank, escape(label))
+    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "level_badge": level_badge, "top_level_rank": lambda pid: top_level_rank_map().get(int(pid or 0)), "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings)}
 @app.route("/login", methods=["GET", "POST"])
 def login():
     current = settings()
@@ -3038,15 +3055,18 @@ def _dashboard_deferred_context():
     refine_rate = cached_dashboard_ranking("refine_rate")
     quick_rankings.append({"title": "Skuteczność ulepszeń", "subtitle": "% sukcesu · min. 20 prób", "items": [{"id": row["id"], "name": row["name"], "value": f"{row['score']}%"} for row in refine_rate]})
     ranking_ids = {item["id"] for ranking in quick_rankings for item in ranking["items"]}
+    level_ranks = top_level_rank_map()
     if ranking_ids:
         placeholders = ",".join(["%s"] * len(ranking_ids))
         jobs_by_id = {row["id"]: row["job"] for row in rows("SELECT id,job FROM player.player WHERE id IN (" + placeholders + ")", list(ranking_ids))}
         for quick_ranking in quick_rankings:
             for item in quick_ranking["items"]:
                 item["job"] = jobs_by_id.get(item["id"], 0)
+                item["top_level_rank"] = level_ranks.get(int(item["id"]))
     return {"totals": totals, "bots": bots.get("count", 0), "system": system, "map_rows": map_rows,
             "channel_map_rows": channel_map_rows, "dashboard_channels": dashboard_channels,
             "shop_map_rows": shop_map_rows, "top": top, "global_top_id": global_top_id,
+            "top_level_ranks": level_ranks,
             "quick_rankings": quick_rankings, "world_summary": world_summary,
             "live_regen": read_regen_settings(), "live_map_regens": read_map_regen_status()}
 
@@ -5102,9 +5122,10 @@ def account_characters(aid):
 @app.route("/api/live-bots")
 @login_required
 def api_live_bots():
-    global_top = one("SELECT id FROM player.player WHERE " + BOT_IS_BARE + " ORDER BY level DESC,exp DESC LIMIT 1")
+    level_ranks = top_level_rank_map()
     return {"ok": True, "updated_at": int(datetime.now().timestamp() * 1000), "maps": MAP_NAMES, "bounds": MAP_BOUNDS,
-            "global_top_id": global_top.get("id"), "bots": live_bots(), "channels": discovered_channels()}
+            "global_top_id": next((pid for pid, rank in level_ranks.items() if rank == 1), None),
+            "top_level_ranks": level_ranks, "bots": live_bots(), "channels": discovered_channels()}
 
 
 @app.route("/api/news-feed")

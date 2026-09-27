@@ -9,7 +9,7 @@
 {% for bot in roster %}<tr class="account-row" data-href="{{url_for('player',pid=bot.id)}}" tabindex="0" title="Pokaż kartę postaci">
   <td><span class="class-cell">{% set kingdom=empire_info(bot.empire) %}{% if kingdom.flag %}<img class="empire-flag-inline" src="{{empire_flag(bot.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}<img class="class-portrait class-portrait--tiny" src="{{class_portrait(bot.job)}}" alt="" aria-hidden="true"><a href="{{url_for('player',pid=bot.id)}}">{{bot.name}}</a></span></td>
   <td>{{job_name(bot.job)}}</td>
-  <td>Lv {{bot.level}}</td>
+  <td>{{level_badge(bot.id,bot.level,'Lv ')}}</td>
   <td><span class="exp-orbs" title="{{bot.experience.percent}}% doświadczenia">{% for n in range(4) %}<i class="{% if bot.experience.percent >= (n + 1) * 25 %}full{% elif bot.experience.percent > n * 25 %}part{% endif %}"></i>{% endfor %}<b>{{bot.experience.percent}}%</b></span></td>
   <td><b style="color:{{bot.personality_color}}">{{bot.personality_label}}</b></td>
   <td>{{bot.action_label}}</td>

@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-27 · 1.97.0 · Gradientowa odznaka poziomu dla światowej top 10
+
+- **Postacie należące do pierwszej dziesiątki rankingu poziomu otrzymały rozpoznawalną odznakę poziomu:** ciemny gradientowy kafelek, pomarańczowy tekst i świetlista dolna krawędź odtwarzają wygląd przesłanego wzoru.
+- **Oznaczenie działa w całym panelu:** w głównym rankingu, karuzeli dashboardu, rankingu i podpisach mapy na żywo, profilu postaci, bazie graczy, kontach, gildiach, osobowościach, diagnostyce, sezonie oraz podglądzie odbiorców przedmiotów.
+- **Top 10 korzysta z tego samego źródła i kolejności co ranking poziomu:** poziom malejąco, następnie doświadczenie, z uwzględnieniem ustawienia dotyczącego prawdziwych graczy. Podpowiedź odznaki pokazuje dokładną pozycję od #1 do #10.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-27 · 1.96.0 · Prawdziwa mapa cieplna i porządki w tabelach
 
 - **Mapa cieplna na `/maps` i dashboardzie pokazuje teraz faktyczne zagęszczenie zdarzeń:** pojedyncze punkty zastąpiła płynna warstwa od niebieskiego przez zieleń i żółć do czerwieni. Ten sam renderer obsługuje zgony botów, rozbite Metiny i zabitych bossów.

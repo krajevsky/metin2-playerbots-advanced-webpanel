@@ -25,7 +25,7 @@
       <tr>
         <td><span class="class-cell"><img class="class-portrait class-portrait--tiny" src="{{class_portrait(c.job)}}" alt="{{c.class_profile.name}}" title="{{c.class_profile.name}}"></span></td>
         <td><a href="{{url_for('player', pid=c.id)}}">{{c.name}}</a> <span class="muted">· {{c.class_profile.name}}</span></td>
-        <td>{{c.level}}</td>
+        <td>{{level_badge(c.id,c.level)}}</td>
         <td>{{c.playtime_hours}} h {{c.playtime_minutes}} min</td>
         <td>{{c.last_play.strftime('%d.%m.%Y %H:%M') if c.last_play else '—'}}</td>
         <td>{{'{:,}'.format(c.gold or 0).replace(',', ' ')}}</td>
