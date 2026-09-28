@@ -12,5 +12,8 @@
 {% else %}
 <section class="panel guild-empty"><h2>System gildii przygotowuje pierwszy raport</h2><p>Rdzeń po starcie wykonuje spis siły botów po około 10 minutach. Wtedy przypisze klasy istniejącym gildiom i zacznie publikować ich status.</p></section>
 {% endif %}
+<h2>Gildie graczy</h2>
+<p class="muted">Gildie, których mistrzem jest człowiek, prosto z bazy danych: bez klasy (to percentyl botów) i bez liczby osób online.</p>
+<section class="panel guild-table-wrap"><table class="guild-table"><thead><tr><th>Gildia</th><th>Królestwo</th><th>Poziom</th><th>Członkowie</th><th>Mistrz</th><th>Ranking</th><th>Wojny<br><small>Z / R / P</small></th></tr></thead><tbody>{% for g in player_guilds %}<tr><td><a href="{{url_for('guild',guild_id=g.id)}}">{{g.name}}</a></td><td>{% set kingdom=empire_info(g.empire) %}<span class="empire-badge">{% if empire_flag(g.empire) %}<img src="{{empire_flag(g.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}{{kingdom.name}}</span></td><td>{{g.level}}</td><td>{{g.members}}</td><td><a href="{{url_for('player',pid=g.master_pid)}}">{{g.master or '—'}}</a></td><td>{{'{:,}'.format(g.ladder).replace(',', ' ')}}</td><td>{{g.wins}} / {{g.draws}} / {{g.losses}}</td></tr>{% else %}<tr><td colspan="7" class="muted">Żadnej gildii nie prowadzi jeszcze człowiek.</td></tr>{% endfor %}</tbody></table></section>
 <script>document.body.dataset.ajaxForms='1';</script>
 {% endblock %}
