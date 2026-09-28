@@ -320,7 +320,9 @@ STATIONARY_ACTIONS = {5, 6, 7, 13, 14, 15, 17, 18}
 PLAYERBOT_PERSONA_NONE = 255
 BOT_PERSONAS = {0: "Grinder", 1: "Zdobywca", 2: "Handlarz", 3: "Hazardzista", 4: "Perfekcjonista",
                 5: "Pogromca metinów", 6: "Górnik", 7: "Rybak", 8: "Najemnik", 9: "Towarzysz",
-                10: "Metinolog", 11: "Nałogowiec", 12: "Szalony Naukowiec", 13: "Egzekutor", 14: "Szalony Wędkarz"}
+                10: "Metinolog", 11: "Nałogowiec", 12: "Szalony Naukowiec", 13: "Egzekutor", 14: "Szalony Wędkarz",
+                15: "Młodszy Hazardzista", 16: "Starszy Hazardzista", 17: "Naczelny Hazardzista",
+                18: "Szalony Hazardzista"}
 BOT_MOODS = {0: "Słaby", 1: "Normalny", 2: "Bardzo dobry"}
 BOT_MOOD_LOCKS = {1: "euforia po ulepszeniu", 2: "kapitulacja (Anty-PK)"}
 ITEM_TYPE_NAMES = (
