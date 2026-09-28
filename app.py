@@ -3106,19 +3106,25 @@ BOT_IS_BARE = bot_identity("")
 
 
 def include_real_players_in_rankings():
-    """/manage toggle: rankingi/leaderboardy licza tylko playerboty domyslnie,
-    albo kazda postac (w tym prawdziwych graczy) gdy operator to wlaczy --
+    """/manage toggle: czy rankingi licza postacie graczy obok botow --
     zgloszone przez gracza NerrVoVy na Discordzie, 2026-09-15, zeby granie
-    obok botow bylo bardziej immersyjne."""
+    obok botow bylo bardziej immersyjne, i znowu przez blipu 28.09 ("Wgl
+    fajnie graczy dodac do wszystkich rankingow, jak gramy na coop fajnie
+    porownywac postep"). Od 28.09 domyslnie wlaczone: tylko zapisane 0
+    zostawia rankingi samym botom. Panel klasyczny Playerbots czyta ten sam
+    wiersz (rankings_count_people w jego files/admin_panel.py), wiec oba
+    licza to samo."""
     # common.m2_switches is Seban's own table: the collector creates it at
     # start since 1.54.1+Playerbots 2.0.55, but a panel asked before that,
-    # or on a database it cannot create in, reads "off" rather than 500 on
-    # every ranking and the dashboard (Playerbots 2.0.55).
+    # or on a database it cannot create in, reads the default rather than 500
+    # on every ranking and the dashboard (Playerbots 2.0.55).
     try:
         row = one("SELECT value FROM common.m2_switches WHERE name='include_real_players_in_rankings'")
     except pymysql.MySQLError:
-        return False
-    return str(row.get("value", "0")) == "1"
+        return True
+    if not row:
+        return True
+    return str(row.get("value", "1")).strip() != "0"
 
 
 def write_include_real_players_in_rankings(enabled):
@@ -3150,14 +3156,27 @@ def write_announce_plus9_refines(enabled):
     )
 
 
-def ranking_scope_sql(alias="p"):
+def not_game_master(alias="p"):
+    """No rank in common.gmlist (a PLAYER row is no rank). The admin account's
+    four game masters (gm_characters.sql: Admin, AdminNinja, AdminSura,
+    AdminSzaman - level 90, 500M yang and a full +9 set each) hold
+    IMPLEMENTOR there, and so does r40250's [SA]Admin; the operator's own
+    character on the admin account does not, and is ranked like anybody's."""
+    ref = (alias + ".") if alias else ""
+    return ("NOT EXISTS (SELECT 1 FROM common.gmlist rg"
+            " WHERE rg.mName = " + ref + "name AND rg.mAuthority <> 'PLAYER')")
+
+
+def ranking_scope_sql(alias="p", people_only=False):
     """The WHERE-clause predicate for 'who counts' in rankings/leaderboards
     (NOT the same question as economy stats, which already count everyone,
     or the teleport-me human lookup, which always means real characters).
-    With real players included, the installer's seeded admin/test account
-    (Admin/AdminNinja/AdminSura/AdminSzaman, 500M gold each -- see the same
-    exclusion for "yang w obiegu") would otherwise top every single
-    category and bury any actual player under it."""
+    With real players included every character counts but a game master's:
+    the seeded admin characters would otherwise top every single category
+    and bury any actual player under them. The list of their names this used
+    to carry missed a GM made in the panel under any other name, and would
+    have hidden a player who happened to be called Test. people_only narrows
+    it to people's characters ("Tylko gracze")."""
     ref = (alias + ".") if alias else ""
     # Tieru's permanent companions are ordinary playerbot identities, but the
     # engine records their stable role in player.playerbot_sidekick. They must
@@ -3166,9 +3185,25 @@ def ranking_scope_sql(alias="p"):
     not_sidekick = ("NOT EXISTS (SELECT 1 FROM player.playerbot_sidekick sb"
                     " WHERE sb.sidekick_pid = " + ref + "id)")
     if include_real_players_in_rankings():
-        return (ref + "name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')"
-                " AND " + not_sidekick)
-    return "(" + bot_identity(alias) + " AND " + not_sidekick + ")"
+        if people_only:
+            # A companion is a bot identity, so NOT bot_identity leaves it out.
+            return "(" + not_game_master(alias) + " AND NOT " + bot_identity(alias) + ")"
+        return "(" + not_game_master(alias) + " AND " + not_sidekick + ")"
+    return "(1 = 0)" if people_only else "(" + bot_identity(alias) + " AND " + not_sidekick + ")"
+
+
+def person_ids(ids):
+    """Which of these characters are people's, not bots' - what a ranking
+    marks with 👤."""
+    ids = sorted({int(i) for i in ids if i})
+    if not ids:
+        return set()
+    marks = ",".join(["%s"] * len(ids))
+    try:
+        found = rows("SELECT p.id FROM player.player p WHERE p.id IN (" + marks + ") AND NOT " + BOT_IS, ids)
+    except pymysql.MySQLError:
+        return set()
+    return {int(row["id"]) for row in found}
 
 
 def cached_dashboard_ranking(kind, limit=10, ttl=300):
@@ -3206,8 +3241,8 @@ def cached_dashboard_ranking(kind, limit=10, ttl=300):
     return data
 
 
-def bot_ranking(kind, sort_by="avg"):
-    base = ranking_scope_sql("p")
+def bot_ranking(kind, sort_by="avg", people_only=False):
+    base = ranking_scope_sql("p", people_only)
     # Fetches every matching row (up to a generous safety cap, not a
     # per-page one) -- /rankings paginates in Python instead of pushing
     # LIMIT/OFFSET into 17 differently-shaped queries, so it can show an
@@ -3259,11 +3294,14 @@ def bot_ranking(kind, sort_by="avg"):
         # common/length.h. Do 1.33.0 aliasy byly odwrotne, wiec ORDER BY
         # wybieral pierwsza setke po niewlasciwej kolumnie i poprawianie
         # samego sortowania w Pythonie nic by nie dalo.
+        # The window is plus9's (below): a SAFEBOX row's owner_id is an
+        # account's id, so with people ranked a person's depot landed on
+        # whichever character had that number.
         result = rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)) AS item_name,
             IF(GREATEST(CASE WHEN i.attrtype0={ATTR_SKILL_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_SKILL_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_SKILL_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_SKILL_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_SKILL_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_SKILL_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_SKILL_DAMAGE} THEN i.attrvalue6 ELSE -999 END)=-999,0,GREATEST(CASE WHEN i.attrtype0={ATTR_SKILL_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_SKILL_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_SKILL_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_SKILL_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_SKILL_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_SKILL_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_SKILL_DAMAGE} THEN i.attrvalue6 ELSE -999 END)) AS skill_damage,
             IF(GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)=-999,0,GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)) AS avg_damage
             FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
-            WHERE {base} AND ((i.vnum BETWEEN 290 AND 299) OR (i.vnum BETWEEN 1170 AND 1179) OR (i.vnum BETWEEN 2150 AND 2159) OR (i.vnum BETWEEN 3210 AND 3219) OR (i.vnum BETWEEN 5110 AND 5119) OR (i.vnum BETWEEN 7160 AND 7169))
+            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY') AND ((i.vnum BETWEEN 290 AND 299) OR (i.vnum BETWEEN 1170 AND 1179) OR (i.vnum BETWEEN 2150 AND 2159) OR (i.vnum BETWEEN 3210 AND 3219) OR (i.vnum BETWEEN 5110 AND 5119) OR (i.vnum BETWEEN 7160 AND 7169))
             ORDER BY {weapon30_order} LIMIT 3000""")
         # 71 is APPLY_SKILL_DAMAGE_BONUS and 72 is APPLY_NORMAL_HIT_DAMAGE_BONUS in
         # common/length.h, and the query names them so. A swap used to live
@@ -3355,8 +3393,9 @@ def bot_ranking(kind, sort_by="avg"):
     # ktos wszedl ze starym ?type=hunting, kind nie ma go juz w kinds i strona
     # pokazuje domyslny ranking poziomu.
     if kind == "shops":
+        # The keepers the cores report are bots; a person's stall is in no file.
         keeper_ids = [pid for pid, state in live_statuses().items() if int(state.get("action") or 0) == 13]
-        if not keeper_ids:
+        if not keeper_ids or people_only:
             return []
         placeholders = ",".join(["%s"] * len(keeper_ids))
         return rows(f"SELECT p.id,p.name,p.level,p.gold,'Stragan otwarty' AS detail FROM player.player p WHERE p.id IN ({placeholders}) ORDER BY p.level DESC {limit_clause}", keeper_ids)
@@ -3725,10 +3764,13 @@ def _dashboard_deferred_context():
     if ranking_ids:
         placeholders = ",".join(["%s"] * len(ranking_ids))
         jobs_by_id = {row["id"]: row["job"] for row in rows("SELECT id,job FROM player.player WHERE id IN (" + placeholders + ")", list(ranking_ids))}
+        # A person's line is marked in every slide (blipu, 28.09).
+        people = person_ids(ranking_ids)
         for quick_ranking in quick_rankings:
             for item in quick_ranking["items"]:
                 item["job"] = jobs_by_id.get(item["id"], 0)
                 item["top_level_rank"] = level_ranks.get(int(item["id"]))
+                item["is_person"] = item["id"] in people
     return {"totals": totals, "bots": bots.get("count", 0), "system": system, "map_rows": map_rows,
             "channel_map_rows": channel_map_rows, "dashboard_channels": dashboard_channels,
             "shop_map_rows": shop_map_rows, "top": top, "global_top_id": global_top_id,
@@ -6103,7 +6145,11 @@ def rankings():
         per_page = 100
     if per_page not in (100, 200, 500, 1000):
         per_page = 100
-    all_ranking = bot_ranking(kind, weapon30_sort)
+    # "Tylko gracze": people's characters alone, numbered among themselves,
+    # so a person far down a ranking of bots is still found (blipu, 28.09).
+    people_ranked = include_real_players_in_rankings()
+    people_only = people_ranked and request.args.get("people") == "1"
+    all_ranking = bot_ranking(kind, weapon30_sort, people_only)
     total = len(all_ranking)
     total_pages = max(1, -(-total // per_page))  # ceil division
     # "goto_page" (the jump-to-page box, 1-based, what the operator actually
@@ -6128,6 +6174,9 @@ def rankings():
             page_numbers.append(None)
         page_numbers.append(index)
     ids = [row["id"] for row in ranking]
+    people = person_ids(ids)
+    for row in ranking:
+        row["is_person"] = row["id"] in people
     if ids:
         # Which kingdom each of them belongs to. player_index.empire, because
         # that is the column the core reads when it decides where a bot lives;
@@ -6163,7 +6212,8 @@ def rankings():
         else:
             row["detail"] = game_text(row.get("detail"))
     return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
-                           per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers)
+                           per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers,
+                           people_ranked=people_ranked, people_only=people_only)
 
 
 @app.route("/season")
@@ -6179,13 +6229,17 @@ def season():
         WHERE l.time>=NOW()-INTERVAL 7 DAY AND """ + ranking_scope_sql("p") + """
           AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS')
         GROUP BY p.id ORDER BY (SUM(l.how='STONE_KILL')*150+SUM(l.how='BOSS_KILL')*500+SUM(l.how='REFINE SUCCESS' AND (l.hint LIKE '%%+7' OR l.hint LIKE '%%+8' OR l.hint LIKE '%%+9'))*200) DESC,p.level DESC LIMIT 30""")
+    people = person_ids([row["id"] for row in weekly])
     for row in weekly:
         row["points"] = int(row.get("metins") or 0)*150 + int(row.get("bosses") or 0)*500 + int(row.get("refine7") or 0)*200
+        row["is_person"] = row["id"] in people
+    # The highest level is the ranked world's: the admin account's game
+    # masters stand at 90 and would have held this tile for good.
     records = one("""SELECT
         SUM(l.how='STONE_KILL') AS metins,
         SUM(l.how='BOSS_KILL') AS bosses,
         SUM(l.how='REFINE SUCCESS' AND (l.hint LIKE '%%+7' OR l.hint LIKE '%%+8' OR l.hint LIKE '%%+9')) AS refine7,
-        (SELECT MAX(level) FROM player.player) AS level
+        (SELECT MAX(p.level) FROM player.player p WHERE """ + ranking_scope_sql("p") + """) AS level
         FROM log.log l
         WHERE l.time>=NOW()-INTERVAL 7 DAY
           AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS')""")
@@ -6751,9 +6805,9 @@ def manage_ranking_scope():
     enabled = "1" in request.form.getlist("include_real_players")
     write_include_real_players_in_rankings(enabled)
     if enabled:
-        flash("Rankingi i karuzela na dashboardzie liczą teraz każdą postać, nie tylko boty — działa od razu.")
+        flash("Rankingi w obu panelach liczą teraz boty i postacie graczy (bez postaci GM-ów) — działa od razu.")
     else:
-        flash("Rankingi liczą teraz znowu wyłącznie boty.")
+        flash("Rankingi w obu panelach liczą teraz znowu wyłącznie boty.")
     return redirect(url_for("manage"))
 
 
