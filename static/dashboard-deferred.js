@@ -18,6 +18,18 @@
     empireCell.classList.add('is-loading');
     empireBreakdown.innerHTML = shimmer('Ładowanie zalogowanych botów', true);
   }
+  const channelCell = document.querySelector('.channel-bots-cell');
+  const channelBreakdown = channelCell?.querySelector('.channel-bots-breakdown');
+  if (channelCell && channelBreakdown) {
+    channelCell.classList.add('is-loading');
+    channelBreakdown.innerHTML = shimmer('Ładowanie botów wg kanału', true);
+  }
+  ['overview-bots', 'overview-avg', 'overview-party', 'overview-max'].forEach(id => {
+    const node = document.getElementById(id);
+    if (node) node.innerHTML = shimmer('Ładowanie', true);
+  });
+  const guildCell = document.querySelector('.world-summary-grid > div:nth-child(6) b');
+  if (guildCell) guildCell.innerHTML = shimmer('Ładowanie gildii', true);
 
   function updateWorld(summary) {
     const values = {

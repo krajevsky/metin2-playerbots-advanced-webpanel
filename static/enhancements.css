@@ -139,7 +139,7 @@ button.danger{background:#7a2331!important}
 .dashboard-widget-loader{position:absolute;inset:16px;width:auto;margin:0;pointer-events:none}
 .panel:not(.is-loading) .dashboard-widget-loader{display:none}
 .ld-shimmer--compact{position:static;width:72px;min-height:0;height:10px;display:flex;justify-content:center}.ld-shimmer--compact i{width:72px;height:8px}
-.empire-bots-cell.is-loading .empire-bots-breakdown{width:100%;min-height:29px}
+.empire-bots-cell.is-loading .empire-bots-breakdown,.channel-bots-cell.is-loading .channel-bots-breakdown{width:100%;min-height:29px}
 .dashboard-widgets--loading .panel{position:relative;overflow:hidden}
 .dashboard-widgets--loading .panel>.dashboard-widget-loader{display:flex}
 .dashboard-widget-loader i{display:block}
