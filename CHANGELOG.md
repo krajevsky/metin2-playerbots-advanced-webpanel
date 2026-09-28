@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.100.2 · Przetopy (gniazda akcesoriów) w tooltipach
+
+- **Tooltipy bransolet, naszyjników i kolczyków pokazują teraz włożone przetopy**: stopień gniazda (np. "Ebonit 2/2"), realny bonus jaki dają (np. Siła +2, Maks. PŻ +80 — zweryfikowane wprost w kodzie silnika i na żywych postaciach), pozostały czas do degradacji o jeden stopień oraz liczbę pustych, niewykorzystanych kieszeni. Ikona materiału pokazana dla kolczyków (potwierdzone jako "Ebonit"); dla bransolet/naszyjników pokazuje się sam bonus bez nazwy materiału, bo silnik jej nigdzie nie zapisuje.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-28 · 1.100.1 · Wybór miejsc legendarnych ogłoszeń
 
 - **Zarządzanie panelem pozwala niezależnie wybrać trzy miejsca dla ogłoszeń o bossach, rajdach i lochach:** Czat na żywo, Wieści ze świata oraz dolny pasek wiadomości. Można włączyć dowolny zestaw, wszystkie miejsca albo wyłączyć je całkowicie.

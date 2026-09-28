@@ -3891,6 +3891,30 @@ def api_admin_teleport_me():
     return {"ok": status == "done", "status": status, "name": moved, "x": target_x, "y": target_y}
 
 
+# Vanilla "accessory socket" grade system (item.cpp CItem::GetAccessorySocketGrade/
+# MaxGrade/DownGradeTime -- confirmed in source: 2026-09-28): a bracelet/necklace/
+# earring can have up to 3 "przetop" pockets unlocked, each successfully filled
+# bumping a single grade counter that boosts EVERY one of the item's own apply
+# bonuses by MAX(grade, base_apply_value * effectivePct[grade] / 100), decaying by
+# one grade after a fixed timer unless refreshed. Verified live against a real
+# earring (player.item socket0=grade, socket1=max grade, socket2=seconds left):
+# grade 1/max 3, Sila+3 base -> extra +1, Maks PZ+25 base -> extra +2, both matching
+# the in-game tooltip exactly. ARMOR_WRIST/ARMOR_NECK/ARMOR_EAR are item_length.h's
+# EArmorSubTypes 3/5/6. The material name shown in-game ("Ebonit" for earrings) is
+# not persisted anywhere in the DB (CanPutInto's consumed-item vnum is spent, not
+# stored) -- only confirmed for ARMOR_EAR from the operator's own screenshot, so
+# left unset (no fabricated icon/name) for wrist/neck until confirmed live too.
+ACCESSORY_SOCKET_SUBTYPES = {3, 5, 6}
+ACCESSORY_SOCKET_EFFECTIVE_PCT = (0, 10, 20, 40)
+ACCESSORY_SOCKET_MATERIAL = {6: (50628, "Ebonit")}
+
+
+def format_seconds_short(seconds):
+    seconds = max(0, int(seconds or 0))
+    hours, minutes = seconds // 3600, (seconds % 3600) // 60
+    return f"{hours} h {minutes} min" if hours else f"{minutes} min"
+
+
 def _enrich_items(items):
     """Adds item_name/item_size/base_stats/bonuses/stones to each item dict
     (mutated in place) -- shared by load_character_items() and
@@ -3944,6 +3968,38 @@ def _enrich_items(items):
         else:
             item["stones"] = [stone_defs[v] for v in (int(item.get(f"socket{i}") or 0) for i in range(3)) if v in stone_defs]
         item["polymorph_target"] = mob_names.get(int(item.get("socket0") or 0)) if item_type == 19 else None
+        # Przetop/accessory-socket grade -- see the constants' comment above
+        # _enrich_items for the source trace and verified formula. socket0/1/2
+        # mean something completely different here than for weapon/armor gems
+        # (grade/max grade/seconds-to-decay, not a socketed item's own vnum),
+        # so this only ever applies to bracelets/necklaces/earrings, never
+        # alongside the "stones" list above (item_type==2 overlaps, subtype
+        # doesn't). Reported [GA]Seban 2026-09-28.
+        subtype = int((ITEM_DEFS.get(str(vnum)) or {}).get("subtype") or 0)
+        accessory_socket = None
+        if item_type == 2 and subtype in ACCESSORY_SOCKET_SUBTYPES:
+            max_grade = max(0, min(3, int(item.get("socket1") or 0)))
+            if max_grade > 0:
+                grade = max(0, min(max_grade, int(item.get("socket0") or 0)))
+                pct = ACCESSORY_SOCKET_EFFECTIVE_PCT[grade]
+                bonuses = []
+                for i in range(2):
+                    apply_type, apply_value = item.get(f"applytype{i}"), item.get(f"applyvalue{i}")
+                    if not apply_type or not apply_value or not grade:
+                        continue
+                    extra = max(grade, int(apply_value) * pct // 100)
+                    if extra:
+                        bonuses.append(apply_text(apply_type, extra))
+                material = ACCESSORY_SOCKET_MATERIAL.get(subtype)
+                seconds_left = int(item.get("socket2") or 0) if grade else 0
+                accessory_socket = {
+                    "grade": grade, "max_grade": max_grade, "empty": max_grade - grade,
+                    "bonuses": bonuses,
+                    "material_name": material[1] if material else None,
+                    "material_icon": item_icon_url(material[0]) if material else None,
+                    "remaining_text": format_seconds_short(seconds_left) if seconds_left else None,
+                }
+        item["accessory_socket"] = accessory_socket
     return items
 
 
