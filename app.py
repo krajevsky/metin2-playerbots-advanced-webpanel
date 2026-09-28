@@ -156,6 +156,7 @@ UPDATE_WATCHER_MAX_AGE_SECONDS = 90
 PLAYERBOTS_RELEASE_URL = "https://api.github.com/repos/TieruYT/metin2-playerbots/releases/latest"
 PLAYERBOTS_RELEASE_CACHE_SECONDS = 900
 _playerbots_release_cache = {"checked_at": 0.0, "latest": None, "error": None}
+PANEL_VERSION_URL = "https://raw.githubusercontent.com/krajevsky/metin2-playerbots-advanced-webpanel/main/VERSION"
 SERVER_SETTINGS_READY_MAX_AGE_SECONDS = 20
 SERVER_SETTINGS_STALE_SECONDS = 600
 GAME_HOST = os.environ.get("PLAYERBOTS_GAME_HOST", "metin2-game")
@@ -1701,6 +1702,31 @@ def playerbots_release_status(check_remote=True):
     # own subtitle directly underneath.
     return {"installed": installed, "latest": latest, "behind": False, "tone": "unknown",
             "label": "Nie sprawdzono GitHub" if latest_info.get("error") else ""}
+
+
+def panel_release_status():
+    """Compare the installed panel with GitHub on every dashboard refresh."""
+    installed = PANEL_VERSION.strip()
+    latest = None
+    error = None
+    try:
+        request_github = Request(PANEL_VERSION_URL, headers={"User-Agent": "Metin2-Singleplayer-Panel"})
+        with urlopen(request_github, timeout=3) as response:
+            latest = response.read(80).decode("utf-8", errors="replace").strip()
+        if not version_key(latest):
+            raise ValueError("GitHub nie zwrócił poprawnego numeru wersji panelu.")
+        latest = latest.lstrip("vV")
+    except (OSError, ValueError, HTTPError, URLError) as exc:
+        error = str(exc)[:120] or "Nie udało się połączyć z GitHub."
+        latest = None
+    installed_key, latest_key = version_key(installed), version_key(latest)
+    if installed_key and latest_key:
+        behind = installed_key < latest_key
+        return {"installed": installed, "latest": latest, "behind": behind,
+                "tone": "outdated" if behind else "current",
+                "label": f"Dostępna {latest}" if behind else "Aktualna"}
+    return {"installed": installed, "latest": latest, "behind": False, "tone": "unknown",
+            "label": "Nie udało się sprawdzić GitHub" if error else "Brak wersji lokalnej"}
 
 
 def update_csrf_token():
@@ -3633,6 +3659,7 @@ def dashboard():
         "channel_counts": [],
         "guilds": 0, "last_restart": "Ładowanie…", "version": "—",
         "release": {"installed": "—", "latest": None, "behind": False, "tone": "", "label": "Ładowanie…"},
+        "panel_release": {"installed": PANEL_VERSION, "latest": None, "behind": False, "tone": "", "label": "Sprawdzanie…"},
         "rates": {"exp": 0, "drop": 0, "yang": 0}, "events": {},
     }
     return render_template("dashboard.html", totals=totals, bots=0, system={}, map_rows=[],
@@ -3731,6 +3758,7 @@ def _dashboard_deferred_context():
     # off the critical path, and latest_playerbots_release() caches its own
     # result for PLAYERBOTS_RELEASE_CACHE_SECONDS anyway.
     release_status = playerbots_release_status()
+    panel_release = panel_release_status()
     world_summary = {
         "bots": len(live_roster),
         "average_level": round(sum(int(bot.get("level") or 0) for bot in live_roster) / len(live_roster), 1) if live_roster else 0,
@@ -3746,6 +3774,7 @@ def _dashboard_deferred_context():
         "last_restart": restart_label,
         "version": release_status["installed"],
         "release": release_status,
+        "panel_release": panel_release,
         "rates": read_rates(),
         "events": read_events_status(),
     }

@@ -28,8 +28,8 @@
     const node = document.getElementById(id);
     if (node) node.innerHTML = shimmer('Ładowanie', true);
   });
-  const guildCell = document.querySelector('.world-summary-grid > div:nth-child(6) b');
-  if (guildCell) guildCell.innerHTML = shimmer('Ładowanie gildii', true);
+  const panelVersion = document.querySelector('.panel-installed');
+  if (panelVersion) panelVersion.innerHTML = shimmer('Sprawdzanie wersji panelu', true);
 
   function updateWorld(summary) {
     const values = {
@@ -39,8 +39,16 @@
       'overview-max': summary.max_level,
     };
     Object.entries(values).forEach(([id, value]) => { const node = document.getElementById(id); if (node) node.textContent = value; });
-    const guild = document.querySelector('.world-summary-grid > div:nth-child(6) b');
-    if (guild) guild.textContent = summary.guilds ?? 0;
+    const panelCard = document.querySelector('.panel-version');
+    const panelInstalled = panelCard?.querySelector('.panel-installed');
+    const panelLabel = panelCard?.querySelector('small');
+    if (panelInstalled && summary.panel_release) panelInstalled.textContent = summary.panel_release.installed;
+    if (panelLabel && summary.panel_release) panelLabel.textContent = summary.panel_release.label;
+    if (panelCard && summary.panel_release) {
+      panelCard.classList.remove('current', 'outdated', 'unknown');
+      panelCard.classList.add(summary.panel_release.tone || 'unknown');
+      panelLabel?.classList.toggle('fx-shimmer', Boolean(summary.panel_release.behind));
+    }
     const empireBreakdown = document.querySelector('.empire-bots-breakdown');
     if (empireBreakdown && Array.isArray(summary.empire_counts)) {
       empireBreakdown.innerHTML = summary.empire_counts.map(empire => `<span class="empire-bots-item">${empire.flag ? `<img class="empire-flag-inline" src="/static/empires/${escape(empire.flag)}" alt="${escape(empire.name)}" title="${escape(empire.name)}">` : ''}${escape(empire.count)}</span>`).join('');
