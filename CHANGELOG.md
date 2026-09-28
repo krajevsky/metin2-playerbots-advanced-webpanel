@@ -1,5 +1,19 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.100.6 · Gracze w rankingach, teleport na kanał bota i poprawki z kopii panelu w Playerbots
+
+- **Rankingi, karuzela na dashboardzie i sezon liczą boty razem z postaciami graczy, bez postaci GM-ów** (z rangą w `common.gmlist`, np. Admin, AdminNinja, AdminSura i AdminSzaman z konta admin — dotąd wykluczała je lista imion, która nie widziała GM-a założonego w panelu pod innym imieniem). Gracz ma 👤 i podświetloną linię, a „👤 Tylko gracze” pokazuje samych ludzi, ponumerowanych między sobą i ze stronicowaniem. Przełącznik „Prawdziwi gracze w rankingach” jest teraz domyślnie włączony (wyłącza go zapisane 0), bo panel klasyczny Playerbots czyta ten sam wiersz i oba panele mają liczyć to samo. Ranking „Broń 30 Lv” nie bierze już przedmiotów z magazynu (tam `owner_id` to konto, nie postać), a „Najwyższy poziom” w sezonie nie stoi na zawsze na 90 poziomie GM-ów. Zgłosił blipu.
+- **„Teleportuj mnie” przenosi postać na kanał bota**, nie tylko na jego współrzędne na kanale, na którym stała postać (zgłosił prodnathin). Działa z `web_admin.quest` z Playerbots 2.2.37; starszy quest odpowiada `bad_args`, a panel ponawia wtedy zwykły teleport na kanale postaci, jak dotąd.
+- **Tanaka i Zuo na wybranej mapie**, tak jak uruchamia je Playerbots od 2.2.28.
+- **Etykiety osobowości znają rzadkie osobowości (10–14) i czterech hazardzistów z Community Patch 5 (15–18)**, a karta bota pokazuje blokadę expa przy nastroju.
+- **Suwaki celów AI mają opis po najechaniu**: co dokładnie zmienia każdy i jak szybko. Kowal, Księgi, Biolog i Misje polowania kończą się na 100, bo przy 100 boty robią to już przy każdej okazji; „Wszystko na 100” nie rusza wrogości królestw, a zapis nie nadpisuje ustawień, których strona nie pokazuje.
+- **Strona gildii pokazuje też gildie prowadzone przez graczy** (zgłosił Derpsonkowy95).
+- **Sklep offline bota na karcie postaci ma 16 rzędów, gdy towar stoi też w polach 80–159**, zamiast rysować drugą połowę na pierwszej.
+- **Tooltip oferty podaje cenę za cały stos raz**, z liczbą sztuk.
+- **Zgodność z Playerbots 2.x trzymana dotąd tylko w kopii panelu w paczce Playerbots:** kolektor czyta `playerbot_status.tsv` po nagłówku (kolumny osobowości Iwakury) i liczy tylko oferty, które da się kupić; raty na mt2009 czytane z flag gry, z bazą eventu; brak tabeli przełączników, zrzutu sklepów czy skrzyni ucznia w bazie nie wywraca strony; Zarządzanie pokazuje liczbę botów na każdym kanale i link do masowego nadawania przedmiotów; obraz buduje się także bez wygenerowanego `VERSION`. Ranking „Polowanie” usunięty, bo `levelup.quest` nie działa na mt2009.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-09-28 · 1.100.5 · Animacja ładowania dla statystyk "Stan serwera"
 
 - **Widget "Zalogowane boty wg kanału" dostał tę samą animację ładowania (shimmer) co "Zalogowane boty" wg królestw** — wcześniej mignął pusto zanim dane dotarły. Przy okazji ten sam efekt dostały też pozostałe liczby w karcie "Stan serwera" (botów w grze, śr. poziom, w grupach, maks. poziom, gildie botów), które wcześniej krótko pokazywały "0" zamiast animacji ładowania.
