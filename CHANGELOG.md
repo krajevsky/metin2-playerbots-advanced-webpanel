@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.100.8 · Skrzynia Ucznia na Playerbots 2.x to jeden przełącznik dla graczy i botów
+
+- **Na Playerbots 2.x (mt2009) przełącznik „Skrzynia startowa” w Zarządzaniu steruje flagą świata `m2_starter_chest_off`** — tą samą, którą czyta quest skrzyni przy pierwszym logowaniu gracza, seed przy tworzeniu bota i rdzenie dla botów, które już są w świecie. Wyłączona: nowa postać gracza jej nie dostaje, nowe boty rodzą się bez niej, a boty tracą nieotwarte skrzynie z łańcucha (skrzyń graczy nic nie rusza). Zapis działa od razu przez kolejkę `web_admin.quest` (`STARTER_CHEST`, Playerbots 2.2.38) i zostaje po restarcie; gdy gra nie odpowiada, panel mówi, że zadziała przy następnym starcie. Dotąd panel pisał do `common.m2_switches`, którego na mt2009 nic nie czyta, więc skrzynie wracały mimo wyłączenia. Na pozostałych silnikach bez zmian.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-09-28 · 1.100.7 · Wylogowanie nie nachodzi na rozwijane menu
 
 - **Przycisk „Wyloguj” zachowuje własne miejsce pod całą nawigacją również przy wysokości 1080 px.** Otwarcie sekcji „Zarządzanie” albo „Konta i GM” nie ściska już listy i nie układa przycisku na pozycjach podmenu; przy krótszym ekranie cały pasek przewija się jako jedna kolumna.
