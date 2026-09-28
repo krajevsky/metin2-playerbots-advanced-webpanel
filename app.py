@@ -4188,35 +4188,53 @@ def api_admin_teleport_me():
     if data.get("x") and data.get("y"):
         # Explicit coordinates -- e.g. a shop's own stall position, which can
         # outlive the bot going offline (IkarusShop keeps the stall open).
+        # Shops stand on the first channel only.
         target_x, target_y = int(data["x"]), int(data["y"])
+        channel = int(data.get("channel") or 1)
     else:
         live = live_statuses().get(pid)
         if not live:
             return {"ok": False, "error": "bot_offline"}
         target_x, target_y = int(live["x"]), int(live["y"])
+        channel = int(live.get("channel") or 0)
+    # "y:channel": web_admin.quest's WARP moves a character on another channel
+    # to the bot's (pc.warp_channel); a plain pc.warp stayed on the one the
+    # character was on ("teleportuje, ale nie zmienia ch", prodnathin,
+    # 28 September).
+    target_arg2 = "%d:%d" % (target_y, channel) if channel > 0 else str(target_y)
     names = [r["name"] for r in rows(
         "SELECT name FROM player.player WHERE NOT (" + BOT_IS_BARE + ")"
         " AND last_play >= NOW() - INTERVAL 7 DAY ORDER BY last_play DESC LIMIT 8")]
     if not names:
         return {"ok": False, "error": "no_human_player"}
-    for name in names:
-        rows("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2) VALUES (%s,'WARP',%s,%s)",
-             (name, str(target_x), str(target_y)))
-    ids = {r["id"]: r["player_name"] for r in rows(
-        "SELECT id, player_name FROM player.web_admin_queue WHERE cmd='WARP' AND status='pending'"
-        " AND arg1=%s AND arg2=%s AND player_name IN (" + ",".join(["%s"] * len(names)) + ")",
-        [str(target_x), str(target_y)] + names)}
-    moved, status = None, "timeout"
-    deadline = time.time() + 6.0
-    while time.time() < deadline and moved is None:
-        time.sleep(0.6)
-        for r in rows("SELECT id, player_name, status FROM player.web_admin_queue WHERE id IN (" +
-                       ",".join(["%s"] * len(ids)) + ")", list(ids.keys())):
-            if r["status"] not in ("pending", None):
-                moved, status = r["player_name"], r["status"]
-                break
-    rows("DELETE FROM player.web_admin_queue WHERE status='pending' AND id IN (" +
-         ",".join(["%s"] * len(ids)) + ")", list(ids.keys()))
+
+    def queue_warp(arg2):
+        for name in names:
+            rows("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2) VALUES (%s,'WARP',%s,%s)",
+                 (name, str(target_x), arg2))
+        ids = {r["id"]: r["player_name"] for r in rows(
+            "SELECT id, player_name FROM player.web_admin_queue WHERE cmd='WARP' AND status='pending'"
+            " AND arg1=%s AND arg2=%s AND player_name IN (" + ",".join(["%s"] * len(names)) + ")",
+            [str(target_x), arg2] + names)}
+        moved, status = None, "timeout"
+        deadline = time.time() + 6.0
+        while time.time() < deadline and moved is None:
+            time.sleep(0.6)
+            for r in rows("SELECT id, player_name, status FROM player.web_admin_queue WHERE id IN (" +
+                           ",".join(["%s"] * len(ids)) + ")", list(ids.keys())):
+                if r["status"] not in ("pending", None):
+                    moved, status = r["player_name"], r["status"]
+                    break
+        rows("DELETE FROM player.web_admin_queue WHERE status='pending' AND id IN (" +
+             ",".join(["%s"] * len(ids)) + ")", list(ids.keys()))
+        return moved, status
+
+    moved, status = queue_warp(target_arg2)
+    if status == "bad_args" and target_arg2 != str(target_y):
+        # A web_admin.quest from before Playerbots 2.2.37 reads a bare y and
+        # answers "y:channel" with bad_args: the character is moved there on
+        # its own channel, as it always was.
+        moved, status = queue_warp(str(target_y))
     if moved is None:
         return {"ok": False, "error": "player_offline", "tried": names}
     return {"ok": status == "done", "status": status, "name": moved, "x": target_x, "y": target_y}
