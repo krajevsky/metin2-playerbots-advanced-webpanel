@@ -94,6 +94,16 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 /* Flagi na żywej mapie: kanał świeci wyłącznie na obwódce, nigdy na fladze. */
 .bot-point{width:18px!important;height:18px!important;box-sizing:border-box!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;--map-channel-ring:#78b6ff}
 .bot-point.ch-1{--map-channel-ring:#43df91}.bot-point.ch-2{--map-channel-ring:#ef5ac9}
+/* CH3/CH4: added 2026-09-28 alongside Playerbots 2.2.36's optional 3rd/4th
+   channel. White/black per operator's request -- picked to stay clear of
+   both the existing CH1 green/CH2 pink rings and the empire flag colors
+   (Chunjo red, Shinsoo blue, Jinno gold). A literal black ring would be
+   invisible against the map's own dark background, so ch-4 gets an extra
+   white outline on top of its dark ring instead of relying on the ring glow
+   alone (which fades to nothing for a near-black color). */
+.bot-point.ch-3{--map-channel-ring:#f5f5f5}
+.bot-point.ch-4{--map-channel-ring:#2b2b30}
+.bot-point.ch-4::before{box-shadow:0 0 0 1px #fff,0 0 5px #fff9}
 .bot-point .bot-point-flag{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit;position:relative;z-index:1}
 .bot-point::before{content:"";position:absolute;inset:-1px;z-index:2;border:1px solid var(--map-channel-ring);border-radius:inherit;box-shadow:0 0 3px color-mix(in srgb,var(--map-channel-ring) 85%,transparent),0 0 7px color-mix(in srgb,var(--map-channel-ring) 42%,transparent);pointer-events:none}
 .bot-point.is-pt,.bot-point.is-pt .bot-point-flag{border-radius:2px!important}.bot-point.is-stuck{background:transparent!important}
@@ -104,6 +114,8 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 .map-legend-marker::after{content:"";position:absolute;inset:-1px;border:1px solid var(--map-channel-ring);border-radius:inherit;box-shadow:0 0 3px color-mix(in srgb,var(--map-channel-ring) 86%,transparent),0 0 6px color-mix(in srgb,var(--map-channel-ring) 40%,transparent)}.map-legend-marker--ch2{--map-channel-ring:#ef5ac9}
 .map-legend-marker--party,.map-legend-marker--party img{border-radius:2px}.map-legend-marker--stuck b{position:absolute;z-index:2;right:-7px;top:-8px;color:#ff4a48;font:900 13px/1 Arial,sans-serif;text-shadow:0 0 3px #270000}
 .map-legend-channel{display:inline-block;width:11px;height:11px;box-sizing:border-box;margin-right:4px;vertical-align:-1px;border-radius:50%;border:2px solid #43df91;box-shadow:0 0 4px #43df91}.map-legend-channel--ch2{border-color:#ef5ac9;box-shadow:0 0 4px #ef5ac9}
+.map-legend-channel--ch3{border-color:#f5f5f5;box-shadow:0 0 4px #f5f5f5}
+.map-legend-channel--ch4{border-color:#2b2b30;box-shadow:0 0 0 1px #fff,0 0 4px #fff9}
 @media (prefers-reduced-motion:reduce){.bot-point.is-metin::before,.map-legend-marker--metin::after{animation:none}}
 
 /* v1.43: aktywny event czasowy (np. "podwójny drop na godzinę") na danej
