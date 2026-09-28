@@ -4,16 +4,22 @@ This repo is a companion admin panel for a Metin2 Playerbots (Tieru, mt2009)
 server, actively maintained by its operator with the help of AI coding
 agents. Two rules apply regardless of which agent is working here:
 
-## 1. Don't bump the version or touch CHANGELOG.md for small stuff
+## 1. Version bumps: prefer the patch digit, and slow down overall
 
-`VERSION` and a new `CHANGELOG.md` entry only get updated together, as one
-bundled event, for a real batch of feature/fix work — never for a single
-small tweak (an icon, a color, a spacing fix, a one-line bugfix). The
-operator iterates fast, often every few minutes; flooding the version number
-and changelog with that noise defeats the point of having them.
+`VERSION` and a new `CHANGELOG.md` entry get updated together, as one
+bundled event — never for a truly trivial tweak with no user-visible effect
+(a typo, whitespace, a comment). For anything that IS worth a changelog
+line (a real bug fix, a small feature), bump the **patch** digit
+(`x.y.Z` → `x.y.(Z+1)`, e.g. `1.99.0` → `1.99.1`), not the minor one.
+Reserve a **minor** bump (`x.(Y+1).0`) for an actual multi-part feature
+batch — the kind that already spans several bullet points in one entry, not
+a single fix dressed up as one.
 
-If you're not sure whether something is "significant enough" for a version
-bump, ask the operator first instead of guessing either way.
+The operator flagged 2026-09-27/28: the minor number was climbing too fast
+(hit `1.99.0` in about a day of iteration) — patch-digit churn is fine and
+expected, minor-digit churn is not. When genuinely unsure whether something
+crosses the line into "real feature batch", default to a patch bump; ask the
+operator only if you're about to bump minor.
 
 Every time `VERSION` does get bumped, also create and push a matching
 annotated git tag (`v<version>`, e.g. `v1.60.0`) once the commit is on
