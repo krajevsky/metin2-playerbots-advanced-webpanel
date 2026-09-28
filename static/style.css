@@ -258,7 +258,11 @@ body[data-cursor="custom"]{cursor:url('cursor.cur'),auto}
 html,body{max-width:100%;overflow-x:hidden}
 main{min-width:0;width:auto}
 aside.site-nav{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}
-aside.site-nav nav{min-height:0;padding-bottom:12px}
+/* The rail is a flex column. Letting <nav> shrink made its overflowing links
+   paint underneath the logout form at 1080p whenever a submenu was open. */
+aside.site-nav nav{flex:0 0 auto;min-height:0;padding-bottom:12px}
+aside.site-nav .nav-logout{flex:0 0 auto;margin-top:auto;padding-top:4px}
+aside.site-nav .nav-logout .quiet{margin-top:0}
 aside.site-nav nav a,aside.site-nav nav summary{min-width:0;overflow-wrap:anywhere}
 .panel,.live-shell,.cards article{min-width:0}
 table{max-width:100%}

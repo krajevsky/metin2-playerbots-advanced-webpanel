@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.100.7 · Wylogowanie nie nachodzi na rozwijane menu
+
+- **Przycisk „Wyloguj” zachowuje własne miejsce pod całą nawigacją również przy wysokości 1080 px.** Otwarcie sekcji „Zarządzanie” albo „Konta i GM” nie ściska już listy i nie układa przycisku na pozycjach podmenu; przy krótszym ekranie cały pasek przewija się jako jedna kolumna.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-28 · 1.100.6 · Gracze w rankingach, teleport na kanał bota i poprawki z kopii panelu w Playerbots
 
 - **Rankingi, karuzela na dashboardzie i sezon liczą boty razem z postaciami graczy, bez postaci GM-ów** (z rangą w `common.gmlist`, np. Admin, AdminNinja, AdminSura i AdminSzaman z konta admin — dotąd wykluczała je lista imion, która nie widziała GM-a założonego w panelu pod innym imieniem). Gracz ma 👤 i podświetloną linię, a „👤 Tylko gracze” pokazuje samych ludzi, ponumerowanych między sobą i ze stronicowaniem. Przełącznik „Prawdziwi gracze w rankingach” jest teraz domyślnie włączony (wyłącza go zapisane 0), bo panel klasyczny Playerbots czyta ten sam wiersz i oba panele mają liczyć to samo. Ranking „Broń 30 Lv” nie bierze już przedmiotów z magazynu (tam `owner_id` to konto, nie postać), a „Najwyższy poziom” w sezonie nie stoi na zawsze na 90 poziomie GM-ów. Zgłosił blipu.
