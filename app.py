@@ -187,6 +187,24 @@ AI_WEIGHT_KEYS = (
     ("TRADE", "Stragany", "🏪"),
 )
 AI_WEIGHT_MIN, AI_WEIGHT_MAX, AI_WEIGHT_NEUTRAL = 25, 250, 100
+# Errands the bots already take at every chance at 100, so their sliders can
+# only make them rarer (playerbot_config.h's IsPlayerBotWeightGateOpen): the
+# page stops them at 100, where the core does too.
+AI_WEIGHT_CAPPED = frozenset(("REFINE", "SKILL", "BIOLOG", "HUNTING"))
+# What each slider moves, as the core does it (the audit of 28 September).
+AI_WEIGHT_HINTS = {
+    "RESTOCK": "Kiedy bot wraca po mikstury: przy 100 poniżej 300 czerwonych / 200 niebieskich; 25 czeka do ćwiartki, 250 idzie przy 2,5× (najwyżej 480/360). Od razu.",
+    "REFINE": "Wyprawy do kowala po ulepszenie. 100 = każda okazja; poniżej część botów pomija kowala po pół godziny (przy 50 co drugie pół godziny). Od razu.",
+    "SKILL": "Czytanie ksiąg umiejętności. 100 = każda okazja; poniżej część botów zostawia księgi w plecaku po pół godziny. Od razu.",
+    "HORSE": "Wyprawy do Lochu Małp po medale konne (stajnia i dropperzy medali nie słuchają). Przy następnym sprawdzeniu podróży.",
+    "BIOLOG": "Polowanie na okazy dla Biologa. 100 = każdy bot z misją; poniżej część botów po pół godziny bije to, co jest na mapie. To, co niesie, i tak oddaje. Od razu.",
+    "METIN": "Raz na godzinę bot od 15 lv losuje pół godziny na metinach: 25% przy 100 (koń bojowy ×2), razy suwak. Łowcy z roli zawsze. Do godziny.",
+    "PARTY": "Udział botów w grupach: w wioskach 20% przy 100 (5% przy 25, 50% przy 250); na froncie przy 100 już każdy, więc tam działa tylko w dół. 1–3 min.",
+    "HUNTING": "Misja polowania na awans (tylko r40250). 100 = każdy bot z misją; poniżej część botów po pół godziny bije to, co jest na mapie.",
+    "LEVEL": "Zwykłe bicie potworów. Podniesione: cel „poziom” wygrywa w statusie, grinderzy biją po kilka potworów naraz i piją mikstury szybkości. Obniżenie nic nie zmienia.",
+    "FISHING": "Ilu botów łowi: przy osobowościach bot od 30 lv bez grupy losuje co pół godziny wg nastroju. Podniesienie w sekundy, obniżenie po końcu sesji (do godziny).",
+    "TRADE": "Ilu botów trzyma stragan (bez Handlarza, biednych, pełnego plecaka, droppera pod presją i cennych zapasów). Na 2.x stojący sklep offline tylko nie jest odnawiany po 8 h.",
+}
 # These values share the live weight file with goal weights, but the core treats
 # them as switches or direct settings rather than 25–250% goal weights.
 AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1,
@@ -6438,7 +6456,7 @@ def manage():
     bot_channels = sorted(per_channel.items()) if len(per_channel) > 1 else []
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
+    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
 
 
 @app.post("/manage/difficulty")
@@ -6788,17 +6806,19 @@ def manage_behavior():
     # Keep live-only switches even if this request came from an older browser
     # tab that does not render them yet.
     values = read_ai_weights()
+    # A field the page did not render - HUNTING and BOOKS on mt2009, TOWER and
+    # ISHOP on r40250, or a tab opened before the field existed - keeps what
+    # the file says instead of being written as a default.
     for key, _, _ in AI_WEIGHT_KEYS:
         try:
-            value = int(request.form.get(key, AI_WEIGHT_NEUTRAL))
+            value = int(request.form.get(key, values.get(key, AI_WEIGHT_NEUTRAL)))
         except (TypeError, ValueError):
             value = AI_WEIGHT_NEUTRAL
         values[key] = max(AI_WEIGHT_MIN, min(AI_WEIGHT_MAX, value))
     values["CHAT"] = 1 if "1" in request.form.getlist("CHAT") else 0
-    # Preserve the existing switch for a form opened before this field existed.
-    values["BOOKS"] = 1 if "BOOKS" not in request.form else (1 if "1" in request.form.getlist("BOOKS") else 0)
+    values["BOOKS"] = values.get("BOOKS", 1) if "BOOKS" not in request.form else (1 if "1" in request.form.getlist("BOOKS") else 0)
     for key, default in (("NIGHT", 1), ("LIFE", 0), ("WARS", 1), ("TOWER", 1), ("ISHOP", 1), ("SHOP_M2", 0), ("PERSONA", 1)):
-        values[key] = default if key not in request.form else (1 if "1" in request.form.getlist(key) else 0)
+        values[key] = values.get(key, default) if key not in request.form else (1 if "1" in request.form.getlist(key) else 0)
     try:
         values["SCRAP"] = max(0, min(100, int(request.form.get("SCRAP", values.get("SCRAP", 0)))))
     except (TypeError, ValueError):
