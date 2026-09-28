@@ -4080,15 +4080,20 @@ def bot_offline_shop(pid):
       FROM player.item i LEFT JOIN player.item_proto p ON p.vnum=i.vnum
       WHERE i.owner_id=%s AND i.window='IKASHOP_OFFLINESHOP' AND i.ikashop_data IS NOT NULL AND i.ikashop_data<>'' ORDER BY i.pos""", (pid,))
     _enrich_items(offers)
+    # A bot's stand has two pages since 28 September, cells 80-159 the
+    # second under the first (playerbotify's apply_bot_shop_two_pages), so a
+    # row runs on past 8 and the grid is as tall as the rows the stand fills;
+    # "% 8" drew the second page over the first.
     for offer in offers:
         offer["icon_url"] = item_icon_url(offer["vnum"])
         offer["price"] = int(offer.get("price") or 0)
         offer["col"] = int(offer["pos"] or 0) % 10
-        offer["row"] = (int(offer["pos"] or 0) // 10) % 8
+        offer["row"] = int(offer["pos"] or 0) // 10
+    shop_rows = 16 if any(o["row"] >= 8 for o in offers) else 8
     return {
         "name": game_text(shop["name"]) or "Bez nazwy", "map_index": int(shop["map"]), "map_name": map_name(shop["map"]),
         "x": int(shop["x"]), "y": int(shop["y"]), "is_premium": bool(shop["is_premium"]),
-        "expired": int(shop.get("duration") or 0) == 0, "offers": offers,
+        "expired": int(shop.get("duration") or 0) == 0, "offers": offers, "rows": shop_rows,
         # price is already the whole-stack listing price (confirmed live:
         # e.g. 40x Peleryna Meestwa for 3 250 000, not 3 250 000 each) --
         # multiplying by count again inflated the total for any stack >1.

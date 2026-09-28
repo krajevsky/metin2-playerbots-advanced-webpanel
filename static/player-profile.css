@@ -90,12 +90,14 @@
 .shop-name-tip-label{display:block;color:#FFFFC7;font-weight:bold;font-size:13px}
 .shop-name-tip-premium{display:block;margin-top:3px;color:#f2c34d;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 .shop-window-box{max-width:560px}
-.shop-inventory{position:relative;width:100%;max-width:560px;aspect-ratio:10/8;background:#08111c;border:1px solid #294562;margin-top:10px}
+/* --rows: 8, or 16 for a bot's stand with lines on its second page (cells
+   80-159 under the first; bot_offline_shop in app.py). */
+.shop-inventory{position:relative;width:100%;max-width:560px;aspect-ratio:10/var(--rows,8);background:#08111c;border:1px solid #294562;margin-top:10px}
 .shop-layer{position:absolute;inset:0}
 /* Przedmioty 2/3-slotowe zajmują tyle samo pól co w ekwipunku/magazynie --
    ta sama --size zmienna, tylko licząc wysokość jednego rzędu 10-kolumnowej
    siatki (12.5%) zamiast 5-kolumnowej (11.111%). */
-.shop-slot{position:absolute;left:calc(var(--col) * 10%);top:calc(var(--row) * 12.5%);width:10%;height:calc(var(--size) * 12.5%);display:grid;place-items:center;border:1px solid #172a3e;box-sizing:border-box}
+.shop-slot{position:absolute;left:calc(var(--col) * 10%);top:calc(var(--row) * 100% / var(--rows,8));width:10%;height:calc(var(--size) * 100% / var(--rows,8));display:grid;place-items:center;border:1px solid #172a3e;box-sizing:border-box}
 .shop-slot img{max-width:80%;max-height:80%;object-fit:contain;image-rendering:pixelated}
 .shop-slot>b{position:absolute;font-size:9px;z-index:2;color:#fff;text-shadow:0 1px 2px #000}
 .shop-slot>b.shop-count{right:2px;top:1px}
