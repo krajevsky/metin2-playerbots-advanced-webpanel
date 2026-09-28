@@ -1505,8 +1505,17 @@ def playerbots_release_status(check_remote=True):
             tone = "warning" if same_release_line and 1 <= patch_gap <= 3 else "outdated"
         return {"installed": installed, "latest": latest, "behind": behind,
                 "tone": tone, "label": f"Dostępna {latest}" if behind else "Aktualna"}
+    if not installed_key:
+        return {"installed": installed, "latest": latest, "behind": False, "tone": "unknown", "label": "Brak wersji lokalnej"}
+    # installed_key is known here -- latest_key is missing either because
+    # check_remote=False skipped the GitHub call on purpose, or the call
+    # itself failed. "Brak wersji lokalnej" was wrong for both (the local
+    # version is right there in `installed`); only the second is really an
+    # error worth a label at all. Reported [GA]Seban 2026-09-28: dashboard
+    # showed "2.2.33" as the big number with "Brak wersji lokalnej" as its
+    # own subtitle directly underneath.
     return {"installed": installed, "latest": latest, "behind": False, "tone": "unknown",
-            "label": "Nie sprawdzono GitHub" if latest_info.get("error") else "Brak wersji lokalnej"}
+            "label": "Nie sprawdzono GitHub" if latest_info.get("error") else ""}
 
 
 def update_csrf_token():
@@ -3214,7 +3223,12 @@ def _dashboard_deferred_context():
         restart_label = datetime.fromtimestamp(int(restart_time)).strftime("%d.%m.%Y, %H:%M:%S")
     except (TypeError, ValueError, OSError):
         restart_label = "Brak danych"
-    release_status = playerbots_release_status(check_remote=False)
+    # check_remote used to be False here to keep the GitHub call off the
+    # dashboard's first paint -- moot since 1.94.0, this whole function only
+    # ever runs inside the deferred /api/dashboard-deferred fetch, already
+    # off the critical path, and latest_playerbots_release() caches its own
+    # result for PLAYERBOTS_RELEASE_CACHE_SECONDS anyway.
+    release_status = playerbots_release_status()
     world_summary = {
         "bots": len(live_roster),
         "average_level": round(sum(int(bot.get("level") or 0) for bot in live_roster) / len(live_roster), 1) if live_roster else 0,

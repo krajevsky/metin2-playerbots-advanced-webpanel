@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.99.1 · Naprawiono etykietę wersji Playerbots na dashboardzie
+
+- **Dashboard pokazywał "Brak wersji lokalnej" pod poprawnie wyświetloną wersją Playerbots** (np. "2.2.33") — dashboard pomijał sprawdzenie GitHub dla przyspieszenia pierwszego renderu, co było zbędne odkąd te dane i tak ładują się asynchronicznie w tle (od 1.94.0). Dashboard znowu pokazuje realny stan, np. "Dostępna 2.2.34".
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-28 · 1.99.0 · Pełne dzienne osiągnięcia świata
 
 - **Podsumowanie dnia pokazuje teraz prawdziwe dzienne rekordy:** najwięcej pokonanych graczy, udanych ulepszeń, spalonych przedmiotów oraz największy zarobek netto ze sklepu offline.
