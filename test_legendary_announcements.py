@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest.mock import patch
 
 import app as panel
 
@@ -48,3 +49,30 @@ def test_both_feeds_render_the_sparkle_variant():
         world_html = panel.render_template("partials/world_feed_events.html", events=[event])
     assert "metin-chat-line--legendary" in live_html and "legendary-sparkles" in live_html
     assert "feed-card--announcement" in world_html and "legendary-sparkles" in world_html
+
+
+def test_announcement_destinations_default_on_and_filter_independently():
+    assert panel.legendary_notice_enabled("live_chat", {})
+    assert not panel.legendary_notice_enabled("world_feed", {"legendary_notice_world_feed": "0"})
+
+    with patch.object(panel, "scan_bot_chat_logs"), patch.object(panel, "sync_news_events"), \
+         patch.object(panel, "settings", return_value={"legendary_notice_world_feed": "0"}), \
+         patch.object(panel, "rows", return_value=[]) as query:
+        panel.news_feed_history()
+    assert "kind <> 'announcement'" in query.call_args.args[0]
+
+
+def test_manage_panel_saves_any_destination_combination():
+    panel.app.config["TESTING"] = True
+    with patch.object(panel, "settings", return_value={"setup_complete": "1", "auth_enabled": "0"}), \
+         patch.object(panel, "write_settings") as save:
+        response = panel.app.test_client().post(
+            "/manage/panel/legendary-announcements",
+            data={"live_chat": "1", "ticker": "1"},
+        )
+    assert response.status_code == 302
+    save.assert_called_once_with({
+        "legendary_notice_live_chat": "1",
+        "legendary_notice_world_feed": "0",
+        "legendary_notice_ticker": "1",
+    })

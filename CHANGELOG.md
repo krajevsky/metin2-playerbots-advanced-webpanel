@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.100.1 · Wybór miejsc legendarnych ogłoszeń
+
+- **Zarządzanie panelem pozwala niezależnie wybrać trzy miejsca dla ogłoszeń o bossach, rajdach i lochach:** Czat na żywo, Wieści ze świata oraz dolny pasek wiadomości. Można włączyć dowolny zestaw, wszystkie miejsca albo wyłączyć je całkowicie.
+- **Nowe i dotychczasowe instalacje domyślnie pokazują ogłoszenia wszędzie.** Wyłączenie dotyczy wyłącznie legendarnych komunikatów i nie ukrywa zwykłego czatu ani pozostałych wydarzeń świata.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-28 · 1.100.0 · Pełna zgodność funkcji administracyjnych z Playerbots 2.2.35
 
 - **Karta postaci otrzymała brakujące akcje z panelu Tieru:** wyszukiwarkę i kategorie przedmiotów, nadawanie Yang z presetami, zmianę poziomu, teleport do 11 lokacji oraz godzinny bonus szybkości biegu. Polecenia korzystają z tego samego interfejsu `web_admin_queue`, który obsługuje rdzeń gry.

@@ -1,7 +1,7 @@
 (() => {
   const list = document.getElementById('news-feed');
   if (!list) return;
-  const storageKey = 'seban-panel-news-cache-v2';
+  const storageKey = 'seban-panel-news-cache-v3';
   const visibilityKey = 'seban-panel-news-hidden';
   const ticker = list.closest('.news-ticker');
   const toggle = document.getElementById('news-toggle');
@@ -37,6 +37,12 @@
       if (!response.ok) throw new Error('Nie udało się pobrać wiadomości.');
       const data = await response.json();
       if (!data.ok) throw new Error('Nieprawidłowa odpowiedź feedu.');
+      if (data.legendary_announcements === false) {
+        cached = cached.filter(event => event.kind !== 'announcement');
+        seen.clear();
+        cached.forEach(event => seen.add(event.key));
+        localStorage.setItem(storageKey, JSON.stringify(cached));
+      }
       const fresh = data.events.filter(event => !seen.has(event.key));
       if (fresh.length) {
         fresh.forEach(event => seen.add(event.key));

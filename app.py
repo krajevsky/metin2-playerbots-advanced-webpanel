@@ -275,6 +275,9 @@ DEFAULT_SETTINGS = {
     # Existing installations without this key stay usable. Fresh installations
     # receive setup_complete=0 from the collector and enter the setup wizard.
     "setup_complete": "1", "auth_enabled": "0", "auth_password_hash": "", "allow_student_chest": "0", "allow_moonlight_chest": "0", "keep_demo_characters": "0", "update_seban_panel": "0",
+    # Rare boss/dungeon announcements are visible in every supported feed by
+    # default. Missing keys on older installations deliberately inherit this.
+    "legendary_notice_live_chat": "1", "legendary_notice_world_feed": "1", "legendary_notice_ticker": "1",
 }
 try:
     ITEM_DEFS = json.loads((Path(__file__).parent / "static" / "item_defs.json").read_text(encoding="utf-8"))
@@ -1170,16 +1173,25 @@ def sync_news_events():
         con.close()
 
 
+def legendary_notice_enabled(destination, current=None):
+    """Return whether structured boss/dungeon notices belong in a UI feed."""
+    current = current or settings()
+    return current.get(f"legendary_notice_{destination}", "1") == "1"
+
+
 def news_feed_events():
     """Curate rare achievements for the dashboard's live ticker -- last 12h,
     newest 30, read from the fast local cache (see sync_news_events()).
     Shape (string HH:MM `time`) matches what static/news-feed.js expects."""
     sync_news_events()
-    raw = rows("""SELECT event_key,time,message,refine_tier,method FROM player.web_seban_news_event
-      WHERE time >= NOW() - INTERVAL 12 HOUR ORDER BY time DESC LIMIT 30""")
+    clauses = ["time >= NOW() - INTERVAL 12 HOUR"]
+    if not legendary_notice_enabled("ticker"):
+        clauses.append("kind <> 'announcement'")
+    raw = rows(f"""SELECT event_key,time,kind,message,refine_tier,method FROM player.web_seban_news_event
+      WHERE {' AND '.join(clauses)} ORDER BY time DESC LIMIT 30""")
     return [{"key": r["event_key"], "time": r["time"].strftime("%H:%M"),
              "message": f"{r['message']} — {r['method']}" if r.get("method") else r["message"],
-             "refine_tier": r["refine_tier"]} for r in reversed(raw)]
+             "kind": r["kind"], "refine_tier": r["refine_tier"]} for r in reversed(raw)]
 
 
 def news_feed_day_label(when):
@@ -1201,6 +1213,8 @@ def news_feed_history(before=None, limit=40, days=14):
     scan_bot_chat_logs()
     sync_news_events()
     clauses, params = ["time >= %s"], [datetime.now() - timedelta(days=days)]
+    if not legendary_notice_enabled("world_feed"):
+        clauses.append("kind <> 'announcement'")
     if before:
         clauses.append("time < %s")
         params.append(before)
@@ -5053,13 +5067,14 @@ def live_chat_messages(limit=100):
             "player_id": int(row.get("id") or row.get("who_id") or 0), "job": int(row.get("job") or 0),
             "empire": int(row.get("empire") or 0),
         })
-    try:
-        notices = rows("""SELECT event_key,time,message,actor,empire,method
-          FROM player.web_seban_news_event WHERE kind='announcement'
-          ORDER BY time DESC LIMIT %s""", [limit])
-    except Exception:
-        app.logger.exception("Nie można odczytać ogłoszeń świata")
-        notices = []
+    notices = []
+    if legendary_notice_enabled("live_chat"):
+        try:
+            notices = rows("""SELECT event_key,time,message,actor,empire,method
+              FROM player.web_seban_news_event WHERE kind='announcement'
+              ORDER BY time DESC LIMIT %s""", [limit])
+        except Exception:
+            app.logger.exception("Nie można odczytać ogłoszeń świata")
     for row in notices:
         when = row.get("time")
         result.append({
@@ -5688,7 +5703,8 @@ def api_live_bots():
 @app.route("/api/news-feed")
 @login_required
 def api_news_feed():
-    return {"ok": True, "events": news_feed_events()}
+    enabled = legendary_notice_enabled("ticker")
+    return {"ok": True, "events": news_feed_events(), "legendary_announcements": enabled}
 
 
 @app.route("/system")
@@ -6171,6 +6187,22 @@ def manage_panel_features():
     write_settings(values)
     flash("Dostępność funkcji zapisana. Wyłączone integracje pozostają widoczne jako wymagające akcji.", "success")
     return redirect(url_for("manage_panel", _anchor="compatibility"))
+
+
+@app.post("/manage/panel/legendary-announcements")
+@login_required
+def manage_panel_legendary_announcements():
+    values = {
+        f"legendary_notice_{destination}": "1" if "1" in request.form.getlist(destination) else "0"
+        for destination in ("live_chat", "world_feed", "ticker")
+    }
+    write_settings(values)
+    enabled_count = sum(value == "1" for value in values.values())
+    if enabled_count:
+        flash(f"Miejsca ogłoszeń zapisane ({enabled_count}/3 włączone).", "success")
+    else:
+        flash("Ogłoszenia o legendarnych wydarzeniach wyłączone we wszystkich miejscach.", "success")
+    return redirect(url_for("manage_panel", _anchor="legendary-announcements"))
 
 
 @app.post("/manage/update")
