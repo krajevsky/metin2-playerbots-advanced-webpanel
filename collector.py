@@ -53,7 +53,12 @@ def check_plus9_refines(cur):
     loop calls notice_all(), the same Lua function /b uses, next tick.
     The watermark ('plus9_announce_watermark') is a unix timestamp, not a
     formatted datetime: common.m2_switches.value is only VARCHAR(16)."""
-    cur.execute("SELECT value FROM common.m2_switches WHERE name='announce_plus9_refines'")
+    try:
+        cur.execute("SELECT value FROM common.m2_switches WHERE name='announce_plus9_refines'")
+    except pymysql.MySQLError:
+        # No switch table on this database (init() could not create it):
+        # nothing to announce, and no error line every cycle (Playerbots 2.0.55).
+        return
     row = cur.fetchone()
     if not row or str(row[0]) != "1":
         return
@@ -359,16 +364,42 @@ def init(cur):
             print(f"[seban-collector] bot name pool: loaded {len(rows)} base name(s) from {names_sql}", flush=True)
 
 
+# playerbot_status.tsv, read by its header: Iwakura's personalities (2.0.85)
+# put four columns (persona, mood, mood_lock, lock_level) before the status
+# text, which stays last because it may hold spaces. A core of before that
+# writes the old fourteen columns under a header too; with no header at all
+# the old fourteen are assumed.
+STATUS_LEGACY_COLUMNS = ("pid", "personality", "ambition", "role", "in_party", "goal", "action",
+                         "updated_ms", "map", "x", "y", "hp", "max_hp", "status")
+PERSONA_NONE = 255
+
+
+def parse_status_rows(text):
+    header = None
+    for line in text.splitlines():
+        if line.startswith("pid\t"):
+            header = line.split("\t")
+            continue
+        columns = header or STATUS_LEGACY_COLUMNS
+        values = line.split("\t", len(columns) - 1)
+        if len(values) != len(columns) or columns[-1] != "status":
+            continue
+        try:
+            numbers = {name: int(value) for name, value in zip(columns[:-1], values[:-1])}
+        except ValueError:
+            continue
+        if "pid" in numbers:
+            yield numbers, values[-1]
+
+
 def live_positions():
     result = {}
     for channel, path in status_paths():
         try:
             if time.time() - path.stat().st_mtime > 25:
                 continue
-            for line in path.read_text(encoding="cp1250", errors="replace").splitlines()[1:]:
-                values = line.split("\t", 13)
-                if len(values) == 14:
-                    result[int(values[0])] = (int(values[8]), int(values[9]), int(values[10]), channel)
+            for n, _status in parse_status_rows(path.read_text(encoding="cp1250", errors="replace")):
+                result[n["pid"]] = (n.get("map", 0), n.get("x", 0), n.get("y", 0), channel)
         except (OSError, ValueError):
             continue
     return result
@@ -408,6 +439,12 @@ def collect(con, previous):
         cur.execute("""INSERT IGNORE INTO player.web_seban_item_snapshot (captured_at,vnum,socket0,amount)
           SELECT %s, vnum, IF(vnum=50300, socket0, 0), SUM(count)
           FROM player.item GROUP BY vnum, IF(vnum=50300, socket0, 0)""", (now,))
+        # Only what can be bought (Playerbots 2.2.23): a stand with duration 0
+        # ran out and holds its goods until its owner renews it - on m2zip on
+        # 26 September 970 of 1 641 stands, nearly all of them of bots not in
+        # the world - and a line just sold keeps its window with ikashop_data
+        # emptied until the game core saves the item back. Both were counted
+        # as "Aktywne sklepy" and offers, and priced the market's averages.
         cur.execute("""INSERT IGNORE INTO player.web_seban_shop_snapshot
           (captured_at, map_index, empire, shop_count, offer_count, item_count, total_value)
           SELECT %s, o.map, pi.empire, COUNT(DISTINCT o.owner), COUNT(i.id),

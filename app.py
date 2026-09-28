@@ -319,7 +319,8 @@ STATIONARY_ACTIONS = {5, 6, 7, 13, 14, 15, 17, 18}
 # (admin_panel.py, 7788), 2026-09-21.
 PLAYERBOT_PERSONA_NONE = 255
 BOT_PERSONAS = {0: "Grinder", 1: "Zdobywca", 2: "Handlarz", 3: "Hazardzista", 4: "Perfekcjonista",
-                5: "Pogromca metinów", 6: "Górnik", 7: "Rybak", 8: "Najemnik", 9: "Towarzysz"}
+                5: "Pogromca metinów", 6: "Górnik", 7: "Rybak", 8: "Najemnik", 9: "Towarzysz",
+                10: "Metinolog", 11: "Nałogowiec", 12: "Szalony Naukowiec", 13: "Egzekutor", 14: "Szalony Wędkarz"}
 BOT_MOODS = {0: "Słaby", 1: "Normalny", 2: "Bardzo dobry"}
 BOT_MOOD_LOCKS = {1: "euforia po ulepszeniu", 2: "kapitulacja (Anty-PK)"}
 ITEM_TYPE_NAMES = (
@@ -1029,6 +1030,14 @@ def _classify_news_events(raw):
         # `how` is VARBINARY on mt2009 and arrives as bytes; str() of that is
         # "b'GET'" and matches nothing below.
         how, name = game_text(row.get("how")), game_text(row.get("name"))
+        # log.log's hint column is declared big5 while the engine writes CP1250
+        # into it (see CLAUDE.md), so letting the driver decode the column gives
+        # mojibake for anything past ASCII - "Skorzane" came back as
+        # "SkAtrzane". HEX(l.hint) sidesteps whatever charset MySQL believes the
+        # column has and returns the untouched bytes, which really are CP1250 -
+        # the same trick this function already uses for item_proto.locale_name
+        # below. Falls back to the driver's own decode if the hex round trip
+        # fails. Patch by seban latino, 13 September.
         hint = cp1250_hex_text(row.get("hint_hex")) or game_text(row.get("hint"))
         key = f"{how}:{row.get('who')}:{row.get('what')}:{row.get('time')}"
         if key in seen or not name:
@@ -1446,7 +1455,48 @@ def fishing_diagnostics():
             "log_matches": matches[-80:], "database_events": database_events}
 
 def read_rates():
+    """What the operator set, from the one place the engine reads it.
+
+    This used to prefer the spool's rates.status, which is only this panel's
+    echo of its own last request and m2-rates' echo of the one it carried out.
+    The classic panel's in-game RATES helper and the timed events write the
+    flags without touching that file, so it goes stale and this page then
+    showed - and on the next Save re-imposed - numbers the world had left
+    behind: measured on the test world on 20 September, the file said drop 150
+    / yang 120 against 200 / 200 in the flags ("jak ustawialem wczesniej raty u
+    tiera to u sebana narzucal poprzednie", NerrVoVy). On mt2009 the flags are
+    the truth; rates.status stays the truth on r40250, which has no flags and
+    whose m2-rates rewrites the tables itself.
+
+    m2_event_*_base is what the operator set while an event boosts the live
+    flag, so it wins where it is set - a Save during an event must not turn the
+    boost into the new normal.
+    """
     values = {name: 100 for name in RATE_NAMES}
+    if ENGINE_MT2009:
+        try:
+            wanted = []
+            for name, flags in MT2009_RATE_FLAGS.items():
+                wanted.append(flags[0])
+                wanted.append("m2_event_%s_base" % MT2009_RATE_EVENT_KIND[name])
+            live = {}
+            for row in rows("SELECT szName, lValue FROM player.quest WHERE dwPID=0 AND szName IN (%s)"
+                            % ",".join(["%s"] * len(wanted)), tuple(wanted)):
+                live[row["szName"]] = int(row["lValue"])
+            found = False
+            for name, flags in MT2009_RATE_FLAGS.items():
+                base = live.get("m2_event_%s_base" % MT2009_RATE_EVENT_KIND[name], 0)
+                current = live.get(flags[0], 0)
+                if base > 0:
+                    values[name] = base
+                    found = True
+                elif current > 0:
+                    values[name] = current
+                    found = True
+            if found:
+                return values
+        except (KeyError, TypeError, ValueError, pymysql.MySQLError):
+            values = {name: 100 for name in RATE_NAMES}
     status = read_rate_status()
     if all(str(status.get(name, "")).isdigit() for name in RATE_NAMES):
         return {name: int(status[name]) for name in RATE_NAMES}
@@ -1642,7 +1692,7 @@ EVENT_BOTS_DEFAULT = 50
 EVENT_MAPS = (
     (0, "Wybiera event"), (64, "Dolina Orków"), (63, "Pustynia Yongbi"),
     (61, "Góra Sohan"), (65, "Świątynia Hwang"), (62, "Ognista Ziemia"),
-    (67, "Las"), (68, "Czerwony Las"), (1, "Yongan"), (21, "Joan"),
+    (67, "Las Duchów"), (68, "Czerwony Las"), (1, "Yongan"), (21, "Joan"),
     (41, "Pyongmoo"), (3, "Jayang"), (23, "Bokjung"), (43, "Bakra"),
 )
 EVENT_MAP_IDS = frozenset(index for index, _label in EVENT_MAPS)
@@ -1727,6 +1777,12 @@ def read_events():
             value = int(fields[4])
         except ValueError:
             value = 0
+        map_id = 0
+        if fields[0] in EVENT_WORLD_KINDS and len(fields) >= 6:
+            try:
+                map_id = int(fields[5])
+            except ValueError:
+                map_id = 0
         days = list(range(1, 8)) if fields[1] == "*" else [day for day in range(1, 8) if str(day) in fields[1].split(",")]
         map_id = 0
         if fields[0] in EVENT_WORLD_KINDS and len(fields) >= 6:
@@ -1745,6 +1801,7 @@ def write_events(rows, nows, event_settings=None):
         "# Metin2 Playerbots -- timed events, written by Seban Panel.",
         "# kind<TAB>days<TAB>from<TAB>to<TAB>value[<TAB>map] | now<TAB>kind<TAB>until_epoch<TAB>value[<TAB>map<TAB>since]",
         "# days: * or 1..7 (1 = Monday); #off keeps a disabled plan row.",
+        "# map: Tanaka and Zuo only, 0 = the event picks. bots: the share of bots that answer them.",
         "",
     ]
     for row in rows:
@@ -1768,6 +1825,8 @@ def write_events(rows, nows, event_settings=None):
 
 
 def read_events_status():
+    # Tanaka and Zuo are run by one core (playerbot_world_events.h); its row,
+    # marked host, carries what stands and who answered.
     newest, newest_written = {}, 0
     hosts, host_written = {}, {}
     for _channel, path in channel_paths("playerbot_events_status.tsv"):
@@ -2449,6 +2508,9 @@ MT2009_RATE_FLAGS = {
     "drop": ("mob_item", "mob_item_buyer"),
     "yang": ("mob_gold", "mob_gold_buyer"),
 }
+# The kind's name in the events' own base flags (playerbot_events.h), which
+# hold what the operator set while an event boosts the live one.
+MT2009_RATE_EVENT_KIND = {"exp": "exp", "drop": "drop", "yang": "yang"}
 
 
 def persist_rates_mt2009(values):
@@ -2457,6 +2519,14 @@ def persist_rates_mt2009(values):
             for flag in flags:
                 cursor.execute("REPLACE INTO player.quest (dwPID, szName, szState, lValue) VALUES (0, %s, '', %s)",
                                (flag, int(values[name])))
+            # While a timed event runs, its base flag is the operator's
+            # setting and the core keeps the live flag at the boost of it
+            # (playerbot_events.h): a new setting goes to the base as well, or
+            # the event put the old boost back and its end the old number.
+            kind = MT2009_RATE_EVENT_KIND[name]
+            for base_flag in ("m2_event_%s_base" % kind, "m2_event_%s_base_buyer" % kind):
+                cursor.execute("UPDATE player.quest SET lValue=%s WHERE dwPID=0 AND szName=%s AND lValue>0",
+                               (int(values[name]), base_flag))
         # The classic panel's table too, so both pages show the same numbers.
         try:
             for name in RATE_NAMES:
@@ -2538,7 +2608,10 @@ def read_student_chest_disabled():
     No row yet (a fresh install, or an image predating this switch) reads as
     "not disabled", matching the chest's original always-on behaviour.
     """
-    row = one("SELECT value FROM common.m2_switches WHERE name='disable_student_chest'")
+    try:
+        row = one("SELECT value FROM common.m2_switches WHERE name='disable_student_chest'")
+    except pymysql.MySQLError:
+        return False
     return str(row.get("value", "0")) == "1"
 
 
@@ -2606,12 +2679,12 @@ def server_settings_status():
               # routes respawn changes through m2-map-regens directly on this
               # engine, so the banner below would be describing a gap that
               # does not exist here.
-              "engine_handles_directly": ENGINE_MT2009}
+              "engine_handles_directly": ENGINE_MT2009 and CUSTOM_PATCHES_ENABLED}
     if worker_ready:
         result["message"] = "Helper ustawień serwera jest gotowy."
     elif result["pending"]:
         result["message"] = "Zlecenie nie jest odbierane przez helper gry. Sprawdź instalację integracji; po 10 minutach można usunąć wyłącznie zaległe zlecenie."
-    elif ENGINE_MT2009:
+    elif ENGINE_MT2009 and CUSTOM_PATCHES_ENABLED:
         result["message"] = ("Ten silnik (mt2009) nie korzysta ze wspólnego helpera ustawień: "
                              "raty, docelowa liczba botów i respawny na mapach są obsługiwane "
                              "bezpośrednio przez m2-rates / m2-botcount / m2-map-regens w "
@@ -2664,7 +2737,7 @@ def queue_server_settings(action, values=None, changes=None):
         if restart_in_flight():
             raise FileExistsError("a restart is already under way")
         queue_rate_restart(values if action == "apply" and values else read_rates())
-        if changes and ENGINE_MT2009:
+        if changes and ENGINE_MT2009 and CUSTOM_PATCHES_ENABLED:
             # mt2009 needs no unified helper for this half either: m2-map-regens
             # (docker/game/bin) already rewrites every named map's regen.txt from
             # its own .m2orig snapshot and restarts the cores itself, the same
@@ -2872,7 +2945,14 @@ def include_real_players_in_rankings():
     albo kazda postac (w tym prawdziwych graczy) gdy operator to wlaczy --
     zgloszone przez gracza NerrVoVy na Discordzie, 2026-09-15, zeby granie
     obok botow bylo bardziej immersyjne."""
-    row = one("SELECT value FROM common.m2_switches WHERE name='include_real_players_in_rankings'")
+    # common.m2_switches is Seban's own table: the collector creates it at
+    # start since 1.54.1+Playerbots 2.0.55, but a panel asked before that,
+    # or on a database it cannot create in, reads "off" rather than 500 on
+    # every ranking and the dashboard (Playerbots 2.0.55).
+    try:
+        row = one("SELECT value FROM common.m2_switches WHERE name='include_real_players_in_rankings'")
+    except pymysql.MySQLError:
+        return False
     return str(row.get("value", "0")) == "1"
 
 
@@ -2890,7 +2970,10 @@ def read_announce_plus9_refines():
     they refine to +9 constantly, that would be pure spam. The collector
     polls for this switch and queues the actual notice_all() call through
     web_admin.quest; see collector.py's check_plus9_refines()."""
-    row = one("SELECT value FROM common.m2_switches WHERE name='announce_plus9_refines'")
+    try:
+        row = one("SELECT value FROM common.m2_switches WHERE name='announce_plus9_refines'")
+    except pymysql.MySQLError:
+        return False
     return str(row.get("value", "0")) == "1"
 
 
@@ -3102,11 +3185,10 @@ def bot_ranking(kind, sort_by="avg"):
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,COUNT(DISTINCT q.szName) AS score,CONCAT(COUNT(DISTINCT q.szName),' / {len(missions)} misji') AS detail
             FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id AND q.szName IN ({marks}) AND q.szState='__status' AND q.lValue=%s
             WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""", (*missions, BIOLOGIST_COMPLETE_STATE))
-    if kind == "hunting":
-        return rows(f"""SELECT p.id,p.name,p.level,p.gold,MAX(CASE WHEN q.szState='complete' THEN q.lValue ELSE 0 END) AS score,
-            CONCAT('Ukończone do Lv ',MAX(CASE WHEN q.szState='complete' THEN q.lValue ELSE 0 END)) AS detail
-            FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id AND q.szName='levelup'
-            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""")
+    # Ranking "hunting" usuniety razem z zakladka: levelup.quest nie dziala na
+    # tej linii silnika, wiec zapytanie zwracalo sto rekordow z zerem. Gdyby
+    # ktos wszedl ze starym ?type=hunting, kind nie ma go juz w kinds i strona
+    # pokazuje domyslny ranking poziomu.
     if kind == "shops":
         keeper_ids = [pid for pid, state in live_statuses().items() if int(state.get("action") or 0) == 13]
         if not keeper_ids:
@@ -3387,7 +3469,12 @@ def _dashboard_deferred_context():
     # Same per-(map,empire) shape as economy_shops()'s by_map, so the exact
     # same flag+map-code bar chart plugin can be reused here, just smaller.
     shop_map_rows = []
-    shop_snapshot_latest = one("SELECT MAX(captured_at) AS captured_at FROM player.web_seban_shop_snapshot").get("captured_at")
+    # Created by the collector's first snapshot too, so the same "not yet"
+    # applies: a missing table is an empty chart, never a 500.
+    try:
+        shop_snapshot_latest = one("SELECT MAX(captured_at) AS captured_at FROM player.web_seban_shop_snapshot").get("captured_at")
+    except pymysql.MySQLError:
+        shop_snapshot_latest = None
     if shop_snapshot_latest:
         raw_shop_map = rows("""SELECT map_index, empire, shop_count FROM player.web_seban_shop_snapshot
           WHERE captured_at=%s ORDER BY empire, shop_count DESC""", (shop_snapshot_latest,))
@@ -3809,7 +3896,13 @@ def bot_offline_shop(pid):
     stats/bonuses/socketed stones -- just with a price line added on top.
     pos is laid out by the engine as a 10-wide grid (confirmed against live
     stalls: positions jump 4->10, 14->21 etc, i.e. row breaks every 10), which
-    is also what the in-game offline shop window itself displays as."""
+    is also what the in-game offline shop window itself displays as.
+
+    A line just sold is still a row with that window: the db core empties its
+    ikashop_data at once and the window changes only when the game core saves
+    the item back, so it read "Medal Konny x2 - 0" (6zmacko, 26 September) -
+    such a row is left out. And duration 0 is a stand that ran out: its goods
+    stay on it and nobody can buy them until its owner renews it."""
     shop = one("SELECT map, x, y, name, is_premium, duration FROM player.ikashop_offlineshop WHERE owner=%s", (pid,))
     if not shop:
         return None
@@ -4121,6 +4214,7 @@ def player(pid):
         character["persona"] = BOT_PERSONAS.get(live.get("persona")) if live.get("persona") is not None else None
         character["mood"] = BOT_MOODS.get(live.get("mood")) if live.get("mood") is not None else None
         character["mood_lock"] = BOT_MOOD_LOCKS.get(live.get("mood_lock") or 0)
+        character["hold"] = f"blokada expa na {live['lock_level']} lvl" if live.get("persona") is not None and live.get("lock_level") else ""
     else:
         character.update({"personality": "Bot offline", "ambition": "—", "goal": "—", "action": "—"})
         character["channel_live"] = False
@@ -4718,7 +4812,12 @@ def recent_shop_sales(limit=10):
 @app.route("/economy/shops")
 @login_required
 def economy_shops():
-    latest = one("SELECT MAX(captured_at) AS captured_at FROM player.web_seban_shop_snapshot").get("captured_at")
+    # The collector's first snapshot creates the table; before it this page is
+    # empty, like the dashboard's chart, not a 500.
+    try:
+        latest = one("SELECT MAX(captured_at) AS captured_at FROM player.web_seban_shop_snapshot").get("captured_at")
+    except pymysql.MySQLError:
+        latest = None
     by_map = []
     empire_totals = {empire: {"shops": 0, "offers": 0, "items": 0, "value": 0} for empire in EMPIRES}
     if latest:
@@ -5811,7 +5910,11 @@ def api_system_current():
 def rankings():
     kinds = {
         "level": "Poziom", "armor": "Zbroja", "weapon": "Broń", "weapon30": "Broń 30 Lv",
-        "gold": "Yang", "items": "Przedmioty", "horse": "Koń", "hunting": "Polowanie", "biologist": "Biolog",
+        # Bez "Polowanie": na tej linii silnika levelup.quest lezy w
+        # quest/_unused, zaden hook zabicia nie strzela i licznik stoi na zero
+        # dla kazdego bota - ranking miał wiec 100 pozycji z "Ukonczone do Lv 0"
+        # (Tieru, 13 wrzesnia).
+        "gold": "Yang", "items": "Przedmioty", "horse": "Koń", "biologist": "Biolog",
         "shops": "Otwarte stragany", "skills": "Umiejętności", "plus9": "Przedmiot +9", "playtime": "Czas gry", "bosses": "Bossy", "refine": "Pomyślne ulepszenia", "refine_rate": "Skuteczność ulepszeń", "fish": "Wyłowione ryby",
         "damage_max": "Rekord obrażeń (zwykłe)", "damage_max_horse": "Rekord obrażeń (konno)", "damage_max_skill": "Rekord obrażeń (umiejętność)",
         "yang_earned": "Zdobyty Yang (łącznie)", "yang_npc_sale": "Yang ze sprzedaży u NPC",
@@ -6192,9 +6295,18 @@ def events():
 def manage():
     map_counts = live_map_counts()
     current_settings = settings()
+    # Ile botow na ktorym kanale - z drugim kanalem wlaczonym sama suma nie
+    # mowi, czy podzial wyszedl ("warto by dodac statystyke ile jest botow na
+    # CH1 a ile na CH2", hunmar, 19 wrzesnia). Bez drugiego kanalu wszystko
+    # jest na pierwszym i rozbicie sie nie pokazuje.
+    bots = live_bots()
+    per_channel = {}
+    for bot in bots:
+        per_channel[int(bot.get("channel") or 1)] = per_channel.get(int(bot.get("channel") or 1), 0) + 1
+    bot_channels = sorted(per_channel.items()) if len(per_channel) > 1 else []
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
+    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
 
 
 @app.post("/manage/difficulty")
@@ -6392,7 +6504,7 @@ def manage_restart_config():
                             raise ValueError(f"{name}: respawn musi mieścić się w zakresie 1–3600 sekund.")
                         changes[key] = seconds
         queue_server_settings(action, values, changes)
-        if action == "apply" and bot_count is not None:
+        if action == "apply" and bot_count is not None and panel_feature_enabled("bot_count"):
             queue_botcount_change(bot_count)
     except ValueError as exc:
         flash(str(exc) if "invalid literal" not in str(exc) else "Wpisz całkowite wartości liczbowe.", "error")
