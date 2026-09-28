@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-29 · 1.100.10 · Poprawne wersje dashboardu i łupy ze Szkatułki Ripera
+
+- **Wskaźniki „Wersja panelu” i „Wersja Playerbots” aktualizują własne pola** — numer Playerbots nie trafia już do kafelka panelu, a etykieta Playerbots nie zostaje na „Ładowanie…”. Numer Seban Panel jest zawsze czytany z jego pliku `VERSION`, nawet gdy paczka Playerbots przekaże w zmiennej środowiskowej własny numer wydania.
+- **Wieści ze świata pokazują otwarcia Szkatułki Umarłego Rozpruwacza (VNUM 50082)** przez graczy i boty razem z nazwą, liczbą oraz ikoną zdobytej nagrody. Dane pochodzą z rzeczywistych wpisów `USE_ITEM` rdzenia gry; zdarzenia pozostają na `/world-feed` i nie zaśmiecają dolnego paska wiadomości.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-29 · 1.100.9 · Aktualna wersja Seban Panel na dashboardzie
 
 - **Widget „Gildie botów” zastąpił wskaźnik „Wersja panelu”**, zbudowany tak samo jak wskaźnik Playerbots. Przy każdym otwarciu lub odświeżeniu dashboardu panel porównuje lokalny plik `VERSION` z wersją na GitHubie i pokazuje „Aktualna” albo „Dostępna X.Y.Z”. Brak połączenia z GitHubem nie blokuje dashboardu i jest czytelnie sygnalizowany.

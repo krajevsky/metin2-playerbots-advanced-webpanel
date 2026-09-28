@@ -293,7 +293,10 @@ GM_EMPIRE_STARTS = {1: (469300, 964200, 1), 2: (55700, 157900, 21), 3: (969600, 
 GM_NAME_PATTERN = r"[A-Za-z0-9\[\]]{2,24}"
 EMPIRES = {1: {"name": "Shinsoo", "flag": "shinsoo.png"}, 2: {"name": "Chunjo", "flag": "chunjo.png"}, 3: {"name": "Jinno", "flag": "jinno.png"}}
 try:
-    PANEL_VERSION = os.environ.get("SEBAN_PANEL_VERSION") or PANEL_VERSION_FILE.read_text(encoding="utf-8").strip()
+    # VERSION belongs to this repository. Some Playerbots compose bundles set
+    # SEBAN_PANEL_VERSION to the engine release (for example 2.2.38), which
+    # must never replace the Seban Panel version shown in the UI.
+    PANEL_VERSION = PANEL_VERSION_FILE.read_text(encoding="utf-8").strip() or os.environ.get("SEBAN_PANEL_VERSION", "dev")
 except OSError:
     PANEL_VERSION = os.environ.get("SEBAN_PANEL_VERSION", "dev")
 DEFAULT_SETTINGS = {
@@ -1021,7 +1024,7 @@ _season_cache = {"at": 0.0, "weekly": [], "records": {}}
 
 def _news_event_source_rows(since, before=None, scan_limit=900):
     """Raw log.log candidate rows for a rare achievement (skill masteries,
-    Małż finds), before classification. Refines are NOT sourced from here
+    Małż finds, Reaper chest openings), before classification. Refines are NOT sourced from here
     -- see _refine_event_rows()/log.refinelog, which also carries the
     upgrade method (blacksmith vs scroll) that log.log's hint never did.
     Shared by the dashboard ticker (news_feed_events) and the full history
@@ -1036,7 +1039,7 @@ def _news_event_source_rows(since, before=None, scan_limit=900):
     if before:
         clauses.append("l.time < %s")
         params.append(before)
-    return rows(f"""SELECT l.time,l.how,l.hint,HEX(l.hint) AS hint_hex,l.what,l.who,p.name,p.job,
+    return rows(f"""SELECT l.time,l.how,l.hint,HEX(l.hint) AS hint_hex,l.what,l.vnum,l.who,p.name,p.job,
         {EMPIRE_EXPR} AS empire
       FROM log.log l JOIN player.player p ON p.id=l.who
       LEFT JOIN player.player_index pi ON pi.id=p.account_id
@@ -1045,6 +1048,7 @@ def _news_event_source_rows(since, before=None, scan_limit=900):
         AND (
           l.how='SKILLUP'
           OR (l.how='GET' AND LOWER(CONVERT(l.hint USING utf8mb4)) COLLATE utf8mb4_general_ci LIKE '%%małż%%')
+          OR (l.how='USE_ITEM' AND l.what=50082)
         )
       ORDER BY l.time DESC LIMIT %s""", params + [scan_limit])
 
@@ -1064,7 +1068,8 @@ def _classify_news_events(raw):
         # below. Falls back to the driver's own decode if the hex round trip
         # fails. Patch by seban latino, 13 September.
         hint = cp1250_hex_text(row.get("hint_hex")) or game_text(row.get("hint"))
-        key = f"{how}:{row.get('who')}:{row.get('what')}:{row.get('time')}"
+        key = (f"{how}:{row.get('who')}:{row.get('what')}:{row.get('vnum')}:{hint}:{row.get('time')}"
+               if how == "USE_ITEM" else f"{how}:{row.get('who')}:{row.get('what')}:{row.get('time')}")
         if key in seen or not name:
             continue
         message, kind = None, None
@@ -1077,13 +1082,17 @@ def _classify_news_events(raw):
                     message, kind = f"{name} rozwinął {SKILL_NAMES.get(vnum, f'umiejętność #{vnum}')} na {rank}", "skill"
         elif how == "GET" and "małż" in hint.casefold():
             message, kind = f"{name} znalazł Małż podczas połowu", "find"
+        elif how == "USE_ITEM" and int(row.get("what") or 0) == 50082:
+            reward = hint.strip() or f"przedmiot #{int(row.get('vnum') or 0)}"
+            message, kind = f"{name} otworzył Szkatułkę Umarłego Rozpruwacza i zdobył {reward}", "chest"
         if not message:
             continue
         seen.add(key)
         events.append({
             "key": key, "time": row["time"], "message": message, "kind": kind, "actor": name, "method": None,
             "refine_tier": 0, "player_id": int(row.get("who") or 0), "job": int(row.get("job") or 0),
-            "empire": int(row.get("empire") or 0), "vnum": 0, "socket0": 0,
+            "empire": int(row.get("empire") or 0),
+            "vnum": int(row.get("vnum") or 0) if kind == "chest" else 0, "socket0": 0,
         })
     return events
 
@@ -1225,7 +1234,7 @@ def news_feed_events():
     newest 30, read from the fast local cache (see sync_news_events()).
     Shape (string HH:MM `time`) matches what static/news-feed.js expects."""
     sync_news_events()
-    clauses = ["time >= NOW() - INTERVAL 12 HOUR"]
+    clauses = ["time >= NOW() - INTERVAL 12 HOUR", "kind <> 'chest'"]
     if not legendary_notice_enabled("ticker"):
         clauses.append("kind <> 'announcement'")
     raw = rows(f"""SELECT event_key,time,kind,message,refine_tier,method FROM player.web_seban_news_event

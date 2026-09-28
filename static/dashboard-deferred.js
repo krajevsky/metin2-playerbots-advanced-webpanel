@@ -39,7 +39,7 @@
       'overview-max': summary.max_level,
     };
     Object.entries(values).forEach(([id, value]) => { const node = document.getElementById(id); if (node) node.textContent = value; });
-    const panelCard = document.querySelector('.panel-version');
+    const panelCard = document.querySelector('.panel-release-card');
     const panelInstalled = panelCard?.querySelector('.panel-installed');
     const panelLabel = panelCard?.querySelector('small');
     if (panelInstalled && summary.panel_release) panelInstalled.textContent = summary.panel_release.installed;
@@ -61,8 +61,14 @@
     }
     const installed = document.querySelector('.playerbots-installed');
     if (installed && summary.version !== undefined) installed.textContent = summary.version;
-    const releaseLabel = document.querySelector('.playerbots-version small:not(.playerbots-available)');
+    const playerbotsCard = document.querySelector('.playerbots-release-card');
+    const releaseLabel = playerbotsCard?.querySelector('small');
     if (releaseLabel && summary.release?.label) releaseLabel.textContent = summary.release.label;
+    if (playerbotsCard && summary.release) {
+      playerbotsCard.classList.remove('current', 'outdated', 'warning', 'unknown');
+      playerbotsCard.classList.add(summary.release.tone || 'unknown');
+      releaseLabel?.classList.toggle('fx-shimmer', Boolean(summary.release.behind));
+    }
     ['exp','drop','yang'].forEach(key => {
       const node = document.getElementById(`overview-rate-${key}`);
       if (node && summary.rates) node.textContent = `${summary.rates[key] ?? 0}%`;
