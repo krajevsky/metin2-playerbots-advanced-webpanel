@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-28 · 1.100.4 · Nowy widget: zalogowane boty wg kanału
+
+- **Dashboard "PLAYERBOTS · ŚWIAT" ma teraz drugi widgecik pod rozkładem królestw: "Zalogowane boty wg kanału"** — pokazuje CH1–CH4 z kolorowymi kropkami identycznymi jak obwódki na mapie na żywo. Naprawiono też błąd, przez który widget początkowo pokazywał samą cyfrę zamiast rozbicia na kanały — oba widgety (królestwa i kanały) używały tej samej klasy CSS, więc skrypt dociągający dane na żywo aktualizował tylko pierwszy z nich.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-28 · 1.100.3 · Kolory CH3/CH4 na mapie na żywo
 
 - **Mapa świata botów, legenda i wykres "Rozkład kanałów" rozpoznają teraz kanały CH3 (biała obwódka) i CH4 (czarna obwódka)** — przygotowanie pod Playerbots 2.2.36, który pozwala włączyć dwa dodatkowe kanały. Reszta panelu (filtr kanałów, wybór na mapie, wykres botów wg kanału na mapach) już wcześniej skalowała się automatycznie do dowolnej liczby wykrytych kanałów.

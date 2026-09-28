@@ -219,6 +219,13 @@ DIFFICULTY_PRESETS = {
     "hard": (86400, 43200, 43200, 64800, 75600, 75600, 75600),
 }
 CH2_SHARE_CHOICES = (20, 30, 40, 50, 60, 70)
+# Channels 3-4: Playerbots 2.2.36's "fresh cohort" (playerbot_channel_rules.h,
+# FIRST_FRESH_CHANNEL/FRESH_COUNT_MAX) -- a brand-new pool of level-1 bots that
+# never touches CH1/CH2's world (own shops-free channels), 0=off, 1=CH3 only,
+# 2=CH3+CH4. FRESH_COUNT_MAX in the engine is 1500; these are just the choices
+# offered in the dropdown, same pattern as CH2_SHARE_CHOICES.
+FRESH_CHANNEL_CHOICES = (0, 1, 2)
+FRESH_COUNT_CHOICES = (100, 200, 300, 500, 1000, 1500)
 PLAYER_ADMIN_WARPS = (
     ("🏯 Miasto Shinsoo", 474300, 954800), ("🏮 Miasto Chunjo", 65900, 155600),
     ("⛩️ Miasto Jinno", 963500, 279700), ("🏘️ Jayang (M2)", 353987, 880012),
@@ -2302,9 +2309,23 @@ def read_channel_settings():
         share = 50
     if share not in CH2_SHARE_CHOICES:
         share = 50
+    try:
+        fresh = int(wish.get("FRESH", effective.get("FRESH", "0")) or 0)
+    except ValueError:
+        fresh = 0
+    if fresh not in FRESH_CHANNEL_CHOICES:
+        fresh = 0
+    try:
+        fresh_count = int(wish.get("FRESH_COUNT", effective.get("FRESH_COUNT", "200")) or 200)
+    except ValueError:
+        fresh_count = 200
+    if fresh_count not in FRESH_COUNT_CHOICES:
+        fresh_count = 200
     return {"ch2": wish.get("CH2", effective.get("CH2", "0")) == "1",
             "share": share,
-            "effective_ch2": effective.get("CH2", "0") == "1"}
+            "effective_ch2": effective.get("CH2", "0") == "1",
+            "fresh": fresh, "fresh_count": fresh_count,
+            "effective_fresh": int(effective.get("FRESH", "0") or 0)}
 
 
 def read_ai_item_policy():
@@ -3296,6 +3317,7 @@ def dashboard():
     empty_world = {
         "bots": 0, "average_level": 0, "party_bots": 0, "max_level": 0,
         "empire_counts": [{"empire": empire, "name": empire_info(empire)["name"], "flag": empire_flag_path(empire), "count": 0} for empire in (1, 2, 3)],
+        "channel_counts": [],
         "guilds": 0, "last_restart": "Ładowanie…", "version": "—",
         "release": {"installed": "—", "latest": None, "behind": False, "tone": "", "label": "Ładowanie…"},
         "rates": {"exp": 0, "drop": 0, "yang": 0}, "events": {},
@@ -3399,6 +3421,9 @@ def _dashboard_deferred_context():
         "empire_counts": [{"empire": empire, "name": empire_info(empire)["name"], "flag": empire_flag_path(empire),
                             "count": sum(1 for bot in live_roster if int(bot.get("empire") or 0) == empire)}
                            for empire in (1, 2, 3)],
+        "channel_counts": [{"channel": channel,
+                             "count": sum(1 for bot in live_roster if int(bot.get("channel") or 1) == channel)}
+                            for channel in discovered_channels()],
         "guilds": bot_guilds,
         "last_restart": restart_label,
         "version": release_status["installed"],
@@ -6169,7 +6194,7 @@ def manage():
     current_settings = settings()
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES)
+    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
 
 
 @app.post("/manage/difficulty")
@@ -6220,9 +6245,17 @@ def manage_channels():
         share = int(request.form.get("share", 50))
         if share not in CH2_SHARE_CHOICES:
             raise ValueError
+        fresh = int(request.form.get("fresh", 0))
+        if fresh not in FRESH_CHANNEL_CHOICES:
+            raise ValueError
+        fresh_count = int(request.form.get("fresh_count", 200))
+        if fresh_count not in FRESH_COUNT_CHOICES:
+            raise ValueError
         RATES_SPOOL.mkdir(parents=True, exist_ok=True)
-        CHANNELS_WISH_FILE.write_text(f"CH2={1 if '1' in request.form.getlist('ch2') else 0}\nSHARE={share}\nSET_AT={int(time.time())}\n", encoding="utf-8")
-        flash("Ustawienie CH2 zapisane. Zostanie zastosowane przy następnym restarcie serwera.", "success")
+        CHANNELS_WISH_FILE.write_text(
+            f"CH2={1 if '1' in request.form.getlist('ch2') else 0}\nSHARE={share}\n"
+            f"FRESH={fresh}\nFRESH_COUNT={fresh_count}\nSET_AT={int(time.time())}\n", encoding="utf-8")
+        flash("Ustawienia kanałów zapisane. Zostaną zastosowane przy następnym restarcie serwera.", "success")
     except (ValueError, OSError):
         flash("Nie udało się zapisać ustawień kanałów.", "error")
     return redirect(url_for("manage"))

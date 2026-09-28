@@ -34,6 +34,11 @@
       empireBreakdown.innerHTML = summary.empire_counts.map(empire => `<span class="empire-bots-item">${empire.flag ? `<img class="empire-flag-inline" src="/static/empires/${escape(empire.flag)}" alt="${escape(empire.name)}" title="${escape(empire.name)}">` : ''}${escape(empire.count)}</span>`).join('');
       document.querySelector('.empire-bots-cell')?.classList.remove('is-loading');
     }
+    const channelBreakdown = document.querySelector('.channel-bots-breakdown');
+    if (channelBreakdown && Array.isArray(summary.channel_counts)) {
+      channelBreakdown.innerHTML = summary.channel_counts.map(ch => `<span class="empire-bots-item" title="Kanał ${escape(ch.channel)}"><i class="map-legend-channel map-legend-channel--ch${escape(ch.channel)}"></i>CH${escape(ch.channel)} ${escape(ch.count)}</span>`).join('');
+      document.querySelector('.channel-bots-cell')?.classList.remove('is-loading');
+    }
     const installed = document.querySelector('.playerbots-installed');
     if (installed && summary.version !== undefined) installed.textContent = summary.version;
     const releaseLabel = document.querySelector('.playerbots-version small:not(.playerbots-available)');
