@@ -170,6 +170,9 @@ QUEUE_FINAL_STATUSES = frozenset((
     "done", "bad_args", "failed", "unknown_cmd", "cancelled", "no_gm",
 ))
 AI_WEIGHTS_FILE = RATES_SPOOL / "playerbot_weights.tsv"
+CHEST_SWITCH_FILE = RATES_SPOOL / "playerbot_chest_switch.tsv"
+CHANNELS_WISH_FILE = RATES_SPOOL / "channels.wanted"
+CHANNELS_EFFECTIVE_FILE = CHANNEL_VAR_ROOT / "channels.effective"
 # Ported from Tieru's classic panel (admin_panel.py's /ai/items) -- confirmed
 # the engine itself reads this exact path live, like the weights file
 # (playerbot_config.h's PLAYERBOT_ITEM_POLICY_PATH), 2026-09-26 audit.
@@ -186,10 +189,44 @@ AI_WEIGHT_KEYS = (
 AI_WEIGHT_MIN, AI_WEIGHT_MAX, AI_WEIGHT_NEUTRAL = 25, 250, 100
 # These values share the live weight file with goal weights, but the core treats
 # them as switches or direct settings rather than 25–250% goal weights.
-AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1, "PERSONA": 1,
-                     "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1, "CHEST": None, "CHEST_STONE": None}
+AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1,
+                     "SHOP_M2": 0, "PERSONA": 1, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
+                     "WAR_MINUTES": 30, "WAR_HOURS": 2, "CHEST": None, "CHEST_STONE": None}
 AI_SPECIAL_WEIGHT_KEYS = frozenset(AI_LIVE_DEFAULTS)
 BIOLOGIST_COMPLETE_STATE = 557528158
+BIOLOGIST_KEY_ITEM_STATE = -1726153001
+BIOLOGIST_RESEARCH_MISSIONS = (
+    {"quest": "collect_quest_lv30", "level": 30, "specimen": "Ząb Orka", "specimen_vnum": 30006, "target": 10, "key": "Kamień Duchowy Jinunggyi", "key_vnum": 30220},
+    {"quest": "collect_quest_lv40", "level": 40, "specimen": "Księga Klątw", "specimen_vnum": 30047, "target": 15, "key": "Świątynny Kamień Duchowy", "key_vnum": 30221},
+    {"quest": "collect_quest_lv50", "level": 50, "specimen": "Pamiątka po Demonie", "specimen_vnum": 30015, "target": 15, "key": "Kamień Duchowy Sagyi", "key_vnum": 30222},
+    {"quest": "collect_quest_lv60", "level": 60, "specimen": "Lodowa Kulka", "specimen_vnum": 30050, "target": 20, "key": "Kamień Duchowy Aurtumryu", "key_vnum": 30223},
+    {"quest": "collect_quest_lv70", "level": 70, "specimen": "Konar Zelkova", "specimen_vnum": 30165, "target": 25, "key": "Kamień Duchowy Gyimok", "key_vnum": 30224},
+    {"quest": "collect_quest_lv80", "level": 80, "specimen": "Certyfikat Tugyisa", "specimen_vnum": 30166, "target": 30, "key": "Kamień Duchowy Tugyi", "key_vnum": 30225},
+    {"quest": "collect_quest_lv85", "level": 85, "specimen": "Czerwony Konar Duchodrzewa", "specimen_vnum": 30167, "target": 40, "key": "Kamień Duchowy Lasu", "key_vnum": 30226},
+    {"quest": "collect_quest_lv90", "level": 90, "specimen": "Notatka Przywódcy", "specimen_vnum": 30168, "target": 50, "key": "Kamień Duchowy Liderów", "key_vnum": 30227},
+)
+RATE_PRESETS = (
+    ("🎯 Normalnie — dokładnie jak w oryginalnej grze", 100, 100, 100),
+    ("🌿 Spokojne zadania — doświadczenie 300%, przedmioty 200%, yang 200%", 300, 200, 200),
+    ("🚀 Szybko — doświadczenie 1000%, przedmioty 500%, yang 500%", 1000, 500, 500),
+)
+DIFFICULTY_FLAGS = ("m2_difficulty", "m2_biologist_wait", "m2_horse_buy_wait", "m2_horse_upgrade_wait",
+                    "m2_horse_train_wait", "m2_horse_train2_wait", "m2_book_wait", "m2_bot_book_wait")
+DIFFICULTY_LEVELS = ("easy", "medium", "hard", "custom")
+DIFFICULTY_PRESETS = {
+    "easy": (0, 0, 0, 0, 0, 0, 0),
+    "medium": (28800, 14400, 14400, 21600, 25200, 25200, 25200),
+    "hard": (86400, 43200, 43200, 64800, 75600, 75600, 75600),
+}
+CH2_SHARE_CHOICES = (20, 30, 40, 50, 60, 70)
+PLAYER_ADMIN_WARPS = (
+    ("🏯 Miasto Shinsoo", 474300, 954800), ("🏮 Miasto Chunjo", 65900, 155600),
+    ("⛩️ Miasto Jinno", 963500, 279700), ("🏘️ Jayang (M2)", 353987, 880012),
+    ("🏘️ Bokjung (M2)", 145500, 240000), ("🏘️ Bakra (M2)", 865500, 244975),
+    ("⚔️ Dolina Orków", 270400, 739900), ("🏜️ Pustynia Yongbi", 221900, 502700),
+    ("❄️ Góra Sohan", 375200, 174900), ("🔥 Ognista Ziemia", 597800, 622200),
+    ("🧊 Grota Wygnańców", 10000, 1207800),
+)
 # Tieru 1.29.10 adds the Orc Tooth task after the six classic Biologist
 # missions. The database lookup below also discovers future missions as soon
 # as the game has created their quest rows, while this list keeps the complete
@@ -506,6 +543,24 @@ def queue_game_admin_command(command, arg1, wait=12.0):
             return "gone", queue_id
         if status in QUEUE_FINAL_STATUSES:
             return status, queue_id
+    return "timeout", queue_id
+
+
+def queue_player_admin_command(player_name, command, arg1="", arg2="", wait=8.0):
+    """Execute the live ITEM/GOLD/LEVEL/WARP/SPEED interface shipped by Tieru."""
+    with db() as con, con.cursor() as cur:
+        cur.execute("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2) VALUES (%s,%s,%s,%s)",
+                    (player_name, command, str(arg1), str(arg2)))
+        queue_id = cur.lastrowid
+    deadline = time.time() + wait
+    while time.time() < deadline:
+        time.sleep(0.5)
+        result = one("SELECT status FROM player.web_admin_queue WHERE id=%s", (queue_id,))
+        if not result:
+            return "gone", queue_id
+        if result.get("status") in QUEUE_FINAL_STATUSES:
+            return result["status"], queue_id
+    cancel_pending_admin_command(queue_id)
     return "timeout", queue_id
 
 
@@ -2093,12 +2148,16 @@ def read_ai_weights():
             if len(fields) >= 2 and fields[0].upper() in values:
                 try:
                     key, raw_value = fields[0].upper(), fields[1]
-                    if key in ("CHAT", "BOOKS", "NIGHT", "LIFE", "WARS", "TOWER", "CATACOMB", "ISHOP", "PERSONA"):
+                    if key in ("CHAT", "BOOKS", "NIGHT", "LIFE", "WARS", "TOWER", "CATACOMB", "ISHOP", "SHOP_M2", "PERSONA"):
                         values[key] = 0 if raw_value.lower() in ("0", "off", "no") else 1
                     elif key in ("SCRAP", "REST", "KINGDOMPVP"):
                         values[key] = max(0, min(100, int(raw_value)))
                     elif key == "SCROLL_FROM":
                         values[key] = max(1, min(9, int(raw_value)))
+                    elif key == "WAR_MINUTES":
+                        values[key] = max(5, min(180, int(raw_value)))
+                    elif key == "WAR_HOURS":
+                        values[key] = max(1, min(24, int(raw_value)))
                     elif key in ("CHEST", "CHEST_STONE"):
                         values[key] = max(0, min(1000, int(raw_value)))
                     else:
@@ -2144,11 +2203,14 @@ def write_ai_weights(values):
     content.append(f"TOWER\t{1 if values.get('TOWER', 1) else 0}")
     content.append(f"CATACOMB\t{1 if values.get('CATACOMB', 1) else 0}")
     content.append(f"ISHOP\t{1 if values.get('ISHOP', 1) else 0}")
+    content.append(f"SHOP_M2\t{1 if values.get('SHOP_M2', 0) else 0}")
     content.append(f"PERSONA\t{1 if values.get('PERSONA', 1) else 0}")
     content.append(f"SCRAP\t{max(0, min(100, int(values.get('SCRAP', 0))))}")
     content.append(f"REST\t{max(0, min(100, int(values.get('REST', 100))))}")
     content.append(f"KINGDOMPVP\t{max(0, min(100, int(values.get('KINGDOMPVP', 0))))}")
     content.append(f"SCROLL_FROM\t{max(1, min(9, int(values.get('SCROLL_FROM', 1))))}")
+    content.append(f"WAR_MINUTES\t{max(5, min(180, int(values.get('WAR_MINUTES', 30))))}")
+    content.append(f"WAR_HOURS\t{max(1, min(24, int(values.get('WAR_HOURS', 2))))}")
     for key in ("CHEST", "CHEST_STONE"):
         if values.get(key) is not None:
             content.append(f"{key}\t{max(0, min(1000, int(values[key])))}")
@@ -2156,6 +2218,79 @@ def write_ai_weights(values):
     temporary = AI_WEIGHTS_FILE.with_suffix(".tsv.new")
     temporary.write_text("\n".join(content) + "\n", encoding="utf-8")
     os.replace(temporary, AI_WEIGHTS_FILE)
+
+
+def read_chest_switch():
+    result = {"off": False, "kill": 10, "stone": 300}
+    try:
+        for line in CHEST_SWITCH_FILE.read_text(encoding="utf-8", errors="replace").splitlines():
+            fields = line.split("\t", 1)
+            if len(fields) != 2:
+                continue
+            key, value = fields[0].strip().lower(), fields[1].strip()
+            if key == "off":
+                result["off"] = value not in ("0", "off", "false", "no")
+            elif key in ("kill", "stone"):
+                result[key] = max(0, min(1000, int(value)))
+    except (OSError, ValueError):
+        pass
+    return result
+
+
+def write_chest_switch(state):
+    RATES_SPOOL.mkdir(parents=True, exist_ok=True)
+    tmp = CHEST_SWITCH_FILE.with_suffix(".tsv.new")
+    tmp.write_text(f"off\t{1 if state['off'] else 0}\nkill\t{state['kill']}\nstone\t{state['stone']}\n", encoding="utf-8")
+    os.replace(tmp, CHEST_SWITCH_FILE)
+
+
+def read_global_quest_flags(names):
+    values = {name: 0 for name in names}
+    marks = ",".join(["%s"] * len(names))
+    try:
+        for row in rows(f"SELECT szName,lValue FROM player.quest WHERE dwPID=0 AND szName IN ({marks})", list(names)):
+            values[row["szName"]] = int(row["lValue"] or 0)
+    except (pymysql.MySQLError, TypeError, ValueError):
+        pass
+    return values
+
+
+def read_difficulty():
+    values = read_global_quest_flags(DIFFICULTY_FLAGS)
+    level_index = max(0, min(3, values["m2_difficulty"]))
+    return {"level": DIFFICULTY_LEVELS[level_index], "biologist": values["m2_biologist_wait"] / 3600,
+            "horse": values["m2_horse_buy_wait"] / 3600, "book_player": values["m2_book_wait"] / 3600,
+            "book_bot": values["m2_bot_book_wait"] / 3600}
+
+
+def read_autohunt():
+    values = read_global_quest_flags(("m2_autohunt_item", "m2_autohunt_off"))
+    return {"item": 1 if values["m2_autohunt_item"] else 0, "off": bool(values["m2_autohunt_off"])}
+
+
+def read_key_value_file(path):
+    result = {}
+    try:
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            if "=" in line:
+                key, value = line.split("=", 1)
+                result[key.strip().upper()] = value.strip()
+    except OSError:
+        pass
+    return result
+
+
+def read_channel_settings():
+    wish, effective = read_key_value_file(CHANNELS_WISH_FILE), read_key_value_file(CHANNELS_EFFECTIVE_FILE)
+    try:
+        share = int(wish.get("SHARE", effective.get("SHARE", "50")) or 50)
+    except ValueError:
+        share = 50
+    if share not in CH2_SHARE_CHOICES:
+        share = 50
+    return {"ch2": wish.get("CH2", effective.get("CH2", "0")) == "1",
+            "share": share,
+            "effective_ch2": effective.get("CH2", "0") == "1"}
 
 
 def read_ai_item_policy():
@@ -2623,16 +2758,26 @@ def character_mission_progress(pid):
 
     missions = []
 
-    bio_missions = biologist_missions()
-    done = sum(1 for name in bio_missions if by_quest.get(name, {}).get("__status") == BIOLOGIST_COMPLETE_STATE)
-    if done < len(bio_missions):
-        active = bio_missions[done]
-        if active == "collect_quest_lv30" and "collect_count" in by_quest.get(active, {}):
-            current = max(0, int(by_quest[active]["collect_count"]))
-            missions.append({"label": "Biolog: Zęby Orka", "current": min(current, BIOLOGIST_COLLECT_TARGET),
-                              "target": BIOLOGIST_COLLECT_TARGET, "unit": "oddanych"})
-        else:
-            missions.append({"label": f"Biolog: misja {done + 1} z {len(bio_missions)}", "current": done,
+    research_by_name = {mission["quest"]: mission for mission in BIOLOGIST_RESEARCH_MISSIONS}
+    active_research = next((research_by_name[name] for name in research_by_name
+                            if by_quest.get(name) and by_quest[name].get("__status") != BIOLOGIST_COMPLETE_STATE), None)
+    if active_research:
+        state = by_quest[active_research["quest"]]
+        collecting_key = int(state.get("__status") or 0) == BIOLOGIST_KEY_ITEM_STATE
+        wanted_vnum = active_research["key_vnum"] if collecting_key else active_research["specimen_vnum"]
+        held = one("SELECT COALESCE(SUM(count),0) AS amount FROM player.item WHERE owner_id=%s AND vnum=%s",
+                   (pid, wanted_vnum)).get("amount", 0)
+        current = active_research["target"] if collecting_key else max(0, int(state.get("collect_count") or 0))
+        stage = list(research_by_name).index(active_research["quest"]) + 1
+        missions.append({"label": f"Biolog {stage}/8: {active_research['specimen']}",
+                         "current": min(current, active_research["target"]), "target": active_research["target"],
+                         "unit": "oddanych", "detail": (f"Aktualnie szuka: {active_research['key']}"
+                         if collecting_key else f"Zbiera: {active_research['specimen']}") + f" · w ekwipunku: {int(held or 0)}"})
+    else:
+        bio_missions = biologist_missions()
+        done = sum(1 for name in bio_missions if by_quest.get(name, {}).get("__status") == BIOLOGIST_COMPLETE_STATE)
+        if done < len(bio_missions):
+            missions.append({"label": f"Biolog: misja wstępna {done + 1} z {len(bio_missions)}", "current": done,
                               "target": len(bio_missions), "unit": "ukończonych misji"})
 
     horse_kills = by_quest.get("playerbot", {}).get("battle_horse_kills")
@@ -3943,7 +4088,80 @@ def player(pid):
     return render_template("player.html", character=character, equipment=equipment, inventory=inventory, safebox=safebox,
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
-                            mission_progress=mission_progress, gm_ranks=GM_RANK_OPTIONS)
+                            mission_progress=mission_progress, gm_ranks=GM_RANK_OPTIONS,
+                            admin_warps=PLAYER_ADMIN_WARPS)
+
+
+@app.get("/api/admin/item-search")
+@login_required
+def api_admin_item_search():
+    term = (request.args.get("q") or "").strip()
+    category = (request.args.get("category") or "all").strip()
+    where, params = ["1=1"], []
+    category_sql = {
+        "weapons": "type=1", "armor": "type=2", "use": "type IN (3,18)",
+        "dragon": "type=29", "metin": "type=10", "special": "type=16",
+    }
+    if category in category_sql:
+        where.append(category_sql[category])
+    elif category == "other":
+        where.append("type NOT IN (1,2,3,10,16,18,29)")
+    if term:
+        if term.isdigit():
+            where.append("(vnum=%s OR locale_name LIKE %s)")
+            params.extend((int(term), f"%{term}%"))
+        else:
+            where.append("locale_name LIKE %s")
+            params.append(f"%{term}%")
+    found = rows("SELECT vnum,locale_name,type FROM player.item_proto WHERE " + " AND ".join(where) +
+                 " ORDER BY vnum LIMIT 80", params)
+    return jsonify({"items": [{"vnum": int(item["vnum"]), "name": game_text(item.get("locale_name")) or f"VNUM {item['vnum']}"}
+                              for item in found]})
+
+
+@app.post("/player/<int:pid>/action/game")
+@login_required
+def player_action_game(pid):
+    character = one("SELECT id,name FROM player.player WHERE id=%s", (pid,))
+    if not character:
+        abort(404)
+    command = (request.form.get("command") or "").upper()
+    try:
+        if command == "ITEM":
+            vnum, count = int(request.form.get("vnum", 0)), int(request.form.get("count", 1))
+            if vnum <= 0 or not 1 <= count <= 200 or not one("SELECT vnum FROM player.item_proto WHERE vnum=%s", (vnum,)):
+                raise ValueError("Wybierz istniejący przedmiot i ilość 1–200.")
+            arg1, arg2, label = vnum, count, f"Przedmiot #{vnum} × {count}"
+        elif command == "GOLD":
+            amount = int(request.form.get("amount", 0))
+            if not 1 <= amount <= 2_000_000_000:
+                raise ValueError("Yang musi mieścić się w zakresie 1–2 000 000 000.")
+            arg1, arg2, label = amount, "", f"{amount:,} Yang".replace(",", " ")
+        elif command == "LEVEL":
+            level = int(request.form.get("level", 0))
+            if not 1 <= level <= 120:
+                raise ValueError("Poziom musi mieścić się w zakresie 1–120.")
+            arg1, arg2, label = level, "", f"poziom {level}"
+        elif command == "WARP":
+            selected = int(request.form.get("warp", -1))
+            if not 0 <= selected < len(PLAYER_ADMIN_WARPS):
+                raise ValueError("Wybierz poprawne miejsce teleportacji.")
+            label, arg1, arg2 = PLAYER_ADMIN_WARPS[selected]
+        elif command == "SPEED":
+            speed = int(request.form.get("speed", -1))
+            if speed not in (0, 30, 60, 100):
+                raise ValueError("Wybierz poprawną szybkość biegu.")
+            arg1, arg2, label = speed, 3600, f"szybkość +{speed}% na godzinę"
+        else:
+            raise ValueError("Nieobsługiwana akcja.")
+        status, _queue_id = queue_player_admin_command(character["name"], command, arg1, arg2)
+        if status == "done":
+            flash(f"{label}: wykonano dla {character['name']}.", "success")
+        else:
+            flash(f"Nie udało się wykonać akcji ({status}). Postać musi być online, a web_admin.quest aktywny.", "error")
+    except (TypeError, ValueError) as exc:
+        flash(str(exc), "error")
+    return redirect(url_for("player", pid=pid))
 
 
 @app.route("/api/player/<int:pid>/inventory-fragment")
@@ -4576,7 +4794,6 @@ BOT_PUBLIC_CHAT_RE = re.compile(
     r"(?:PLAYERBOT_TRADE: shout pid=(?P<trade_pid>\d+) name=(?P<trade_name>\S+) text=\"(?P<trade_text>.*)\""
     r"|PLAYERBOT_SHOUT: pid=(?P<refine_pid>\d+) plus=\d+ text=(?P<refine_text>.*))$"
 )
-
 STAMPED_SYSLOG_RE = re.compile(
     r"^(?P<stamp>[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d) :: (?P<body>.*)$"
 )
@@ -5880,7 +6097,63 @@ def manage():
     current_settings = settings()
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), ai_weights=read_ai_weights(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy())
+    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=AI_WEIGHT_KEYS, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(live_bots()), map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES)
+
+
+@app.post("/manage/difficulty")
+@login_required
+def manage_difficulty():
+    level = request.form.get("level", "easy")
+    if level not in DIFFICULTY_LEVELS:
+        flash("Nieprawidłowy poziom trudności.", "error")
+        return redirect(url_for("manage"))
+    try:
+        if level == "custom":
+            hours = [max(0.0, min(720.0, float(request.form.get(key, 0)))) for key in
+                     ("biologist", "horse", "book_player", "book_bot")]
+            seconds = [round(value * 3600) for value in hours]
+            values = (seconds[0], seconds[1], seconds[1], seconds[1], seconds[1], seconds[2], seconds[3])
+        else:
+            values = DIFFICULTY_PRESETS[level]
+        stored = (DIFFICULTY_LEVELS.index(level),) + values
+        with db() as con, con.cursor() as cur:
+            for flag, value in zip(DIFFICULTY_FLAGS, stored):
+                cur.execute("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,%s,'',%s)", (flag, value))
+        status, queue_id = queue_game_admin_command("DIFFICULTY", ",".join(str(value) for value in stored))
+        if status == "timeout":
+            cancel_pending_admin_command(queue_id)
+        flash("Poziom trudności zapisany i przekazany grze na żywo." if status == "done" else
+              "Poziom trudności zapisany. Rdzeń zastosuje go przy następnym odczycie.", "success")
+    except (TypeError, ValueError, pymysql.MySQLError):
+        flash("Wpisz poprawne liczby godzin (0–720).", "error")
+    return redirect(url_for("manage"))
+
+
+@app.post("/manage/autohunt")
+@login_required
+def manage_autohunt():
+    enabled = "1" in request.form.getlist("autohunt_item")
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,'m2_autohunt_item','',%s)", (1 if enabled else 0,))
+    status, queue_id = queue_game_admin_command("AUTOHUNT", 1 if enabled else 0)
+    if status == "timeout":
+        cancel_pending_admin_command(queue_id)
+    flash("Dostęp do panelu autołowów zapisany — zmiana działa na żywo.", "success")
+    return redirect(url_for("manage"))
+
+
+@app.post("/manage/channels")
+@login_required
+def manage_channels():
+    try:
+        share = int(request.form.get("share", 50))
+        if share not in CH2_SHARE_CHOICES:
+            raise ValueError
+        RATES_SPOOL.mkdir(parents=True, exist_ok=True)
+        CHANNELS_WISH_FILE.write_text(f"CH2={1 if '1' in request.form.getlist('ch2') else 0}\nSHARE={share}\nSET_AT={int(time.time())}\n", encoding="utf-8")
+        flash("Ustawienie CH2 zapisane. Zostanie zastosowane przy następnym restarcie serwera.", "success")
+    except (ValueError, OSError):
+        flash("Nie udało się zapisać ustawień kanałów.", "error")
+    return redirect(url_for("manage"))
 
 
 @app.route("/manage/panel")
@@ -6159,7 +6432,7 @@ def manage_behavior():
     values["CHAT"] = 1 if "1" in request.form.getlist("CHAT") else 0
     # Preserve the existing switch for a form opened before this field existed.
     values["BOOKS"] = 1 if "BOOKS" not in request.form else (1 if "1" in request.form.getlist("BOOKS") else 0)
-    for key, default in (("NIGHT", 1), ("LIFE", 0), ("WARS", 1), ("TOWER", 1), ("ISHOP", 1), ("PERSONA", 1)):
+    for key, default in (("NIGHT", 1), ("LIFE", 0), ("WARS", 1), ("TOWER", 1), ("ISHOP", 1), ("SHOP_M2", 0), ("PERSONA", 1)):
         values[key] = default if key not in request.form else (1 if "1" in request.form.getlist(key) else 0)
     try:
         values["SCRAP"] = max(0, min(100, int(request.form.get("SCRAP", values.get("SCRAP", 0)))))
@@ -6177,16 +6450,31 @@ def manage_behavior():
         values["SCROLL_FROM"] = max(1, min(9, int(request.form.get("SCROLL_FROM", values.get("SCROLL_FROM", 1)))))
     except (TypeError, ValueError):
         values["SCROLL_FROM"] = 1
+    for key, minimum, maximum, default in (("WAR_MINUTES", 5, 180, 30), ("WAR_HOURS", 1, 24, 2)):
+        try:
+            values[key] = max(minimum, min(maximum, int(request.form.get(key, values.get(key, default)))))
+        except (TypeError, ValueError):
+            values[key] = default
+    switch = read_chest_switch()
+    chest_off = "1" in request.form.getlist("CHEST_OFF")
     for key in ("CHEST", "CHEST_STONE"):
         if key not in request.form:
             continue
         try:
-            values[key] = max(0, min(1000, int(request.form[key])))
+            parsed = max(0, min(1000, int(request.form[key])))
+            switch["kill" if key == "CHEST" else "stone"] = parsed
+            values[key] = 0 if chest_off else parsed
         except (TypeError, ValueError):
             # A malformed chest control must not turn an existing server value
             # into a guessed default.
             continue
     try:
+        switch["off"] = chest_off
+        write_chest_switch(switch)
+        if chest_off:
+            values["CHEST"] = values["CHEST_STONE"] = 0
+        elif values.get("CHEST") == 0 and values.get("CHEST_STONE") == 0:
+            values["CHEST"], values["CHEST_STONE"] = switch["kill"], switch["stone"]
         write_ai_weights(values)
     except OSError:
         flash("Nie udało się zapisać wag Playerbots.", "error")
