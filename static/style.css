@@ -263,6 +263,11 @@ aside.site-nav{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavio
 aside.site-nav nav{flex:0 0 auto;min-height:0;padding-bottom:12px}
 aside.site-nav .nav-logout{flex:0 0 auto;margin-top:auto;padding-top:4px}
 aside.site-nav .nav-logout .quiet{margin-top:0}
+aside.site-nav{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--blue2) 78%,var(--text)) color-mix(in srgb,var(--panel) 82%,transparent)}
+aside.site-nav::-webkit-scrollbar{width:8px}
+aside.site-nav::-webkit-scrollbar-track{background:color-mix(in srgb,var(--panel) 82%,transparent);border-radius:999px}
+aside.site-nav::-webkit-scrollbar-thumb{background:linear-gradient(180deg,color-mix(in srgb,var(--blue2) 72%,var(--text)),var(--blue2));border:2px solid color-mix(in srgb,var(--panel) 82%,transparent);border-radius:999px}
+aside.site-nav::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,color-mix(in srgb,var(--blue2) 58%,var(--text)),color-mix(in srgb,var(--blue2) 88%,var(--text)))}
 aside.site-nav nav a,aside.site-nav nav summary{min-width:0;overflow-wrap:anywhere}
 .panel,.live-shell,.cards article{min-width:0}
 table{max-width:100%}
