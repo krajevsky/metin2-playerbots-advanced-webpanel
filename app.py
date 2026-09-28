@@ -751,6 +751,10 @@ def write_settings(values):
 def panel_feature_enabled(name, current=None):
     if name not in PANEL_FEATURES:
         return True
+    # On MT2009 the student chest is Tieru's own world-wide flag, which his
+    # quest, seed and cores read: nothing of the integration is needed.
+    if name == "student_chest" and ENGINE_MT2009:
+        return True
     current = current or settings()
     value = current.get(f"feature_{name}")
     return CUSTOM_PATCHES_ENABLED if value is None else value == "1"
@@ -2766,13 +2770,24 @@ def read_student_chest_disabled():
     """Whether a new character (bot or player), of any class, is denied its
     starter chest (50187 warrior/sura, 50212 assassin, 50213 shaman).
 
-    common.m2_switches is the same durable row apply.sh writes from
+    On MT2009 this is Tieru's event flag m2_starter_chest_off, the one switch
+    his whole world reads: starter_chest.quest at a player's first login, his
+    seed at a bot's creation, and the cores for the bots already in the world
+    (off, they keep and open none of the chain). His migrator writes it from
+    M2_STARTER_CHEST - or from M2_PLAYERBOT_DISABLE_STUDENT_CHEST=1 - only
+    when .env changed since the last start, so what this page writes stays.
+    common.m2_switches is read by nothing of his, which is how the chests
+    "crept in" on a server with this switch off (28 September).
+
+    Elsewhere: common.m2_switches is the same durable row apply.sh writes from
     M2_PLAYERBOT_DISABLE_STUDENT_CHEST at every playerbot-migrate start, and
     that starter_chest.quest reads live on a real player's first login --
     see that quest's own header for why a live read beats a cached one here.
     No row yet (a fresh install, or an image predating this switch) reads as
     "not disabled", matching the chest's original always-on behaviour.
     """
+    if ENGINE_MT2009:
+        return bool(read_global_quest_flags(("m2_starter_chest_off",))["m2_starter_chest_off"])
     try:
         row = one("SELECT value FROM common.m2_switches WHERE name='disable_student_chest'")
     except pymysql.MySQLError:
@@ -2792,12 +2807,24 @@ def write_student_chest_disabled(disabled):
     .env default untouched, and a future playerbot-migrate run (a deploy, a
     host reboot) will reset this row back to whatever .env still says. Keep
     both in sync there if the choice should survive that.
+
+    On MT2009: Tieru's flag (see read_student_chest_disabled), written for the
+    next start and set live through web_admin.quest's STARTER_CHEST - the same
+    queue as the difficulty and the auto hunt. Returns the queue's answer.
     """
+    if ENGINE_MT2009:
+        rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,'m2_starter_chest_off','',%s)",
+             (1 if disabled else 0,))
+        status, queue_id = queue_game_admin_command("STARTER_CHEST", 1 if disabled else 0)
+        if status == "timeout":
+            cancel_pending_admin_command(queue_id)
+        return status
     rows(
         "INSERT INTO common.m2_switches (name, value) VALUES ('disable_student_chest', %s) "
         "ON DUPLICATE KEY UPDATE value = VALUES(value)",
         ("1" if disabled else "0",),
     )
+    return "done"
 
 
 def queue_rate_restart(values):
@@ -6809,8 +6836,14 @@ def manage_student_chest():
     if blocked := require_panel_feature("student_chest"):
         return blocked
     disabled = "1" in request.form.getlist("disable_student_chest")
-    write_student_chest_disabled(disabled)
-    if disabled:
+    status = write_student_chest_disabled(disabled)
+    if ENGINE_MT2009:
+        flash(("Skrzynia Ucznia wyłączona w całym świecie: nowe postacie graczy jej nie dostają, nowe boty rodzą się bez niej, "
+               "a boty tracą nieotwarte skrzynie z łańcucha (skrzynie graczy zostają)." if disabled else
+               "Skrzynia Ucznia włączona: nowa postać gracza dostaje ją przy pierwszym logowaniu, a boty otwierają swoje na ich poziomach.")
+              + (" Działa od razu." if status == "done" else
+                 " Gra nie odpowiedziała (serwer wyłączony albo startuje) — zadziała przy następnym starcie."))
+    elif disabled:
         flash("Skrzynia startowa jest teraz wyłączona dla nowych postaci graczy, każdej klasy — działa od razu, bez restartu.")
     else:
         flash("Skrzynia startowa jest teraz włączona dla nowych postaci graczy, każdej klasy — działa od razu, bez restartu.")
