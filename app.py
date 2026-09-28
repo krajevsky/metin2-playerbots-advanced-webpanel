@@ -1696,6 +1696,7 @@ EVENT_MAPS = (
     (41, "Pyongmoo"), (3, "Jayang"), (23, "Bokjung"), (43, "Bakra"),
 )
 EVENT_MAP_IDS = frozenset(index for index, _label in EVENT_MAPS)
+EVENT_MAP_LABELS = dict(EVENT_MAPS)
 EVENT_LABELS = {
     "chest": "Szkatułki Blasku Księżyca",
     "exp": "Doświadczenie",
@@ -1724,6 +1725,21 @@ def event_world_value(kind, value):
     if value <= 0:
         return EVENT_WORLD_DEFAULT[kind]
     return min(EVENT_WORLD_MAX[kind], value)
+
+
+def event_now_key(kind, map_id=0):
+    # Tanaka and Zuo run one event per map side by side - a Zuo started in
+    # Bokjung used to end the one just begun in Bakra, because the page kept
+    # one "now" line per kind (Derpsonkowy95, 27 September) - so theirs are
+    # kept by kind and map, "zuo@43", the key the core's status row carries,
+    # with 0 (the event picks) one more map of its own.
+    if kind in EVENT_WORLD_KINDS:
+        return f"{kind}@{int(map_id)}"
+    return kind
+
+
+def event_map_label(map_id):
+    return EVENT_MAP_LABELS.get(map_id) or MAP_NAMES.get(map_id) or str(map_id)
 
 
 def read_event_settings():
@@ -1760,11 +1776,11 @@ def read_events():
         fields = line.split("\t")
         if len(fields) >= 4 and fields[0] == "now" and fields[1] in EVENT_KINDS:
             try:
-                item = {"until": int(fields[2]), "value": int(fields[3]), "map": 0, "since": 0}
+                item = {"kind": fields[1], "until": int(fields[2]), "value": int(fields[3]), "map": 0, "since": 0}
                 if fields[1] in EVENT_WORLD_KINDS:
                     item["map"] = int(fields[4]) if len(fields) >= 5 and fields[4] else 0
                     item["since"] = int(fields[5]) if len(fields) >= 6 and fields[5] else 0
-                nows[fields[1]] = item
+                nows[event_now_key(fields[1], item["map"])] = item
             except ValueError:
                 pass
             continue
@@ -1810,18 +1826,43 @@ def write_events(rows, nows, event_settings=None):
         if row["kind"] in EVENT_WORLD_KINDS:
             line += "\t%d" % int(row.get("map", 0))
         body.append(line if row.get("on", True) else "#off\t" + line)
+    stamp = time.time()
     for kind in EVENT_KINDS:
         now_event = nows.get(kind)
-        if now_event and int(now_event.get("until", 0)) > time.time():
-            if kind in EVENT_WORLD_KINDS:
-                body.append("now\t%s\t%d\t%d\t%d\t%d" % (kind, int(now_event["until"]), int(now_event.get("value", 0)), int(now_event.get("map", 0)), int(now_event.get("since", 0))))
-            else:
-                body.append("now\t%s\t%d\t%d" % (kind, int(now_event["until"]), int(now_event.get("value", 0))))
+        if kind not in EVENT_WORLD_KINDS and now_event and int(now_event.get("until", 0)) > stamp:
+            body.append("now\t%s\t%d\t%d" % (kind, int(now_event["until"]), int(now_event.get("value", 0))))
+    # Tanaka and Zuo after the rest, every map's line, by kind and then map. A
+    # panel from before one event per map keeps the last line of each kind.
+    world_events = [item for item in nows.values()
+                    if item.get("kind") in EVENT_WORLD_KINDS and int(item.get("until", 0)) > stamp]
+    world_events.sort(key=lambda item: (EVENT_KINDS.index(item["kind"]), int(item.get("map", 0))))
+    for now_event in world_events:
+        body.append("now\t%s\t%d\t%d\t%d\t%d" % (now_event["kind"], int(now_event["until"]), int(now_event.get("value", 0)), int(now_event.get("map", 0)), int(now_event.get("since", 0))))
     event_settings = event_settings or read_event_settings()
     body.append("bots\t%d" % max(0, min(100, int(event_settings.get("bots", EVENT_BOTS_DEFAULT)))))
     temporary = EVENTS_FILE.with_suffix(".tsv.new")
     temporary.write_text("\n".join(body) + "\n", encoding="utf-8")
     os.replace(temporary, EVENTS_FILE)
+
+
+def event_status_item(fields):
+    # One row of a core's playerbot_events_status.tsv: the eight columns every
+    # core has written since 2.0.74 and the eight Tanaka and Zuo added.
+    item = {"scheduled": fields[1] == "1", "active": fields[2] == "1", "value": int(fields[3]), "until": int(fields[4]), "next_start": int(fields[5]), "next_value": int(fields[6]), "written": int(fields[7]), "map": 0, "since": 0, "next_map": 0, "host": False, "alive": 0, "killed": 0, "bots": 0, "phase": ""}
+    if len(fields) >= 16:
+        item.update({"map": int(fields[8]), "since": int(fields[9]), "next_map": int(fields[10]), "host": fields[11] == "1", "alive": int(fields[12]), "killed": int(fields[13]), "bots": int(fields[14]), "phase": "" if fields[15] == "-" else fields[15]})
+    return item
+
+
+def event_status_texts(item):
+    today = time.localtime()
+    for key in ("until", "next_start"):
+        stamp = item.get(key, 0)
+        if stamp:
+            local = time.localtime(stamp)
+            same_day = (local.tm_year, local.tm_yday) == (today.tm_year, today.tm_yday)
+            item[key + "_text"] = time.strftime("%H:%M" if same_day else "%d.%m %H:%M", local)
+    return item
 
 
 def read_events_status():
@@ -1840,13 +1881,11 @@ def read_events_status():
             if len(fields) < 8 or fields[0] not in EVENT_KINDS:
                 continue
             try:
-                item = {"scheduled": fields[1] == "1", "active": fields[2] == "1", "value": int(fields[3]), "until": int(fields[4]), "next_start": int(fields[5]), "next_value": int(fields[6]), "map": 0, "since": 0, "next_map": 0, "host": False, "alive": 0, "killed": 0, "bots": 0, "phase": ""}
-                if len(fields) >= 16:
-                    item.update({"map": int(fields[8]), "since": int(fields[9]), "next_map": int(fields[10]), "host": fields[11] == "1", "alive": int(fields[12]), "killed": int(fields[13]), "bots": int(fields[14]), "phase": "" if fields[15] == "-" else fields[15]})
-                current[fields[0]] = item
-                written = int(fields[7])
+                item = event_status_item(fields)
             except ValueError:
                 continue
+            current[fields[0]] = item
+            written = item["written"]
         for kind, item in current.items():
             if item.get("host") and written > host_written.get(kind, 0):
                 hosts[kind], host_written[kind] = item, written
@@ -1857,15 +1896,71 @@ def read_events_status():
     for kind, item in hosts.items():
         if time.time() - host_written[kind] <= 300:
             newest[kind] = item
-    today = time.localtime()
     for item in newest.values():
-        for key in ("until", "next_start"):
-            stamp = item.get(key, 0)
-            if stamp:
-                local = time.localtime(stamp)
-                same_day = (local.tm_year, local.tm_yday) == (today.tm_year, today.tm_yday)
-                item[key + "_text"] = time.strftime("%H:%M" if same_day else "%d.%m %H:%M", local)
+        event_status_texts(item)
     return newest
+
+
+def read_world_events_status():
+    # Every Tanaka and Zuo the cores run now, by event_now_key. After the
+    # kinds' rows each core adds one for every world event it runs itself,
+    # "zuo@43", "zuo@0" - the kind and the map asked for, which a panel that
+    # knows only the kinds steps over. Of each key the newest row, and only
+    # while it is active and written in the last five minutes, the kinds' own
+    # rule. "map" is the map asked for (the "now" line's, the one Stop sends),
+    # "run_map" the map it runs on: for 0, the one the event drew.
+    found = {}
+    for _channel, path in channel_paths("playerbot_events_status.tsv"):
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for line in lines[1:]:
+            fields = line.rstrip("\r").split("\t")
+            kind, separator, asked = fields[0].partition("@")
+            if not separator or kind not in EVENT_WORLD_KINDS or len(fields) < 16:
+                continue
+            try:
+                item = event_status_item(fields)
+                asked = int(asked)
+            except ValueError:
+                continue
+            key = event_now_key(kind, asked)
+            if key not in found or item["written"] > found[key]["written"]:
+                item.update({"kind": kind, "map": asked, "run_map": item["map"]})
+                found[key] = item
+    stamp = time.time()
+    return {key: event_status_texts(item) for key, item in found.items()
+            if item["active"] and stamp - item["written"] <= 300}
+
+
+def event_world_runs(nows, world):
+    # Tanaka and Zuo as the page lists them, {kind: [run, ...]} by map: every
+    # event running now, one a kind and map, from the cores' rows (what
+    # stands, who came - and the schedule's events, which have no "now" line)
+    # and the panel's "now" lines, the only ones a Stop can end. A line the
+    # core has not read yet (it reads the file every five seconds) is listed
+    # from the line, and so is the end of one started again over the event
+    # the core still reports.
+    runs = {key: dict(item, reported=True, manual=False) for key, item in world.items()}
+    stamp = time.time()
+    for key, now_event in nows.items():
+        if now_event.get("kind") not in EVENT_WORLD_KINDS or int(now_event.get("until", 0)) <= stamp:
+            continue
+        run = runs.get(key)
+        if run is None:
+            run = runs[key] = {"kind": now_event["kind"], "map": int(now_event.get("map", 0)), "run_map": 0, "since": 0, "phase": "", "alive": 0, "killed": 0, "bots": 0, "reported": False}
+        if not run["reported"] or int(now_event.get("since", 0)) > run.get("since", 0):
+            run.update({"until": int(now_event["until"]), "value": int(now_event.get("value", 0)), "since": int(now_event.get("since", 0))})
+            event_status_texts(run)
+        run["manual"] = True
+    listed = {kind: [] for kind in EVENT_WORLD_KINDS}
+    for run in sorted(runs.values(), key=lambda run: run["map"]):
+        run["map_label"] = event_map_label(run["map"])
+        if run["map"] == 0 and run["run_map"]:
+            run["map_label"] += ": " + event_map_label(run["run_map"])
+        listed[run["kind"]].append(run)
+    return listed
 
 
 # vnum Szkatułki Blasku Księżyca (special_item_group.moonlight.txt) -- jedyny
@@ -1877,6 +1972,8 @@ def event_run_stats(kind, started_at, ended_at, value):
     """Statystyki dla zakończonego okna eventu, liczone z log.log (zdarzenia,
     nie stan ekwipunku/konta -- działa niezależnie od tego czy bot szkatułkę
     otworzył, sprzedał czy zatrzymał)."""
+    # A run of Tanaka or Zuo is its kind and map ("zuo@43"); the figures are the kind's.
+    kind = kind.partition("@")[0]
     if kind == "chest":
         found = one("SELECT COUNT(*) AS n FROM log.log WHERE how='GET' AND vnum=%s AND time BETWEEN %s AND %s",
                      (MOONLIGHT_CHEST_VNUM, started_at, ended_at))
@@ -1891,6 +1988,16 @@ def event_run_stats(kind, started_at, ended_at, value):
         extra = round(total * value / (100 + value)) if value > 0 else 0
         return {"chest_count": None, "yang_extra": extra}
     return {"chest_count": None, "yang_extra": None}
+
+
+def event_run_label(key):
+    """A run's name in the history and its notification: the kind, and for
+    Tanaka and Zuo ("zuo@43") the map too, since every map runs its own."""
+    kind, separator, map_text = key.partition("@")
+    label = EVENT_LABELS.get(kind, kind)
+    if separator and map_text.isdigit():
+        label += " · " + event_map_label(int(map_text))
+    return label
 
 
 def create_notification(kind, title, body=None, link_url=None, ref_id=None):
@@ -1913,25 +2020,31 @@ def check_finished_events():
     nie osobnym procesem w tle. Idempotentne: bezpieczne wołać wielokrotnie."""
     try:
         status = read_events_status()
-        open_runs = {row["kind"]: row for row in rows(
-            "SELECT id,kind,value,started_at FROM player.web_seban_event_runs WHERE ended_at IS NULL")}
-        for kind in EVENT_KINDS:
-            live = status.get(kind)
-            active = bool(live and live.get("active"))
-            open_run = open_runs.get(kind)
-            if active and not open_run:
+        # Tanaka and Zuo run apart on every map, so a run of theirs is keyed
+        # by kind and map ("zuo@43", the key of the core's own status row):
+        # two Zuo at once are two runs, not one the other overwrites. A run
+        # opened under the bare kind before this ends at the first check.
+        live_runs = {kind: status[kind] for kind in EVENT_KINDS
+                     if kind not in EVENT_WORLD_KINDS and status.get(kind, {}).get("active")}
+        live_runs.update(read_world_events_status())
+        open_runs = rows("SELECT id,kind,value,started_at FROM player.web_seban_event_runs WHERE ended_at IS NULL")
+        open_keys = {open_run["kind"] for open_run in open_runs}
+        for key, live in live_runs.items():
+            if key not in open_keys:
                 rows("INSERT INTO player.web_seban_event_runs (kind,value,started_at) VALUES (%s,%s,NOW())",
-                     (kind, int(live.get("value") or 0)))
-            elif not active and open_run:
-                stats = event_run_stats(kind, open_run["started_at"], datetime.now(), open_run["value"])
-                rows("UPDATE player.web_seban_event_runs SET ended_at=NOW(), chest_count=%s, yang_extra=%s WHERE id=%s",
-                     (stats["chest_count"], stats["yang_extra"], open_run["id"]))
-                label = EVENT_LABELS.get(kind, kind)
-                summary = (f"Wydropiono {stats['chest_count']} szkatułek." if stats["chest_count"] is not None
-                           else f"Gracze wydropili o {stats['yang_extra']:,} więcej yang.".replace(",", " ") if stats["yang_extra"] is not None
-                           else None)
-                create_notification("event_ended", f"Event zakończony: {label}", summary,
-                                     f"/events#run-{open_run['id']}", open_run["id"])
+                     (key, int(live.get("value") or 0)))
+        for open_run in open_runs:
+            if open_run["kind"] in live_runs:
+                continue
+            stats = event_run_stats(open_run["kind"], open_run["started_at"], datetime.now(), open_run["value"])
+            rows("UPDATE player.web_seban_event_runs SET ended_at=NOW(), chest_count=%s, yang_extra=%s WHERE id=%s",
+                 (stats["chest_count"], stats["yang_extra"], open_run["id"]))
+            label = event_run_label(open_run["kind"])
+            summary = (f"Wydropiono {stats['chest_count']} szkatułek." if stats["chest_count"] is not None
+                       else f"Gracze wydropili o {stats['yang_extra']:,} więcej yang.".replace(",", " ") if stats["yang_extra"] is not None
+                       else None)
+            create_notification("event_ended", f"Event zakończony: {label}", summary,
+                                 f"/events#run-{open_run['id']}", open_run["id"])
     except pymysql.MySQLError:
         pass
 
@@ -6197,7 +6310,8 @@ def events():
     event_history = globals()["rows"]("""SELECT id,kind,value,started_at,ended_at,chest_count,yang_extra
       FROM player.web_seban_event_runs WHERE ended_at IS NOT NULL ORDER BY ended_at DESC LIMIT 20""")
     for item in event_history:
-        item["label"] = EVENT_LABELS.get(item["kind"], item["kind"])
+        item["label"] = event_run_label(item["kind"])
+        item["base_kind"] = item["kind"].partition("@")[0]
         if item.get("chest_count") is not None:
             item["summary"] = f"{item['chest_count']} szkatułek"
         elif item.get("yang_extra") is not None:
@@ -6272,17 +6386,33 @@ def events():
                 if map_id not in EVENT_MAP_IDS:
                     map_id = 0
             started = int(time.time())
-            nows[kind] = {"until": started + minutes * 60, "value": 0 if kind == "chest" else value,
-                           "map": map_id, "since": started}
+            # For Tanaka and Zuo this replaces the line of this map only: a
+            # second map is a second event beside the first, the same map again
+            # starts that one over.
+            nows[event_now_key(kind, map_id)] = {"kind": kind, "until": started + minutes * 60,
+                                                "value": 0 if kind == "chest" else value,
+                                                "map": map_id, "since": started}
             write_events(rows, nows)
             flash(f"Event aktywowany na {minutes} min. Rdzeń odczyta go w ciągu pięciu sekund.", "success")
         elif action == "stop":
-            nows.pop(kind, None)
+            # A Stop of one map's Tanaka or Zuo carries that map alone. The
+            # card's own form - a page from before one event per map - sent its
+            # map select as well, set to wherever the next event would go, with
+            # the card's minutes beside it: that Stop means the kind, every map.
+            if kind in EVENT_WORLD_KINDS and request.form.get("map", "") != "" and "minutes" not in request.form:
+                try:
+                    nows.pop(event_now_key(kind, int(request.form["map"])), None)
+                except ValueError:
+                    return redirect(url_for("events"))
+            else:
+                for key in [key for key, item in nows.items() if item.get("kind") == kind]:
+                    del nows[key]
             write_events(rows, nows)
             flash("Natychmiastowy event został zatrzymany.", "success")
         return redirect(url_for("events"))
     shown = list(rows) + [{"kind": "", "days": list(range(1, 8)), "start": "20:00", "end": "21:00", "value": 50, "on": True, "map": 0} for _ in range(max(0, 4 - len(rows)))]
     return render_template("events.html", rows=shown, nows=nows, status=read_events_status(),
+                           world_runs=event_world_runs(nows, read_world_events_status()),
                            event_kinds=EVENT_KINDS, event_labels=EVENT_LABELS,
                            day_names=EVENT_DAY_NAMES, now_minutes=EVENT_NOW_MINUTES,
                            now_epoch=int(time.time()), event_history=event_history,

@@ -7,10 +7,12 @@
 <section class="event-status-grid">
 {% for kind in event_kinds %}
   {% set st = status.get(kind,{}) %}
-  <article class="event-status {{ 'active' if st.active else ('scheduled' if st.scheduled else '') }}">
+  {% set runs = world_runs.get(kind, []) %}
+  <article class="event-status {{ 'active' if (st.active or runs) else ('scheduled' if st.scheduled else '') }}">
     <span class="event-icon">{{ event_icons[kind] }}</span>
     <div><small>{{ event_labels[kind] }}</small>
-    {% if st.active %}<strong>Trwa{% if kind in world_kinds %} · {{ st.value }} jednostek{% elif kind != 'chest' %} · +{{ st.value }}%{% endif %}</strong><em>do {{ st.until_text }}{% if kind in world_kinds %} · {{ st.alive }} na mapie · {{ st.killed }} pokonanych · {{ st.bots }} botów{% endif %}</em>
+    {% if runs %}<strong>Trwa {{ 'na 1 mapie' if runs|length == 1 else 'na ' ~ runs|length ~ ' mapach' }}</strong>{% for run in runs %}<em>{{ run.map_label }} · {{ run.value }} szt. · do {{ run.until_text }}{% if run.reported %} · {{ run.alive }} na mapie · {{ run.killed }} pokonanych · {{ run.bots }} botów{% if run.phase == 'stones' %} · spadają Metiny{% elif run.phase == 'bosses' %} · bossowie{% endif %}{% endif %}</em>{% endfor %}
+    {% elif st.active %}<strong>Trwa{% if kind in world_kinds %} · {{ st.value }} jednostek{% elif kind != 'chest' %} · +{{ st.value }}%{% endif %}</strong><em>do {{ st.until_text }}{% if kind in world_kinds %} · {{ st.alive }} na mapie · {{ st.killed }} pokonanych · {{ st.bots }} botów{% endif %}</em>
     {% elif st.scheduled %}<strong>Zaplanowany{% if kind in world_kinds %} · {{ st.next_value }} jednostek{% elif kind != 'chest' %} · +{{ st.next_value }}%{% endif %}</strong><em>następny: {{ st.next_start_text }}</em>
     {% else %}<strong>Brak aktywnego eventu</strong><em>ustaw szybki event lub plan</em>{% endif %}</div>
   </article>
@@ -22,15 +24,30 @@
   <div class="quick-event-grid">
   {% for kind in event_kinds %}
     {% set now = nows.get(kind) %}
+    {% if kind in world_kinds %}
+    {# Tanaka and Zuo run one event per map, so the card always offers another, and every running one has its own Stop: separate forms, since forms cannot nest, kept in the card's grid by display:contents. #}
+    {% set runs = world_runs.get(kind, []) %}
+    <div class="quick-event-card {{ 'is-running' if runs else '' }}">
+      <div><span>{{ event_icons[kind] }}</span><b>{{ event_labels[kind] }}</b></div>
+      <p>Eventy na różnych mapach trwają jednocześnie; uruchomienie na mapie, na której event już trwa, zaczyna go tam od nowa.</p>
+      {% for run in runs %}<form method="post" style="display:contents"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="map" value="{{ run.map }}"><p>📍 {{ run.map_label }} · do {{ run.until_text }}</p>{% if run.manual %}<button name="action" value="stop" class="secondary">Zatrzymaj</button>{% endif %}</form>{% endfor %}
+      <form method="post" style="display:contents">
+        <input type="hidden" name="kind" value="{{ kind }}">
+        <label>Czas<select name="minutes">{% for minute in now_minutes %}<option value="{{ minute }}" {% if minute == 60 %}selected{% endif %}>{{ minute }} min</option>{% endfor %}</select></label>
+        <label>{{ 'Piraci naraz' if kind == 'tanaka' else 'Metiny w fali' }}<input name="value" type="number" min="1" max="{{world_max[kind]}}" value="{{world_defaults[kind]}}"></label><label>Mapa<select name="map">{% for map_id,map_label in event_maps %}<option value="{{map_id}}">{{map_label}}</option>{% endfor %}</select></label>
+        <button name="action" value="now">Aktywuj teraz</button>
+      </form>
+    </div>
+    {% else %}
     <form method="post" class="quick-event-card {{ 'is-running' if now and now.until > now_epoch else '' }}">
       <input type="hidden" name="kind" value="{{ kind }}">
       <div><span>{{ event_icons[kind] }}</span><b>{{ event_labels[kind] }}</b></div>
       {% if now and now.until > now_epoch %}<p>Aktywny do {{ status.get(kind,{}).until_text or 'końca odliczania' }}</p>{% else %}<p>Uruchom jednorazowo</p>{% endif %}
       <label>Czas<select name="minutes">{% for minute in now_minutes %}<option value="{{ minute }}" {% if minute == 60 %}selected{% endif %}>{{ minute }} min</option>{% endfor %}</select></label>
-      {% if kind in world_kinds %}<label>{{ 'Piraci naraz' if kind == 'tanaka' else 'Metiny w fali' }}<input name="value" type="number" min="1" max="{{world_max[kind]}}" value="{{world_defaults[kind]}}"></label><label>Mapa<select name="map">{% for map_id,map_label in event_maps %}<option value="{{map_id}}">{{map_label}}</option>{% endfor %}</select></label>
-      {% elif kind != 'chest' %}<label>Bonus<input name="value" type="number" min="1" max="1000" value="50"><small>% ponad ratę serwera</small></label>{% endif %}
+      {% if kind != 'chest' %}<label>Bonus<input name="value" type="number" min="1" max="1000" value="50"><small>% ponad ratę serwera</small></label>{% endif %}
       {% if now and now.until > now_epoch %}<button name="action" value="stop" class="secondary">Zatrzymaj</button>{% else %}<button name="action" value="now">Aktywuj teraz</button>{% endif %}
     </form>
+    {% endif %}
   {% endfor %}
   </div>
 </section>
@@ -86,6 +103,6 @@ function serialize(){hidden.innerHTML='';schedule.map(normal).slice(0,16).forEac
 $('calendar-now').addEventListener('click',()=>scrollCalendar(new Date().getHours()));$('calendar-midnight').addEventListener('click',()=>scrollCalendar(0));$('calendar-add-event').addEventListener('click',()=>openDialog(null,1,20));$('calendar-editor-close').addEventListener('click',closeDialog);$('calendar-editor-cancel').addEventListener('click',closeDialog);field.kind.addEventListener('change',syncBonus);$('calendar-editor-delete').addEventListener('click',()=>{if(editing!==null){schedule.splice(editing,1);render()}closeDialog()});editor.addEventListener('submit',event=>{event.preventDefault();const days=selectedDays();if(!days.length){window.showActionToast('Wybierz co najmniej jeden dzień.', 'error');return}const row={kind:field.kind.value,days,start:field.start.value,end:field.end.value,value:field.kind.value==='chest'?0:Number(field.value.value)||0,map:worldKinds.includes(field.kind.value)?Number(field.map.value)||0:0,on:field.enabled.checked};if(!row.start||!row.end){window.showActionToast('Ustaw godzinę rozpoczęcia i zakończenia.', 'error');return}if(editing===null){if(schedule.length>=16){window.showActionToast('Można zapisać maksymalnie 16 eventów.', 'error');return}schedule.push(row)}else schedule[editing]=row;render();closeDialog()});form.addEventListener('submit',serialize);render();
 })();
 </script>
-<section class="panel event-history-panel"><p class="eyebrow">HISTORIA</p><h2>📜 Ostatnie zakończone eventy</h2><p class="muted">Statystyki liczone ze zdarzeń w logu (zdobycie szkatułki / realnie zdobyty yang), nie ze stanu ekwipunku — dokładne niezależnie od tego co boty zrobiły z łupem.</p>{% if event_history %}<table class="event-history-table"><thead><tr><th>Event</th><th>Bonus</th><th>Od</th><th>Do</th><th>Wynik</th></tr></thead><tbody>{% for run in event_history %}<tr id="run-{{run.id}}"><td>{{run.label}}</td><td>{{'—' if run.kind=='chest' else '+' ~ run.value ~ '%'}}</td><td>{{run.started_at.strftime('%d.%m %H:%M')}}</td><td>{{run.ended_at.strftime('%d.%m %H:%M')}}</td><td>{{run.summary}}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}</section>
+<section class="panel event-history-panel"><p class="eyebrow">HISTORIA</p><h2>📜 Ostatnie zakończone eventy</h2><p class="muted">Statystyki liczone ze zdarzeń w logu (zdobycie szkatułki / realnie zdobyty yang), nie ze stanu ekwipunku — dokładne niezależnie od tego co boty zrobiły z łupem.</p>{% if event_history %}<table class="event-history-table"><thead><tr><th>Event</th><th>Bonus</th><th>Od</th><th>Do</th><th>Wynik</th></tr></thead><tbody>{% for run in event_history %}<tr id="run-{{run.id}}"><td>{{run.label}}</td><td>{% if run.base_kind == 'chest' %}—{% elif run.base_kind in world_kinds %}{{ run.value }} szt.{% else %}+{{ run.value }}%{% endif %}</td><td>{{run.started_at.strftime('%d.%m %H:%M')}}</td><td>{{run.ended_at.strftime('%d.%m %H:%M')}}</td><td>{{run.summary}}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}</section>
 {% endblock %}
 
