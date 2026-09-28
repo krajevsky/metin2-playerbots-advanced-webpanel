@@ -5,15 +5,21 @@
 {% set ns.last_day = event.day_label %}
 {% endif %}
 <article class="feed-card feed-card--{{event.kind}}{% if event.kind=='refine' and event.refine_tier>=9 %} feed-card--legendary{% elif event.kind=='refine' and event.refine_tier==8 %} feed-card--epic{% endif %}" data-cursor="{{event.cursor}}">
+  {% if event.kind=='announcement' %}<span class="legendary-sparkles" aria-hidden="true">{% for n in range(10) %}<i></i>{% endfor %}</span>{% endif %}
   <div class="feed-card-rail"><span class="feed-card-dot"></span></div>
+  {% if event.kind=='announcement' %}
+  <div class="feed-card-avatar feed-card-avatar--legendary" aria-hidden="true">✦</div>
+  {% else %}
   <div class="feed-card-avatar">
     <img src="{{class_portrait(event.job)}}" alt="" aria-hidden="true">
     {% set kingdom=empire_info(event.empire) %}
     {% if kingdom.flag %}<img class="feed-card-flag" src="{{empire_flag(event.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}
   </div>
+  {% endif %}
   <div class="feed-card-body">
     <div class="feed-card-head">
-      <a class="feed-card-name" href="{{url_for('player',pid=event.player_id)}}">{{event.actor}}</a>
+      {% if event.kind=='announcement' %}<span class="feed-card-name">{{event.method or 'Legendarne wydarzenie'}}</span><span class="feed-card-badge feed-card-badge--announcement">✦ Ogłoszenie</span>
+      {% else %}<a class="feed-card-name" href="{{url_for('player',pid=event.player_id)}}">{{event.actor}}</a>{% endif %}
       {% if event.kind=='refine' %}<span class="feed-card-badge feed-card-badge--refine feed-card-badge--tier{{event.refine_tier}}">+{{event.refine_tier}}</span>
       {% elif event.kind=='skill' %}<span class="feed-card-badge feed-card-badge--skill">✦ Mistrzostwo</span>
       {% elif event.kind=='find' %}<span class="feed-card-badge feed-card-badge--find">🐚 Rzadkość</span>{% endif %}

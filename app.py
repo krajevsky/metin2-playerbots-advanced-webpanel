@@ -1141,6 +1141,9 @@ def news_feed_history(before=None, limit=40, days=14):
     """Full paginated history for /world-feed -- reads the same fast local
     cache table sync_news_events() keeps caught up with log.log, so this
     page load never has to pay that scan's cost itself."""
+    # This pass also stores Tieru's structured raid notices in the same
+    # time-indexed cache used by the world feed.
+    scan_bot_chat_logs()
     sync_news_events()
     clauses, params = ["time >= %s"], [datetime.now() - timedelta(days=days)]
     if before:
@@ -4564,7 +4567,7 @@ def api_items():
     return {"ok": True, "html": render_template("partials/items_catalog.html", items=records), "count_label": count_label}
 
 
-CHAT_FEED_TYPES = ("SHOUT", "TRADE")
+CHAT_FEED_TYPES = ("SHOUT", "TRADE", "NOTICE")
 # Player-originated public messages reach log.chat_log directly.  Playerbots
 # broadcast without a client descriptor, so their own public output is
 # deliberately written by the engine into each core's syslog instead.
@@ -4573,6 +4576,58 @@ BOT_PUBLIC_CHAT_RE = re.compile(
     r"(?:PLAYERBOT_TRADE: shout pid=(?P<trade_pid>\d+) name=(?P<trade_name>\S+) text=\"(?P<trade_text>.*)\""
     r"|PLAYERBOT_SHOUT: pid=(?P<refine_pid>\d+) plus=\d+ text=(?P<refine_text>.*))$"
 )
+
+STAMPED_SYSLOG_RE = re.compile(
+    r"^(?P<stamp>[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d) :: (?P<body>.*)$"
+)
+LEGENDARY_NOTICE_PATTERNS = (
+    ("azrael", re.compile(
+        r"^PLAYERBOT_CATACOMB: azrael down leader=(?P<leader>.*?) empire=(?P<empire>\d+) after_min=(?P<minutes>\d+)$")),
+    ("reaper", re.compile(
+        r"^PLAYERBOT_TOWER: reaper down map=\d+ told=1 who=(?P<who>.*?) last_blow=(?P<last_blow>.*?) after_s=(?P<seconds>\d+)$")),
+    ("world_boss", re.compile(
+        r"^PLAYERBOT_RAID: killed boss=(?P<boss>.*?) race=\d+ map=-?\d+ empire=(?P<empire>\d+) members=(?P<members>\d+) after_s=(?P<seconds>\d+) reinforced=\d+$")),
+)
+
+
+def legendary_announcement_from_syslog(line, year=None):
+    """Rebuild a gold notice from Tieru's structured raid syslog line."""
+    stamped = STAMPED_SYSLOG_RE.match(line)
+    if not stamped:
+        return None
+    try:
+        when = datetime.strptime(f"{year or datetime.now().year} {stamped['stamp']}", "%Y %b %d %H:%M:%S")
+    except ValueError:
+        return None
+    body = stamped["body"]
+    for source, pattern in LEGENDARY_NOTICE_PATTERNS:
+        match = pattern.match(body)
+        if not match:
+            continue
+        values = match.groupdict()
+        empire = int(values.get("empire") or 0)
+        kingdom = EMPIRES.get(empire, {}).get("name", "nieznanego królestwa")
+        if source == "azrael":
+            actor = values["leader"] or "Nieznana drużyna"
+            message = f"Drużyna {actor} ({kingdom}) pokonała Azraela w Katakumbach Diabła!"
+            label = "Rajd na Azraela"
+        elif source == "reaper":
+            actor = values["who"] or "Nieznana drużyna"
+            message = f"{actor} pokonał Umarłego Rozpruwacza na dziewiątym piętrze Wieży Demonów!"
+            last_blow = values.get("last_blow")
+            if last_blow and last_blow != "-":
+                message += f" Ostatni cios: {last_blow}."
+            label = "Wieża Demonów"
+        else:
+            actor = f"Boty {kingdom}"
+            minutes = max(1, int(values.get("seconds") or 0) // 60)
+            message = f"Boty z królestwa {kingdom} pokonały: {values['boss']} ({minutes} min)."
+            label = "Pokonany boss"
+        key = f"NOTICE:{source}:{when.strftime('%Y%m%d%H%M%S')}:{message}"
+        return {"key": key, "time": when, "kind": "announcement", "message": message,
+                "actor": actor, "player_id": 0, "job": 0, "empire": empire,
+                "vnum": 0, "socket0": 0, "refine_tier": 0, "method": label}
+    return None
 
 
 def chat_message_text(value, author=""):
@@ -4647,7 +4702,7 @@ def scan_bot_chat_logs():
         with con.cursor() as cur:
             offsets = {row["path"]: row["byte_offset"] for row in rows("SELECT path,byte_offset FROM player.web_seban_chat_offset")}
             year = datetime.now().year
-            new_rows, updates = [], []
+            new_rows, announcement_rows, updates = [], [], []
             for channel, path in channel_paths("syslog"):
                 key = str(path)
                 try:
@@ -4675,6 +4730,9 @@ def scan_bot_chat_logs():
                 if usable_len == 0:
                     continue
                 for line in text[:usable_len].splitlines():
+                    announcement = legendary_announcement_from_syslog(line, year)
+                    if announcement:
+                        announcement_rows.append(announcement)
                     match = BOT_PUBLIC_CHAT_RE.match(line)
                     if not match:
                         continue
@@ -4701,6 +4759,13 @@ def scan_bot_chat_logs():
                 # (operator's ask 2026-09-25: bounded history, not unlimited retention).
                 cur.execute("""DELETE FROM player.web_seban_bot_chat_log WHERE id < (
                     SELECT id FROM (SELECT id FROM player.web_seban_bot_chat_log ORDER BY id DESC LIMIT 1 OFFSET 100) t)""")
+            if announcement_rows:
+                cur.executemany("""INSERT IGNORE INTO player.web_seban_news_event
+                  (event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier,method)
+                  VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                  [(e["key"], e["time"], e["kind"], e["message"], e["actor"], e["player_id"], e["job"],
+                    e["empire"], e["vnum"], e["socket0"], e["refine_tier"], e["method"])
+                   for e in announcement_rows])
             for key, new_offset in updates:
                 cur.execute("REPLACE INTO player.web_seban_chat_offset (path,byte_offset) VALUES (%s,%s)", (key, new_offset))
     except pymysql.MySQLError:
@@ -4770,6 +4835,22 @@ def live_chat_messages(limit=100):
             "author": author, "message": chat_message_text(row.get("msg"), author),
             "player_id": int(row.get("id") or row.get("who_id") or 0), "job": int(row.get("job") or 0),
             "empire": int(row.get("empire") or 0),
+        })
+    try:
+        notices = rows("""SELECT event_key,time,message,actor,empire,method
+          FROM player.web_seban_news_event WHERE kind='announcement'
+          ORDER BY time DESC LIMIT %s""", [limit])
+    except Exception:
+        app.logger.exception("Nie można odczytać ogłoszeń świata")
+        notices = []
+    for row in notices:
+        when = row.get("time")
+        result.append({
+            "id": row["event_key"], "sort_at": when,
+            "time": when.strftime("%H:%M:%S") if hasattr(when, "strftime") else str(when)[11:19],
+            "type": "NOTICE", "author": row.get("actor") or "Wieści ze świata",
+            "message": row.get("message") or "", "player_id": 0, "job": 0,
+            "empire": int(row.get("empire") or 0), "notice_label": row.get("method") or "Legendarne wydarzenie",
         })
     # A future source may log the same line by both paths.  The durable id
     # keeps it visible once while preserving chronological ordering.
