@@ -2328,10 +2328,10 @@ def daily_summary_details(summary_date):
         highlights.append({"kind": kind, "vnum": item["vnum"], "name": item["item_name"], "detail": detail,
                            "player_id": item["owner_pid"], "player_name": item["owner_name"]})
     level_start, level_end = daily_level_bounds(day_start, day_end)
-    chest_today = one("""SELECT COUNT(*) AS n FROM log.log
+    chest_today = one("""SELECT COUNT(DISTINCT CONCAT(who, ':', UNIX_TIMESTAMP(time))) AS n FROM log.log
       WHERE how IN ('USE_ITEM','CHEST_OPEN') AND what=50082 AND time>=%s AND time<%s""",
                       (day_start, day_end))
-    chest_total = one("""SELECT COUNT(*) AS n FROM log.log
+    chest_total = one("""SELECT COUNT(DISTINCT CONCAT(who, ':', UNIX_TIMESTAMP(time))) AS n FROM log.log
       WHERE how IN ('USE_ITEM','CHEST_OPEN') AND what=50082 AND time<%s""", (day_end,))
     return {"level_start": level_start, "level_end": level_end,
             "pvp": pvp, "refine_success": refine_success, "refine_burned": refine_burned,
