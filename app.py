@@ -3339,22 +3339,50 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
         # heuristic (2026-09-26), which got exactly this pair backwards --
         # value1 turned out to be reliable after all, just missing the
         # refine bonus, not "inconsistently authored" as first assumed.
-        return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,
-            CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)),' (',COALESCE(ip.value1,0)+6*MOD(COALESCE(i.vnum,0),10),' obrony)') AS detail,
-            COALESCE(ip.value1,0)+6*MOD(COALESCE(i.vnum,0),10) AS power_score
-            FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos=0
-            LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum WHERE {base}
-            ORDER BY power_score DESC,i.vnum DESC,p.level DESC {limit_clause}""")
+        # Also counts a body armor sitting unequipped on the player's own
+        # shop stand (IKASHOP_OFFLINESHOP) -- picking the stronger of
+        # (equipped, listed) per player via ROW_NUMBER, not just the worn
+        # one, so an item doesn't drop out of the ranking the moment its
+        # owner lists it for sale (blipu, 29.09). type=2/subtype=0 is body
+        # armor specifically (see character_stat_summary's plus9 armor
+        # pick), so this needs no pos filter -- a body-armor-type item is
+        # never equipped anywhere but pos=0 anyway.
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,best.vnum,
+            CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',best.vnum)),' (',COALESCE(best.power_score,0),' obrony)') AS detail,
+            COALESCE(best.power_score,0) AS power_score,
+            COALESCE(best.is_shop,0) AS is_shop
+            FROM player.player p
+            LEFT JOIN (
+                SELECT i.owner_id,i.vnum,
+                    COALESCE(ip2.value1,0)+6*MOD(i.vnum,10) AS power_score,
+                    CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop,
+                    ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY COALESCE(ip2.value1,0)+6*MOD(i.vnum,10) DESC, i.window='EQUIPMENT' DESC) AS rn
+                FROM player.item i JOIN player.item_proto ip2 ON ip2.vnum=i.vnum AND ip2.type=2 AND ip2.subtype=0
+                WHERE i.window IN ('EQUIPMENT','IKASHOP_OFFLINESHOP')
+            ) best ON best.owner_id=p.id AND best.rn=1
+            LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
+            ORDER BY power_score DESC,best.vnum DESC,p.level DESC {limit_clause}""")
     if kind == "weapon":
         # Weapon attack power isn't covered by the operator's armor table --
         # left on the tier*10+refine heuristic (2026-09-26) rather than
         # guessing at a similar flat-bonus-per-refine formula unverified.
-        return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,
-            CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)),' (wymagany poziom ',COALESCE(CASE WHEN ip.limittype0=1 THEN ip.limitvalue0 WHEN ip.limittype1=1 THEN ip.limitvalue1 END,0),')') AS detail,
-            COALESCE(CASE WHEN ip.limittype0=1 THEN ip.limitvalue0 WHEN ip.limittype1=1 THEN ip.limitvalue1 END,0)*10+MOD(COALESCE(i.vnum,0),10) AS power_score
-            FROM player.player p LEFT JOIN player.item i ON i.owner_id=p.id AND i.window='EQUIPMENT' AND i.pos=4
-            LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum WHERE {base}
-            ORDER BY power_score DESC,i.vnum DESC,p.level DESC {limit_clause}""")
+        # Same shop-stand inclusion as armor above, type=1 is ITEM_WEAPON.
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,best.vnum,
+            CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',best.vnum)),' (wymagany poziom ',COALESCE(best.req_level,0),')') AS detail,
+            COALESCE(best.power_score,0) AS power_score,
+            COALESCE(best.is_shop,0) AS is_shop
+            FROM player.player p
+            LEFT JOIN (
+                SELECT i.owner_id,i.vnum,
+                    COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0) AS req_level,
+                    COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)*10+MOD(i.vnum,10) AS power_score,
+                    CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop,
+                    ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)*10+MOD(i.vnum,10) DESC, i.window='EQUIPMENT' DESC) AS rn
+                FROM player.item i JOIN player.item_proto ip2 ON ip2.vnum=i.vnum AND ip2.type=1
+                WHERE i.window IN ('EQUIPMENT','IKASHOP_OFFLINESHOP')
+            ) best ON best.owner_id=p.id AND best.rn=1
+            LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
+            ORDER BY power_score DESC,best.vnum DESC,p.level DESC {limit_clause}""")
     if kind == "weapon30":
         weapon30_order = {
             "avg": "avg_damage DESC, skill_damage DESC, p.level DESC",
@@ -3370,10 +3398,11 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
         # account's id, so with people ranked a person's depot landed on
         # whichever character had that number.
         result = rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)) AS item_name,
+            CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop,
             IF(GREATEST(CASE WHEN i.attrtype0={ATTR_SKILL_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_SKILL_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_SKILL_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_SKILL_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_SKILL_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_SKILL_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_SKILL_DAMAGE} THEN i.attrvalue6 ELSE -999 END)=-999,0,GREATEST(CASE WHEN i.attrtype0={ATTR_SKILL_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_SKILL_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_SKILL_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_SKILL_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_SKILL_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_SKILL_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_SKILL_DAMAGE} THEN i.attrvalue6 ELSE -999 END)) AS skill_damage,
             IF(GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)=-999,0,GREATEST(CASE WHEN i.attrtype0={ATTR_AVG_DAMAGE} THEN i.attrvalue0 ELSE -999 END,CASE WHEN i.attrtype1={ATTR_AVG_DAMAGE} THEN i.attrvalue1 ELSE -999 END,CASE WHEN i.attrtype2={ATTR_AVG_DAMAGE} THEN i.attrvalue2 ELSE -999 END,CASE WHEN i.attrtype3={ATTR_AVG_DAMAGE} THEN i.attrvalue3 ELSE -999 END,CASE WHEN i.attrtype4={ATTR_AVG_DAMAGE} THEN i.attrvalue4 ELSE -999 END,CASE WHEN i.attrtype5={ATTR_AVG_DAMAGE} THEN i.attrvalue5 ELSE -999 END,CASE WHEN i.attrtype6={ATTR_AVG_DAMAGE} THEN i.attrvalue6 ELSE -999 END)) AS avg_damage
             FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
-            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY') AND ((i.vnum BETWEEN 290 AND 299) OR (i.vnum BETWEEN 1170 AND 1179) OR (i.vnum BETWEEN 2150 AND 2159) OR (i.vnum BETWEEN 3210 AND 3219) OR (i.vnum BETWEEN 5110 AND 5119) OR (i.vnum BETWEEN 7160 AND 7169))
+            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY','IKASHOP_OFFLINESHOP') AND ((i.vnum BETWEEN 290 AND 299) OR (i.vnum BETWEEN 1170 AND 1179) OR (i.vnum BETWEEN 2150 AND 2159) OR (i.vnum BETWEEN 3210 AND 3219) OR (i.vnum BETWEEN 5110 AND 5119) OR (i.vnum BETWEEN 7160 AND 7169))
             ORDER BY {weapon30_order} LIMIT 3000""")
         # 71 is APPLY_SKILL_DAMAGE_BONUS and 72 is APPLY_NORMAL_HIT_DAMAGE_BONUS in
         # common/length.h, and the query names them so. A swap used to live
@@ -3495,9 +3524,13 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
         # postaciami), wiec bez tego warunku przedmiot ze skrytki trafial
         # do rankingu tej postaci, ktorej id przypadkiem zbieglo sie z
         # id konta wlasciciela skrytki.
-        return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)) AS detail
+        # IKASHOP_OFFLINESHOP joins the same way -- its owner_id is the
+        # listing character's own id (unlike SAFEBOX above), so a +9 an
+        # operator put up for sale still counts for them.
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)) AS detail,
+            CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop
             FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
-            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY') AND ip.type IN (1,2) AND MOD(i.vnum,10)=9 ORDER BY i.vnum DESC,p.level DESC {limit_clause}""")
+            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY','IKASHOP_OFFLINESHOP') AND ip.type IN (1,2) AND MOD(i.vnum,10)=9 ORDER BY i.vnum DESC,p.level DESC {limit_clause}""")
     return rows(f"SELECT p.id,p.name,p.level,p.gold,p.level AS score,'Poziom' AS detail FROM player.player p WHERE {base} ORDER BY p.level DESC,p.exp DESC {limit_clause}")
 
 

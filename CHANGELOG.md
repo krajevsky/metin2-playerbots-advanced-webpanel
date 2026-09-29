@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-29 · 1.100.13 · Przedmioty na sklepie liczą się w rankingach
+
+- **Rankingi Zbroja, Broń, Broń 30 Lv i Przedmiot +9 uwzględniają teraz przedmioty wystawione na własnym straganie gracza/bota** — wcześniej znikały z rankingu w chwili wystawienia na sprzedaż (np. broń z realnie wyższymi obrażeniami stała niżej niż gorsza sztuka, bo lepsza akurat leżała na sklepie). Dla Zbroi/Broni ranking bierze teraz mocniejszy z dwóch: założony egzemplarz lub ten wystawiony na sklepie.
+- **Przedmiot na sklepie dostaje w rankingu ikonkę tobołka i fioletową poświatę na opisie**, żeby było widać, że akurat wisi na straganie, a nie jest założony.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-29 · 1.100.12 · Dzienny licznik Szkatułek Umarłego Rozpruwacza
 
 - **Podsumowanie dnia pokazuje liczbę otwartych Szkatułek Umarłego Rozpruwacza jako „tego dnia / ogółem”.** Statystyka obejmuje graczy i boty oraz liczy zdarzenia rdzenia bez analizowania wylosowanych nagród.
