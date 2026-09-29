@@ -4411,8 +4411,21 @@ def _enrich_items(items):
         item["item_name"] = resolve_item_display_name(item["vnum"], item.get("socket0"), game_text(item["item_name"]))
         item["item_size"] = max(1, min(3, int(item.get("item_size") or 1)))
         item["base_stats"] = item_base_stats(item["vnum"]) + fishing_rod_stats(item["vnum"], item.get("socket0"))
+        proto = ITEM_DEFS.get(str(int(item["vnum"] or 0)), {})
+        item_type, item_subtype = int(proto.get("type") or 0), int(proto.get("subtype") or 0)
+
+        def native_apply_text(index):
+            apply_type = item.get(f"applytype{index}")
+            apply_value = int(item.get(f"applyvalue{index}") or 0)
+            display_type = POINT_TO_APPLY.get(int(apply_type or 0), int(apply_type or 0)) if ENGINE_MT2009 else int(apply_type or 0)
+            # The client displays a built-in attack-speed affect on a two-handed
+            # weapon with its fixed -10 penalty deducted (raw 25 -> shown 15).
+            if item_type == 1 and item_subtype == 3 and display_type == 7:
+                apply_value -= 10
+            return apply_text(apply_type, apply_value)
+
         item["bonuses"] = [
-            {"text": apply_text(item.get(f"applytype{i}"), item.get(f"applyvalue{i}")), "source": "native"}
+            {"text": native_apply_text(i), "source": "native"}
             for i in range(3)
             if item.get(f"applytype{i}") and item.get(f"applyvalue{i}")
         ]
