@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # patterns match tolerates one that matches nothing, so the file is used
 # where it exists and missed where it does not - and app.py has always
 # answered "dev" when it cannot read it.
-COPY app.py collector.py item_grants.py translations.py gm_commands.txt CHANGELOG.md VERSION* ./
+COPY app.py collector.py item_grants.py translations.py gm_commands.txt gm_commands.en.txt CHANGELOG.md VERSION* ./
 COPY templates ./templates
 COPY static ./static
 ENV PYTHONUNBUFFERED=1

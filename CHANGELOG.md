@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-30 · 1.101.2 · Komendy GM po angielsku i ticker wiadomości ze świata
+
+- **`/gm-commands` ma teraz osobny, w pełni przetłumaczony plik angielski** — treść jest w `<pre>`, którego tłumacz panelu świadomie nie rusza (tak samo jak surowego zrzutu logów czy przykładów shellowych w Zarządzaniu), więc zamiast łatać silnik dorobiłem prawdziwe angielskie źródło i panel wybiera właściwy plik po języku.
+- **Ticker "Wiadomości ze świata" na dole dashboardu tłumaczy się teraz w całości** — brakowało komunikatów specyficznych dla tego paska (znalezienie Małża, otwarcie Szkatułki Umarłego Rozpruwacza) oraz etykiet sposobu ulepszenia (u kowala / zwojem / w kuźni gildii) doklejanych do wiadomości o ulepszeniu.
+- **Poprawiono nazwę na oficjalną angielską**: "Szkatułka Blasku Księżyca" to teraz wszędzie "Moonlight Treasure Chest", nie robocze "Moonlight Chest".
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-29 · 1.101.1 · Domykanie tłumaczenia panelu
 
 - **Dołożono tłumaczenia, których zabrakło w pierwszej wersji**: aktualnie wykonywana misja (Biolog/koń bojowy/polowanie) na `/player/`, historia ekwipunku, potwierdzenie usunięcia postaci, nazwy eventów (Szkatułki Blasku Księżyca, Zuo: deszcz Metinów), rangi GM, oraz cała treść generowana przez JavaScript na żywo: aktywności na mapie, pozycje botów na mapie, filtr map/kanałów, kreator postaci, powiadomienia i pasek wiadomości.

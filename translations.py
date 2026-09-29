@@ -1275,7 +1275,7 @@ EXACT.update({
     "Ustawienia są stosowane automatycznie przy każdej kolejnej aktualizacji Playerbots. Aktualizacja Seban Panel pozostaje domyślnie wyłączona.":
         "Settings are applied automatically on every subsequent Playerbots update. Updating Seban Panel itself stays off by default.",
     "🎁 Dawaj Skrzynię Ucznia nowym postaciom": "🎁 Give the Apprentice Chest to new characters",
-    "🌙 Włącz Skrzynie Blasku Księżyca w dropie": "🌙 Enable Moonlight Chests in the drop table",
+    "🌙 Włącz Skrzynie Blasku Księżyca w dropie": "🌙 Enable Moonlight Treasure Chests in the drop table",
     "👤 Zachowaj postacie demonstracyjne Tieru": "👤 Keep Tieru's demo characters",
     "🔄 Aktualizuj także Seban Panel do wersji dołączonej przez Tieru": "🔄 Also update Seban Panel to the version bundled by Tieru",
     "zainstaluje tylko nowszą wersję; lokalne zmiany w plikach panelu zostaną nadpisane":
@@ -1370,8 +1370,8 @@ EXACT.update({
     "⚔️ Czas wojny gildii": "⚔️ Guild war duration",
     "minut": "minutes",
     "🕐 Odstęp między wojnami": "🕐 Interval between wars",
-    "🚫 Wyłącz drop Szkatułek Blasku Księżyca": "🚫 Disable Moonlight Chest drops",
-    "🎁 Szkatułki Blasku": "🎁 Moonlight Chests",
+    "🚫 Wyłącz drop Szkatułek Blasku Księżyca": "🚫 Disable Moonlight Treasure Chest drops",
+    "🎁 Szkatułki Blasku": "🎁 Moonlight Treasure Chests",
     "promile szansy, tylko w trakcie eventu szkatułek": "per-mille chance, only during the chest event",
     "z potwora": "from a monster",
     "z Metina": "from a Metin",
@@ -1855,15 +1855,43 @@ EXACT.update({
     "Zużyte na przemianę bonusów": "Used to change bonuses", "Dodano bonus (Wzmocnienie)": "Bonus added (Enhancement)",
     "Zmieniono bonusy (Zmiana)": "Bonuses changed (Change)", "Dodano 5. bonus (Marmur)": "5th bonus added (Marble)",
     "Kupione u handlarza": "Bought from merchant", "Marmur z Magicznego Pyłu": "Marble from Magic Dust",
-    "Do magazynu": "To storage", "Z magazynu": "From storage", "Ze Szkatułki Blasku": "From a Moonlight Chest",
+    "Do magazynu": "To storage", "Z magazynu": "From storage", "Ze Szkatułki Blasku": "From a Moonlight Treasure Chest",
     "Z wymiany": "From an exchange", "Oddane w wymianie": "Given in an exchange",
 })
 
 # --- app.py EVENT_LABELS ---
 EXACT.update({
+    "Szkatułki Blasku Księżyca": "Moonlight Treasure Chests",
     "Pirat Tanaka": "Pirate Tanaka",
     "Zuo: deszcz Metinów": "Zuo: Metin rain",
 })
+
+# --- app.py REFINE_METHOD_LABELS + _classify_news_events()/world_feed
+# message templates -- these feed both /world-feed and the dashboard's
+# live news ticker (static/news-feed.js), so the same phrasing needs
+# covering in both places (PATTERNS since names/items/scrolls are
+# embedded live data). ---
+EXACT.update({
+    "u kowala": "at the blacksmith",
+    "w kuźni gildii": "at the guild forge",
+    "Wieżą Diabła": "with the Devil's Tower",
+    "zwojem": "by scroll",
+    "innym sposobem": "by another method",
+})
+PATTERNS_RAW += [
+    (r'^zwojem \((.+)\)$', 'by scroll ($1)'),
+    (r'^(.+) znalazł Małż podczas połowu$', '$1 found a Clam while fishing'),
+    (r'^(.+) otworzył Szkatułkę Umarłego Rozpruwacza i zdobył (.+)$', '$1 opened a Reaper\'s Chest and got $2'),
+    # Same method labels, but reachable as a " — {method}" suffix glued
+    # onto a refine message in the news ticker (news_feed_events()),
+    # rather than their own isolated text node.
+    (r' — u kowala$', ' — at the blacksmith'),
+    (r' — w kuźni gildii$', ' — at the guild forge'),
+    (r' — Wieżą Diabła$', " — with the Devil's Tower"),
+    (r' — zwojem \((.+)\)$', ' — by scroll ($1)'),
+    (r' — zwojem$', ' — by scroll'),
+    (r' — innym sposobem$', ' — by another method'),
+]
 
 # --- static/ajax-forms.js ---
 EXACT.update({

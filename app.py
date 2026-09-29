@@ -454,6 +454,14 @@ try:
     GM_COMMANDS = (Path(__file__).parent / "gm_commands.txt").read_text(encoding="utf-8", errors="replace")
 except OSError:
     GM_COMMANDS = "Brak pliku z komendami."
+try:
+    # A real, separately-authored English version, not a runtime
+    # translation -- gm_commands.html renders this inside a <pre>, which
+    # translations.py deliberately never touches (same reason panel_logs.html's
+    # raw error dump and manage.html's shell command examples don't either).
+    GM_COMMANDS_EN = (Path(__file__).parent / "gm_commands.en.txt").read_text(encoding="utf-8", errors="replace")
+except OSError:
+    GM_COMMANDS_EN = GM_COMMANDS
 
 
 # MyISAM nie przezywa nieczystego zatrzymania, a ten panel czyta na stronie
@@ -5661,7 +5669,8 @@ def api_world_feed():
 @app.route("/gm-commands")
 @login_required
 def gm_commands():
-    return render_template("gm_commands.html", commands=GM_COMMANDS)
+    commands = GM_COMMANDS_EN if settings().get("ui_language") == "en" else GM_COMMANDS
+    return render_template("gm_commands.html", commands=commands)
 
 
 @app.route("/accounts", methods=["GET", "POST"])
