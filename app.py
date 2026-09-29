@@ -4411,8 +4411,16 @@ def _enrich_items(items):
         item["item_name"] = resolve_item_display_name(item["vnum"], item.get("socket0"), game_text(item["item_name"]))
         item["item_size"] = max(1, min(3, int(item.get("item_size") or 1)))
         item["base_stats"] = item_base_stats(item["vnum"]) + fishing_rod_stats(item["vnum"], item.get("socket0"))
-        item["bonuses"] = [apply_text(item.get(f"applytype{i}"), item.get(f"applyvalue{i}")) for i in range(3) if item.get(f"applytype{i}") and item.get(f"applyvalue{i}")]
-        item["bonuses"] += [apply_text(item.get(f"attrtype{i}"), item.get(f"attrvalue{i}")) for i in range(7) if item.get(f"attrtype{i}") and item.get(f"attrvalue{i}")]
+        item["bonuses"] = [
+            {"text": apply_text(item.get(f"applytype{i}"), item.get(f"applyvalue{i}")), "source": "native"}
+            for i in range(3)
+            if item.get(f"applytype{i}") and item.get(f"applyvalue{i}")
+        ]
+        item["bonuses"] += [
+            {"text": apply_text(item.get(f"attrtype{i}"), item.get(f"attrvalue{i}")), "source": "added"}
+            for i in range(7)
+            if item.get(f"attrtype{i}") and item.get(f"attrvalue{i}")
+        ]
     # Only weapons (type 1) and armor (type 2) actually use sockets for gems
     # ("kamienie duszy") -- other item types reuse those same DB columns for
     # completely unrelated, type-specific data (a Skill Book's socket0 is the

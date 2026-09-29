@@ -41,8 +41,8 @@
 .inv-slot,.safebox-slot{left:calc(var(--col) * 20%);top:calc(var(--row) * 11.111%);width:20%;height:calc(var(--size) * 11.111%)}
 .inv-slot>b,.safebox-slot>b{position:absolute;right:4%;bottom:1%;font-size:11px;color:#fff;text-shadow:0 1px 2px #000;z-index:2}
 .metin-inventory .inv-slot[hidden]{display:none!important}
-.item-tip{display:none;position:absolute;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(100% + 4px);width:190px;background:#06101d;border:1px solid #5d86ba;border-radius:5px;padding:8px;color:#dcecff;font-size:12px;pointer-events:none}
-.item-tip b,.item-tip span{display:block}.item-tip b{color:#fff0a7;margin-bottom:3px}.item-tip .tip-vnum{color:#91a8c5;font-size:10px;margin-bottom:5px}.item-tip .tip-base{color:#9fd1ff}.item-tip .tip-bonus{color:#73e7ae}
+.item-tip{display:none;position:absolute;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(100% + 4px);width:190px;background:color-mix(in srgb,var(--panel) 92%,#000);border:1px solid var(--edge);border-radius:5px;padding:8px;color:var(--text);font-size:12px;pointer-events:none;box-shadow:0 5px 14px #0008}
+.item-tip b,.item-tip span{display:block}.item-tip b{color:var(--gold);margin-bottom:3px}.item-tip .tip-vnum{color:var(--muted);font-size:10px;margin-bottom:5px}.item-tip .tip-base,.item-tip .tip-bonus--native{color:color-mix(in srgb,var(--blue2) 58%,var(--text))}.item-tip .tip-bonus,.item-tip .tip-bonus--added{color:#73e7ae}
 .equip-slot:hover .item-tip,.inv-slot:hover .item-tip,.safebox-slot:hover .item-tip{display:block}
 .inventory-yang{position:absolute;left:14%;right:7%;bottom:1.50%;height:2.2%;display:flex;justify-content:flex-end;align-items:center;color:#f2df9a;font:bold 12px Georgia,serif;text-shadow:1px 1px #000;z-index:3;pointer-events:none}
 /* Magazyn: sama pozycjonowanie co .inv-slot (--col/--row/--size) tak samo
@@ -71,7 +71,7 @@
 @media(max-width:650px){.inventory-panel{padding:12px}.metin-inventory{margin:auto}.item-tip{width:170px;font-size:11px}}
 .bot-profile-head,.bot-profile-head *{font-family:Tahoma,Arial,sans-serif}.profile-tags span,.stat-cells div,.bot-live-details dd,.inventory-yang,.inv-slot>b,.safebox-slot>b,.skill-slot>b{color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}.skill-icon{width:30px;height:30px;display:grid;place-items:center;border:1px solid #b99854;border-radius:4px;background:linear-gradient(135deg,#355d94,#111a35);color:#ffe6a3;font:700 10px Tahoma,Arial;text-shadow:1px 1px #000;box-shadow:inset 0 0 0 1px #07101e}.skill:nth-child(3n) .skill-icon{background:linear-gradient(135deg,#913f3f,#251119)}.skill:nth-child(3n+2) .skill-icon{background:linear-gradient(135deg,#4d7f46,#132415)}
 .skill{grid-template-columns:34px minmax(0,1fr) auto!important;gap:7px}.skill-icon{width:28px!important;height:28px!important;object-fit:contain;display:block!important}.honor.knightly{color:#00ffff}.honor.noble{color:#000099}.honor.good{color:#0000ff}.honor.friendly{color:#9999ff}.honor.neutral{color:#ffff00}.honor.aggressive,.honor.dishonest{color:#ff6600}.honor.malicious,.honor.cruel{color:#ff0000}
-.item-tip{text-align:center!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}.item-tip span,.item-tip b{text-align:center}.item-tip .negative{color:#d3a9a0!important}.item-tip .tip-stone{color:#f2df9a;margin-top:5px;padding-top:4px;border-top:1px solid #594e3c}.item-tip .tip-stone:first-of-type{margin-top:7px}
+.item-tip{text-align:center!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}.item-tip span,.item-tip b{text-align:center}.item-tip .negative{color:#d3a9a0!important}.item-tip .tip-stone{color:var(--gold);margin-top:5px;padding-top:4px;border-top:1px solid var(--edge)}.item-tip .tip-stone:first-of-type{margin-top:7px}
 .item-tip .tip-socket-icon{width:14px;height:14px;object-fit:contain;vertical-align:-2px;margin-right:3px}.item-tip .tip-socket-timer,.item-tip .tip-socket-empty{color:#9db9de;font-size:10px}.item-tip .tip-socket-empty{color:#d3a9a0}
 /* Dymek wyśrodkowany na slocie realnie wystawał poza lewą/prawą krawędź
    okna przeglądarki dla skrajnych slotów/kolumn (ekwipunek: broń/unique1 po
@@ -81,7 +81,7 @@
    krawędzi zamiast do środka. */
 .equip-slot.tip-left .item-tip,.inv-slot.tip-left .item-tip,.safebox-slot.tip-left .item-tip,.shop-slot.tip-left .item-tip{left:0!important;transform:none!important}
 .equip-slot.tip-right .item-tip,.inv-slot.tip-right .item-tip,.safebox-slot.tip-right .item-tip,.shop-slot.tip-right .item-tip{left:auto!important;right:0!important;transform:none!important}
-.item-tip .tip-price{color:#f2df9a;margin-top:5px;padding-top:4px;border-top:1px solid #594e3c;font-weight:700}
+.item-tip .tip-price{color:var(--gold);margin-top:5px;padding-top:4px;border-top:1px solid var(--edge);font-weight:700}
 
 /* Sklep offline: siatka 10x8 jak w rzeczywistym oknie kramu w kliencie gry,
    ta sama mechanika co ekwipunek/magazyn (--col/--row, ikona + tooltip),
