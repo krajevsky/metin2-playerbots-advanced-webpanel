@@ -22,6 +22,8 @@ from flask import Flask, abort, flash, g, jsonify, redirect, render_template, re
 from markupsafe import Markup, escape
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import translations
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SEBAN_SESSION_SECRET", "change-this-before-public-use")
 app.config.update(
@@ -304,6 +306,7 @@ DEFAULT_SETTINGS = {
     # Existing installations without this key stay usable. Fresh installations
     # receive setup_complete=0 from the collector and enter the setup wizard.
     "setup_complete": "1", "auth_enabled": "0", "auth_password_hash": "", "allow_student_chest": "0", "allow_moonlight_chest": "0", "keep_demo_characters": "0", "update_seban_panel": "0",
+    "ui_language": "pl",
     # Rare boss/dungeon announcements are visible in every supported feed by
     # default. Missing keys on older installations deliberately inherit this.
     "legendary_notice_live_chat": "1", "legendary_notice_world_feed": "1", "legendary_notice_ticker": "1",
@@ -791,13 +794,16 @@ def validate_display_settings(form):
         stuck = 5
     theme, monitor_mode = form.get("theme", "empire"), form.get("monitor_mode", "vps")
     cursor_choice = form.get("cursor", "custom")
+    language = form.get("language", "pl")
     if not name:
         return None, "Nazwa panelu nie może być pusta."
     if theme not in ("ocean", "ember", "forest", "empire") or monitor_mode not in ("vps", "docker"):
         return None, "Nieprawidłowe ustawienia wyglądu lub monitoringu."
     if cursor_choice not in ("custom", "system"):
         return None, "Nieprawidłowy wybór kursora."
-    return {"panel_name": name, "stuck_minutes": str(stuck), "theme": theme, "monitor_mode": monitor_mode, "cursor": cursor_choice}, None
+    if language not in ("pl", "en"):
+        return None, "Nieprawidłowy wybór języka."
+    return {"panel_name": name, "stuck_minutes": str(stuck), "theme": theme, "monitor_mode": monitor_mode, "cursor": cursor_choice, "ui_language": language}, None
 
 
 def skill_rank(master_type, level):
@@ -3626,6 +3632,7 @@ def globals_for_templates():
     tieru_url = os.environ.get("TIERU_PANEL_URL", "http://127.0.0.1:7788")
     item_icon = item_icon_url
     current_settings = settings()
+    ui_language = current_settings.get("ui_language", "pl")
     def job_name(job):
         return class_profile(job)["name"]
     def class_portrait(job):
@@ -3648,7 +3655,22 @@ def globals_for_templates():
         if not rank:
             return escape(label)
         return Markup('<span class="top-level-badge" title="Top 10 poziomu · #%d">%s</span>') % (rank, escape(label))
-    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "level_badge": level_badge, "top_level_rank": lambda pid: top_level_rank_map().get(int(pid or 0)), "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings)}
+    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "level_badge": level_badge, "top_level_rank": lambda pid: top_level_rank_map().get(int(pid or 0)), "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings), "ui_language": ui_language, "i18n_payload": translations.i18n_payload() if ui_language == "en" else None}
+
+
+@app.after_request
+def translate_response(response):
+    # Server-side half of the ui_language="en" panel translation (see
+    # translations.py's module docstring for the full picture, including
+    # the client-side static/i18n-watch.js half for JS-rendered content).
+    # Polish is untouched either way -- this only ever rewrites the body
+    # when English is selected, so a Polish response is exactly what Jinja
+    # produced, byte for byte.
+    if response.content_type and response.content_type.startswith("text/html"):
+        current_settings = settings()
+        if current_settings.get("ui_language", "pl") == "en":
+            response.set_data(translations.translate_html(response.get_data(as_text=True), "en"))
+    return response
 @app.route("/login", methods=["GET", "POST"])
 def login():
     current = settings()

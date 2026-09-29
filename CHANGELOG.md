@@ -1,5 +1,15 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-29 · 1.101.0 · Panel po angielsku
+
+- **Cały panel webowy można teraz przełączyć na angielski** — nowy wybór języka w Zarządzanie → Panel webowy → Wygląd i działanie. Domyślnie zostaje polski, nic się nie zmienia dopóki ktoś sam nie wybierze English.
+- **To prawdziwe tłumaczenie treści, nie automatyczny/dosłowny przekład**: menu, wszystkie strony (dashboard, rankingi, gracze, gildie, gospodarka, mapy, eventy, respawny, diagnostyka, zarządzanie grą i panelem, kreator postaci, baza przedmiotów...), etykiety statystyk przedmiotów w tooltipach (te same co widać na każdym przedmiocie w całym panelu), dynamiczne komunikaty statusu i tytuły stron w przeglądarce.
+- **Działa też dla treści doładowywanych przez JavaScript** (dashboard na żywo, mapa botów, karuzela rankingów) — ten sam słownik tłumaczeń jest wysyłany do przeglądarki i stosowany na bieżąco do nowo pojawiających się elementów.
+- Świadomie **poza zakresem zostały**: nazwy przedmiotów/potworów/umiejętności z bazy gry (to lokalizacja klienta gry, nie panelu) oraz historyczne wpisy tego changeloga (zostają jako zapis źródłowy po polsku).
+- Mechanizm nie dotyka żadnego z tysięcy miejsc w `app.py`/szablonach, gdzie polski tekst jest dziś zaszyty na stałe — tłumaczy już wyrenderowaną stronę, więc ryzyko regresji w istniejącym kodzie jest minimalne.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-29 · 1.100.13 · Przedmioty na sklepie liczą się w rankingach
 
 - **Rankingi Zbroja, Broń, Broń 30 Lv i Przedmiot +9 uwzględniają teraz przedmioty wystawione na własnym straganie gracza/bota** — wcześniej znikały z rankingu w chwili wystawienia na sprzedaż (np. broń z realnie wyższymi obrażeniami stała niżej niż gorsza sztuka, bo lepsza akurat leżała na sklepie). Dla Zbroi/Broni ranking bierze teraz mocniejszy z dwóch: założony egzemplarz lub ten wystawiony na sklepie.
