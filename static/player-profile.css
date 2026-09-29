@@ -42,7 +42,7 @@
 .inv-slot>b,.safebox-slot>b{position:absolute;right:4%;bottom:1%;font-size:11px;color:#fff;text-shadow:0 1px 2px #000;z-index:2}
 .metin-inventory .inv-slot[hidden]{display:none!important}
 .item-tip{display:none;position:absolute;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(100% + 4px);width:190px;background:color-mix(in srgb,var(--panel) 92%,#000);border:1px solid var(--edge);border-radius:5px;padding:8px;color:var(--text);font-size:12px;pointer-events:none;box-shadow:0 5px 14px #0008}
-.item-tip b,.item-tip span{display:block}.item-tip b{color:var(--gold);margin-bottom:3px}.item-tip .tip-vnum{color:var(--muted);font-size:10px;margin-bottom:5px}.item-tip .tip-base,.item-tip .tip-bonus--native{color:color-mix(in srgb,var(--blue2) 58%,var(--text))}.item-tip .tip-bonus,.item-tip .tip-bonus--added{color:#73e7ae}
+.item-tip b,.item-tip span{display:block}.item-tip b{color:var(--gold);margin-bottom:3px}.item-tip .tip-vnum{color:var(--muted);font-size:10px;margin-bottom:5px}.item-tip .tip-base{color:color-mix(in srgb,var(--text) 76%,var(--muted))}.item-tip .tip-bonus--native{color:color-mix(in srgb,var(--text) 77%,var(--gold))}.item-tip .tip-bonus,.item-tip .tip-bonus--added{color:#73e7ae}
 .equip-slot:hover .item-tip,.inv-slot:hover .item-tip,.safebox-slot:hover .item-tip{display:block}
 .inventory-yang{position:absolute;left:14%;right:7%;bottom:1.50%;height:2.2%;display:flex;justify-content:flex-end;align-items:center;color:#f2df9a;font:bold 12px Georgia,serif;text-shadow:1px 1px #000;z-index:3;pointer-events:none}
 /* Magazyn: sama pozycjonowanie co .inv-slot (--col/--row/--size) tak samo
