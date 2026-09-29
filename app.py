@@ -23,6 +23,7 @@ from markupsafe import Markup, escape
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import translations
+import decisions
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SEBAN_SESSION_SECRET", "change-this-before-public-use")
@@ -4230,6 +4231,28 @@ def bot_gear_history(pid, limit=60):
     return result[:limit]
 
 
+def _decision_item_name(vnum):
+    proto = ITEM_DEFS.get(str(int(vnum or 0)))
+    return proto["name"] if proto else f"VNUM {int(vnum or 0)}"
+
+
+def explain_shop_offer(item_id, counter_price):
+    """Why this exact counter line exists and how its price was reached
+    (log.playerbot_listing, Playerbots 2.2.39+'s "explained decisions").
+    None on an older engine that doesn't write this table yet, or an item
+    listed before EXPLAIN retention was on."""
+    try:
+        row = one("SELECT * FROM log.playerbot_listing WHERE item_id=%s", (int(item_id or 0),))
+    except pymysql.MySQLError as exc:
+        if exc.args and exc.args[0] == 1146:
+            return None
+        raise
+    if not row:
+        return None
+    lang = settings().get("ui_language", "pl")
+    return decisions.explain_listing(row, lang, _decision_item_name, apply_text, counter_price=counter_price)
+
+
 def bot_offline_shop(pid):
     """Data straight from IkarusShop's own tables -- there is no separate
     price/listing table for offline shops on this engine (confirmed against
@@ -4269,6 +4292,7 @@ def bot_offline_shop(pid):
         offer["price"] = int(offer.get("price") or 0)
         offer["col"] = int(offer["pos"] or 0) % 10
         offer["row"] = int(offer["pos"] or 0) // 10
+        offer["explain"] = explain_shop_offer(offer["id"], offer["price"])
     shop_rows = 16 if any(o["row"] >= 8 for o in offers) else 8
     return {
         "name": game_text(shop["name"]) or "Bez nazwy", "map_index": int(shop["map"]), "map_name": map_name(shop["map"]),

@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-30 · 1.102.0 · Panel wyjaśnia decyzje sklepów botów
+
+- **Tooltip przedmiotu na straganie bota pokazuje teraz, dlaczego bot go wystawił i jak krok po kroku wyliczył cenę** — dokładnie funkcja opisana w changelogu Tieru dla Playerbots 2.2.39 ("panel klasyczny wyjaśnia decyzje botów"). Silnik od tej aktualizacji zapisuje to do dwóch nowych tabel (`log.playerbot_listing`, `log.playerbot_equip`), a Seban Panel czyta pierwszą z nich.
+- Słowniki kodów (dlaczego coś jest towarem, kolejne kroki wyceny, powód zdjęcia z lady...) są wyciągnięte wprost z kodu panelu klasycznego Tieru (referencyjna implementacja), nie zgadywane — więc znaczenie każdego kodu jest identyczne jak tam, tylko po polsku/angielsku zamiast czterech języków.
+- **Celowo węższy zakres na start**: tylko wyjaśnienie sklepu (najbardziej widoczna część z changeloga). Powód zmiany założonego ekwipunku i osobna strona "Decyzje" ze światowym filtrem anomalii to naturalny kolejny krok, ta sama para tabel już to obsłuży.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-30 · 1.101.6 · Prawidłowa szybkość ataku broni dwuręcznych
 
 - **Tooltip odejmuje stałą karę 10 punktów szybkości od wbudowanego bonusu broni dwuręcznych, dokładnie jak klient Metin2.** Ostrze z Czerwonej Stali (VNUM 3210–3219) pokazuje teraz 15% zamiast surowych 25% z item_proto; reguła obejmuje wszystkie bronie dwuręczne i nie zmienia bonusów dodanych do przedmiotu.

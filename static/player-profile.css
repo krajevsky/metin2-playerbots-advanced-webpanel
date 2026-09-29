@@ -44,6 +44,15 @@
 .item-tip{display:none;position:absolute;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(100% + 4px);width:190px;background:color-mix(in srgb,var(--panel) 92%,#000);border:1px solid var(--edge);border-radius:5px;padding:8px;color:var(--text);font-size:12px;pointer-events:none;box-shadow:0 5px 14px #0008}
 .item-tip b,.item-tip span{display:block}.item-tip b{color:var(--gold);margin-bottom:3px}.item-tip .tip-vnum{color:var(--muted);font-size:10px;margin-bottom:5px}.item-tip .tip-base{color:color-mix(in srgb,var(--text) 76%,var(--muted))}.item-tip .tip-bonus{color:#73e7ae}.item-tip .tip-bonus--native{color:#63c993}.item-tip .tip-bonus--added{color:#9af4c5}
 .equip-slot:hover .item-tip,.inv-slot:hover .item-tip,.safebox-slot:hover .item-tip{display:block}
+.item-tip:has(.tip-explain){width:280px}
+.tip-explain{margin-top:5px;padding-top:5px;border-top:1px solid var(--edge);font-size:10.5px;line-height:1.4}
+.tip-explain-h{color:#fbbf24!important;font-weight:700;margin-bottom:2px}
+.tip-explain-line{color:color-mix(in srgb,var(--text) 76%,var(--muted))}
+.tip-explain-warn{color:#fca5a5!important}
+.tip-explain-t{width:100%;border-collapse:collapse;margin:3px 0}
+.tip-explain-t td{padding:1px 3px 1px 0;font-size:9.5px;color:color-mix(in srgb,var(--text) 76%,var(--muted));vertical-align:top}
+.tip-explain-t td.n{text-align:right;white-space:nowrap}
+.tip-explain-cut{text-align:center;color:var(--muted)}
 .inventory-yang{position:absolute;left:14%;right:7%;bottom:1.50%;height:2.2%;display:flex;justify-content:flex-end;align-items:center;color:#f2df9a;font:bold 12px Georgia,serif;text-shadow:1px 1px #000;z-index:3;pointer-events:none}
 /* Magazyn: sama pozycjonowanie co .inv-slot (--col/--row/--size) tak samo
    uwzglednia przedmioty na 2+ slotach wysokosci i osobne strony -- bez
