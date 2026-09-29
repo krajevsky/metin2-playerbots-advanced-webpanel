@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-29 · 1.101.1 · Domykanie tłumaczenia panelu
+
+- **Dołożono tłumaczenia, których zabrakło w pierwszej wersji**: aktualnie wykonywana misja (Biolog/koń bojowy/polowanie) na `/player/`, historia ekwipunku, potwierdzenie usunięcia postaci, nazwy eventów (Szkatułki Blasku Księżyca, Zuo: deszcz Metinów), rangi GM, oraz cała treść generowana przez JavaScript na żywo: aktywności na mapie, pozycje botów na mapie, filtr map/kanałów, kreator postaci, powiadomienia i pasek wiadomości.
+- Changelog **celowo zostaje po polsku jako zapis historyczny** — to setki gęstych, technicznych wpisów, osobny, dużo większy temat niż tłumaczenie samego panelu.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-29 · 1.101.0 · Panel po angielsku
 
 - **Cały panel webowy można teraz przełączyć na angielski** — nowy wybór języka w Zarządzanie → Panel webowy → Wygląd i działanie. Domyślnie zostaje polski, nic się nie zmienia dopóki ktoś sam nie wybierze English.

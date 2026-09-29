@@ -1107,6 +1107,14 @@ EXACT.update({
     "Każda klasa": "Any class",
 })
 
+# --- app.py GM_RANK_OPTIONS ---
+EXACT.update({
+    "Gracz (brak rangi)": "Player (no rank)",
+    "Pomocnik": "Helper",
+    "Wyższy GM": "Senior GM",
+    "Właściciel": "Owner",
+})
+
 # restart_progress() stage labels render combined with a percentage
 # ("100% · Serwer działa"), so they're PATTERNS entries, not EXACT --
 # see PATTERNS_RAW below.
@@ -1115,6 +1123,7 @@ EXACT.update({
 EXACT.update({
     "Bez warunków": "No conditions",
 })
+
 
 # --- manage.html behaviour panel reset button ---
 EXACT.update({
@@ -1812,6 +1821,140 @@ PATTERNS_RAW = [
     (r'^Pierwsza konfiguracja · (.+)$', 'Initial setup · $1'),
     (r'^Wiadomości ze świata · (.+)$', 'World messages · $1'),
 ]
+
+# --- player.html: quest/mission-file labels (character_mission_progress) ---
+EXACT.update({
+    "oddanych": "handed in", "ukończonych misji": "missions completed", "pokonanych": "defeated",
+    "Koń bojowy: próba na pustyni": "Battle horse: desert trial",
+})
+PATTERNS_RAW += [
+    (r'^Biolog (\d+)/8: (.+)$', 'Biologist $1/8: $2'),
+    (r'^Biolog: misja wstępna (\d+) z (\d+)$', 'Biologist: preliminary mission $1 of $2'),
+    (r'^Aktualnie szuka: (.+)$', 'Currently looking for: $1'),
+    (r'^Zbiera: (.+)$', 'Collecting: $1'),
+    (r' · w ekwipunku: (\d+)$', ' · in inventory: $1'),
+    (r'^Polowanie nr (\d+): (.+)$', 'Hunt #$1: $2'),
+]
+
+# --- player.html: "Wpisz {name}" delete-confirm placeholder + flash messages ---
+EXACT.update({
+    "Wpisz poprawne liczby godzin (0–720).": "Enter valid hour numbers (0-720).",
+    "Wpisz całkowite wartości liczbowe.": "Enter whole numeric values.",
+    "To jest NIEODWRACALNE i skasuje wszystkie przedmioty tej postaci. Kontynuować?":
+        "This is IRREVERSIBLE and will delete all of this character's items. Continue?",
+})
+PATTERNS_RAW.append((r'^Wpisz (.+)$', 'Type $1'))
+
+# --- app.py GEAR_HISTORY_HOWS: equipment history entry labels ---
+EXACT.update({
+    "Ulepszenie udane": "Refine succeeded", "Ulepszenie nieudane": "Refine failed",
+    "Spalone przy ulepszaniu": "Burned while refining", "Wędka ulepszona": "Rod refined",
+    "Wędka nieulepszona": "Rod refine failed", "Założone": "Equipped", "Podarowane": "Gifted",
+    "Dostane w prezencie": "Received as a gift", "Sprzedane na straganie": "Sold at a stall",
+    "Kupione na straganie": "Bought at a stall", "Sprzedane handlarzowi": "Sold to merchant",
+    "Zużyte na przemianę bonusów": "Used to change bonuses", "Dodano bonus (Wzmocnienie)": "Bonus added (Enhancement)",
+    "Zmieniono bonusy (Zmiana)": "Bonuses changed (Change)", "Dodano 5. bonus (Marmur)": "5th bonus added (Marble)",
+    "Kupione u handlarza": "Bought from merchant", "Marmur z Magicznego Pyłu": "Marble from Magic Dust",
+    "Do magazynu": "To storage", "Z magazynu": "From storage", "Ze Szkatułki Blasku": "From a Moonlight Chest",
+    "Z wymiany": "From an exchange", "Oddane w wymianie": "Given in an exchange",
+})
+
+# --- app.py EVENT_LABELS ---
+EXACT.update({
+    "Pirat Tanaka": "Pirate Tanaka",
+    "Zuo: deszcz Metinów": "Zuo: Metin rain",
+})
+
+# --- static/ajax-forms.js ---
+EXACT.update({
+    "Błąd sieci — spróbuj ponownie.": "Network error — try again.",
+})
+PATTERNS_RAW.append((r'^Coś poszło nie tak \(', 'Something went wrong ('))
+
+# --- static/character-creator-page.js ---
+EXACT.update({
+    "Stwórz nową postać": "Create new character",
+    "Nieprawidłowa nazwa.": "Invalid name.",
+    "Ta nazwa jest już zajęta.": "This name is already taken.",
+    "To konto ma już 4 postacie — brak wolnego slotu.": "This account already has 4 characters — no free slot.",
+})
+PATTERNS_RAW.append((r'^To konto ma już postać w królestwie ', 'This account already has a character in the '))
+
+# --- static/dashboard-charts.js ---
+EXACT.update({
+    "Sklepy według map": "Shops by map",
+    "Sklepy według map (offline)": "Shops by map (offline)",
+})
+
+# --- static/dashboard-deferred.js: JS-side fallback defaults ---
+EXACT.update({
+    "Obciążenie VPS": "VPS load",
+    "Ładowanie botów wg kanału": "Loading bots by channel",
+    "Ładowanie danych": "Loading data",
+    "Ładowanie zalogowanych botów": "Loading logged-in bots",
+    "Ładowanie": "Loading",
+    "Nie udało się doładować danych.": "Failed to load data.",
+})
+
+# --- static/heatmap.js ---
+PATTERNS_RAW.append((r' zdarzeń$', ' events'))
+
+# --- static/live-widget.js ---
+EXACT.update({
+    "Pozostałe aktywności": "Other activities",
+    "Brak botów online.": "No bots online.",
+    "Automatycznie zmieniaj mapy po bezczynności": "Automatically switch maps when idle",
+    "Pozycje botów na żywo": "Live bot positions",
+    "Mapa cieplna: zgony botów": "Heatmap: bot deaths",
+    "Mapa cieplna: rozbite Metiny": "Heatmap: broken Metins",
+    "Mapa cieplna: zabite bossy": "Heatmap: bosses killed",
+    "Brak aktywnych botów na tej mapie.": "No active bots on this map.",
+    "Brak zdarzeń na tej mapie.": "No events on this map.",
+    "W trybie mapy cieplnej aktywności nie są wyświetlane.": "Activities aren't shown in heatmap mode.",
+    "Inna aktywność": "Other activity",
+    "Wieża Demonów": "Demon Tower",
+    "Zakłada kostium": "Putting on a costume",
+    "Zbiera łup": "Picking up loot",
+    "rozbitych Metinów": "broken Metins",
+    "zabitych bossów": "bosses killed",
+    "zdarzeń": "events",
+    "zgonów botów": "bot deaths",
+    "← Ranking i aktywności": "← Ranking & activities",
+    "Możliwie zawieszony": "Possibly stuck",
+    # live-widget.js's own action/goal dicts -- slightly different wording
+    # from app.py's BOT_ACTIONS, used only in the live map's JS.
+    "Planuje ruch": "Planning a move",
+    "Przemieszcza się": "Traveling",
+    "Expi / walczy": "Grinding / fighting",
+    "Wabi potwory": "Luring monsters",
+    "Rozwija umiejętności": "Improving skills",
+    "Zdobywa ekwipunek": "Getting gear",
+    "Uzupełnia zapasy": "Restocking",
+    "Poluje na Metiny": "Hunting Metins",
+    "Misje polowania": "Hunting missions",
+    "Rozwija konia": "Training the horse",
+})
+PATTERNS_RAW += [
+    (r'poziom (\d+)', 'level $1'),
+    (r'możliwie zablokowany', 'possibly stuck'),
+    (r'walczy z Metinem', 'fighting a Metin'),
+    (r'^Własny czas mapy · (\d+) s$', 'Custom map timing · $1s'),
+]
+
+# --- static/news-feed.js ---
+EXACT.update({
+    "Feed wydarzeń jest chwilowo niedostępny.": "The event feed is temporarily unavailable.",
+    "Oczekiwanie na nowe ważne wydarzenia ze świata…": "Waiting for major new world events…",
+    "Nie udało się pobrać wiadomości.": "Failed to fetch messages.",
+    "Nieprawidłowa odpowiedź feedu.": "Invalid feed response.",
+})
+
+# --- static/notifications-bell.js ---
+EXACT.update({
+    "Brak powiadomień.": "No notifications.",
+    "Kliknij, żeby zobaczyć.": "Click to see.",
+})
+
 
 PATTERNS = [(re.compile(p), _dollar_to_backslash(r)) for p, r in PATTERNS_RAW]
 
