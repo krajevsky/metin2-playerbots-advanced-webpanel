@@ -1048,7 +1048,7 @@ def _news_event_source_rows(since, before=None, scan_limit=900):
         AND (
           l.how='SKILLUP'
           OR (l.how='GET' AND LOWER(CONVERT(l.hint USING utf8mb4)) COLLATE utf8mb4_general_ci LIKE '%%małż%%')
-          OR (l.how='USE_ITEM' AND l.what=50082)
+          OR (l.how IN ('USE_ITEM','CHEST_OPEN') AND l.what=50082)
         )
       ORDER BY l.time DESC LIMIT %s""", params + [scan_limit])
 
@@ -1069,7 +1069,7 @@ def _classify_news_events(raw):
         # fails. Patch by seban latino, 13 September.
         hint = cp1250_hex_text(row.get("hint_hex")) or game_text(row.get("hint"))
         key = (f"{how}:{row.get('who')}:{row.get('what')}:{row.get('vnum')}:{hint}:{row.get('time')}"
-               if how == "USE_ITEM" else f"{how}:{row.get('who')}:{row.get('what')}:{row.get('time')}")
+               if how in ("USE_ITEM", "CHEST_OPEN") else f"{how}:{row.get('who')}:{row.get('what')}:{row.get('time')}")
         if key in seen or not name:
             continue
         message, kind = None, None
@@ -1082,7 +1082,7 @@ def _classify_news_events(raw):
                     message, kind = f"{name} rozwinął {SKILL_NAMES.get(vnum, f'umiejętność #{vnum}')} na {rank}", "skill"
         elif how == "GET" and "małż" in hint.casefold():
             message, kind = f"{name} znalazł Małż podczas połowu", "find"
-        elif how == "USE_ITEM" and int(row.get("what") or 0) == 50082:
+        elif how in ("USE_ITEM", "CHEST_OPEN") and int(row.get("what") or 0) == 50082:
             reward = hint.strip() or f"przedmiot #{int(row.get('vnum') or 0)}"
             message, kind = f"{name} otworzył Szkatułkę Umarłego Rozpruwacza i zdobył {reward}", "chest"
         if not message:

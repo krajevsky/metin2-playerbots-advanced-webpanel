@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-29 · 1.100.11 · Łupy ze Szkatułki Ripera także dla prawdziwych graczy
+
+- **Rdzeń gry zapisuje teraz otwarcie Szkatułki Umarłego Rozpruwacza przez prawdziwego gracza jako dokładne zdarzenie `CHEST_OPEN`.** Wpis zawiera VNUM i nazwę faktycznie zdobytej nagrody, więc Wieści ze świata nie zależą od Historii ekwipunku ani od mechanizmu botów. Dotychczasowy format `USE_ITEM` botów pozostaje obsługiwany.
+- **Nowe zdarzenie pojawia się przy najbliższym odświeżeniu `/world-feed`**, bez oczekiwania na pięciominutowy kolektor.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-29 · 1.100.10 · Poprawne wersje dashboardu i łupy ze Szkatułki Ripera
 
 - **Wskaźniki „Wersja panelu” i „Wersja Playerbots” aktualizują własne pola** — numer Playerbots nie trafia już do kafelka panelu, a etykieta Playerbots nie zostaje na „Ładowanie…”. Numer Seban Panel jest zawsze czytany z jego pliku `VERSION`, nawet gdy paczka Playerbots przekaże w zmiennej środowiskowej własny numer wydania.
