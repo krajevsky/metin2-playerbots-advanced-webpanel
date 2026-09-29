@@ -7,6 +7,7 @@
 <article><span>Przedmiotów ulepszonych na +9</span><strong>{{ s.refine9_count }}</strong></article>
 <article><span>Zniszczonych kamieni Metin</span><strong>{{ s.metin_count }}</strong></article>
 <article><span>Pokonanych bossów</span><strong>{{ s.boss_count if s.boss_count is not none else '—' }}</strong></article>
+<article><span>Otwartych Szkatułek Umarłego Rozpruwacza</span><strong>{{ '{:,}'.format(details.reaper_chests_today).replace(',', ' ') }} / {{ '{:,}'.format(details.reaper_chests_total).replace(',', ' ') }}</strong><small>tego dnia / ogółem do końca dnia</small></article>
 <article><span>Wyłowionych ryb</span><strong>{{ '{:,}'.format(s.fish_count).replace(',', ' ') if s.fish_count is not none else '—' }}</strong></article>
 <article><span>Wykopanej rudy</span><strong>{{ '{:,}'.format(s.mining_count).replace(',', ' ') if s.mining_count is not none else '—' }}</strong></article>
 <article><span>Smoczych Monet w obiegu</span><strong>{{ '{:,}'.format(s.cash_start).replace(',', ' ') if s.cash_start is not none else '—' }} → {{ '{:,}'.format(s.cash_end).replace(',', ' ') if s.cash_end is not none else '—' }}</strong></article>

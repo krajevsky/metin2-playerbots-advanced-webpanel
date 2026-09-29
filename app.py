@@ -307,6 +307,7 @@ DEFAULT_SETTINGS = {
     # Rare boss/dungeon announcements are visible in every supported feed by
     # default. Missing keys on older installations deliberately inherit this.
     "legendary_notice_live_chat": "1", "legendary_notice_world_feed": "1", "legendary_notice_ticker": "1",
+    "reaper_chest_world_feed": "1",
 }
 try:
     ITEM_DEFS = json.loads((Path(__file__).parent / "static" / "item_defs.json").read_text(encoding="utf-8"))
@@ -1265,6 +1266,8 @@ def news_feed_history(before=None, limit=40, days=14):
     clauses, params = ["time >= %s"], [datetime.now() - timedelta(days=days)]
     if not legendary_notice_enabled("world_feed"):
         clauses.append("kind <> 'announcement'")
+    if settings().get("reaper_chest_world_feed", "1") != "1":
+        clauses.append("kind <> 'chest'")
     if before:
         clauses.append("time < %s")
         params.append(before)
@@ -2325,9 +2328,16 @@ def daily_summary_details(summary_date):
         highlights.append({"kind": kind, "vnum": item["vnum"], "name": item["item_name"], "detail": detail,
                            "player_id": item["owner_pid"], "player_name": item["owner_name"]})
     level_start, level_end = daily_level_bounds(day_start, day_end)
+    chest_today = one("""SELECT COUNT(*) AS n FROM log.log
+      WHERE how IN ('USE_ITEM','CHEST_OPEN') AND what=50082 AND time>=%s AND time<%s""",
+                      (day_start, day_end))
+    chest_total = one("""SELECT COUNT(*) AS n FROM log.log
+      WHERE how IN ('USE_ITEM','CHEST_OPEN') AND what=50082 AND time<%s""", (day_end,))
     return {"level_start": level_start, "level_end": level_end,
             "pvp": pvp, "refine_success": refine_success, "refine_burned": refine_burned,
-            "shop": shop, "highlights": highlights[:3], "hammer_count": len(hammer_rows)}
+            "shop": shop, "highlights": highlights[:3], "hammer_count": len(hammer_rows),
+            "reaper_chests_today": int((chest_today or {}).get("n") or 0),
+            "reaper_chests_total": int((chest_total or {}).get("n") or 0)}
 
 
 def check_daily_summary():
@@ -6729,6 +6739,17 @@ def manage_panel_legendary_announcements():
     else:
         flash("Ogłoszenia o legendarnych wydarzeniach wyłączone we wszystkich miejscach.", "success")
     return redirect(url_for("manage_panel", _anchor="legendary-announcements"))
+
+
+@app.post("/manage/panel/reaper-chests")
+@login_required
+def manage_panel_reaper_chests():
+    enabled = "1" if "1" in request.form.getlist("world_feed") else "0"
+    write_settings({"reaper_chest_world_feed": enabled})
+    flash("Informacje o Szkatułkach Umarłego Rozpruwacza są " +
+          ("widoczne w Wieściach ze świata." if enabled == "1" else "ukryte w Wieściach ze świata."),
+          "success")
+    return redirect(url_for("manage_panel", _anchor="reaper-chests"))
 
 
 @app.post("/manage/update")
