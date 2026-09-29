@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-30 · 1.101.4 · Poprawny priorytet kolorów bonusów przedmiotów
+
+- **Kolor bonusów wbudowanych nie jest już nadpisywany przez ogólną regułę bonusów.** Szybkość zaklęcia i witalność pochodzące z definicji przedmiotu mają teraz subtelny, jasny kolor; cztery bonusy dodane pozostają zielone.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-30 · 1.101.3 · Tooltipy przedmiotów zgodne z klientem i motywem
 
 - **Wbudowane bonusy przedmiotu oraz bonusy dodane są wyświetlane osobnymi kolorami**, tak jak w kliencie Metin2. Reguła działa we wspólnym tooltipie wyposażenia, ekwipunku, magazynu, torby konia i sklepów offline.
