@@ -866,14 +866,23 @@ def live_label(field, value):
     return labels.get(value, f"#{value}")
 
 
+_STATIONARY_STATUS_RE = re.compile(
+    r"\b(łowi\w*|lowi\w*|ryb\w*|fishing|czekam na branie)\b", re.IGNORECASE
+)
+
+
 def is_stationary_activity(status, action=None):
     try:
         if int(action or 0) in STATIONARY_ACTIONS:
             return True
     except (TypeError, ValueError):
         pass
-    text = str(status or "").casefold()
-    return any(marker in text for marker in ("łowi", "lowi", "ryb", "fishing", "czekam na branie"))
+    # Plain "in" substring checks (pre-2026-10) false-matched "Człowiek"/
+    # "Czlowiek" (extremely common in monster names -- Zarażony Człowiek,
+    # Zły Człowiek...) against the "lowi" marker, silently exempting any bot
+    # fighting one from ever being flagged stuck. \b word boundaries fix
+    # that without narrowing what still counts as a fishing status.
+    return bool(_STATIONARY_STATUS_RE.search(str(status or "")))
 
 
 def apply_text(apply_type, value):

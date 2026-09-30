@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-30 · 1.102.4 · Puste mapy i botowie walczący z "Człowiekiem"
+
+- **Wykres "Królestwa na mapie" na pustej mapie pokazuje teraz "— 0%" zamiast fałszywie ogłaszać Shinsoo dominującym w 0%.** Wybór "lidera" domyślnie wskazywał pierwsze królestwo z listy, gdy wszystkie liczniki wynosiły zero.
+- **Boty walczące z potworami z "Człowiek" w nazwie (Zarażony Człowiek, Zły Człowiek...) mogły nigdy nie dostać etykiety "Możliwie zawieszony", nawet gdy realnie utknęły.** Wykrywanie wędkowania po tekście statusu porównywało proste dopasowanie podciągu, a "lowi" pasowało też do środka słowa "Czlowiek"/"Człowiek" — więc każdy bot walczący z takim potworem wyglądał dla panelu jak wędkarz. Teraz dopasowanie działa na granicach słów.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-30 · 1.102.3 · Wyłącznik wyjaśnień sklepów i poprawka fałszywego "Yang" w gniazdach
 
 - **Zarządzanie → Panel webowy ma teraz przełącznik dla wyjaśnień decyzji sklepów botów** (dodanych wczoraj) — domyślnie włączony, wyłączenie chowa sekcję z tooltipów natychmiast.
