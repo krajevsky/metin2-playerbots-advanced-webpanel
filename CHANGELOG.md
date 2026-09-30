@@ -1,5 +1,11 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-30 · 1.102.1 · Niższe wiersze rankingu Broń 30 Lv na telefonie
+
+- **Kolumna "Wynik" w rankingach (najbardziej widoczne na Broń 30 Lv, z długim opisem i ikonką sklepu) już nie zawija tekstu na kilka linii na wąskim ekranie** — poniżej 650px jest przycięta do jednej linii z wielokropkiem, pełny tekst dalej dostępny po przytrzymaniu/najechaniu. Pozostałe kolumny tabeli już wcześniej nie zawijały się, więc tylko ta jedna winduje wysokość wiersza.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-30 · 1.102.0 · Panel wyjaśnia decyzje sklepów botów
 
 - **Tooltip przedmiotu na straganie bota pokazuje teraz, dlaczego bot go wystawił i jak krok po kroku wyliczył cenę** — dokładnie funkcja opisana w changelogu Tieru dla Playerbots 2.2.39 ("panel klasyczny wyjaśnia decyzje botów"). Silnik od tej aktualizacji zapisuje to do dwóch nowych tabel (`log.playerbot_listing`, `log.playerbot_equip`), a Seban Panel czyta pierwszą z nich.
