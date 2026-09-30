@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-09-30 · 1.102.3 · Wyłącznik wyjaśnień sklepów i poprawka fałszywego "Yang" w gniazdach
+
+- **Zarządzanie → Panel webowy ma teraz przełącznik dla wyjaśnień decyzji sklepów botów** (dodanych wczoraj) — domyślnie włączony, wyłączenie chowa sekcję z tooltipów natychmiast.
+- **Naprawiono fałszywe "Yang" w tooltipach broni i zbroi z pustymi gniazdami na kamienie duszy.** Puste gniazdo silnik zapisuje jako VNUM 1 (czyli item_proto "Yang"), nie 0 — panel traktował to jak prawdziwy osadzony kamyk, więc np. Krwawy Miecz+4 z trzema pustymi gniazdami pokazywał "Yang" trzykrotnie. Zgłoszone przez [GA]Seban.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-09-30 · 1.102.2 · Równa siatka ekwipunku
 
 - **Usunięto przypadkowe kwadraty przy pierwszym i 26. slocie ekwipunku na karcie postaci.** Tło SVG miało 71 współrzędnych zapisanych z przecinkiem dziesiętnym, których przeglądarka nie interpretowała prawidłowo; wszystkie współrzędne mają teraz poprawny zapis z kropką.

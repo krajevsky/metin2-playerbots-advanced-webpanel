@@ -3636,6 +3636,27 @@ def write_full_plus9_badges_enabled(enabled):
         ON DUPLICATE KEY UPDATE value=VALUES(value)""", ("1" if enabled else "0",))
 
 
+def shop_explain_enabled():
+    """Whether a bot's shop tooltip shows why an item is listed and how its
+    price was set (decisions.py, Playerbots 2.2.39+'s log.playerbot_listing).
+    Defaults on, same as the engine's own EXPLAIN retention default."""
+    cached = getattr(g, "_shop_explain_enabled", None)
+    if cached is not None:
+        return cached
+    try:
+        stored = one("SELECT value FROM common.m2_switches WHERE name='shop_explain_enabled'")
+        cached = not stored or str(stored.get("value") or "1") == "1"
+    except pymysql.MySQLError:
+        cached = True
+    g._shop_explain_enabled = cached
+    return cached
+
+
+def write_shop_explain_enabled(enabled):
+    rows("""INSERT INTO common.m2_switches (name,value) VALUES ('shop_explain_enabled',%s)
+        ON DUPLICATE KEY UPDATE value=VALUES(value)""", ("1" if enabled else "0",))
+
+
 @app.context_processor
 def globals_for_templates():
     tieru_url = os.environ.get("TIERU_PANEL_URL", "http://127.0.0.1:7788")
@@ -4239,8 +4260,11 @@ def _decision_item_name(vnum):
 def explain_shop_offer(item_id, counter_price):
     """Why this exact counter line exists and how its price was reached
     (log.playerbot_listing, Playerbots 2.2.39+'s "explained decisions").
-    None on an older engine that doesn't write this table yet, or an item
-    listed before EXPLAIN retention was on."""
+    None on an older engine that doesn't write this table yet, an item
+    listed before EXPLAIN retention was on, or when the operator turned
+    the tooltip off in Management."""
+    if not shop_explain_enabled():
+        return None
     try:
         row = one("SELECT * FROM log.playerbot_listing WHERE item_id=%s", (int(item_id or 0),))
     except pymysql.MySQLError as exc:
@@ -4468,10 +4492,17 @@ def _enrich_items(items):
     # target mob's vnum, handled below via mob_proto instead). Reported
     # ([GA]Seban, 2026-09-22): a Wędka+2's tooltip showing an unrelated
     # "Sejmitar+5" as a gem, same for a Rękawica Króla Przepow.
+    #
+    # An empty soul-stone socket on a weapon/armor is vnum 1, not 0 (item_proto
+    # 1 is "Yang" -- confirmed live, Krwawy Miecz+4's three empty sockets all
+    # read socket0/1/2=1) -- the engine's own empty-slot sentinel, not a real
+    # gem. Without excluding it, every unfilled socket looked up item_proto 1
+    # and showed a fake "Yang" stone, once per empty slot (reported
+    # [GA]Seban, 2026-09-30).
     stone_eligible_vnums = {int(item["vnum"]) for item in items
                              if int((ITEM_DEFS.get(str(int(item["vnum"] or 0))) or {}).get("type") or 0) in (1, 2)}
     socket_vnums = sorted({int(item.get(f"socket{i}") or 0) for item in items if int(item["vnum"]) in stone_eligible_vnums
-                            for i in range(3) if int(item.get(f"socket{i}") or 0) > 0})
+                            for i in range(3) if int(item.get(f"socket{i}") or 0) > 1})
     stone_defs = {}
     if socket_vnums:
         marks = ",".join(["%s"] * len(socket_vnums))
@@ -6822,7 +6853,7 @@ def manage_channels():
 def manage_panel():
     current = settings()
     badge_settings = top_level_badge_settings()
-    return render_template("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED, top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], full_plus9_badges_enabled=full_plus9_badges_enabled())
+    return render_template("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED, top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], full_plus9_badges_enabled=full_plus9_badges_enabled(), shop_explain_enabled=shop_explain_enabled())
 
 
 @app.post("/manage/panel/features")
@@ -7048,6 +7079,15 @@ def manage_full_plus9_badges():
     write_full_plus9_badges_enabled(enabled)
     flash("Ustawienie odznaki pełnego ekwipunku +9 zostało zapisane — działa od razu.")
     return redirect(url_for("manage_panel") + "#full-plus9-badges")
+
+
+@app.post("/manage/panel/shop-explain")
+@login_required
+def manage_shop_explain():
+    enabled = "1" in request.form.getlist("enabled")
+    write_shop_explain_enabled(enabled)
+    flash("Ustawienie wyjaśnień decyzji sklepów botów zostało zapisane — działa od razu.")
+    return redirect(url_for("manage_panel") + "#shop-explain")
 
 
 @app.post("/manage/plus9-announce")

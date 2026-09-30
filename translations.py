@@ -1456,6 +1456,11 @@ EXACT.update({
     "Pokazuj odznakę pełnego ekwipunku +9": "Show the full +9 equipment badge",
     "Pełny ekwipunek +9": "Full +9 equipment",
     "Zapisz odznakę +9": "Save +9 badge",
+    "🔎 Wyjaśnienia decyzji sklepów botów": "🔎 Bot shop decision explanations",
+    "Pokazuje w tooltipie przedmiotu na straganie bota, dlaczego trafił na ladę i jak krok po kroku silnik wyliczył jego cenę (Playerbots 2.2.39+). Dotyczy tylko przedmiotów dotkniętych przez bota po aktualizacji — silnik nie ma tych danych wstecznie.":
+        "Shows in a bot's stall item tooltip why it landed on the counter and how the engine worked out its price step by step (Playerbots 2.2.39+). Only covers items the bot has touched since the update — the engine has no data for older listings.",
+    "Pokazuj wyjaśnienia decyzji w tooltipach sklepów": "Show decision explanations in shop tooltips",
+    "Ustawienie wyjaśnień decyzji sklepów botów zostało zapisane — działa od razu.": "The bot shop decision explanations setting has been saved — it takes effect immediately.",
     "WIADOMOŚCI · WYDARZENIA": "MESSAGES · EVENTS",
     "✦ Legendarne ogłoszenia botów": "✦ Legendary bot announcements",
     "Wybierz niezależnie, gdzie panel pokazuje złote komunikaty o pokonanych bossach, ukończonych rajdach i lochach. Możesz zaznaczyć jedno miejsce, wszystkie albo nie zaznaczać żadnego.":
