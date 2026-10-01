@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-10-01 · 1.102.5 · Pełniejsze angielskie tłumaczenia dashboardu i karty postaci
+
+- **Angielski język obejmuje teraz dynamiczne informacje o respawnach, podpis rankingu, nazwy map na wykresie, komunikaty paska świata oraz dane statusu postaci.** Poprawiono między innymi liczebność i globalne czasy respawnu, polskie nazwy map w canvasie, klasę i poziom postaci, Premium, nastrój, cel, akcję oraz kartotekę Biologa.
+- **Tłumaczenie czasowników w pasku wiadomości działa również w JavaScript.** Usunięto granice słów niezgodne z polskimi znakami, przez które „ulepszył” i „rozwinął” pozostawały po polsku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-09-30 · 1.102.4 · Puste mapy i botowie walczący z "Człowiekiem"
 
 - **Wykres "Królestwa na mapie" na pustej mapie pokazuje teraz "— 0%" zamiast fałszywie ogłaszać Shinsoo dominującym w 0%.** Wybór "lidera" domyślnie wskazywał pierwsze królestwo z listy, gdy wszystkie liczniki wynosiły zero.

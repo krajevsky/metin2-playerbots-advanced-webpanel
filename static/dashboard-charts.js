@@ -1,5 +1,5 @@
-(() => { const el=id=>document.getElementById(id), donut=(canvas,value,label,color)=>new Chart(canvas,{type:'doughnut',data:{labels:[label,'Wolne'],datasets:[{data:[Math.max(0,value),Math.max(0,100-value)],backgroundColor:[color,'#20334d'],borderWidth:0}]},options:{cutout:'73%',plugins:{legend:{display:false}}}}); async function refresh(){try{const data=await fetch('/api/system-current',{cache:'no-store'}).then(x=>x.json()),s=data.system||{};if(el('cpu-donut')&&!el('cpu-donut').chart){el('cpu-donut').chart=donut(el('cpu-donut'),Number(s.cpu_percent||0),'CPU','#5795ff');el('ram-donut').chart=donut(el('ram-donut'),Number(s.ram_percent||0),'RAM','#40d39b');if(el('disk-donut'))el('disk-donut').chart=donut(el('disk-donut'),Number(s.disk_percent||0),'Dysk','#f2c34d')}}catch(_){}}const mapData=el('map-data');if(mapData&&el('map-donut')){const botRows=JSON.parse(mapData.textContent),colors=['#4ea5ff','#36d399','#f6c85f','#c084fc','#fb7185','#22d3ee','#f97316','#a3e635','#e879f9','#facc15','#14b8a6','#ef4444','#818cf8','#84cc16','#f472b6'];
-  const donutConfig={type:'doughnut',data:{labels:botRows.map(x=>x.name),datasets:[{data:botRows.map(x=>x.character_count),backgroundColor:botRows.map((_,i)=>colors[i%colors.length]),borderWidth:2,borderColor:'#101d2d'}]},options:{cutout:'58%',plugins:{legend:{position:'right',labels:{color:'#cfe0f7',boxWidth:9,font:{size:10}}}}}};
+(() => { const el=id=>document.getElementById(id),i18nNode=el('i18n-data');let i18nExact={};try{i18nExact=i18nNode?JSON.parse(i18nNode.textContent).exact||{}:{}}catch(_){}const tr=value=>document.documentElement.lang==='en'?(i18nExact[value]||value):value, donut=(canvas,value,label,color)=>new Chart(canvas,{type:'doughnut',data:{labels:[label,'Wolne'],datasets:[{data:[Math.max(0,value),Math.max(0,100-value)],backgroundColor:[color,'#20334d'],borderWidth:0}]},options:{cutout:'73%',plugins:{legend:{display:false}}}}); async function refresh(){try{const data=await fetch('/api/system-current',{cache:'no-store'}).then(x=>x.json()),s=data.system||{};if(el('cpu-donut')&&!el('cpu-donut').chart){el('cpu-donut').chart=donut(el('cpu-donut'),Number(s.cpu_percent||0),'CPU','#5795ff');el('ram-donut').chart=donut(el('ram-donut'),Number(s.ram_percent||0),'RAM','#40d39b');if(el('disk-donut'))el('disk-donut').chart=donut(el('disk-donut'),Number(s.disk_percent||0),'Dysk','#f2c34d')}}catch(_){}}const mapData=el('map-data');if(mapData&&el('map-donut')){const botRows=JSON.parse(mapData.textContent),colors=['#4ea5ff','#36d399','#f6c85f','#c084fc','#fb7185','#22d3ee','#f97316','#a3e635','#e879f9','#facc15','#14b8a6','#ef4444','#818cf8','#84cc16','#f472b6'];
+  const donutConfig={type:'doughnut',data:{labels:botRows.map(x=>tr(x.name)),datasets:[{data:botRows.map(x=>x.character_count),backgroundColor:botRows.map((_,i)=>colors[i%colors.length]),borderWidth:2,borderColor:'#101d2d'}]},options:{cutout:'58%',plugins:{legend:{position:'right',labels:{color:'#cfe0f7',boxWidth:9,font:{size:10}}}}}};
   let mapChart=new Chart(el('map-donut'),donutConfig);
   // Auto-rotating tile (per operator's ask): swaps to the exact same
   // flag+map-code bar chart as /economy/shops "Sklepy na mapach" (just
@@ -8,7 +8,7 @@
   // rebuilt on each rotation. Only rotates if the collector actually has a
   // shop snapshot yet.
   const shopDataEl=el('shop-map-data'),shopRows=shopDataEl?JSON.parse(shopDataEl.textContent):[],mapTileTitle=el('map-tile-title'),flagsDataEl=el('empire-flags-data');
-  const frames=[{title:'Boty według map',config:donutConfig}];
+  const frames=[{title:tr('Boty według map'),config:donutConfig}];
   // CH2 comparison frame: only exists once a second (or third...) channel is
   // actually running -- on a single-channel server the tile behaves exactly
   // as before (bots donut <-> shops bar, if any).
@@ -60,7 +60,7 @@
     const channelBarConfig={type:'bar',data:{labels:chMapRows.map(m=>m.map_short),datasets:channelsList.map((ch,i)=>({label:'CH'+ch,data:chMapRows.map(m=>m['ch'+ch]||0),backgroundColor:chColors[i%chColors.length]}))},
       options:{layout:{padding:{bottom:36}},plugins:{legend:{display:true,position:'top',labels:{color:'#8fa5c1',boxWidth:9,font:{size:9}}}},scales:{x:{ticks:{display:false},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#8fa5c1',precision:0,font:{size:9}}}}},
       plugins:[chMapTickPlugin]};
-    frames.push({title:'Boty '+channelsList.map(ch=>'CH'+ch).join(' / ')+' na mapach',config:channelBarConfig});
+    frames.push({title:(document.documentElement.lang==='en'?'Bots '+channelsList.map(ch=>'CH'+ch).join(' / ')+' by map':'Boty '+channelsList.map(ch=>'CH'+ch).join(' / ')+' na mapach'),config:channelBarConfig});
   }
   if(shopRows.length){
     const EMPIRE_COLORS={1:'#ef4444',2:'#f6c85f',3:'#4ea5ff'},empireFlags=flagsDataEl?JSON.parse(flagsDataEl.textContent):{};
@@ -73,7 +73,7 @@
       ctx.restore()
     }};
     const barConfig={type:'bar',data:{labels:shopRows.map(m=>m.map_short),datasets:[{label:'Sklepy',data:shopRows.map(m=>m.shop_count),backgroundColor:shopRows.map(m=>EMPIRE_COLORS[m.empire]||'#8fa5c1')}]},options:{layout:{padding:{bottom:22}},plugins:{legend:{display:false}},scales:{x:{ticks:{display:false},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#8fa5c1',precision:0,font:{size:9}}}}},plugins:[mapTickPlugin]};
-    frames.push({title:'Sklepy według map (offline)',config:barConfig});
+    frames.push({title:tr('Sklepy według map (offline)'),config:barConfig});
   }
   if(frames.length>1&&mapTileTitle){
     let frameIndex=0;

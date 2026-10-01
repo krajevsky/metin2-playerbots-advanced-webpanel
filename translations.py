@@ -427,6 +427,14 @@ EXACT.update({
     "Pamięć RAM": "RAM memory",
     "Boty według map": "Bots by map",
     "Automatycznie przełączaj rankingi co 8 sekund": "Automatically switch rankings every 8 seconds",
+    "najwyższe poziomy": "highest levels",
+    "Ognista Ziemia": "Fireland",
+    "Loch Pająków V2": "Spider Dungeon V2",
+    "Grota Wygnańców V1": "Grotto of Exile V1",
+    "Grota Wygnańców V2": "Grotto of Exile V2",
+    "⚔ Potwory": "⚔ Monsters",
+    "🗿 Metiny i bossy": "🗿 Metins & bosses",
+    "✦ Liczebność": "✦ Population",
     "Auto": "Auto",
     "Poprzedni ranking": "Previous ranking",
     "Następny ranking": "Next ranking",
@@ -1606,6 +1614,10 @@ EXACT.update({
     "Wpisz dokładną nazwę postaci, żeby potwierdzić:": "Type the character's exact name to confirm:",
     ". Kopia wiersza trafi do web_seban_deleted_players przed usunięciem.": ". A copy of the row is saved to web_seban_deleted_players before deletion.",
     "Usuń postać": "Delete character",
+    "Bardzo dobry": "Very good",
+    "Polowanie na Metiny": "Hunting Metins",
+    "Ząb Orka": "Orc Tooth",
+    "Zarażony Pies": "Diseased Dog",
     "⚔ Zawartość ekwipunku": "⚔ Equipment contents",
     "Ekwipunek": "Equipment",
     "Ta postać nie ma odblokowanych juków konnych": "This character hasn't unlocked saddlebags",
@@ -1766,6 +1778,14 @@ PATTERNS_RAW = [
     (r'^⏱ (\d+) h (\d+) min$', '⏱ $1 h $2 min'),
     (r'^🕐 Ostatnio: (.+)$', '🕐 Last seen: $1'),
     (r'^💍 Poślubiony/a z (.+)$', '💍 Married to $1'),
+    (r'Wojownik', 'Warrior'),
+    (r'poziom (\d+)', 'level $1'),
+    (r'Premium \(ogólne, VIP\)', 'Premium (general, VIP)'),
+    (r' do (\d{2}\.\d{2}\.\d{4})$', ' until $1'),
+    (r'^Walczę z (.+)$', 'Fighting $1'),
+    (r'^Zbieram: ', 'Collecting: '),
+    (r'Ząb Orka', 'Orc Tooth'),
+    (r'Zarażony Pies', 'Diseased Dog'),
     (r'^· ([\d\s]+) pkt$', '· $1 pts'),
     (r'^Nierozdane: (\d+) pkt statystyk · (\d+) pkt umiejętności$', 'Unspent: $1 stat pts · $2 skill pts'),
     (r'^Ranga: (.+) · poziom (\d+)$', 'Rank: $1 · level $2'),
@@ -1792,8 +1812,8 @@ PATTERNS_RAW = [
     # ulepszył {item}" / "{name} rozwinął {skill} na {rank}" server-side;
     # item/skill/rank names are raw game data, out of scope, but the verb
     # itself is worth catching wherever it lands in the sentence) ---
-    (r'\bulepszył\b', 'refined'),
-    (r'\brozwinął\b', 'mastered'),
+    (r'ulepszył', 'refined'),
+    (r'rozwinął', 'mastered'),
 
     # --- respawns.html ---
     (r'^co (\d+)% zwykłego czasu$', 'at $1% of the normal time'),
@@ -1972,6 +1992,9 @@ PATTERNS_RAW += [
     (r'możliwie zablokowany', 'possibly stuck'),
     (r'walczy z Metinem', 'fighting a Metin'),
     (r'^Własny czas mapy · (\d+) s$', 'Custom map timing · $1s'),
+    (r'^Globalnie · (\d+)% czasu podstawowego$', 'Global · $1% of base time'),
+    (r'Potwory (\d+)%', 'Monsters $1%'),
+    (r'Metiny/bossy (\d+)%', 'Metins/bosses $1%'),
 ]
 
 # --- static/news-feed.js ---
