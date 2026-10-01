@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-10-02 · 1.103.3 · Płynna skala typografii/odstępów (telefon → 4K/ultrawide)
+
+- Nagłówki (`h1`/`h2`) i odstępy kart/paneli skalują się teraz płynnie (`clamp()`) zamiast skakać na sztywnych progach pikselowych — dotyczy całego panelu, nie tylko dashboardu.
+- Subtelny złoty poblask na kartach i panelach przy najechaniu w motywie Cesarstwo.
+- Zbadano pełne przeprojektowanie panelu od zera (makiety w Claude Design) — odrzucone na rzecz tej iteracji, bo obecny dashboard ma już sporo zbudowanej, sprawdzonej roboty (prawdziwe grafiki map per-lokacja, osobno tuningowane proporcje, przełącznik insightów na 1351/1700/2199px), której wyrzucenie byłoby cofnięciem jakości, nie poprawą. Dalszy polish idzie przyrostowo, zakładka po zakładce.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-02 · 1.103.2 · Aktywności w świecie i Boty wg poziomu: jedna karta, dwie zakładki
 
 - **Naprawiono widgety "Aktywności w świecie" i "Boty wg poziomu" wyglądające tragicznie na komputerze** — jako dwie osobne, zawsze widoczne karty wystawały poza pudełko sidebar'a na szerszych ekranach (zgłoszenie ze zrzutem ekranu).
