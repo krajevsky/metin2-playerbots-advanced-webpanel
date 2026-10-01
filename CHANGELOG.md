@@ -1,5 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-10-02 · 1.103.2 · Aktywności w świecie i Boty wg poziomu: jedna karta, dwie zakładki
+
+- **Naprawiono widgety "Aktywności w świecie" i "Boty wg poziomu" wyglądające tragicznie na komputerze** — jako dwie osobne, zawsze widoczne karty wystawały poza pudełko sidebar'a na szerszych ekranach (zgłoszenie ze zrzutem ekranu).
+- Teraz to jedna karta z przyciskami-zakładkami do przełączania między widokami, identyczny wzorzec jak istniejące zakładki Ranking/Aktywności na tej samej stronie. Filtr królestwa (Wszystkie/Shinsoo/Chunjo/Jinno) działa wspólnie dla obu zakładek.
+- Przy okazji sprawdzono zgłoszenie o bardzo wolnym ładowaniu dolnych widgetów (obciążenie VPS, boty/sklepy wg map, karuzela rankingów): przyczyną było wyczerpanie RAM-u/swap na VPS przy 2000 botach (swap w 100%, zapytanie dashboardu 12 s zamiast <1 s), nie kod panelu. Liczba botów zmniejszona do 1600 — swap spadł do ~62%, zapytanie przyspieszyło do ~6 s.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-01 · 1.103.1 · Dashboard na telefonie: 1,2 MB → 56 KB na jedno odświeżenie
 
 - **Naprawiono niepełne ładowanie dashboardu na telefonie na wolniejszym internecie.** `/api/live-bots` — odpytywane co 1,5 sekundy przez mapę na żywo — przy obecnych ~2000 botach online ważyło 1,19 MB nieskompresowane. Dwie zmiany naraz: (1) endpoint wysyła teraz tylko 15 pól na bota zamiast 34 (reszta — pełne etykiety osobowości, nastroju itd. — i tak nie jest używana przez mapę, tylko przez inne strony), co samo w sobie zeszło do ~430 KB; (2) panel kompresuje teraz gzipem duże odpowiedzi JSON/HTML, co dla tak powtarzalnego tekstu jak JSON zbija to dalej do **~56 KB** — prawie 95% mniej niż na starcie.

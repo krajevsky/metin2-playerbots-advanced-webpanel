@@ -234,6 +234,18 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 .insight-empire-filter{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:2px}
 .insight-empire-filter button{padding:4px 9px;border:1px solid var(--live-border);border-radius:14px;background:var(--live-filter);color:var(--live-accent-text);font-size:11px;cursor:pointer}
 .insight-empire-filter button.active{background:var(--live-accent);color:#fff}
+/* "Aktywności w świecie" + "Boty wg poziomu" used to be two separate,
+   always-visible cards stacked with their own scrollbars -- cramped and
+   broke out of the sidebar's width on desktop (screenshot, 2026-10-02).
+   One card, two tabs, same switcher pattern as the existing Ranking/
+   Aktywności tabs on this page (live-sidebar[data-sidebar-tab]). */
+.map-insight-card--world{gap:7px}
+.insight-tabs{display:flex;gap:5px;margin-bottom:2px}
+.insight-tabs button{flex:1;padding:6px 4px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text);font-size:11px;cursor:pointer}
+.insight-tabs button.active{background:var(--live-accent);color:#fff}
+.world-tab-panel{display:none}
+#world-insights-card[data-world-tab="activity"] #world-activity-chart{display:block}
+#world-insights-card[data-world-tab="levels"] #world-level-chart{display:block}
 .map-donut{width:78px;aspect-ratio:1;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(circle at center,var(--live-surface) 0 57%,transparent 59%),var(--map-donut);flex:0 0 auto}
 .map-donut b{display:block;color:var(--live-accent-text);font-size:12px;line-height:1.05}
 .map-donut small{display:block;margin-top:2px;color:var(--live-number);font-size:16px;font-weight:800}

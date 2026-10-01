@@ -166,6 +166,13 @@
     worldEmpireFilter = btn.dataset.empire;
     renderWorldInsights();
   });
+  const worldTabs = $('world-insights-tabs');
+  if (worldTabs) worldTabs.addEventListener('click', event => {
+    const btn = event.target.closest('button[data-tab]');
+    if (!btn) return;
+    worldTabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    $('world-insights-card').dataset.worldTab = btn.dataset.tab;
+  });
   // Read fresh each call, not once at module load: dashboard-deferred.js
   // replaces this script tag's JSON once the real data finishes loading in
   // the background (fast dashboard shell, 1.94.0) -- a one-time read here
@@ -196,19 +203,40 @@
     const mapId = Number(select.value), needle = search.value.trim().toLowerCase();
     map.dataset.mapIndex = String(mapId);
     const bots = snapshot.filter(b => b.map_index === mapId && levelOK(b.level) && (!$('party-only').checked || b.in_party) && (!needle || b.name.toLowerCase().includes(needle)) && (currentChannel === 'all' || Number(b.channel) === Number(currentChannel)));
-    map.querySelectorAll('.bot-point,.heat-point').forEach(node => node.remove());
+    // Aktualizacja in-place: nie usuwaj wszystkich ikonek przed ich
+    // ponownym dodaniem, bo na telefonie tworzy to pustą klatkę co 1,5 s.
+    const visibleIds = new Set();
     bots.forEach(bot => {
-      const point = document.createElement('a'); point.className = `bot-point ch-${bot.channel || 1} ${bot.in_party ? 'is-pt' : ''}${bot.stuck ? ' is-stuck' : ''}${bot.fighting_metin ? ' is-metin' : ''}`;
-      point.href = `/player/${bot.id}`; point.style.left = `${Math.max(1,Math.min(99,bot.px))}%`; point.style.top = `${Math.max(1,Math.min(99,bot.py))}%`;
+      const id = String(bot.id); visibleIds.add(id);
+      let point = map.querySelector(`.bot-point[data-bot-id="${CSS.escape(id)}"]`);
+      if (!point) { point = document.createElement('a'); point.dataset.botId = id; map.appendChild(point); }
+      point.className = `bot-point ch-${bot.channel || 1} ${bot.in_party ? 'is-pt' : ''}${bot.stuck ? ' is-stuck' : ''}${bot.fighting_metin ? ' is-metin' : ''}`;
+      point.href = `/player/${bot.id}`;
+      point.style.left = `${Math.max(1,Math.min(99,bot.px))}%`; point.style.top = `${Math.max(1,Math.min(99,bot.py))}%`;
       point.title = `${bot.name} · poziom ${bot.level}${knownChannels.length > 1 ? ' · CH' + (bot.channel || 1) : ''}${bot.in_party ? ' · PT' : ''}${bot.stuck ? ' · możliwie zablokowany' : ''}${bot.fighting_metin ? ' · walczy z Metinem' : ''}`;
-      point.innerHTML = `<img class="bot-point-flag" src="/static/empires/${empireFlag(bot.empire)}" alt="" aria-hidden="true">${bot.stuck ? '<i class="bot-point-stuck" aria-label="Możliwie zawieszony">!</i>' : ''}${$('show-names').checked ? `<em>${escape(bot.name)} ${levelMarkup(bot)}</em>` : ''}`;
-      map.appendChild(point);
+      const html = `<img class="bot-point-flag" src="/static/empires/${empireFlag(bot.empire)}" alt="" aria-hidden="true">${bot.stuck ? '<i class="bot-point-stuck" aria-label="Możliwie zawieszony">!</i>' : ''}${$('show-names').checked ? `<em>${escape(bot.name)} ${levelMarkup(bot)}</em>` : ''}`;
+      if (point.innerHTML !== html) point.innerHTML = html;
     });
+    map.querySelectorAll('.bot-point').forEach(point => { if (!visibleIds.has(point.dataset.botId)) point.remove(); });
     const average = bots.length ? (bots.reduce((sum,b)=>sum+b.level,0)/bots.length).toFixed(1) : '—';
     $('stat-visible').textContent = bots.length; $('stat-pt').textContent = bots.filter(b=>b.in_party).length; $('stat-avg').textContent = average; $('stat-max').textContent = bots.length ? Math.max(...bots.map(b=>b.level)) : '—';
     $('live-count').textContent = `Zaktualizowano ${new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
     $('map-caption').textContent = select.options[select.selectedIndex].text;
-$('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCompare(b.name)).slice(0,10).map((b,i)=>`<a class="${b.id === globalTopId ? 'is-global-leader' : ''}" href="/player/${b.id}"><b>#${i+1}</b><img class="class-portrait class-portrait--live" src="${portrait(b.job)}" alt=""> ${escape(b.name)}${b.in_party?'<mark class="pt-mark">PT</mark>':''}${b.stuck?'<mark class="stuck-mark">⚠</mark>':''} <span>${levelMarkup(b)}</span></a>`).join('') || '<p class="muted">Brak botów spełniających filtr.</p>';
+    const ranking = bots.slice().sort((a,b)=>b.level-a.level||a.name.localeCompare(b.name)).slice(0,10);
+    const rankingBox = $('live-ranking'), rankingIds = new Set();
+    ranking.forEach((b,i) => {
+      const id = String(b.id); rankingIds.add(id);
+      let row = rankingBox.querySelector(`a[data-bot-id="${CSS.escape(id)}"]`);
+      if (!row) { row = document.createElement('a'); row.dataset.botId = id; }
+      row.className = b.id === globalTopId ? 'is-global-leader' : '';
+      row.href = `/player/${b.id}`;
+      const html = `<b>#${i+1}</b><img class="class-portrait class-portrait--live" src="${portrait(b.job)}" alt=""> ${escape(b.name)}${b.in_party?'<mark class="pt-mark">PT</mark>':''}${b.stuck?'<mark class="stuck-mark">⚠</mark>':''} <span>${levelMarkup(b)}</span>`;
+      if (row.innerHTML !== html) row.innerHTML = html;
+      rankingBox.appendChild(row);
+    });
+    rankingBox.querySelectorAll('a[data-bot-id]').forEach(row => { if (!rankingIds.has(row.dataset.botId)) row.remove(); });
+    if (!ranking.length) rankingBox.innerHTML = '<p class="muted">Brak botów spełniających filtr.</p>';
+    else rankingBox.querySelector('.muted')?.remove();
     renderActivities(bots);
     insights(mapId,bots);
   }
