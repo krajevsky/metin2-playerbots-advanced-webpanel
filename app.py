@@ -6277,6 +6277,44 @@ def account_detail(aid):
     return render_template("account_detail.html", account=account, characters=characters)
 
 
+def level_bracket_counts():
+    """Right now: how many online bots sit in each 10-wide level bracket
+    (1-10, 11-20, ...), same bucket math as the live dashboard widget's
+    client-side one (floor((level-1)/10)*10+1) so the two agree."""
+    buckets = {}
+    for bot in live_bots():
+        level = int(bot.get("level") or 0)
+        start = max(1, (level - 1) // 10 * 10 + 1)
+        key = f"{start}-{start + 9}"
+        buckets[key] = buckets.get(key, 0) + 1
+    return sorted(buckets.items(), key=lambda item: int(item[0].split("-")[0]))
+
+
+def level_bracket_history(days=7):
+    """The same brackets over the last `days`, from collector.py's periodic
+    lvl_<start>_<end> rows in web_seban_metric_snapshot (added 2026-10-01,
+    Kordyl13's request for a trend of how fast bots move through level
+    ranges) -- hourly-averaged, since every-5-minutes over a week is far
+    more points than a chart needs. Empty (just zero series) until the
+    collector has had time to accumulate history; it only ever appends."""
+    raw = rows("""
+      SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:00') AS label, metric, AVG(value) AS value, MIN(captured_at) AS first_seen
+      FROM player.web_seban_metric_snapshot
+      WHERE metric LIKE 'lvl\\_%%' AND captured_at >= NOW() - INTERVAL %s DAY
+      GROUP BY label, metric ORDER BY first_seen ASC
+    """, (days,))
+    labels, series = [], {}
+    for row in raw:
+        if row["label"] not in labels:
+            labels.append(row["label"])
+        series.setdefault(row["metric"], {})[row["label"]] = round(float(row["value"]))
+    ordered_metrics = sorted(series, key=lambda metric: int(metric.split("_")[1]))
+    return {"labels": labels, "series": [
+        {"id": metric, "name": "Lv " + metric[4:].replace("_", "-"), "data": [series[metric].get(label, 0) for label in labels]}
+        for metric in ordered_metrics
+    ]}
+
+
 @app.route("/maps")
 @login_required
 def maps():
@@ -6316,7 +6354,8 @@ def maps():
     for channel in channels:
         latest[str(channel)] = build_latest(channel)
     return render_template("maps.html", charts=charts, latest=latest, channels=channels,
-                           heat_map_options=TRACKED_MAP_OPTIONS)
+                           heat_map_options=TRACKED_MAP_OPTIONS,
+                           level_now=level_bracket_counts(), level_history=level_bracket_history())
 
 
 @app.route("/changelog")

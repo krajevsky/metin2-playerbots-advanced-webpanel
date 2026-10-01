@@ -1,5 +1,5 @@
 (() => {
-  let snapshot = [], globalTopId = null, topLevelRanks = {}, currentLevel = 'all', currentChannel = 'all', knownChannels = [1];
+  let snapshot = [], globalTopId = null, topLevelRanks = {}, currentLevel = 'all', currentChannel = 'all', knownChannels = [1], worldEmpireFilter = 'all';
   const $ = id => document.getElementById(id);
   const map = $('world-map'), select = $('map-select'), search = $('bot-search');
   const filters = document.querySelector('.live-filters');
@@ -136,6 +136,36 @@
     const total = bots.length || 1;
     box.innerHTML = entries.map(([label,count]) => `<div class="activity-line"><span title="${escape(label)}">${escape(label)}</span><b>${count}</b><i style="--share:${Math.max(4,Math.round(count/total*100))}%"></i></div>`).join('') || '<p class="muted">Brak aktywnych botów na tej mapie.</p>';
   }
+  function barLines(entries, total) {
+    return entries.map(([label,count]) => `<div class="activity-line"><span title="${escape(label)}">${escape(label)}</span><b>${count}</b><i style="--share:${Math.max(4,Math.round(count/total*100))}%"></i></div>`).join('');
+  }
+  // World-wide (every map, every channel) counterpart to renderActivities()
+  // above, which only sees the currently selected map -- requested by
+  // players ("szerszy pogląd na to co dzieje się na wszystkich mapach",
+  // Kordyl13, 2026-10-01). Re-derived from the same `snapshot` the live map
+  // already polls every 1.5s, so no extra request.
+  function renderWorldInsights() {
+    const activityBox = $('world-activity-chart'), levelBox = $('world-level-chart');
+    if (!activityBox && !levelBox) return;
+    const bots = worldEmpireFilter === 'all' ? snapshot : snapshot.filter(b => String(b.empire) === worldEmpireFilter);
+    const total = bots.length || 1;
+    if (activityBox) {
+      const grouped = bots.reduce((all, bot) => { const label = activityGroup(bot); all[label] = (all[label] || 0) + 1; return all; }, {});
+      const entries = Object.entries(grouped).sort((a,b) => b[1]-a[1]);
+      activityBox.innerHTML = barLines(entries, total) || '<p class="muted">Brak botów w tym królestwie.</p>';
+    }
+    if (levelBox) {
+      const buckets = {};
+      bots.forEach(bot => { const start = Math.max(1, Math.floor((Number(bot.level) - 1) / 10) * 10 + 1); const key = `${start}-${start + 9}`; buckets[key] = (buckets[key] || 0) + 1; });
+      const entries = Object.entries(buckets).sort((a,b) => Number(a[0].split('-')[0]) - Number(b[0].split('-')[0])).map(([key,count]) => [`Lv ${key}`, count]);
+      levelBox.innerHTML = barLines(entries, total) || '<p class="muted">Brak botów w tym królestwie.</p>';
+    }
+  }
+  document.querySelectorAll('#world-activity-filter button').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('#world-activity-filter button').forEach(x => x.classList.toggle('active', x === btn));
+    worldEmpireFilter = btn.dataset.empire;
+    renderWorldInsights();
+  });
   // Read fresh each call, not once at module load: dashboard-deferred.js
   // replaces this script tag's JSON once the real data finishes loading in
   // the background (fast dashboard shell, 1.94.0) -- a one-time read here
@@ -194,6 +224,7 @@ $('live-ranking').innerHTML = bots.sort((a,b)=>b.level-a.level||a.name.localeCom
       if ($('overview-party')) $('overview-party').textContent = snapshot.filter(bot=>bot.in_party).length;
       if ($('overview-max')) $('overview-max').textContent = snapshot.length ? Math.max(...snapshot.map(bot=>bot.level)) : '0';
       renderOverviewMaps();
+      renderWorldInsights();
       if (mode.value === 'live') render();
     } catch (err) { console.error('live-widget load()', err); $('live-count').textContent = 'Brak danych live'; }
   }

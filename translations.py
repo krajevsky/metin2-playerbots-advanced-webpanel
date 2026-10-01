@@ -763,6 +763,11 @@ EXACT.update({
     "Rozbite Metiny": "Broken Metins",
     "Zabite bossy": "Bosses killed",
     "Chunjo M1": "Chunjo M1",
+    "📊 Boty wg przedziału poziomu": "📊 Bots by level bracket",
+    "Ile obecnie jest botów w każdym przedziale poziomu (co 10) i jak ta liczba zmieniała się w ostatnich dniach — pomaga ocenić, czy czas dodać kolejną pulę świeżych botów.":
+        "How many bots are currently in each level bracket (every 10 levels), and how that count has changed over the last few days — helps judge whether it's time to add another batch of fresh bots.",
+    "Historia przedziałów poziomu dopiero się zbiera (migawka co 5 minut) — wykres napełni się w ciągu najbliższych godzin.":
+        "Level-bracket history is just starting to accumulate (a snapshot every 5 minutes) — the chart will fill in over the next few hours.",
 })
 
 # --- panel_logs.html ---
@@ -1966,6 +1971,9 @@ PATTERNS_RAW.append((r' zdarzeń$', ' events'))
 # --- static/live-widget.js ---
 EXACT.update({
     "Pozostałe aktywności": "Other activities",
+    "Aktywności w świecie": "World-wide activities",
+    "Boty wg poziomu": "Bots by level",
+    "Brak botów w tym królestwie.": "No bots in this kingdom.",
     "Brak botów online.": "No bots online.",
     "Automatycznie zmieniaj mapy po bezczynności": "Automatically switch maps when idle",
     "Pozycje botów na żywo": "Live bot positions",
