@@ -312,6 +312,7 @@ DEFAULT_SETTINGS = {
     # default. Missing keys on older installations deliberately inherit this.
     "legendary_notice_live_chat": "1", "legendary_notice_world_feed": "1", "legendary_notice_ticker": "1",
     "reaper_chest_world_feed": "1",
+    "fastest_shop_items_limit": "15",
 }
 try:
     ITEM_DEFS = json.loads((Path(__file__).parent / "static" / "item_defs.json").read_text(encoding="utf-8"))
@@ -5215,13 +5216,14 @@ def shop_sales_velocity(hours=24, limit=15, only_skillbooks=False):
         bucket = "recent" if r["time"] >= cutoff else "older"
         a[f"{bucket}_units"] += qty
         a[f"{bucket}_revenue"] += price
-    ranked = sorted(agg.items(), key=lambda kv: kv[1]["sales"], reverse=True)[:limit]
+    ranked_all = sorted(agg.items(), key=lambda kv: kv[1]["sales"], reverse=True)
+    ranked = ranked_all if limit is None else ranked_all[:limit]
     result = []
     for (vnum, socket0), a in ranked:
         recent_avg = round(a["recent_revenue"] / a["recent_units"]) if a["recent_units"] else None
         older_avg = round(a["older_revenue"] / a["older_units"]) if a["older_units"] else None
         result.append({
-            "vnum": vnum, "item_name": _item_display_name(vnum, socket0),
+            "vnum": vnum, "socket0": socket0, "item_name": _item_display_name(vnum, socket0),
             "sales": a["sales"], "units": a["units"],
             "avg_price": round(a["revenue"] / a["units"]) if a["units"] else 0,
             "per_hour": round(a["sales"] / hours, 1),
@@ -5360,9 +5362,23 @@ def economy_shops():
           WHERE s.captured_at=%s ORDER BY s.total_units DESC LIMIT 15""", (shop_latest,))
         market_items = [shop_item_market_row(r["vnum"], r["socket0"], shop_latest) for r in top_rows]
 
+    try:
+        fastest_items_limit = int(settings().get("fastest_shop_items_limit", "15"))
+    except (TypeError, ValueError):
+        fastest_items_limit = 15
+    fastest_items_limit = max(15, min(100, fastest_items_limit))
+    all_sales_velocity = shop_sales_velocity(limit=None)
+    velocity_by_item = {(int(item["vnum"]), int(item.get("socket0", 0))): item for item in all_sales_velocity}
+    for item in market_items:
+        velocity = velocity_by_item.get((int(item["vnum"]), int(item.get("socket0", 0))), {})
+        item["sales_24h"] = int(velocity.get("sales", 0))
+        item["sales_per_hour"] = float(velocity.get("per_hour", 0))
+
     return render_template("economy_shops.html", latest=latest, by_map=by_map, query=query,
-                            empire_totals=empire_totals, kpi=kpi, value_trend=value_trend, market_items=market_items,
-                            sales_velocity=shop_sales_velocity(), skillbook_velocity=shop_sales_velocity(limit=5, only_skillbooks=True),
+                            empire_totals=empire_totals, kpi=kpi, value_trend=value_trend,
+                            market_items=market_items, fastest_items_limit=fastest_items_limit,
+                            sales_velocity=all_sales_velocity[:fastest_items_limit],
+                            skillbook_velocity=shop_sales_velocity(limit=5, only_skillbooks=True),
                             recent_sales=recent_shop_sales(10))
 
 
@@ -7088,6 +7104,21 @@ def manage_full_plus9_badges():
     write_full_plus9_badges_enabled(enabled)
     flash("Ustawienie odznaki pełnego ekwipunku +9 zostało zapisane — działa od razu.")
     return redirect(url_for("manage_panel") + "#full-plus9-badges")
+
+
+@app.post("/manage/panel/shop-ranking")
+@login_required
+def manage_panel_shop_ranking():
+    try:
+        limit = int(request.form.get("fastest_shop_items_limit", "15"))
+        if limit not in (15, 25, 50, 100):
+            raise ValueError
+    except (TypeError, ValueError):
+        flash("Wybierz obsługiwany limit rankingu: 15, 25, 50 albo 100.", "error")
+    else:
+        write_settings({"fastest_shop_items_limit": str(limit)})
+        flash(f"Ranking najszybciej sprzedających się przedmiotów pokazuje teraz {limit} pozycji.", "success")
+    return redirect(url_for("manage_panel") + "#shop-ranking")
 
 
 @app.post("/manage/panel/shop-explain")

@@ -520,6 +520,14 @@ EXACT.update({
         "Ranked by actual stall sales (not just listings) — the higher, the more in-demand the item; the price indicator compares the last 12h against the previous 12h in the window. A reference point for raising bot prices.",
     "Sprzedaży/24h": "Sales/24h",
     "Tempo": "Pace",
+    "Wyświetlane pozycje:": "Displayed entries:",
+    "Szukanie przedmiotu…": "Searching for item…",
+    "Szukanie…": "Searching…",
+    "🔥 Rozmiar rankingu sprzedaży": "🔥 Sales ranking size",
+    "GOSPODARKA · WIDOK": "ECONOMY · VIEW",
+    "Ustal, ile pozycji pokazuje tabela „Najszybciej rozchodzące się przedmioty · ostatnie 24h”. Limit 100 chroni panel przed zbyt ciężkim widokiem.": "Choose how many entries the ‘Fastest-moving items · last 24h’ table displays. The 100-entry cap keeps the page responsive.",
+    "Liczba pozycji": "Number of entries",
+    "Zapisz limit rankingu": "Save ranking limit",
     "Sztuk": "Units",
     "Śr. cena/szt.": "Avg. price/unit",
     "Śr. cena: ostatnie 12h vs wcześniejsze 12h": "Avg. price: last 12h vs previous 12h",
@@ -2116,3 +2124,14 @@ def i18n_payload():
     can apply the identical table to content the JS dashboard/live-map/
     rankings-carousel code renders client-side after the initial page load."""
     return json.dumps({"exact": EXACT, "patterns": PATTERNS_RAW}, ensure_ascii=False)
+
+# --- configurable shop ranking feedback ---
+EXACT.update({
+    "Wybierz obsługiwany limit rankingu: 15, 25, 50 albo 100.": "Choose a supported ranking limit: 15, 25, 50, or 100.",
+})
+EXACT.update({
+    "Ranking najszybciej sprzedających się przedmiotów pokazuje teraz 15 pozycji.": "The fastest-moving items ranking now displays 15 entries.",
+    "Ranking najszybciej sprzedających się przedmiotów pokazuje teraz 25 pozycji.": "The fastest-moving items ranking now displays 25 entries.",
+    "Ranking najszybciej sprzedających się przedmiotów pokazuje teraz 50 pozycji.": "The fastest-moving items ranking now displays 50 entries.",
+    "Ranking najszybciej sprzedających się przedmiotów pokazuje teraz 100 pozycji.": "The fastest-moving items ranking now displays 100 entries.",
+})
