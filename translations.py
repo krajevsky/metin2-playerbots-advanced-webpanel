@@ -1686,6 +1686,7 @@ PATTERNS_RAW = [
 
     # --- dashboard.html ---
     (r'Dostępna ([\d.]+)$', '$1 available'),
+    (r'^Zaktualizowano (.+)$', 'Updated $1'),
 
     # --- economy.html / economy_shops.html: collector-read banner ---
     (r'^kolektor jeszcze nie wykonał odczytu$', "the collector hasn't read yet"),
@@ -1946,6 +1947,8 @@ EXACT.update({
     "Ładowanie danych": "Loading data",
     "Ładowanie zalogowanych botów": "Loading logged-in bots",
     "Ładowanie": "Loading",
+    "Aktualna": "Up to date",
+    "Pobieranie danych": "Fetching data",
     "Nie udało się doładować danych.": "Failed to load data.",
 })
 
