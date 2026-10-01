@@ -8,6 +8,7 @@ import time
 import re
 import uuid
 import zlib
+import gzip
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from urllib.parse import quote
@@ -3699,6 +3700,35 @@ def globals_for_templates():
 
 
 @app.after_request
+def compress_response(response):
+    """gzip large JSON/HTML responses. /api/live-bots alone crossed 1.1MB
+    uncompressed at ~2000 online bots, polled every 1.5s by the live map --
+    "na telefonie na średniej szybkości internetu ten dashboard nie może
+    się wczytać w pełni" (2026-10-01). JSON's repeated key names compress
+    extremely well (typically 75-85% smaller). Registered before
+    translate_response below so it runs *after* it (Flask calls
+    after_request hooks in reverse registration order) -- compressing
+    first would hand translate_response gzipped bytes to treat as text."""
+    if response.direct_passthrough or response.content_encoding:
+        return response
+    if "gzip" not in (request.headers.get("Accept-Encoding") or ""):
+        return response
+    if not (response.content_type or "").startswith(("application/json", "text/html")):
+        return response
+    body = response.get_data()
+    if len(body) < 1024:
+        return response
+    compressed = gzip.compress(body, compresslevel=6)
+    response.set_data(compressed)
+    response.headers["Content-Encoding"] = "gzip"
+    response.headers["Content-Length"] = str(len(compressed))
+    vary = response.headers.get("Vary", "")
+    if "Accept-Encoding" not in vary:
+        response.headers["Vary"] = (vary + ", Accept-Encoding").lstrip(", ")
+    return response
+
+
+@app.after_request
 def translate_response(response):
     # Server-side half of the ui_language="en" panel translation (see
     # translations.py's module docstring for the full picture, including
@@ -6380,14 +6410,27 @@ def account_characters(aid):
     return {"ok": True, "characters": characters}
 
 
+# Fields the live map's JS actually reads (static/live-widget.js, audited
+# 2026-10-01): live_bots() carries 34 per bot for the server-rendered pages
+# that need the rest (personality_label etc. for /players/personalities and
+# similar), but this endpoint is polled every 1.5s and had ballooned past
+# 1.1MB uncompressed at ~2000 online bots -- "dashboard nie może się
+# wczytać w pełni" on mobile (reported 2026-10-01). Trimming to only what's
+# used here cuts the field count by more than half before gzip (below) even
+# gets to it.
+_LIVE_BOT_API_FIELDS = ("id", "name", "level", "job", "empire", "action", "action_label",
+                        "goal", "channel", "map_index", "x", "y", "in_party", "stuck", "fighting_metin")
+
+
 @app.route("/api/live-bots")
 @login_required
 def api_live_bots():
     all_level_ranks = top_level_rank_map()
     level_ranks = top_level_badge_rank_map()
+    slim_bots = [{field: bot.get(field) for field in _LIVE_BOT_API_FIELDS} for bot in live_bots()]
     return {"ok": True, "updated_at": int(datetime.now().timestamp() * 1000), "maps": MAP_NAMES, "bounds": MAP_BOUNDS,
             "global_top_id": next((pid for pid, rank in all_level_ranks.items() if rank == 1), None),
-            "top_level_ranks": level_ranks, "bots": live_bots(), "channels": discovered_channels()}
+            "top_level_ranks": level_ranks, "bots": slim_bots, "channels": discovered_channels()}
 
 
 @app.route("/api/news-feed")
