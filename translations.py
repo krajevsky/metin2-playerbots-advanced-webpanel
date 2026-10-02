@@ -1673,7 +1673,7 @@ EXACT.update({
     "Bardzo dobry": "Very good",
     "Polowanie na Metiny": "Hunting Metins",
     "Ząb Orka": "Orc Tooth",
-    "Zarażony Pies": "Diseased Dog",
+    "Zarażony Pies": "Plagued Dog",  # mob_proto 902, the game's English name
     "⚔ Zawartość ekwipunku": "⚔ Equipment contents",
     "Ekwipunek": "Equipment",
     "Ta postać nie ma odblokowanych juków konnych": "This character hasn't unlocked saddlebags",
