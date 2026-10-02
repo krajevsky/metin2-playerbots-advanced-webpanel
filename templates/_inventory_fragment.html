@@ -13,6 +13,23 @@
   <div class="safebox-inventory"><div class="safebox-layer">{% for item in safebox %}{% set page=item.pos // 45 %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="safebox-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" data-page="{{page}}" {% if page != 0 %}hidden{% endif %} style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div></div>
   <p id="safebox-empty" class="muted" hidden>Ta strona magazynu jest pusta.</p>
 </div>
+
+<div id="dragon-soul-storage" hidden>
+  <div class="dragon-soul-window" data-ds-kind="0" data-ds-page="0" data-ds-deck="0" aria-label="Alchemia Smoczych Kamieni">
+    <img class="ds-window-bg" src="{{url_for('static',filename='dragon-soul-ui/dragon_soul_bg.png')}}" alt="">
+    <strong class="ds-title">Alchemia Smoczych Kamieni</strong>
+    <img class="ds-kind-art" src="{{url_for('static',filename='dragon-soul-ui/tap01.png')}}" alt="">
+    <div class="ds-kind-tabs" aria-label="Rodzaj Smoczego Kamienia">{% for name in ['Diament','Rubin','Jadeit','Szafir','Granat','Onyks'] %}<button type="button" data-ds-kind-button="{{loop.index0}}" title="Smoczy {{name}}"><span>{{name}}</span></button>{% endfor %}</div>
+    <span class="ds-kind-name">Smoczy Diament</span>
+    <div class="ds-grade-tabs" aria-label="Klasa Smoczego Kamienia">{% for grade in range(6) %}<button type="button" data-ds-page-button="{{grade}}" class="{% if grade == 0 %}active{% endif %}" title="Klasa {{grade + 1}}"><img src="{{url_for('static',filename='dragon-soul-ui/btn_soul_%02d_1.png'|format(grade + 1))}}" data-normal="{{url_for('static',filename='dragon-soul-ui/btn_soul_%02d_1.png'|format(grade + 1))}}" data-active="{{url_for('static',filename='dragon-soul-ui/btn_soul_%02d_3.png'|format(grade + 1))}}" alt="Klasa {{grade + 1}}"></button>{% endfor %}</div>
+    <div class="ds-deck-tabs" aria-label="Zestaw Smoczej Alchemii"><button type="button" class="active" data-ds-deck-button="0" title="Zestaw I"><img src="{{url_for('static',filename='dragon-soul-ui/deck1_3.png')}}" data-normal="{{url_for('static',filename='dragon-soul-ui/deck1_1.png')}}" data-active="{{url_for('static',filename='dragon-soul-ui/deck1_3.png')}}" alt="Zestaw I"></button><button type="button" data-ds-deck-button="1" title="Zestaw II"><img src="{{url_for('static',filename='dragon-soul-ui/deck2_1.png')}}" data-normal="{{url_for('static',filename='dragon-soul-ui/deck2_1.png')}}" data-active="{{url_for('static',filename='dragon-soul-ui/deck2_3.png')}}" alt="Zestaw II"></button></div>
+    {% for deck in range(2) %}<div class="ds-equipment" data-ds-deck="{{deck}}" {% if deck != 0 %}hidden{% endif %}>{% for slot in range(6) %}{% set item=dragon_soul_decks.get(deck,{}).get(slot) %}<div class="ds-equip-slot ds-equip-{{slot}}">{% if item %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{tooltip(item)}}{% endif %}</div>{% endfor %}</div>{% endfor %}
+    <div class="ds-bag">{% for item in dragon_soul_inventory %}<div class="ds-bag-slot{% if item.ds_slot % 8 == 0 %} tip-left{% elif item.ds_slot % 8 == 7 %} tip-right{% endif %}" data-ds-kind="{{item.ds_kind}}" data-ds-page="{{item.ds_page}}" style="--col:{{item.ds_slot % 8}};--row:{{item.ds_slot // 8}}" {% if item.ds_kind != 0 or item.ds_page != 0 %}hidden{% endif %}><img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{tooltip(item)}}</div>{% endfor %}</div>
+    <span class="ds-readonly" title="Podgląd w panelu jest tylko do odczytu">Podgląd</span>
+  </div>
+  <p class="muted ds-hint">Oryginalny układ klienta gry · zestawy i Smocze Kamienie są odczytywane bezpośrednio z postaci.</p>
+</div>
+
 {% if has_horse_bag %}<div id="horse-storage" hidden>
   <p class="muted horse-bag-hint">Juki konne — widoczne tylko przy przywołanym i odblokowanym u stajennego koniu.</p>
   <div class="safebox-inventory"><div class="safebox-layer">{% for item in horse_bag %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="safebox-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div></div>

@@ -59,7 +59,7 @@
   </article>
   <aside class="inventory-panel">
     <h2>⚔ Zawartość ekwipunku</h2>
-    <div class="storage-tabs"><button class="active" data-storage="inventory">Ekwipunek</button><button data-storage="safebox">Magazyn{% if not has_safebox %} (pusty){% endif %}</button><button data-storage="horse" {% if not has_horse_bag %}disabled title="Ta postać nie ma odblokowanych juków konnych"{% endif %}>Juki konne</button></div>
+    <div class="storage-tabs"><button class="active" data-storage="inventory">Ekwipunek</button><button data-storage="safebox">Magazyn{% if not has_safebox %} (pusty){% endif %}</button><button data-storage="dragon">Smocza Alchemia</button><button data-storage="horse" {% if not has_horse_bag %}disabled title="Ta postać nie ma odblokowanych juków konnych"{% endif %}>Juki konne</button></div>
     <div id="inventory-live-region">{% set gold = character.gold %}{% include '_inventory_fragment.html' %}</div>
   </aside>
 </section>
@@ -85,6 +85,29 @@ function bindInventoryFragment(){
   document.getElementById('safebox-storage').hidden=activeStorage!=='safebox';
   const horseStorage=document.getElementById('horse-storage');
   if (horseStorage) horseStorage.hidden=activeStorage!=='horse';
+  const dragonStorage=document.getElementById('dragon-soul-storage');
+  if (dragonStorage) dragonStorage.hidden=activeStorage!=='dragon';
+  bindDragonSoul();
+}
+function bindDragonSoul(){
+  const win=document.querySelector('.dragon-soul-window'); if(!win)return;
+  const kindNames=document.documentElement.lang==='en'
+    ? ['Dragon Diamond','Dragon Ruby','Dragon Jade','Dragon Sapphire','Dragon Garnet','Dragon Onyx']
+    : ['Smoczy Diament','Smoczy Rubin','Smoczy Jadeit','Smoczy Szafir','Smoczy Granat','Smoczy Onyks'];
+  const render=()=>{
+    const kind=Number(win.dataset.dsKind||0), page=Number(win.dataset.dsPage||0), deck=Number(win.dataset.dsDeck||0);
+    const art=win.querySelector('.ds-kind-art'); if(art)art.src=`/static/dragon-soul-ui/tap${String(kind+1).padStart(2,'0')}.png`;
+    const label=win.querySelector('.ds-kind-name'); if(label)label.textContent=kindNames[kind];
+    win.querySelectorAll('[data-ds-kind-button]').forEach(b=>b.classList.toggle('active',Number(b.dataset.dsKindButton)===kind));
+    win.querySelectorAll('[data-ds-page-button]').forEach(b=>{const on=Number(b.dataset.dsPageButton)===page;b.classList.toggle('active',on);const img=b.querySelector('img');if(img)img.src=on?img.dataset.active:img.dataset.normal});
+    win.querySelectorAll('[data-ds-deck-button]').forEach(b=>{const on=Number(b.dataset.dsDeckButton)===deck;b.classList.toggle('active',on);const img=b.querySelector('img');if(img)img.src=on?img.dataset.active:img.dataset.normal});
+    win.querySelectorAll('.ds-equipment').forEach(x=>x.hidden=Number(x.dataset.dsDeck)!==deck);
+    win.querySelectorAll('.ds-bag-slot').forEach(x=>x.hidden=Number(x.dataset.dsKind)!==kind||Number(x.dataset.dsPage)!==page);
+  };
+  win.querySelectorAll('[data-ds-kind-button]').forEach(b=>b.onclick=()=>{win.dataset.dsKind=b.dataset.dsKindButton;render()});
+  win.querySelectorAll('[data-ds-page-button]').forEach(b=>b.onclick=()=>{win.dataset.dsPage=b.dataset.dsPageButton;render()});
+  win.querySelectorAll('[data-ds-deck-button]').forEach(b=>b.onclick=()=>{win.dataset.dsDeck=b.dataset.dsDeckButton;render()});
+  render();
 }
 document.querySelectorAll('.storage-tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.storage-tabs button').forEach(x=>x.classList.toggle('active',x===b));activeStorage=b.dataset.storage;bindInventoryFragment()});
 bindInventoryFragment();

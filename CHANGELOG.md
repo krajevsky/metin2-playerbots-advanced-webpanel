@@ -1,5 +1,14 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+
+## 2026-10-03 · 1.104.0 · Smocza Alchemia na karcie postaci
+
+- **Karta `/player/` otrzymała okno Alchemii Smoczych Kamieni odtworzone z oryginalnego klienta gry.** Panel korzysta z właściwego tła, zakładek, przycisków klas i obu zestawów alchemii wyciągniętych bezpośrednio z paczki klienta.
+- **Okno pokazuje prawdziwe dane postaci.** Wyposażone Smocze Kamienie są odczytywane z obu zestawów, a magazyn alchemii obsługuje sześć rodzajów kamieni, sześć klas i 32 pola na każdej stronie. Ikony mają te same rozbudowane tooltipy co pozostały ekwipunek.
+- **Podgląd odświeża się razem z ekwipunkiem co pięć sekund.** Okno w panelu jest świadomie tylko do odczytu, żeby przypadkowe kliknięcie w przeglądarce nie przeniosło ani nie aktywowało kamienia na żywej postaci.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.103.9 · Pełne tłumaczenie aktywności i historii ekwipunku
 
 - **Widget „Aktywności w świecie” tłumaczy teraz także „Ulepsza ekwipunek” i „Gra w grupie”.** Lista nie miesza już polskich nazw z angielskimi.

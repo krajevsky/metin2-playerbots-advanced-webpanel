@@ -4678,6 +4678,37 @@ def _enrich_items(items):
     return items
 
 
+def load_dragon_soul_items(pid):
+    """Return both Dragon Soul decks and the six-by-six paged alchemy bag.
+
+    The coordinates mirror the client constants used by uiDragonSoul.py:
+    six kinds x six grade pages x 32 cells. Equipped stones are ordinary
+    EQUIPMENT rows 32..43 (two decks, six stones each).
+    """
+    items = rows("""
+      SELECT i.id,i.vnum,i.count,i.window,i.pos,i.socket0,i.socket1,i.socket2,
+      i.attrtype0,i.attrvalue0,i.attrtype1,i.attrvalue1,i.attrtype2,i.attrvalue2,i.attrtype3,i.attrvalue3,i.attrtype4,i.attrvalue4,i.attrtype5,i.attrvalue5,i.attrtype6,i.attrvalue6,
+      p.applytype0,p.applyvalue0,p.applytype1,p.applyvalue1,p.applytype2,p.applyvalue2,p.size AS item_size,
+      COALESCE(p.locale_name,CONCAT('VNUM ',i.vnum)) AS item_name
+      FROM player.item i LEFT JOIN player.item_proto p ON p.vnum=i.vnum
+      WHERE i.owner_id=%s AND ((i.window='DRAGON_SOUL_INVENTORY') OR (i.window='EQUIPMENT' AND i.pos BETWEEN 32 AND 43))
+      ORDER BY i.window,i.pos
+    """, (pid,))
+    _enrich_items(items)
+    bag, decks = [], {0: {}, 1: {}}
+    for item in items:
+        pos = int(item.get("pos") or 0)
+        if item.get("window") == "DRAGON_SOUL_INVENTORY":
+            item["ds_kind"] = pos // 192
+            item["ds_page"] = (pos % 192) // 32
+            item["ds_slot"] = pos % 32
+            if 0 <= item["ds_kind"] < 6 and 0 <= item["ds_page"] < 6:
+                bag.append(item)
+        elif 32 <= pos <= 43:
+            decks[(pos - 32) // 6][(pos - 32) % 6] = item
+    return bag, decks
+
+
 def load_character_items(pid, account_id):
     """Equipment + inventory (owner_id=pid) and safebox (owner_id=account_id,
     shared across the account's characters) with names/stats/bonuses/stones
@@ -4824,6 +4855,7 @@ def player(pid):
     character["skills"] = parse_skills(skill_raw, character.get("job"), character.get("skill_group"))
     character["passive_skills"] = parse_passive_skills(skill_raw)
     equipment, inventory, safebox, horse_bag = load_character_items(pid, character["account_id"])
+    dragon_soul_inventory, dragon_soul_decks = load_dragon_soul_items(pid)
     character["full_plus9_equipment"] = full_plus9_badges_enabled() and is_full_plus9_equipment(equipment)
     gear_history = bot_gear_history(pid)
     offline_shop = bot_offline_shop(pid)
@@ -4833,6 +4865,7 @@ def player(pid):
     character["gm_rank"] = gm_row["mAuthority"] if gm_row else ""
     return render_template("player.html", character=character, equipment=equipment, inventory=inventory, safebox=safebox,
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
+                            dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks,
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
                             mission_progress=mission_progress, gm_ranks=GM_RANK_OPTIONS,
                             admin_warps=PLAYER_ADMIN_WARPS)
@@ -4921,8 +4954,10 @@ def api_player_inventory_fragment(pid):
         abort(404)
     gold = one("SELECT gold FROM player.player WHERE id=%s", (pid,)).get("gold") or 0
     equipment, inventory, safebox, horse_bag = load_character_items(pid, account_id["account_id"])
+    dragon_soul_inventory, dragon_soul_decks = load_dragon_soul_items(pid)
     return render_template("_inventory_fragment.html", gold=gold, equipment=equipment, inventory=inventory, safebox=safebox,
-                            has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag))
+                            has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
+                            dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks)
 
 
 # VIP and "Dragon Coins" both turned out to be real, already-working engine

@@ -234,6 +234,17 @@ EXACT.update({
     "Ta strona magazynu jest pusta.": "This storage page is empty.",
     "Juki konne — widoczne tylko przy przywołanym i odblokowanym u stajennego koniu.":
         "Saddlebags — only visible with a summoned horse unlocked at the stableman.",
+    "Smocza Alchemia": "Dragon Soul Alchemy",
+    "Alchemia Smoczych Kamieni": "Dragon Soul Alchemy",
+    "Smoczy Diament": "Dragon Diamond",
+    "Smoczy Rubin": "Dragon Ruby",
+    "Smoczy Jadeit": "Dragon Jade",
+    "Smoczy Szafir": "Dragon Sapphire",
+    "Smoczy Granat": "Dragon Garnet",
+    "Smoczy Onyks": "Dragon Onyx",
+    "Podgląd": "Preview",
+    "Oryginalny układ klienta gry · zestawy i Smocze Kamienie są odczytywane bezpośrednio z postaci.":
+        "Original game-client layout · decks and Dragon Stones are read directly from the character.",
 })
 
 # --- base.html: site chrome, on every page ---
