@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-10-03 · 1.103.8 · Natychmiastowe ładowanie widgetów dashboardu
+
+- **Obciążenie VPS, Boty według map i karuzela rankingów korzystają teraz ze wspólnej pamięci podręcznej.** Dashboard od razu otrzymuje ostatni kompletny zestaw danych, a starszy niż minutę zestaw jest odświeżany w tle bez zatrzymywania strony.
+- **Mapa na żywo zachowuje niezależne odświeżanie co 1,5 sekundy.** Przyspieszenie nie opóźnia pozycji botów ani danych mapy live.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-02 · 1.103.7 · Druga poprawka "schodka": limit wysokości listy przywrócony
 
 - Poprzednia wersja (1.103.5) usunęła limit wysokości listy w karcie "Aktywności w świecie / Boty wg poziomu" (`max-height:none`), żeby mogła rozciągać się do pełnej wysokości kolumny na szerokich ekranach. To działało tylko tam, gdzie JS wymusza wysokość kolumny (≥1700px) — w pozostałych układach (węższe ekrany, tryb przełącznika) nic nie ograniczało listy i przy filtrze "Wszystkie" (więcej wierszy) wyjeżdżała poza swoje pudełko.

@@ -5,6 +5,7 @@ import os
 import hmac
 import socket
 import time
+import threading
 import re
 import uuid
 import zlib
@@ -3993,10 +3994,67 @@ def _dashboard_deferred_context():
             "live_regen": read_regen_settings(), "live_map_regens": read_map_regen_status()}
 
 
+DASHBOARD_DEFERRED_CACHE_NAME = "dashboard_deferred_payload_v1"
+DASHBOARD_DEFERRED_CACHE_TTL = 60
+_dashboard_deferred_refresh_lock = threading.Lock()
+
+
+def _read_dashboard_deferred_cache():
+    try:
+        row = one("SELECT value FROM player.web_seban_query_cache WHERE name=%s",
+                  (DASHBOARD_DEFERRED_CACHE_NAME,))
+        payload = json.loads(row["value"]) if row and row.get("value") else None
+        if isinstance(payload, dict) and isinstance(payload.get("data"), dict):
+            return payload
+    except (pymysql.MySQLError, TypeError, ValueError, KeyError):
+        pass
+    return None
+
+
+def _write_dashboard_deferred_cache(data):
+    payload = json.dumps({"at": time.time(), "data": data}, default=str,
+                         ensure_ascii=False, separators=(",", ":"))
+    rows("REPLACE INTO player.web_seban_query_cache (name,value) VALUES (%s,%s)",
+         (DASHBOARD_DEFERRED_CACHE_NAME, payload))
+
+
+def _refresh_dashboard_deferred_cache():
+    if not _dashboard_deferred_refresh_lock.acquire(blocking=False):
+        return
+    try:
+        # url_for() is used while composing map icons, so a lightweight request
+        # context is required even though this refresh runs after the response.
+        with app.test_request_context("/"):
+            data = _dashboard_deferred_context()
+            _write_dashboard_deferred_cache(data)
+    except Exception:
+        app.logger.exception("Dashboard deferred cache refresh failed")
+    finally:
+        _dashboard_deferred_refresh_lock.release()
+
+
+def _schedule_dashboard_deferred_refresh():
+    threading.Thread(target=_refresh_dashboard_deferred_cache,
+                     name="dashboard-cache-refresh", daemon=True).start()
+
+
 @app.route("/api/dashboard-deferred")
 @login_required
 def api_dashboard_deferred():
-    return jsonify(ok=True, **_dashboard_deferred_context())
+    cached = _read_dashboard_deferred_cache()
+    if cached:
+        if time.time() - float(cached.get("at") or 0) >= DASHBOARD_DEFERRED_CACHE_TTL:
+            _schedule_dashboard_deferred_refresh()
+        # Serve stale data immediately while it is refreshed in the background.
+        # These widgets are historical/server summaries; the live map retains
+        # its separate 1.5-second endpoint and is never served from this cache.
+        return jsonify(ok=True, **cached["data"])
+    data = _dashboard_deferred_context()
+    try:
+        _write_dashboard_deferred_cache(data)
+    except pymysql.MySQLError:
+        app.logger.exception("Initial dashboard deferred cache write failed")
+    return jsonify(ok=True, **data)
 @app.route("/players")
 @login_required
 def players():
