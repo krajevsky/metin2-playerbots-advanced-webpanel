@@ -5429,6 +5429,22 @@ def api_shop_feed():
     return {"ok": True, "sales": recent_shop_sales(10)}
 
 
+def item_name_search(query):
+    """The item database's search: a VNUM, the Polish proto name or the
+    internal one -- and on an English panel the official English name too,
+    which the list shows (translations.ITEM_NAMES) and the database has never
+    heard of. Matched by vnum, so an item whose Polish name another item
+    shares (and which therefore keeps it on the page) is found as well."""
+    clause = "p.vnum=%s OR p.locale_name LIKE %s OR p.name LIKE %s"
+    params = [int(query) if query.isdigit() else -1, f"%{query}%", f"%{query}%"]
+    if not query.isdigit() and settings().get("ui_language", "pl") == "en":
+        vnums = translations.item_vnums_named(query)
+        if vnums:
+            clause += " OR p.vnum IN (" + ",".join(["%s"] * len(vnums)) + ")"
+            params += vnums
+    return "(" + clause + ")", params
+
+
 @app.route("/items")
 @login_required
 def items_database():
@@ -5436,8 +5452,9 @@ def items_database():
     item_type = request.args.get("type", "").strip()
     where, params = [], []
     if query:
-        where.append("(p.vnum=%s OR p.locale_name LIKE %s OR p.name LIKE %s)")
-        params += [int(query) if query.isdigit() else -1, f"%{query}%", f"%{query}%"]
+        clause, clause_params = item_name_search(query)
+        where.append(clause)
+        params += clause_params
     if item_type.isdigit():
         where.append("p.type=%s")
         params.append(int(item_type))
@@ -5474,8 +5491,9 @@ def api_items():
     item_type = request.args.get("type", "").strip()
     where, params = [], []
     if query:
-        where.append("(p.vnum=%s OR p.locale_name LIKE %s OR p.name LIKE %s)")
-        params += [int(query) if query.isdigit() else -1, f"%{query}%", f"%{query}%"]
+        clause, clause_params = item_name_search(query)
+        where.append(clause)
+        params += clause_params
     if item_type.isdigit():
         where.append("p.type=%s")
         params.append(int(item_type))

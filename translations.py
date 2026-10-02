@@ -2089,7 +2089,19 @@ def _names_by_polish(table):
     return names
 
 
-ITEM_NAMES = _names_by_polish(_load_game_names("item_names_en.json"))
+_ITEM_NAMES_BY_VNUM = _load_game_names("item_names_en.json")
+ITEM_NAMES = _names_by_polish(_ITEM_NAMES_BY_VNUM)
+
+
+def item_vnums_named(text):
+    """The vnums whose official English name contains text, in any case --
+    for the item database's search on an English panel, which shows these
+    names while the database knows only the Polish ones."""
+    needle = (text or "").strip().casefold()
+    if not needle:
+        return []
+    return [int(vnum) for vnum, (_polish, english) in _ITEM_NAMES_BY_VNUM.items()
+            if needle in english.casefold()]
 
 _SCRIPT_STYLE_RE =re.compile(r'(<(script|style|textarea|pre)\b[^>]*>.*?</\2>)', re.I | re.S)
 # Quote-aware: a naive <[^>]+> stops at the FIRST > anywhere, including one

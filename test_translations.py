@@ -46,3 +46,25 @@ def test_item_search_answers_with_english_names_and_count():
     assert translations.translate_string(
         "6001 przedmiotów · pełna lista bez stron (pokazano pierwsze 500 — zawęź wyszukiwanie)") == \
         "6001 items · full list, no pages (showing the first 500 — narrow the search)"
+
+
+def test_an_english_panel_finds_an_item_by_its_english_name():
+    assert 32 in translations.item_vnums_named("crescent sword")
+    assert 22000 in translations.item_vnums_named("Town Scroll")
+    assert translations.item_vnums_named("  ") == []
+    seen = []
+
+    def rows(sql, params=()):
+        seen.append((sql, list(params)))
+        return [{"count": 0}] if "COUNT(*)" in sql else []
+
+    panel.app.config["TESTING"] = True
+    for language in ("en", "pl"):
+        seen.clear()
+        with patch.object(panel, "settings", return_value=dict(english_settings(), ui_language=language)), \
+                patch.object(panel, "rows", side_effect=rows):
+            assert panel.app.test_client().get("/api/items?q=Crescent").status_code == 200
+        searched = [(sql, params) for sql, params in seen if "FROM player.item_proto p WHERE" in sql]
+        assert searched
+        for sql, params in searched:
+            assert ("p.vnum IN (" in sql and 32 in params) == (language == "en")
