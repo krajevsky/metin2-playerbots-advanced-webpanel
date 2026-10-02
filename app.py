@@ -3741,6 +3741,17 @@ def translate_response(response):
         if current_settings.get("ui_language", "pl") == "en":
             response.set_data(translations.translate_html(response.get_data(as_text=True), "en"))
     return response
+
+
+def translated_fragment(markup):
+    """An HTML fragment that a page swaps in from a JSON answer (the item
+    database's search, /api/items), translated here as translate_response
+    translates a whole page. static/i18n-watch.js translates such a fragment in the browser too,
+    but only from EXACT and PATTERNS: the official item names
+    (translations.ITEM_NAMES) are thousands, too many to ship with every
+    page, so a fragment that names items has to arrive with them translated.
+    Polish is returned untouched."""
+    return translations.translate_html(markup, settings().get("ui_language", "pl"))
 @app.route("/login", methods=["GET", "POST"])
 def login():
     current = settings()
@@ -5476,7 +5487,7 @@ def api_items():
     count_label = f"{total} przedmiotów" + (" pasuje do wyszukiwania" if query else (" w wybranej kategorii" if item_type else " · pełna lista bez stron"))
     if total > 500:
         count_label += " (pokazano pierwsze 500 — zawęź wyszukiwanie)"
-    return {"ok": True, "html": render_template("partials/items_catalog.html", items=records), "count_label": count_label}
+    return {"ok": True, "html": translated_fragment(render_template("partials/items_catalog.html", items=records)), "count_label": count_label}
 
 
 CHAT_FEED_TYPES = ("SHOUT", "TRADE", "NOTICE")

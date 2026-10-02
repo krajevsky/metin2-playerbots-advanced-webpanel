@@ -20,6 +20,13 @@ Two lookup tables:
                (static/i18n-watch.js) as JSON and used with JS's
                String.replace(RegExp, "...$1...") unchanged.
 
+and, after EXACT, ITEM_NAMES: a text node that is exactly an item's Polish
+proto name (as item_proto.locale_name prints it) gets that item's official
+English name -- the game's own, from static/item_names_en.json, never a
+translation made here. Server-side only: thousands of names are too many
+to ship with every page, so a JSON answer whose HTML fragment a page swaps
+in is translated before it is sent (app.py's translated_fragment()).
+
 translate_html() below is the entry point: it walks the response body,
 leaves <script>/<style>/<textarea>/<pre> blocks completely alone (both to
 avoid corrupting inline JS/JSON and to avoid mistranslating raw user-edited
@@ -38,6 +45,7 @@ page and anything injected by those scripts afterwards.
 import html
 import json
 import re
+from pathlib import Path
 
 
 def _dollar_to_backslash(repl):
@@ -712,7 +720,7 @@ EXACT.update({
     "KATALOG GRY": "GAME CATALOG",
     "Baza ID przedmiotów": "Item ID database",
     "Komplet danych z aktualnej bazy serwera: polskie nazwy, VNUM-y oraz ikony klienta.":
-        "Full data from the current server database: Polish names, VNUMs and client icons.",
+        "Full data from the current server database: the official English names (Polish where the game has none), VNUMs and client icons.",
     "Wszystkie przedmioty": "All items",
     "Szukaj po nazwie lub VNUM": "Search by name or VNUM",
     "Brak przedmiotów pasujących do wyszukiwania.": "No items match the search.",
@@ -1756,7 +1764,11 @@ PATTERNS_RAW = [
 
     # --- items.html ---
     (r'^(\d+) przedmiotów w wybranej kategorii · pełna lista bez stron$', '$1 items in the selected category · full list, no pages'),
-    (r'^(\d+) przedmiotów · pełna lista bez stron$', '$1 items · full list, no pages'),
+    # The count line /api/items writes in its place while the search types.
+    (r'^(\d+) przedmiotów w wybranej kategorii', '$1 items in the selected category'),
+    (r'^(\d+) przedmiotów pasuje do wyszukiwania', '$1 items match the search'),
+    (r'^(\d+) przedmiotów · pełna lista bez stron', '$1 items · full list, no pages'),
+    (r' \(pokazano pierwsze 500 — zawęź wyszukiwanie\)$', ' (showing the first 500 — narrow the search)'),
     (r'^VNUM (\d+) · typ (\d+)/(\d+)$', 'VNUM $1 · type $2/$3'),
     (r'^VNUM (\d+) · typ (\d+)$', 'VNUM $1 · type $2'),
     (r'^Cena: ([\d\s]+) Yang$', 'Price: $1 Yang'),
@@ -2045,7 +2057,41 @@ for _pl_label, _en_label in _ITEM_STAT_LABELS.items():
     PATTERNS_RAW.append((_raw_pattern, _raw_repl))
     PATTERNS.append((re.compile(_raw_pattern), _dollar_to_backslash(_raw_repl)))
 
-_SCRIPT_STYLE_RE = re.compile(r'(<(script|style|textarea|pre)\b[^>]*>.*?</\2>)', re.I | re.S)
+
+# ---------------------------------------------------------------------------
+# ITEM_NAMES: an item's Polish proto name -> its official English name, for a
+# text node that is exactly the name the panel printed from item_proto
+# (the item database, inventories, rankings, shops). The names are the ones
+# the Playerbots core says to a player who reads English: static/
+# item_names_en.json, rendered by tools/generate_game_names_en.py from
+# Playerbots' playerbot_names_en.tsv (Gameforge's English, and the world's
+# own items by hand where Gameforge never named them). A Polish name that two
+# vnums share under two different English names cannot say which item it is,
+# so it stays Polish, as the core leaves it; so does an item with no official
+# English name at all.
+# ---------------------------------------------------------------------------
+def _load_game_names(filename):
+    """vnum -> [Polish proto name, English name], or {} without the file."""
+    try:
+        with open(Path(__file__).parent / "static" / filename, encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, ValueError):
+        return {}
+
+
+def _names_by_polish(table):
+    names, shared = {}, set()
+    for polish, english in table.values():
+        if names.setdefault(polish, english) != english:
+            shared.add(polish)
+    for polish in shared:
+        del names[polish]
+    return names
+
+
+ITEM_NAMES = _names_by_polish(_load_game_names("item_names_en.json"))
+
+_SCRIPT_STYLE_RE =re.compile(r'(<(script|style|textarea|pre)\b[^>]*>.*?</\2>)', re.I | re.S)
 # Quote-aware: a naive <[^>]+> stops at the FIRST > anywhere, including one
 # inside a quoted attribute value -- an inline onclick="...e=>{...}..."
 # arrow function's own > was enough to split a tag in half and corrupt the
@@ -2062,8 +2108,10 @@ def translate_string(raw):
     """Translate one already-HTML-escaped fragment (a trimmed text node or
     an attribute value). Returns the original unchanged if nothing matches.
 
-    A whole-phrase EXACT hit wins outright. Otherwise every PATTERNS entry
-    is applied in turn (not just the first match) -- many dynamic strings
+    A whole-phrase EXACT hit wins outright, then an item's whole name
+    (ITEM_NAMES -- after EXACT, so a panel phrase that happens to be some
+    item's name keeps the panel's own translation). Otherwise every PATTERNS
+    entry is applied in turn (not just the first match) -- many dynamic strings
     are composed from more than one translatable fragment (e.g. "42 szt. ·
     12 pokonanych"), so a single anchored pattern can't always cover the
     whole thing; letting several smaller patterns each fire on the parts
@@ -2074,6 +2122,8 @@ def translate_string(raw):
     core = html.unescape(raw)
     if core in EXACT:
         return html.escape(EXACT[core])
+    if core in ITEM_NAMES:
+        return html.escape(ITEM_NAMES[core])
     result, changed = core, False
     for pattern, repl in PATTERNS:
         new_result, count = pattern.subn(repl, result)
