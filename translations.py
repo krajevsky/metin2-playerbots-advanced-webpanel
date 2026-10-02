@@ -2096,8 +2096,16 @@ EXACT.update({
     "Poluje na Metiny": "Hunting Metins",
     "Misje polowania": "Hunting missions",
     "Rozwija konia": "Training the horse",
+    "Ulepsza ekwipunek": "Upgrading gear",
+    "Gra w grupie": "Playing in a party",
+    "Kupione w sklepie offline": "Bought from an offline shop",
 })
 PATTERNS_RAW += [
+    (r'^x(\d+) za ([\d ]+) yang · od (.+)$', 'x$1 for $2 Yang · from $3'),
+    (r'^za ([\d ]+) yang · od (.+)$', 'for $1 Yang · from $2'),
+    (r'^x(\d+) za ([\d ]+) yang$', 'x$1 for $2 Yang'),
+    (r'^za ([\d ]+) yang$', 'for $1 Yang'),
+    (r'^zamiast (.+)$', 'instead of $1'),
     (r'poziom (\d+)', 'level $1'),
     (r'możliwie zablokowany', 'possibly stuck'),
     (r'walczy z Metinem', 'fighting a Metin'),

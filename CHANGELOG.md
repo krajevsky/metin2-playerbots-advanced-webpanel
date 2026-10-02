@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-10-03 · 1.103.9 · Pełne tłumaczenie aktywności i historii ekwipunku
+
+- **Widget „Aktywności w świecie” tłumaczy teraz także „Ulepsza ekwipunek” i „Gra w grupie”.** Lista nie miesza już polskich nazw z angielskimi.
+- **Historia ekwipunku tłumaczy zakupy ze sklepów offline oraz ich szczegóły.** Komunikaty z ceną, liczbą sztuk i sprzedawcą używają teraz po angielsku form „for … Yang” oraz „from …”; poprawka obejmuje również analogiczne wpisy sprzedaży na straganie i zamiany wyposażenia.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.103.8 · Natychmiastowe ładowanie widgetów dashboardu
 
 - **Obciążenie VPS, Boty według map i karuzela rankingów korzystają teraz ze wspólnej pamięci podręcznej.** Dashboard od razu otrzymuje ostatni kompletny zestaw danych, a starszy niż minutę zestaw jest odświeżany w tle bez zatrzymywania strony.
