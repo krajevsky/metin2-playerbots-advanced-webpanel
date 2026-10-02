@@ -249,7 +249,7 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
    dopasowana do mapy przez JS, patrz live-widget.js) zamiast zostawiać
    lukę/schodek pod Ranking/Aktywności. */
 #world-insights-card{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
-#world-insights-card .world-tab-panel{flex:1 1 auto;max-height:none;min-height:0;overflow-y:auto}
+#world-insights-card .world-tab-panel{flex:1 1 auto;max-height:280px;min-height:0;overflow-y:auto}
 .insight-tabs{display:flex;gap:5px;margin-bottom:2px}
 .insight-tabs button{flex:1;padding:6px 4px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text);font-size:11px;cursor:pointer}
 .insight-tabs button.active{background:var(--live-accent);color:#fff}

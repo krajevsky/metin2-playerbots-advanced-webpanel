@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-10-02 · 1.103.7 · Druga poprawka "schodka": limit wysokości listy przywrócony
+
+- Poprzednia wersja (1.103.5) usunęła limit wysokości listy w karcie "Aktywności w świecie / Boty wg poziomu" (`max-height:none`), żeby mogła rozciągać się do pełnej wysokości kolumny na szerokich ekranach. To działało tylko tam, gdzie JS wymusza wysokość kolumny (≥1700px) — w pozostałych układach (węższe ekrany, tryb przełącznika) nic nie ograniczało listy i przy filtrze "Wszystkie" (więcej wierszy) wyjeżdżała poza swoje pudełko.
+- Przywrócony skończony limit (`max-height:280px`) jako siatka bezpieczeństwa niezależna od kontekstu — karta nadal rozciąga się, żeby wyrównać dół z panelem Ranking/Aktywności, ale lista wewnątrz zawsze przewija się we własnym, ograniczonym obszarze zamiast ryzykować przelanie.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-02 · 1.103.6 · Panel po angielsku: przedmioty, mapy, eventy i czat na żywo
 
 - **Baza przedmiotów na panelu angielskim pokazuje oficjalne angielskie nazwy przedmiotów** — „Sword+0”, „Long Sword+1”, „Crescent Sword+2” zamiast „Miecz+0”, „Długi Miecz+1”, „Sejmitar+2” (zgłoszenie Edi, 2 października). To nazwy, którymi rdzeń Playerbots mówi do gracza czytającego po angielsku: pliki `static/item_names_en.json` i `static/mob_names_en.json` generuje `tools/generate_game_names_en.py` z pliku `playerbot_names_en.tsv` Playerbots (angielskie nazwy Gameforge i ręczne nazwy przedmiotów tego świata), panel niczego nie tłumaczy sam. Działa wszędzie, gdzie nazwa przedmiotu stoi sama (baza przedmiotów, ekwipunek, rankingi, sklepy), także w wynikach wyszukiwania. Po polsku zostają przedmioty, które w grze nie mają angielskiej nazwy (139 z 6001), i 30 polskich nazw noszonych przez kilka przedmiotów o różnych nazwach angielskich (np. Zwój Powrotu Do Miasta, część fryzur).
