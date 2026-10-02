@@ -376,6 +376,14 @@ EXACT.update({
     "Pozycje bezpośrednio z rdzenia Playerbots.": "Positions straight from the Playerbots core.",
     "Nicki i poziomy": "Names & levels",
     "Tylko grupy": "Parties only",
+    # The maps by the English names the Playerbots core itself gives them
+    # (GetPlayerBotMapNameEn, playerbot_language.h: what the bots say to a
+    # player who reads English); the panel's own kingdom and V1/V2
+    # qualifiers stay where the game has one name for several maps (the
+    # Monkey Dungeons of the three kingdoms, the Grotto of Exile, which the
+    # client names "Grotto of Exile" on both floors). A village is called
+    # the same in both languages. Inside a longer text a map is translated
+    # by the patterns _MAP_NAMES_IN_TEXT makes, near the bottom.
     "Chunjo M1 — Joan": "Chunjo M1 — Joan",
     "Chunjo M2 — Bokjung": "Chunjo M2 — Bokjung",
     "Chunjo M3 — Waryong": "Chunjo M3 — Waryong",
@@ -388,15 +396,16 @@ EXACT.update({
     "Jinno M2 — Bakra": "Jinno M2 — Bakra",
     "Jinno M3 — Imha": "Jinno M3 — Imha",
     "Loch Małp Jinno": "Jinno Monkey Dungeon",
-    "Loch Małp Normalny": "Monkey Dungeon (Normal)",
-    "Loch Małp Trudny": "Monkey Dungeon (Hard)",
+    "Loch Małp Normalny": "Monkey Dungeon II",
+    "Loch Małp Trudny": "Monkey Dungeon III",
     "Dolina Orków": "Orc Valley",
     "Pustynia Yongbi": "Yongbi Desert",
-    "Góra Sohan": "Sohan Mountain",
-    "Loch Pająków V1": "Spider Dungeon V1",
+    "Góra Sohan": "Mount Sohan",
+    "Loch Pająków V1": "Spider Dungeon",
     "Świątynia Hwang": "Hwang Temple",
-    "Las": "Forest",
-    "Czerwony Las": "Red Forest",
+    "Las": "Ghost Wood",
+    "Las Duchów": "Ghost Wood",
+    "Czerwony Las": "Red Wood",
     "Szukaj bota…": "Search bot…",
     "▦ Diagramy mapy": "▦ Map charts",
     "Ładowanie pozycji…": "Loading positions…",
@@ -436,8 +445,8 @@ EXACT.update({
     "Boty według map": "Bots by map",
     "Automatycznie przełączaj rankingi co 8 sekund": "Automatically switch rankings every 8 seconds",
     "najwyższe poziomy": "highest levels",
-    "Ognista Ziemia": "Fireland",
-    "Loch Pająków V2": "Spider Dungeon V2",
+    "Ognista Ziemia": "Doyyumhwaji",
+    "Loch Pająków V2": "Spider Dungeon 2",
     "Grota Wygnańców V1": "Grotto of Exile V1",
     "Grota Wygnańców V2": "Grotto of Exile V2",
     "⚔ Potwory": "⚔ Monsters",
@@ -776,6 +785,9 @@ EXACT.update({
         "How many bots are currently in each level bracket (every 10 levels), and how that count has changed over the last few days — helps judge whether it's time to add another batch of fresh bots.",
     "Historia przedziałów poziomu dopiero się zbiera (migawka co 5 minut) — wykres napełni się w ciągu najbliższych godzin.":
         "Level-bracket history is just starting to accumulate (a snapshot every 5 minutes) — the chart will fill in over the next few hours.",
+    # the two charts' tooltips (the canvas asks these through its own tr())
+    "Godzina": "Time",
+    "postaci": "characters",
 })
 
 # --- panel_logs.html ---
@@ -1792,6 +1804,8 @@ PATTERNS_RAW = [
 
     # --- maps.html ---
     (r'^Kanał (\d+)$', 'Channel $1'),
+    # map_name()'s answer for a map the panel does not name
+    (r'^Poza aktywnym światem \(mapa #(\d+)\)$', 'Outside the active world (map #$1)'),
     (r'^co (\d+)% zwykłego czasu$', 'at $1% of the normal time'),
 
     # --- panel_logs.html ---
@@ -1800,6 +1814,8 @@ PATTERNS_RAW = [
 
     # --- player.html ---
     (r'^· (.+) · poziom (.+)$', '· $1 · level $2'),
+    # where a bot's offline shop stands (its map is translated after this)
+    (r'^(.+), współrzędne (\d+), (\d+)\.$', '$1, coordinates $2, $3.'),
     (r'^Yang ([\d\s]+)$', 'Yang $1'),
     (r'^⏱ (\d+) h (\d+) min$', '⏱ $1 h $2 min'),
     (r'^🕐 Ostatnio: (.+)$', '🕐 Last seen: $1'),
@@ -2054,6 +2070,30 @@ PATTERNS = [(re.compile(p), _dollar_to_backslash(r)) for p, r in PATTERNS_RAW]
 for _pl_label, _en_label in _ITEM_STAT_LABELS.items():
     _raw_pattern = r'^' + re.escape(_pl_label) + r' ([+-]\d+)(.*)$'
     _raw_repl = f'{_en_label} $1$2'
+    PATTERNS_RAW.append((_raw_pattern, _raw_repl))
+    PATTERNS.append((re.compile(_raw_pattern), _dollar_to_backslash(_raw_repl)))
+
+
+# A map's name inside a longer text ("Zuo: deszcz Metinów · Dolina Orków",
+# "Dolina Orków, współrzędne 512, 300.") -- EXACT only catches one that is a
+# whole text node. One pattern a map, generated like the stat labels above
+# and appended after every other pattern, so a sentence pattern that keeps a
+# map in its (.+) has had its turn first. A map is bounded by the text's
+# start or a space/bracket before it and by the end, a space or punctuation
+# after it (no \b: JS's knows only ASCII letters, and "Świątynia" begins
+# with one it does not); longest first, so "Czerwony Las" is never read as
+# some other "Las". The bare "Las" (the Ghost Wood's short name on the live
+# map) is an ordinary word too, so it is left to EXACT, and a village is
+# called the same in English.
+_MAP_NAMES_IN_TEXT = (
+    "Loch Małp Shinsoo", "Loch Małp Chunjo", "Loch Małp Jinno", "Loch Małp Normalny", "Loch Małp Trudny",
+    "Loch Pająków V1", "Loch Pająków V2", "Grota Wygnańców V1", "Grota Wygnańców V2",
+    "Dolina Orków", "Pustynia Yongbi", "Góra Sohan", "Ognista Ziemia", "Świątynia Hwang",
+    "Las Duchów", "Czerwony Las", "Wieża Demonów",
+)
+for _pl_map in sorted(_MAP_NAMES_IN_TEXT, key=len, reverse=True):
+    _raw_pattern = r'(^|[\s(])' + re.escape(_pl_map) + r'(?=$|[\s),.!?:;])'
+    _raw_repl = '$1' + EXACT[_pl_map]
     PATTERNS_RAW.append((_raw_pattern, _raw_repl))
     PATTERNS.append((re.compile(_raw_pattern), _dollar_to_backslash(_raw_repl)))
 

@@ -68,3 +68,21 @@ def test_an_english_panel_finds_an_item_by_its_english_name():
         assert searched
         for sql, params in searched:
             assert ("p.vnum IN (" in sql and 32 in params) == (language == "en")
+
+
+def test_a_map_is_named_by_the_games_own_english_name():
+    for polish, english in (("Góra Sohan", "Mount Sohan"), ("Ognista Ziemia", "Doyyumhwaji"),
+                            ("Las", "Ghost Wood"), ("Czerwony Las", "Red Wood"),
+                            ("Loch Pająków V1", "Spider Dungeon"), ("Loch Pająków V2", "Spider Dungeon 2"),
+                            ("Loch Małp Normalny", "Monkey Dungeon II"), ("Loch Małp Trudny", "Monkey Dungeon III"),
+                            ("Chunjo M2 — Bokjung", "Chunjo M2 — Bokjung")):
+        assert translations.translate_string(polish) == english
+    for name in panel.MAP_NAMES.values():
+        assert name in translations.EXACT, name
+
+
+def test_a_map_inside_a_longer_text():
+    assert translations.translate_string("Dolina Orków, współrzędne 512, 300.") == "Orc Valley, coordinates 512, 300."
+    assert translations.translate_string("Poza aktywnym światem (mapa #113)") == "Outside the active world (map #113)"
+    assert translations.translate_string("Czerwony Las · 5") == "Red Wood · 5"
+    assert translations.translate_string("Czerwony Lasek") == "Czerwony Lasek"
