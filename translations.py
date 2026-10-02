@@ -619,6 +619,23 @@ EXACT.update({
         "Statistics are counted from log events (chest obtained / actually earned yang), not from equipment state — accurate regardless of what bots did with the loot.",
     "Wynik": "Score",
     "Żaden event jeszcze się nie zakończył od kiedy to śledzimy.": "No event has finished yet since we started tracking this.",
+    "brak statystyk": "no statistics",
+    "połączony": "connected",
+    "czeka na status": "waiting for status",
+    # EVENT_MAPS's 0: Tanaka or Zuo picks its map itself
+    "Wybiera event": "Event's choice",
+    "Piraci naraz": "Pirates at once",
+    "Metiny w fali": "Metins per wave",
+    # the weekly calendar, which events.html's script draws
+    "Poniedziałek": "Monday", "Wtorek": "Tuesday", "Środa": "Wednesday", "Czwartek": "Thursday",
+    "Piątek": "Friday", "Sobota": "Saturday", "Niedziela": "Sunday",
+    "Pn": "Mon", "Wt": "Tue", "Śr": "Wed", "Cz": "Thu", "Pt": "Fri", "Sb": "Sat", "Nd": "Sun",
+    "EDYCJA EVENTU": "EDIT EVENT",
+    "Edytuj event": "Edit event",
+    "liczba jednostek eventu": "number of event units",
+    "Wybierz co najmniej jeden dzień.": "Select at least one day.",
+    "Ustaw godzinę rozpoczęcia i zakończenia.": "Set the start and end time.",
+    "Można zapisać maksymalnie 16 eventów.": "At most 16 events can be saved.",
 })
 
 # --- gm_commands.html ---
@@ -1747,6 +1764,20 @@ PATTERNS_RAW = [
     (r'^Aktywny do (.+)$', 'Active until $1'),
     (r'^końca odliczania$', 'end of the countdown'),
     (r'^(\d+) szt\.$', '$1 pcs.'),
+    # A running Tanaka's or Zuo's line ("Wybiera event: Dolina Orków · 8 szt.
+    # · do 20:30 · 6 na mapie · ...") and a finished one's name in the
+    # history and in its notification ("Pirat Tanaka · Pyongmoo"): the
+    # event's name and its map are separate pieces of the text, translated by
+    # the event and map patterns at the bottom.
+    (r'^Event zakończony: ', 'Event ended: '),
+    (r'^Edytuj: ', 'Edit: '),
+    (r'Wybiera event(?=$|:)', "Event's choice"),
+    (r' · (\d+) szt\.', ' · $1 pcs.'),
+    (r'(^|· )do (\d{2}\.\d{2} )?(\d{1,2}:\d{2})(?= ·|$)', '$1until $2$3'),
+    (r' · (\d+) na mapie', ' · $1 on the map'),
+    (r'^(\d+) szkatułek$', '$1 chests'),
+    (r'^Wydropiono (\d+) szkatułek\.$', '$1 chests dropped.'),
+    (r'^Gracze wydropili o ([\d\s]+) więcej yang\.$', 'Players looted $1 more yang.'),
 
     # --- guild.html / guilds.html ---
     (r'^· poziom (\d+)$', '· level $1'),
@@ -2094,6 +2125,16 @@ _MAP_NAMES_IN_TEXT = (
 for _pl_map in sorted(_MAP_NAMES_IN_TEXT, key=len, reverse=True):
     _raw_pattern = r'(^|[\s(])' + re.escape(_pl_map) + r'(?=$|[\s),.!?:;])'
     _raw_repl = '$1' + EXACT[_pl_map]
+    PATTERNS_RAW.append((_raw_pattern, _raw_repl))
+    PATTERNS.append((re.compile(_raw_pattern), _dollar_to_backslash(_raw_repl)))
+
+# An event's name (app.py's EVENT_LABELS) inside a longer text: a finished
+# Tanaka's or Zuo's "Pirat Tanaka · Pyongmoo" in the history, the same in
+# its notification after "Event zakończony: ", a calendar block's
+# "Edytuj: Doświadczenie (20:00–21:00)". Yang is Yang in English.
+for _pl_event in ("Szkatułki Blasku Księżyca", "Doświadczenie", "Drop przedmiotów", "Pirat Tanaka", "Zuo: deszcz Metinów"):
+    _raw_pattern = r'(^|: )' + re.escape(_pl_event) + r'(?= · | \(|$)'
+    _raw_repl = '$1' + EXACT[_pl_event]
     PATTERNS_RAW.append((_raw_pattern, _raw_repl))
     PATTERNS.append((re.compile(_raw_pattern), _dollar_to_backslash(_raw_repl)))
 
