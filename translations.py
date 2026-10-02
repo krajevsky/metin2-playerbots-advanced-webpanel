@@ -30,7 +30,9 @@ in is translated before it is sent (app.py's translated_fragment()).
 translate_html() below is the entry point: it walks the response body,
 leaves <script>/<style>/<textarea>/<pre> blocks completely alone (both to
 avoid corrupting inline JS/JSON and to avoid mistranslating raw user-edited
-text like the item policy textarea), translates plain text between tags,
+text like the item policy textarea), and any element marked translate="no"
+(what players and bots wrote: a chat line and its author's nick, which
+the dictionaries would otherwise half-translate), translates plain text between tags,
 and translates a short list of user-facing attributes (title, alt,
 placeholder, aria-label, and value on submit/button inputs).
 
@@ -760,16 +762,20 @@ EXACT.update({
     "▤ Czat na żywo": "▤ Live chat",
     "Protokół wiadomości": "Message log",
     "LIVE · odświeżanie co 4 s": "LIVE · refreshes every 4s",
-    "Wołaj i Handel": "Shout and Trade",
+    "Wołaj i Handel": "Call and Trade",
     "nick prowadzi do karty postaci": "nickname links to the character card",
     "ostatnie 100 wiadomości, zapisane trwale — wejdź o dowolnej porze": "last 100 messages, stored permanently — visit any time",
     "tylko wiadomości zapisane przez rdzeń gry": "only messages recorded by the game core",
     "Podgląd tylko do odczytu · nie wysyła wiadomości do gry": "Read-only preview · doesn't send messages into the game",
     "↻ Odśwież": "↻ Refresh",
     "OGŁOSZENIE": "ANNOUNCEMENT",
+    # each line's channel, as the English client calls the two chats
+    # (CHAT_SHOUT "Call", CHAT_TRADE "Trade")
+    "WOŁAJ": "CALL",
+    "HANDEL": "TRADE",
     "Brak przechwyconych wiadomości.": "No captured messages.",
     "Gdy ktoś napisze na Wołaj lub Handel, pojawi się tutaj automatycznie.":
-        "When someone writes on Shout or Trade, it'll appear here automatically.",
+        "When someone writes on Call or Trade, it'll appear here automatically.",
 })
 
 # --- login.html (a couple already in base EXACT above) ---
@@ -1991,6 +1997,32 @@ PATTERNS_RAW += [
     (r' — innym sposobem$', ' — by another method'),
 ]
 
+# --- app.py legendary_announcement_from_syslog(): the raids' gold notices in
+# the live chat, the world feed and the ticker. The game's own English names:
+# Azrael and the Death Reaper (mob_proto 2598 and 1093), the Devil's
+# Catacomb (the client's MAP_DEVILCATACOMB); the world boss is whichever
+# boss the core named, put into English by MOB_NAMES. ---
+EXACT.update({
+    "Rajd na Azraela": "Azrael raid",
+    "Pokonany boss": "Boss defeated",
+    "Legendarne wydarzenie": "Legendary event",
+})
+PATTERNS_RAW += [
+    (r'^Drużyna (.+) \((.+)\) pokonała Azraela w Katakumbach Diabła!$',
+     "$1's party ($2) defeated Azrael in the Devil's Catacomb!"),
+    (r'^(.+) pokonał Umarłego Rozpruwacza na dziewiątym piętrze Wieży Demonów!',
+     '$1 defeated the Death Reaper on the ninth floor of the Demon Tower!'),
+    (r' Ostatni cios: (.+)\.$', ' Last blow: $1.'),
+    (r'^Boty z królestwa (.+?) pokonały: (.+) \((\d+) min\)\.$', 'Bots of the $1 kingdom defeated: $2 ($3 min).',
+     {2: "mob"}),
+    # EMPIRES' answer for an empire it does not know, and the notice's own
+    # for a raid that came without a name
+    (r'^Bots of the nieznanego królestwa kingdom ', 'Bots of an unknown kingdom '),
+    (r'\(nieznanego królestwa\)', '(unknown kingdom)'),
+    (r"^Nieznana drużyna's party ", 'An unknown party '),
+    (r'^Nieznana drużyna(?= defeated )', 'An unknown party'),
+]
+
 # --- static/ajax-forms.js ---
 EXACT.update({
     "Błąd sieci — spróbuj ponownie.": "Network error — try again.",
@@ -2090,7 +2122,31 @@ EXACT.update({
 })
 
 
-PATTERNS = [(re.compile(p), _dollar_to_backslash(r)) for p, r in PATTERNS_RAW]
+def _compile_pattern(entry):
+    """A PATTERNS_RAW entry, (source, replacement[, names]), as re.subn wants
+    it. names maps a group to the kind of game name it holds ("mob"): that
+    group's text is put back under the monster's official English name where
+    it has one (MOB_NAMES, below), so a pattern can translate a sentence that
+    names a boss without guessing at the boss. static/i18n-watch.js reads the
+    first two fields only and keeps such a name in Polish -- the names are
+    server-side, which is why app.py translates the live chat's fragment
+    before sending it."""
+    replacement = _dollar_to_backslash(entry[1])
+    names = entry[2] if len(entry) > 2 else None
+    if not names:
+        return re.compile(entry[0]), replacement
+
+    def substitute(match):
+        def group(token):
+            number = int(token.group(1))
+            text = match.group(number) or ""
+            table = {"mob": MOB_NAMES}.get(names.get(number))
+            return table.get(text, text) if table is not None else text
+        return re.sub(r'\\g<(\d+)>', group, replacement)
+    return re.compile(entry[0]), substitute
+
+
+PATTERNS = [_compile_pattern(entry) for entry in PATTERNS_RAW]
 
 # apply_text() (app.py) renders each item stat/bonus as "{label} {value:+d}
 # {suffix}" e.g. "Szybkość ataku +5%" or "Maks. PŻ +80" -- one pattern per
@@ -2184,7 +2240,21 @@ def item_vnums_named(text):
     return [int(vnum) for vnum, (_polish, english) in _ITEM_NAMES_BY_VNUM.items()
             if needle in english.casefold()]
 
-_SCRIPT_STYLE_RE =re.compile(r'(<(script|style|textarea|pre)\b[^>]*>.*?</\2>)', re.I | re.S)
+
+# The monsters and NPCs the same way (static/mob_names_en.json), but only for
+# a pattern's group marked as a monster's name -- the boss in a raid's notice
+# -- and never for a whole text node: bots and guilds are called "Wilk" or
+# "Kowal" too, and a name is somebody's, not a word to translate.
+MOB_NAMES = _names_by_polish(_load_game_names("mob_names_en.json"))
+
+_SCRIPT_STYLE_RE = re.compile(r'(<(script|style|textarea|pre)\b[^>]*>.*?</\2>)', re.I | re.S)
+# An element marked translate="no" -- the HTML attribute browsers' own
+# translators honour -- holds somebody's own words, a chat line and the nick
+# that wrote it, and is left exactly as it is, like a script. Its content
+# must not hold another element of the same tag: the match ends at the first
+# closing one.
+_NO_TRANSLATE_RE = re.compile(r'(<([a-zA-Z][\w-]*)\b[^>]*\btranslate="no"[^>]*>.*?</\2>)', re.I | re.S)
+_PLACEHOLDER_RE = re.compile(r"<!--\x00SS(\d+)\x00-->")
 # Quote-aware: a naive <[^>]+> stops at the FIRST > anywhere, including one
 # inside a quoted attribute value -- an inline onclick="...e=>{...}..."
 # arrow function's own > was enough to split a tag in half and corrupt the
@@ -2260,6 +2330,7 @@ def translate_html(body, lang):
         return f"<!--\x00SS{len(placeholders) - 1}\x00-->"
 
     stashed = _SCRIPT_STYLE_RE.sub(stash, body)
+    stashed = _NO_TRANSLATE_RE.sub(stash, stashed)
     parts = _TAG_RE.split(stashed)
     out = []
     for part in parts:
@@ -2267,7 +2338,13 @@ def translate_html(body, lang):
             continue
         out.append(_translate_tag(part) if part[0] == "<" else _translate_text_segment(part))
     translated = "".join(out)
-    return re.sub(r"<!--\x00SS(\d+)\x00-->", lambda m: placeholders[int(m.group(1))], translated)
+    # A stashed translate="no" element can hold a stashed script of its own,
+    # so the placeholders are put back until none is left.
+    restored = None
+    while restored != translated:
+        restored = translated
+        translated = _PLACEHOLDER_RE.sub(lambda m: placeholders[int(m.group(1))], translated)
+    return translated
 
 
 def i18n_payload():

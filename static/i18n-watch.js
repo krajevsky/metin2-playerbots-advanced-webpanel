@@ -17,6 +17,14 @@
   const patterns = (table.patterns || []).map(([source, replacement]) => [new RegExp(source, 'g'), replacement]);
   const ATTRS = ['title', 'alt', 'placeholder', 'aria-label'];
   const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'PRE']);
+  // An element marked translate="no" holds what players and bots wrote (the
+  // live chat's lines and nicks): translations.py leaves it alone, and so
+  // does this, whether it was in the page or is added inside one later.
+  const KEEP = '[translate="no"]';
+  function kept(node) {
+    const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+    return !!(element && element.closest(KEEP));
+  }
 
   function translate(text) {
     const trimmed = text.trim();
@@ -41,7 +49,7 @@
       if (translated !== node.nodeValue) node.nodeValue = translated;
       return;
     }
-    if (node.nodeType !== Node.ELEMENT_NODE || SKIP_TAGS.has(node.tagName)) return;
+    if (node.nodeType !== Node.ELEMENT_NODE || SKIP_TAGS.has(node.tagName) || node.getAttribute('translate') === 'no') return;
     for (const attr of ATTRS) {
       const value = node.getAttribute && node.getAttribute(attr);
       if (value) {
@@ -60,8 +68,9 @@
   new MutationObserver(mutations => {
     for (const mutation of mutations) {
       if (mutation.type === 'childList') {
-        mutation.addedNodes.forEach(walk);
+        mutation.addedNodes.forEach(node => { if (!kept(node)) walk(node); });
       } else if (mutation.type === 'characterData') {
+        if (kept(mutation.target)) continue;
         const translated = translate(mutation.target.nodeValue);
         if (translated !== mutation.target.nodeValue) mutation.target.nodeValue = translated;
       }

@@ -3745,13 +3745,16 @@ def translate_response(response):
 
 def translated_fragment(markup):
     """An HTML fragment that a page swaps in from a JSON answer (the item
-    database's search, /api/items), translated here as translate_response
-    translates a whole page. static/i18n-watch.js translates such a fragment in the browser too,
-    but only from EXACT and PATTERNS: the official item names
-    (translations.ITEM_NAMES) are thousands, too many to ship with every
-    page, so a fragment that names items has to arrive with them translated.
-    Polish is returned untouched."""
+    database's search, /api/items; the live chat's refresh, /api/live-chat),
+    translated here as translate_response translates a whole page.
+    static/i18n-watch.js translates such a fragment in the browser too, but
+    only from EXACT and PATTERNS: the official item and monster names
+    (translations.ITEM_NAMES, MOB_NAMES) are thousands, too many to ship with
+    every page, so a fragment that names items or a boss has to arrive with
+    them translated. Polish is returned untouched."""
     return translations.translate_html(markup, settings().get("ui_language", "pl"))
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     current = settings()
@@ -5808,7 +5811,7 @@ def live_chat():
 @app.get("/api/live-chat")
 @login_required
 def api_live_chat():
-    return {"ok": True, "html": render_template("partials/live_chat_messages.html", messages=live_chat_messages())}
+    return {"ok": True, "html": translated_fragment(render_template("partials/live_chat_messages.html", messages=live_chat_messages()))}
 
 
 @app.get("/world-feed")

@@ -138,3 +138,50 @@ def test_the_events_page_history_in_english():
     assert "<td>Pirate Tanaka · Event&#x27;s choice</td>" in body
     assert "<td>no statistics</td>" in body and "<td>12 chests</td>" in body
     assert "<option value=\"67\">Ghost Wood</option>" in body
+
+
+def test_what_players_and_bots_wrote_is_never_translated():
+    page = ('<p>Wołaj i Handel</p><a href="/p/1" translate="no">Las</a>'
+            '<span translate="no">Szukam grupy, poziom 40 · Dolina Orków</span>'
+            '<span translate="no">Miecz+0<script>var a = "<b>x</b>";</script></span><b>Miecz+0</b>')
+    assert translations.translate_html(page, "en") == (
+        '<p>Call and Trade</p><a href="/p/1" translate="no">Las</a>'
+        '<span translate="no">Szukam grupy, poziom 40 · Dolina Orków</span>'
+        '<span translate="no">Miecz+0<script>var a = "<b>x</b>";</script></span><b>Sword+0</b>')
+    assert translations.translate_html(page, "pl") == page
+
+
+def test_the_raids_notices_and_the_chat_channels_in_english():
+    assert english("Drużyna Lider (Chunjo) pokonała Azraela w Katakumbach Diabła!") == \
+        "Lider's party (Chunjo) defeated Azrael in the Devil's Catacomb!"
+    assert english("Bohater pokonał Umarłego Rozpruwacza na dziewiątym piętrze Wieży Demonów! Ostatni cios: Seban.") == \
+        "Bohater defeated the Death Reaper on the ninth floor of the Demon Tower! Last blow: Seban."
+    # The boss is the core's Polish mob_proto name, put into the game's English.
+    assert english("Boty z królestwa Jinno pokonały: Dziewięć Ogonów (6 min).") == \
+        "Bots of the Jinno kingdom defeated: Nine Tails (6 min)."
+    assert english("Boty z królestwa nieznanego królestwa pokonały: Królowa Pająków (1 min).") == \
+        "Bots of an unknown kingdom defeated: Queen Spider (1 min)."
+    assert english("Boty z królestwa Jinno pokonały: Dziewiec Ogonow (6 min).") == \
+        "Bots of the Jinno kingdom defeated: Dziewiec Ogonow (6 min)."
+    for polish, translated in (("WOŁAJ", "CALL"), ("HANDEL", "TRADE"), ("Rajd na Azraela", "Azrael raid"),
+                               ("Pokonany boss", "Boss defeated")):
+        assert english(polish) == translated
+    # a whole text node that is a monster's name is somebody's name as often as not
+    assert english("Wilk") == "Wilk"
+
+
+def test_the_live_chat_refresh_arrives_translated_with_the_lines_as_written():
+    stamp = datetime(2026, 10, 2, 10, 30)
+    shout = {"id": "p:1", "sort_at": stamp, "time": "10:30:00", "type": "SHOUT", "author": "Las",
+             "message": "Szukam grupy, poziom 40", "player_id": 1, "job": 0, "empire": 2}
+    notice = {"id": "n:1", "sort_at": stamp, "time": "10:31:00", "type": "NOTICE", "author": "Boty Jinno",
+              "message": "Boty z królestwa Jinno pokonały: Dziewięć Ogonów (6 min).", "player_id": 0,
+              "job": 0, "empire": 3, "notice_label": "Pokonany boss"}
+    panel.app.config["TESTING"] = True
+    with patch.object(panel, "settings", return_value=english_settings()), \
+            patch.object(panel, "live_chat_messages", return_value=[shout, notice]):
+        fragment = panel.app.test_client().get("/api/live-chat").get_json()["html"]
+    assert 'translate="no">Las</a>' in fragment
+    assert 'translate="no">Szukam grupy, poziom 40</span>' in fragment
+    assert "CALL" in fragment and "WOŁAJ" not in fragment
+    assert "<b>Boss defeated</b><span>Bots of the Jinno kingdom defeated: Nine Tails (6 min).</span>" in fragment
