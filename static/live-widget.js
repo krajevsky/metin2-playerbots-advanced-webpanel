@@ -21,6 +21,25 @@
     window.addEventListener('resize', syncSidebarHeight);
     syncSidebarHeight();
   }
+  // Powyżej 1700px .live-insights (Rozkład kanałów / Respawny / Królestwa /
+  // nowa karta Aktywności-w-świecie) pływa jako osobna kolumna obok
+  // .live-sidebar zamiast pod mapą -- bez tego miała wysokość "naturalną"
+  // (sumę kart), więc jej dół nie trafiał w dół .live-sidebar (który JEST
+  // dopasowany do mapy, patrz wyżej) i robiły się schodki (zgłoszenie,
+  // 2026-10-02). Ostatnia karta (#world-insights-card) ma flex:1 w CSS, więc
+  // rozciąga się i wypełnia dokładnie tyle, ile trzeba, żeby oba dolne
+  // krawędzie się zrównały.
+  const liveInsights = document.querySelector('.live-insights');
+  if (map && liveInsights && 'ResizeObserver' in window) {
+    const insightsFloat = () => window.matchMedia('(min-width: 1700px)').matches;
+    const syncInsightsHeight = () => {
+      if (insightsFloat()) liveInsights.style.height = map.offsetHeight + 'px';
+      else liveInsights.style.height = '';
+    };
+    new ResizeObserver(syncInsightsHeight).observe(map);
+    window.addEventListener('resize', syncInsightsHeight);
+    syncInsightsHeight();
+  }
   const channelSelect = document.createElement('select');
   channelSelect.id = 'channel-select';
   channelSelect.style.display = 'none';

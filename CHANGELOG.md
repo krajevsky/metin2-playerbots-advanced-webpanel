@@ -1,5 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
+## 2026-10-02 · 1.103.5 · Wyrównanie wysokości karty insightów + naprawa "Podsumowania dnia"
+
+- **Naprawiono "schodek"** między nową kartą "Aktywności w świecie / Boty wg poziomu" a panelem Ranking/Aktywności na dashboardzie (powyżej 1700px, gdzie panel insightów pływa obok mapy jako osobna kolumna). Jego wysokość jest teraz dopasowywana do mapy tym samym mechanizmem co panel boczny, a ostatnia karta rozciąga się, żeby wypełnić dokładnie tyle miejsca ile trzeba — oba dolne brzegi równe.
+- **Naprawiono "Podsumowanie dnia"** (`/daily-summary/`) — ładowało się 30-40+ sekund albo w ogóle nie działało (timeout). Przyczyna: tabela `log.log` (29 mln wierszy) nie miała żadnego indeksu na kolumnie czasu ani na kombinacji przedmiot+typ zdarzenia, więc każde z kilku zapytań dnia robiło pełne skanowanie. Dodano dwa indeksy (`how+time`, `what+how`) na żywej tabeli (MyISAM, więc krótka blokada zapisu podczas przebudowy, ok. 7-9 minut każdy, zaakceptowana przez operatora) plus jeden indeks na `ikarusshop_log` (InnoDB, bez blokady). Czas ładowania strony spadł z ~39s do ~8s.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-02 · 1.103.4 · Ładne scrollbary w "Aktywności w świecie" / "Boty wg poziomu"
 
 - Listy w obu zakładkach karty insightów na dashboardzie dostały cienkie, kolorowe scrollbary (Chrome/Edge i Firefox) zamiast domyślnych systemowych — kolor dopasowuje się automatycznie do aktywnego motywu (złoty w Cesarstwie).
