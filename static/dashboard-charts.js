@@ -49,15 +49,15 @@
           // No good item icon for this map (e.g. M3, operator's call
           // 2026-09-22) -- text code on top, flag below (matches the
           // icon+flag stacking order above; operator's follow-up ask).
-          ctx.fillStyle='#8fa5c1';ctx.font='9px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(m.map_short,xPos,bottom+13);
+          ctx.fillStyle='#8fa5c1';ctx.font='9px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(tr(m.map_short),xPos,bottom+13);
           ctx.drawImage(flag,xPos-8,bottom+18,16,10);
         } else {
-          ctx.fillStyle='#8fa5c1';ctx.font='9px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(m.map_short,xPos,bottom+14);
+          ctx.fillStyle='#8fa5c1';ctx.font='9px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(tr(m.map_short),xPos,bottom+14);
         }
       });
       ctx.restore()
     }};
-    const channelBarConfig={type:'bar',data:{labels:chMapRows.map(m=>m.map_short),datasets:channelsList.map((ch,i)=>({label:'CH'+ch,data:chMapRows.map(m=>m['ch'+ch]||0),backgroundColor:chColors[i%chColors.length]}))},
+    const channelBarConfig={type:'bar',data:{labels:chMapRows.map(m=>tr(m.map_short)),datasets:channelsList.map((ch,i)=>({label:'CH'+ch,data:chMapRows.map(m=>m['ch'+ch]||0),backgroundColor:chColors[i%chColors.length]}))},
       options:{layout:{padding:{bottom:36}},plugins:{legend:{display:true,position:'top',labels:{color:'#8fa5c1',boxWidth:9,font:{size:9}}}},scales:{x:{ticks:{display:false},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#8fa5c1',precision:0,font:{size:9}}}}},
       plugins:[chMapTickPlugin]};
     frames.push({title:(document.documentElement.lang==='en'?'Bots '+channelsList.map(ch=>'CH'+ch).join(' / ')+' by map':'Boty '+channelsList.map(ch=>'CH'+ch).join(' / ')+' na mapach'),config:channelBarConfig});
@@ -69,10 +69,10 @@
       const {ctx,chartArea:{bottom},scales:{x}}=chart;ctx.save();
       shopRows.forEach((m,i)=>{const xPos=x.getPixelForTick(i),img=flagImgs[m.empire];
         if(img&&img.complete)ctx.drawImage(img,xPos-7,bottom+4,14,9);
-        ctx.fillStyle='#8fa5c1';ctx.font='9px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(m.map_short,xPos,bottom+22)});
+        ctx.fillStyle='#8fa5c1';ctx.font='9px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(tr(m.map_short),xPos,bottom+22)});
       ctx.restore()
     }};
-    const barConfig={type:'bar',data:{labels:shopRows.map(m=>m.map_short),datasets:[{label:'Sklepy',data:shopRows.map(m=>m.shop_count),backgroundColor:shopRows.map(m=>EMPIRE_COLORS[m.empire]||'#8fa5c1')}]},options:{layout:{padding:{bottom:22}},plugins:{legend:{display:false}},scales:{x:{ticks:{display:false},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#8fa5c1',precision:0,font:{size:9}}}}},plugins:[mapTickPlugin]};
+    const barConfig={type:'bar',data:{labels:shopRows.map(m=>tr(m.map_short)),datasets:[{label:'Sklepy',data:shopRows.map(m=>m.shop_count),backgroundColor:shopRows.map(m=>EMPIRE_COLORS[m.empire]||'#8fa5c1')}]},options:{layout:{padding:{bottom:22}},plugins:{legend:{display:false}},scales:{x:{ticks:{display:false},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#8fa5c1',precision:0,font:{size:9}}}}},plugins:[mapTickPlugin]};
     frames.push({title:tr('Sklepy według map (offline)'),config:barConfig});
   }
   if(frames.length>1&&mapTileTitle){
