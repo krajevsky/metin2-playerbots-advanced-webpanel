@@ -190,3 +190,37 @@
 
 /* v1.108.2: inventory grew with the Dragon Soul column; scale item art with slots. */
 .metin-inventory .equip-slot>img,.metin-inventory .inv-slot>img,.safebox-inventory .safebox-slot>img{width:84%;height:84%;max-width:84%;max-height:84%;object-fit:contain}
+
+
+/* v1.109.0: native 176x565 Metin2 inventory reconstructed from client sprites. */
+.inventory-native-tabs{width:176px;margin:0 auto 5px;display:flex;align-items:center;justify-content:flex-end;gap:2px;padding:2px 4px;background:#17130f;border:1px solid #705638;border-radius:3px}
+.inventory-native-tabs .inventory-home-button{margin-right:auto;padding:2px 6px;height:21px;font:10px Tahoma,Arial,sans-serif;color:#f2df9a!important}
+.inventory-native-tabs .inventory-native-button{width:21px;height:21px;padding:2px!important;display:grid;place-items:center;border:1px solid #5f4a31!important;border-radius:2px;background:#18140f!important}
+.inventory-native-tabs .inventory-native-button img{width:auto;height:auto;max-width:100%;max-height:100%;image-rendering:pixelated}
+.inventory-native-tabs .inventory-native-button:hover,.inventory-native-tabs .inventory-native-button.active{border-color:#c39a52!important;filter:brightness(1.2)}
+.inventory-native-tabs .inventory-native-button:disabled{opacity:.42}
+.metin-inventory{width:176px!important;height:565px!important;aspect-ratio:auto!important;margin:0 auto;background:linear-gradient(90deg,#3e3324 0 3px,#17130f 3px calc(100% - 3px),#3e3324 calc(100% - 3px))!important;border:1px solid #806441;border-radius:5px;box-shadow:0 4px 12px #0008}
+.metin-inventory::before{content:"Ekwipunek";position:absolute;left:8px;top:7px;width:160px;height:19px;display:grid;place-items:center;background:linear-gradient(#5a2c13,#2a140b);border:1px solid #8c5b30;border-radius:3px;color:#f4ead7;font:11px Tahoma,Arial,sans-serif;text-shadow:1px 1px #000;z-index:5}
+.metin-inventory .equipment-layer{inset:auto!important;left:10px;top:33px;width:156px;height:188px;background:url('/static/inventory-native/equipment-base.png') 0 0/156px 188px no-repeat}
+.metin-inventory .equip-slot{width:32px!important;height:32px!important}
+.metin-inventory .equip-slot.weapon{left:3px!important;top:3px!important;width:32px!important;height:96px!important}
+.metin-inventory .equip-slot.body{left:39px!important;top:37px!important;width:32px!important;height:64px!important}
+.metin-inventory .equip-slot.head{left:39px!important;top:2px!important}
+.metin-inventory .equip-slot.foots{left:39px!important;top:145px!important}
+.metin-inventory .equip-slot.wrist{left:75px!important;top:67px!important}
+.metin-inventory .equip-slot.neck{left:114px!important;top:84px!important}
+.metin-inventory .equip-slot.ear{left:114px!important;top:52px!important}
+.metin-inventory .equip-slot.unique1{left:2px!important;top:113px!important}
+.metin-inventory .equip-slot.unique2{left:75px!important;top:113px!important}
+.metin-inventory .equip-slot.arrow{left:114px!important;top:1px!important}
+.metin-inventory .equip-slot.shield{left:75px!important;top:35px!important}
+.metin-inventory .equip-slot.belt{left:39px!important;top:106px!important}
+.metin-inventory .equip-slot>img,.metin-inventory .inv-slot>img{width:auto!important;height:auto!important;max-width:32px!important;max-height:100%!important;object-fit:contain}
+.metin-inventory .inv-tabs{left:12px!important;top:224px!important;width:152px!important;height:19px!important;gap:8px!important}
+.metin-inventory .inv-tabs button{flex:0 0 32px!important;width:32px!important;height:19px!important;border:0!important;border-radius:0!important;background:url('/static/inventory-native/tab-normal.png') 0 0/32px 19px no-repeat!important;color:#ddd!important;font:10px Tahoma,Arial,sans-serif}
+.metin-inventory .inv-tabs button.active{color:#fff6cc!important;filter:brightness(1.28)}
+.metin-inventory .inv-tabs .tab-shine,.metin-inventory .inv-tabs .tab-ripple{display:none}
+.metin-inventory .inventory-layer{left:8px!important;top:246px!important;right:auto!important;bottom:auto!important;width:160px!important;height:288px!important;background:url('/static/inventory-native/slot-base.png') 0 0/32px 32px repeat}
+.metin-inventory .inv-slot{left:calc(var(--col) * 32px)!important;top:calc(var(--row) * 32px)!important;width:32px!important;height:calc(var(--size) * 32px)!important}
+.metin-inventory .inventory-yang{left:38px!important;right:8px!important;bottom:8px!important;height:18px!important;background:url('/static/inventory-native/money-slot.png') right center/130px 18px no-repeat;padding-right:5px;font:10px Tahoma,Arial,sans-serif}
+@media(max-width:650px){.metin-inventory{margin:0 auto!important}}

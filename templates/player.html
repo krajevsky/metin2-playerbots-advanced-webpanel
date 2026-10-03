@@ -59,7 +59,7 @@
   </article>
   <aside class="inventory-panel">
     <h2>⚔ Zawartość ekwipunku</h2>
-    <div class="storage-tabs"><button class="active" data-storage="inventory">Ekwipunek</button><button data-storage="safebox">Magazyn{% if not has_safebox %} (pusty){% endif %}</button><button data-storage="dragon">Smocza Alchemia</button><button data-storage="horse" {% if not has_horse_bag %}disabled title="Ta postać nie ma odblokowanych juków konnych"{% endif %}>Juki konne</button></div>
+    <div class="storage-tabs inventory-native-tabs" aria-label="Okna ekwipunku"><button class="active inventory-home-button" data-storage="inventory" title="Ekwipunek">Ekwipunek</button><button class="inventory-native-button" data-storage="dragon" title="Smocza Alchemia"><img src="{{url_for('static',filename='inventory-native/dragon-soul.png')}}" alt="Smocza Alchemia"></button><button class="inventory-native-button" data-storage="horse" {% if not has_horse_bag %}disabled title="Ta postać nie ma odblokowanych juków konnych"{% else %}title="Juki konne"{% endif %}><img src="{{url_for('static',filename='inventory-native/horse.png')}}" alt="Juki konne"></button><button class="inventory-native-button" data-storage="safebox" title="Depozyt{% if not has_safebox %} (pusty){% endif %}"><img src="{{url_for('static',filename='inventory-native/deposit.png')}}" alt="Depozyt"></button><a class="inventory-native-button" href="#offline-shop" title="Podgląd sklepu"><img src="{{url_for('static',filename='inventory-native/shop.png')}}" alt="Podgląd sklepu"></a></div>
     <div id="inventory-live-region">{% set gold = character.gold %}{% include '_inventory_fragment.html' %}</div>
   </aside>
 </section>

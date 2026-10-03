@@ -1,3 +1,11 @@
+## 2026-10-03 · 1.109.0 · Oryginalne okno ekwipunku z klienta gry
+
+- Ekwipunek w karcie postaci ma ponownie natywny rozmiar 176 × 565 px.
+- Pole wyposażenia, sloty, zakładki I–IV i pasek Yang wykorzystują sprite’y wycięte bezpośrednio z atlasów klienta Metin2.
+- Przełączniki Alchemii, juków konnych, depozytu i sklepu otrzymały ikonki zgodne z klientem.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.108.2 · Ikony dopasowane do powiększonego ekwipunku
 
 - Ikony wyposażenia, plecaka i magazynu skalują się teraz razem ze slotami w poszerzonej kolumnie profilu. Zachowano rozmiar potrzebny dla okna Smoczej Alchemii.
