@@ -256,3 +256,8 @@
 .alternate-storage-close:hover{border-color:var(--accent);color:var(--accent)}
 
 .metin-inventory .equipment-layer:has(.equip-slot:hover){z-index:60}
+
+/* v1.109.3: controls sit directly above page tabs and stay interactive on hover. */
+.metin-inventory .inventory-native-tabs{z-index:70}
+.metin-inventory .inventory-ds-button{top:186px!important}
+.metin-inventory .inventory-horse-button,.metin-inventory .inventory-deposit-button,.metin-inventory .inventory-shop-button{top:202px!important}

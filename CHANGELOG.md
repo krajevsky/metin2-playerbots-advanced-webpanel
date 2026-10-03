@@ -1,3 +1,9 @@
+## 2026-10-03 · 1.109.3 · Wyrównanie przycisków ekwipunku
+
+- Ikony okien znajdują się bezpośrednio nad zakładkami I–IV i pozostają widoczne podczas najechania na wyposażenie.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.2 · Przyciski okien w natywnym ekwipunku
 
 - Przycisk Smoczej Alchemii ma duży rozmiar i znajduje się po lewej stronie wyposażenia, zgodnie z klientem gry.
