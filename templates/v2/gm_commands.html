@@ -1,0 +1,11 @@
+{% extends 'v2/base.html' %}
+{% block title %}Komendy GM · {{panel_brand}}{% endblock %}
+{% block page_title %}Komendy GM{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Parametry w nawiasach ostrokątnych zastępuj własną wartością.</p>
+<div class="v2-card" style="border-left:3px solid var(--warn);margin-bottom:var(--sp-3)">
+  <b style="color:var(--warn)">⚠ Informacja o zgodności</b>
+  <p class="muted" style="margin:6px 0 0">Niektóre komendy mogą nie działać w tej paczce plików. Część listy pochodzi z ogólnych poradników Metin2 dostępnych w internecie, a dostępność komendy zależy od wersji i kompilacji rdzenia serwera.</p>
+</div>
+<div class="v2-card"><pre style="margin:0;white-space:pre-wrap;font-size:var(--fs-sm);line-height:1.6;color:var(--text-dim);font-family:ui-monospace,monospace">{{commands}}</pre></div>
+{% endblock %}

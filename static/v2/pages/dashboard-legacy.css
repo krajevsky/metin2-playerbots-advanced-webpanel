@@ -1,0 +1,636 @@
+/* Legacy live-widget + dashboard-widget styles, scoped to .lw only via
+   native CSS @scope -- verbatim from style.css + live-overrides.css,
+   so the live map / donuts / carousel keep their exact proven behavior
+   and colors without leaking into the rest of the v2 shell. */
+@scope (.lw) {
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&display=swap');
+:root{--bg:#09111e;--panel:#101d2d;--edge:#213852;--text:#edf5ff;--muted:#91a8c5;--blue2:#1f6fe5;--gold:#f2c34d;
+  /* Fluid skala: te same wartości skalują się płynnie telefon -> 4K/ultrawide
+     zamiast skakać na sztywnych progach -- dokładanie kolejnych @media na stałe
+     px nie było potrzebne, to podmiana jednostki. */
+  --fs-h1:clamp(24px,1.6vw + 14px,36px); --fs-h2:clamp(16px,0.6vw + 12px,19px);
+  --space-card:clamp(14px,0.9vw + 8px,22px); --space-gap:clamp(12px,0.7vw + 7px,18px);
+}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Inter,Segoe UI,Arial,sans-serif}aside{position:fixed;width:220px;inset:0 auto 0 0;border-right:1px solid var(--edge);padding:20px 16px;background:#0c1726;display:flex;flex-direction:column}.brand{font-weight:800;font-size:19px;color:#fff;text-decoration:none;margin:0 7px 32px}.brand span{display:block;font-size:11px;font-weight:500;color:#71adff;margin-top:2px}nav{display:grid;gap:5px}nav a{color:#b6cce7;text-decoration:none;padding:11px 9px;border-radius:6px}nav a:hover{background:#1c3353;color:#fff}nav hr{border:0;border-top:1px solid var(--edge);margin:13px 0}.quiet{margin-top:auto;width:100%;border:0;background:none;color:var(--muted);text-align:left;padding:10px;font:inherit;cursor:pointer}main{margin-left:220px;max-width:1550px;padding:38px 6vw 70px}h1{font-size:var(--fs-h1);line-height:1.1;margin:6px 0 10px}h2{font-size:var(--fs-h2);margin:0 0 18px}h3{margin:18px 0 9px;font-size:15px}.eyebrow{font-size:11px;letter-spacing:1.5px;color:#69a6ff;font-weight:700;margin:0}.muted,small{color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-gap);margin:30px 0}.cards.compact{grid-template-columns:repeat(4,minmax(150px,1fr));max-width:900px}.cards article,.panel,.live-shell{background:var(--panel);border:1px solid var(--edge);border-radius:8px;transition:box-shadow .2s ease}.cards article{padding:var(--space-card)}.cards span{display:block;color:var(--muted);font-size:13px}.cards strong{font-size:27px;display:block;margin:7px 0}.cards small{font-size:12px}.grid{display:grid;gap:16px;margin:16px 0}.grid.two{grid-template-columns:1fr 1fr}.panel{padding:var(--space-card);margin:16px 0;overflow-x:auto}table{width:100%;border-collapse:collapse}th{text-align:left;font-size:12px;color:#89a6cc;font-weight:600;border-bottom:1px solid var(--edge);padding:10px}td{padding:12px 10px;border-bottom:1px solid #1e3249}tr:last-child td{border:0}td a,.back{color:#69a6ff;text-decoration:none}td.item-cell{display:flex;align-items:center;gap:10px}.item-cell img{width:32px;height:32px;object-fit:contain;background:#0b1625;border:1px solid #294562;border-radius:4px}.button,button{display:inline-block;padding:9px 13px;color:#fff;background:var(--blue2);border:0;border-radius:5px;font:inherit;cursor:pointer;text-decoration:none}.secondary{margin-top:16px;background:#203d63}.gauges{display:flex;gap:35px;margin:18px 0}.gauges b{font-size:30px;display:block}.gauges span{color:var(--muted);font-size:13px}.search{display:flex;gap:8px;margin:24px 0}.search input,input,select{background:#0d1929;border:1px solid #294562;color:#fff;border-radius:5px;padding:10px 12px;font:inherit}.flash{margin-bottom:15px;padding:11px;border-radius:5px}.flash.error{background:#5b1e2b;color:#ffdbe1}.login{min-height:100vh;display:grid;place-items:center}.login-card{width:min(420px,90vw);padding:32px;background:var(--panel);border:1px solid var(--edge);border-radius:9px}.login-card .brand{display:block;margin:0 0 24px}.login-card label{display:grid;gap:7px;color:var(--muted);margin:18px 0}.login-card button{width:100%}canvas{max-height:420px}
+.live-shell{margin:22px 0;padding:21px;background:linear-gradient(135deg,#131a1c,#111817)}.live-shell header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.live-shell header h2{color:#ffe089;margin:3px 0}.live-badge{background:#164e35;color:#7cf0ae;border:1px solid #2c9e5c;border-radius:16px;padding:6px 10px;white-space:nowrap;font-size:12px}.live-filters{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:17px 0;padding:13px;border:1px solid #493e25;border-radius:8px;background:#161510}.live-filters label{display:flex;gap:6px;align-items:center;color:#d6c9a7;font-size:13px}.live-filters input[type=checkbox]{accent-color:#4d91ff}.live-filters #bot-search{margin-left:auto;min-width:190px}.level-filter{display:flex;gap:5px}.level-filter button{padding:4px 9px;background:#443711;color:#f7d677;border-radius:14px;font-size:12px}.level-filter button.active{background:var(--gold);color:#201705}.live-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.85fr);gap:16px}.world-map{height:600px;position:relative;overflow:hidden;background:radial-gradient(circle at 48% 40%,#17251b 0,#0c120f 52%,#060807 100%);border:1px solid #5b4b26;border-radius:6px;box-shadow:inset 0 0 70px #000}.world-map:before{content:'';position:absolute;inset:0;opacity:.14;background-image:linear-gradient(#8f7835 1px,transparent 1px),linear-gradient(90deg,#8f7835 1px,transparent 1px);background-size:10% 10%}.map-caption{position:absolute;z-index:2;left:12px;top:10px;background:#080a08cc;border:1px solid #5b4b26;padding:4px 8px;border-radius:4px;color:#e8d488;font-size:12px}.bot-point{z-index:3;position:absolute;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:#39e890;border:1px solid #e2fff0;box-shadow:0 0 9px #39e890;cursor:pointer}.bot-point.is-pt{background:#a974ff;box-shadow:0 0 9px #a974ff}.bot-point em{display:block;position:absolute;left:7px;top:-15px;padding:1px 3px;border:1px solid #4a4a4a;border-radius:3px;background:#090b09e8;color:#eee;white-space:nowrap;font-style:normal;font-size:10px;pointer-events:none}.live-sidebar{position:static;width:auto;padding:14px;background:#12120e;border:1px solid #493e25;border-radius:7px}.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mini-stats div{padding:11px;background:#18160e;border:1px solid #3b321b;border-radius:6px}.mini-stats b{font-size:22px;color:#f4c64f;display:block}.mini-stats span{color:#b5a786;font-size:11px}.live-ranking{height:438px;overflow:auto}.live-ranking a{display:block;color:#ded8c7;text-decoration:none;padding:8px;border-bottom:1px solid #352e1d;background:#16140d}.live-ranking a:hover{background:#292313}.live-ranking a b{color:#f4c64f;margin-right:4px}.live-ranking span{float:right;color:#6fa7ff;font-weight:700}.live-shell footer{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;color:#cabf9e;font-size:12px}.dot{width:8px;height:8px;display:inline-block;border-radius:50%;margin-right:4px}.dot.bot{background:#39e890}.dot.pt{background:#a974ff}
+@media(max-width:1000px){.live-grid{grid-template-columns:1fr}.world-map{height:520px}.live-ranking{height:230px}}
+.nav-toggle{display:none;position:fixed;top:14px;left:14px;z-index:210;width:42px;height:42px;border-radius:8px;background:#101d2d;border:1px solid var(--edge);color:#fff;font-size:19px;line-height:1;cursor:pointer}
+.nav-backdrop{display:none;position:fixed;inset:0;background:rgba(3,8,15,.6);z-index:190}
+body.nav-open .nav-backdrop{display:block}
+@media(max-width:850px){
+.nav-toggle{display:block}
+aside.site-nav{position:fixed;inset:0 auto 0 0;width:250px;max-width:80vw;transform:translateX(-100%);transition:transform .25s ease;z-index:200;overflow-y:auto;box-shadow:4px 0 24px #0008}
+body.nav-open aside.site-nav{transform:translateX(0)}
+body.nav-open{overflow:hidden}
+.brand{margin-bottom:14px}
+nav{grid-template-columns:1fr}
+main{margin:0;padding:26px 18px;padding-top:70px}
+.cards,.cards.compact,.grid.two{grid-template-columns:1fr 1fr}
+}@media(max-width:650px){.manage-form label{grid-template-columns:minmax(0,1fr) 92px 20px}.restart-form,.behavior-actions{flex-direction:column}.behavior-grid{grid-template-columns:1fr;gap:12px}.behavior-weight{grid-template-columns:minmax(125px,1fr) minmax(80px,1fr) 34px 14px;gap:6px}.behavior-actions{grid-column:auto}.behavior-actions button{width:100%;margin:0}.panel{padding:16px}.panel table{font-size:13px}.panel th,.panel td{padding:9px 6px}}@media(max-width:520px){.cards,.cards.compact,.grid.two{grid-template-columns:1fr}nav{grid-template-columns:1fr}.live-filters #bot-search{margin-left:0;width:100%}.world-map{height:440px}h1{font-size:28px}}.live-map{color:#57e7a5;font-weight:700}
+.exp-orbs{display:flex;align-items:center;gap:3px;white-space:nowrap}.exp-orbs i{width:17px;height:17px;border-radius:50%;border:2px solid #b89452;background:radial-gradient(circle at 35% 28%,#423421,#17130e 67%);box-shadow:inset 0 0 3px #000}.exp-orbs i.full{background:radial-gradient(circle at 35% 28%,#ffeab0,#e69b28 55%,#6f3610 100%);box-shadow:0 0 6px #f5b743}.exp-orbs i.part{background:conic-gradient(#e69b28 0 55%,#17130e 55%)}.exp-orbs b{font-size:11px;color:#f1d28b;margin-left:3px}.ranking-leader td{background:linear-gradient(90deg,#6f55151c,#1b263000);position:relative}.ranking-leader td:nth-child(2) a{color:#ffe28a;text-shadow:0 0 9px #edb637}.ranking-leader td:nth-child(2):before{content:'✦';color:#ffe28a;position:absolute;margin-left:-13px;animation:leader-star 1.8s ease-in-out infinite}@keyframes leader-star{50%{opacity:.3;transform:scale(1.35)}}.item-cell a{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}.item-cell a:hover{color:#ffe28a}.world-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.map-distribution .map-donut-wrap{height:255px;display:flex;align-items:center;justify-content:center}.map-distribution canvas{max-height:250px!important}body[data-theme="ember"]{--bg:#1a1010;--panel:#251717;--edge:#563535;--text:#fff0e9;--muted:#d3a9a0;--blue2:#bd573c}body[data-theme="forest"]{--bg:#0c1711;--panel:#12251a;--edge:#2a5439;--text:#e9fff0;--muted:#9fc8ad;--blue2:#27895a}
+.exp-orbs i.part{background:linear-gradient(to bottom,#e69b28 0 55%,#17130e 55% 100%)!important}.behavior-actions button{font-size:15px!important;padding:9px 13px!important;min-height:0!important;height:40px!important}body[data-theme="ember"] aside,body[data-theme="ember"] .live-shell,body[data-theme="ember"] .live-sidebar,body[data-theme="ember"] .mini-stats div,body[data-theme="ember"] .live-ranking a,body[data-theme="ember"] input,body[data-theme="ember"] select{background:#251717!important;border-color:#563535!important}body[data-theme="forest"] aside,body[data-theme="forest"] .live-shell,body[data-theme="forest"] .live-sidebar,body[data-theme="forest"] .mini-stats div,body[data-theme="forest"] .live-ranking a,body[data-theme="forest"] input,body[data-theme="forest"] select{background:#12251a!important;border-color:#2a5439!important}
+.exp-orbs i.part{background:linear-gradient(to top,#e69b28 0 55%,#17130e 55% 100%)!important}.bot-point.is-global-leader{width:14px;height:14px;background:#ffe28a!important;border-color:#fff7c7;box-shadow:0 0 16px 5px #edb637!important}.bot-point.is-global-leader:after{content:"✦";position:absolute;left:1px;top:-15px;color:#ffe28a;text-shadow:0 0 8px #edb637;font-size:14px}
+.live-ranking a:first-child:not(.is-global-leader){color:#ded8c7!important;text-shadow:none!important}.live-ranking a:first-child:not(.is-global-leader):before{content:none!important}.live-ranking a.is-global-leader{color:#ffe28a!important;text-shadow:0 0 9px #edb637}.live-ranking a.is-global-leader:before{content:"✦ ";color:#ffe28a;animation:leader-star 1.8s ease-in-out infinite}
+body[data-theme="ember"] .profile-sections section,body[data-theme="ember"] .inventory-panel,body[data-theme="ember"] .profile-tags span,body[data-theme="ember"] .stat-cells div,body[data-theme="ember"] .bot-log,body[data-theme="ember"] .log-lines,body[data-theme="ember"] nav a:hover{background:#251717!important;border-color:#563535!important}body[data-theme="ember"] nav a,body[data-theme="ember"] .brand span,body[data-theme="ember"] .eyebrow{color:#e7aa78!important}body[data-theme="forest"] .profile-sections section,body[data-theme="forest"] .inventory-panel,body[data-theme="forest"] .profile-tags span,body[data-theme="forest"] .stat-cells div,body[data-theme="forest"] .bot-log,body[data-theme="forest"] .log-lines,body[data-theme="forest"] nav a:hover{background:#12251a!important;border-color:#2a5439!important}body[data-theme="forest"] nav a,body[data-theme="forest"] .brand span,body[data-theme="forest"] .eyebrow{color:#85dba3!important}
+body[data-theme="ember"] .world-overview,body[data-theme="ember"] .world-summary-grid>div,body[data-theme="ember"] .live-filters,body[data-theme="ember"] .dashboard-widgets .panel,body[data-theme="ember"] .rank-tabs a{background:#251717!important;border-color:#563535!important}body[data-theme="ember"] .world-summary-grid b,body[data-theme="ember"] .mini-stats b,body[data-theme="ember"] .live-ranking a b{color:#e7aa78!important}body[data-theme="forest"] .world-overview,body[data-theme="forest"] .world-summary-grid>div,body[data-theme="forest"] .live-filters,body[data-theme="forest"] .dashboard-widgets .panel,body[data-theme="forest"] .rank-tabs a{background:#12251a!important;border-color:#2a5439!important}body[data-theme="forest"] .world-summary-grid b,body[data-theme="forest"] .mini-stats b,body[data-theme="forest"] .live-ranking a b{color:#85dba3!important}
+.ranking-leader{background:radial-gradient(ellipse 70% 160% at 50% -70%,#ffe7a852,transparent 70%),linear-gradient(180deg,#f6ca6335 0%,#c38a2118 55%,transparent 100%);box-shadow:inset 0 1px 0 #ffeab075,inset 0 -1px 0 #b77b2138}.ranking-leader td{background:transparent!important}.ranking-leader td:first-child{border-left:2px solid #f0be4c}.ranking-leader td:last-child{border-right:2px solid #f0be4c}
+:root{--leader-ink:#edf5ff;--leader-ink-2:#f2c34d;--leader-ink-3:#77c4ff}body[data-theme="ember"]{--leader-ink:#fff0e9;--leader-ink-2:#e7aa78;--leader-ink-3:#ff7764}body[data-theme="forest"]{--leader-ink:#e9fff0;--leader-ink-2:#85dba3;--leader-ink-3:#c4f58c}.ranking-leader td:nth-child(2) a{display:inline-block;position:relative;color:transparent;background:radial-gradient(circle at 14% 35%,#fff 0 1.4px,transparent 1.8px),radial-gradient(circle at 42% 68%,#fff 0 1.1px,transparent 1.5px),radial-gradient(circle at 75% 24%,#fff 0 1.5px,transparent 1.9px),linear-gradient(100deg,var(--leader-ink),var(--leader-ink-3),var(--leader-ink-2),var(--leader-ink));background-size:90px 36px,112px 44px,135px 40px,240% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 6px var(--leader-ink-3));text-shadow:none;animation:leader-starlight 3.6s linear infinite}@keyframes leader-starlight{0%{background-position:0 0,0 0,0 0,120% 0}100%{background-position:90px 0,-112px 0,135px 0,-120% 0}}@media(prefers-reduced-motion:reduce){.ranking-leader td:nth-child(2) a{animation:none}}
+body[data-theme="empire"]{--leader-ink:#fff3c4;--leader-ink-2:#e8b93f;--leader-ink-3:#c94a2a}
+
+/* ============================================================
+   MOTYW "CESARSTWO" v2 -- handoff z Claude Design, 2026-09-19
+   Aktywacja: <body data-theme="empire"> (tak jak ember/forest)
+   ============================================================ */
+
+body[data-theme="empire"]{
+  --bg:#120c08; --panel:#241a12; --edge:#4a3520; --text:#f3e9d8; --muted:#a89478; --blue2:#8a5a1f; --gold:#e8b93f;
+  background:
+    radial-gradient(ellipse 80% 45% at 50% 0%, rgba(201,74,42,.10), transparent 60%),
+    radial-gradient(ellipse 60% 35% at 8% 100%, rgba(232,185,63,.06), transparent 70%),
+    var(--bg);
+  background-attachment:fixed;
+}
+body[data-theme="empire"] h1, body[data-theme="empire"] .brand, body[data-theme="empire"] h2{ font-family:'Cinzel',Georgia,serif; }
+
+/* --- Plaque panels: cut corners instead of plain rounded rects --- */
+body[data-theme="empire"] .cards article, body[data-theme="empire"] .panel,
+body[data-theme="empire"] .inventory-panel, body[data-theme="empire"] .profile-sections section,
+body[data-theme="empire"] .bot-log, body[data-theme="empire"] .log-lines{
+  background:linear-gradient(160deg,#241a12,#1a1109)!important; border:0!important;
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+  box-shadow:0 0 0 1px var(--edge), inset 0 1px 0 rgba(232,185,63,.08), 0 8px 20px rgba(0,0,0,.35);
+  position:relative;
+}
+/* .live-shell deliberately excluded from clip-path above: .world-overview
+   (the "PLAYERBOTS - SWIAT / Stan serwera" panel) escapes .live-shell's own
+   box on purpose via position:absolute (see live-overrides.css) to sit
+   beside it. clip-path clips a descendant's paint even when it renders
+   outside the ancestor's box, same as overflow:hidden would -- so cutting
+   .live-shell's corners was silently deleting that whole panel. Confirmed
+   live 2026-09-19: this, not the old @media(min-width:1351px) block, was the
+   actual cause -- that block is legitimate and was restored. .live-shell's
+   background/border are already themed correctly via the --live-* variables
+   (this file, below) and the base var(--edge) border rule -- no extra rule
+   needed here now that clip-path is gone. */
+/* Stat cells (STR/VIT/DEX/INT on /player/): true hexagons, not cut corners. */
+body[data-theme="empire"] .stat-cells div{
+  background:linear-gradient(160deg,#2c2014,#1a1109)!important; border:0!important;
+  clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);
+  box-shadow:0 0 0 1px var(--edge), inset 0 1px 0 rgba(232,185,63,.1);
+  padding:14px 6px!important; min-width:64px;
+}
+/* Profile badges (kingdom / HP / MP / Yang / map / channel / VIP...) on /player/. */
+body[data-theme="empire"] .profile-tags span{
+  background:color-mix(in srgb,var(--panel) 70%,#000)!important; border:1px solid var(--edge)!important; color:var(--text)!important;
+}
+/* .news-ticker is a fixed bar flush against the 220px sidebar -- a cut
+   bottom-left corner there reads as a gap, not a decoration. Square corners
+   only, no clip-path. */
+body[data-theme="empire"] .news-ticker{
+  background:linear-gradient(160deg,#241a12,#1a1109)!important; border:1px solid var(--edge)!important; border-bottom:0!important;
+  box-shadow:0 -8px 26px rgba(0,0,0,.4);
+}
+body[data-theme="empire"] .cards article::after{
+  content:''; position:absolute; top:10px; right:12px; width:6px; height:6px; background:var(--gold); transform:rotate(45deg); opacity:.8;
+}
+body[data-theme="empire"] .cards article:hover,body[data-theme="empire"] .panel:hover{
+  box-shadow:0 0 0 1px var(--edge), inset 0 1px 0 rgba(232,185,63,.08), 0 10px 28px rgba(0,0,0,.45), 0 0 20px -6px rgba(232,185,63,.3)!important;
+}
+body[data-theme="empire"] .cards strong{ color:#f6dfa0; text-shadow:0 0 12px rgba(232,185,63,.25); }
+body[data-theme="empire"] .eyebrow{ color:var(--gold); letter-spacing:2px; }
+
+/* --- Rank medallions: add class="rank-medal" to the numeric rank cell --- */
+body[data-theme="empire"] .rank-medal, body[data-theme="empire"] tbody tr td:first-child > span.rank-medal{
+  display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 35% 30%,#fff3c4,#e8b93f 55%,#8a5a1f 100%); color:#201705; font-weight:700; font-size:11px;
+}
+
+
+/* --- Vital bars (HP/MP/EXP) --- */
+/* background-color (not the background shorthand) so the tick pattern below
+   can set background-image independently -- a shorthand !important also
+   !importants background-image:none, silently eating the ticks otherwise. */
+body[data-theme="empire"] .vital.hp .bar i{ background-color:#c94a2a!important; box-shadow:0 0 8px #c94a2a; background-image:repeating-linear-gradient(90deg,transparent 0 9px,rgba(0,0,0,.35) 9px 10px)!important; }
+body[data-theme="empire"] .vital.mp .bar i{ background-color:#4d91ff!important; box-shadow:0 0 8px #4d91ff; background-image:repeating-linear-gradient(90deg,transparent 0 9px,rgba(0,0,0,.35) 9px 10px)!important; }
+body[data-theme="empire"] .vital.exp .bar i{ background-color:var(--gold)!important; box-shadow:0 0 8px var(--gold); background-image:repeating-linear-gradient(90deg,transparent 0 9px,rgba(0,0,0,.35) 9px 10px)!important; }
+
+/* --- Live map / dashboard widgets --- */
+body[data-theme="empire"] .live-shell header h2{ color:#f6dfa0; }
+body[data-theme="empire"] .live-badge{ background:#2f4a1e; color:#a6e08a; border-color:#4c7a34; }
+body[data-theme="empire"] .live-filters{ background:#181210; border-color:var(--edge); }
+body[data-theme="empire"] .level-filter button{ background:#241a12; color:#e0cfae; border-radius:16px; }
+body[data-theme="empire"] .level-filter button.active{ background:var(--gold); color:#201705; }
+/* No background override here on purpose: .world-map[data-map-index="N"] in
+   live-overrides.css sets the real per-map screenshot via background-image,
+   and this selector's specificity would have silently beaten it and blanked
+   every map -- confirmed live 2026-09-19, fixed by just not touching it. */
+body[data-theme="empire"] .world-map{ border-color:var(--edge); }
+body[data-theme="empire"] .level-filter button.active, body[data-theme="empire"] .carousel-arrows button{ color:#201705!important; }
+body[data-theme="empire"] .map-caption{ border-color:var(--edge); color:#e8d488; }
+body[data-theme="empire"] .dot.metin, body[data-theme="empire"] .dot.stuck{ background:#c94a2a; animation:empire-flicker 1.6s ease-in-out infinite; }
+body[data-theme="empire"] .live-sidebar, body[data-theme="empire"] .mini-stats div, body[data-theme="empire"] .live-ranking a{ background:#181109!important; border-color:var(--edge)!important; }
+body[data-theme="empire"] .mini-stats b{ color:var(--gold); }
+body[data-theme="empire"] .live-ranking a:hover{ background:#292313!important; }
+body[data-theme="empire"] .ranking-leader{ background:radial-gradient(ellipse 70% 160% at 50% -70%,#ffe7a852,transparent 70%),linear-gradient(180deg,#f6ca6335 0%,#c38a2118 55%,transparent 100%)!important; }
+body[data-theme="empire"] .world-overview, body[data-theme="empire"] .world-summary-grid>div, body[data-theme="empire"] .dashboard-widgets .panel, body[data-theme="empire"] .rank-tabs a{ background:var(--panel)!important; border-color:var(--edge)!important; }
+body[data-theme="empire"] .world-summary-grid b, body[data-theme="empire"] .live-ranking a b{ color:var(--gold)!important; }
+body[data-theme="empire"] .rank-tabs a.active{ background:var(--gold)!important; color:#201705!important; }
+body[data-theme="empire"] input, body[data-theme="empire"] select{ background:#100d0a; border-color:var(--edge); color:var(--text); }
+body[data-theme="empire"] .exp-orbs i.full{ background:radial-gradient(circle at 35% 28%,#ffeab0,#e8b93f 55%,#6f3610 100%); box-shadow:0 0 6px var(--gold); }
+body[data-theme="empire"] .news-label{ color:var(--gold); font-family:'Cinzel',serif; }
+
+/* --- Sidebar nav --- */
+body[data-theme="empire"] aside.site-nav{ background:linear-gradient(180deg,#1c140d,#140d08); border-right:3px double var(--edge); box-shadow:inset -1px 0 0 rgba(232,185,63,.08),6px 0 24px rgba(0,0,0,.4); }
+body[data-theme="empire"] .brand span{ color:var(--gold); letter-spacing:1px; }
+body[data-theme="empire"] nav a{ color:#d9c8a8; border-radius:3px; }
+body[data-theme="empire"] nav a:hover{ background:color-mix(in srgb,var(--gold) 22%,transparent); color:#f6dfa0; }
+body[data-theme="empire"] nav a.active, body[data-theme="empire"] nav a[aria-current="page"]{
+  color:#201705!important; background:linear-gradient(180deg,#f6dfa0,#e8b93f)!important; font-weight:700;
+  box-shadow:0 2px 10px rgba(232,185,63,.35);
+}
+
+@keyframes empire-flicker{0%,100%{opacity:1;transform:scaleY(1)}45%{opacity:.75;transform:scaleY(.9)}55%{opacity:.95;transform:scaleY(1.05)}}
+@keyframes empire-seal-glow{0%,100%{box-shadow:0 0 0 0 rgba(232,185,63,.5)}50%{box-shadow:0 0 14px 3px rgba(232,185,63,.55)}}
+
+body[data-theme="empire"] .empire-embers{ position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
+body[data-theme="empire"] .empire-embers span{
+  position:absolute; bottom:-20px; width:4px; height:4px; border-radius:50%;
+  background:radial-gradient(circle,#ffcf6b,#e8641f 60%,transparent 100%);
+  animation:empire-ember-rise var(--dur,6s) linear infinite; animation-delay:var(--delay,0s);
+}
+@keyframes empire-ember-rise{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:.9}90%{opacity:.4}100%{transform:translateY(-620px) translateX(var(--drift,20px));opacity:0}}
+
+/* No negative side margins here on purpose: -6vw on each side used to pull
+   this wider than <main>'s own box, bleeding under the fixed 220px sidebar
+   on the left and pushing a horizontal scrollbar on the right. Confirmed
+   live 2026-09-19. Stays inside main's normal content width instead, with
+   its own padding/border/radius giving it visual weight as a section. */
+body[data-theme="empire"] .empire-hero{
+  margin:-6px 0 34px; padding:44px 6vw; text-align:center; position:relative; overflow:hidden;
+  isolation:isolate;
+  border-radius:10px;
+  background:radial-gradient(ellipse 70% 60% at 20% 30%, rgba(77,110,180,.35), transparent 60%),
+    radial-gradient(ellipse 60% 70% at 85% 60%, rgba(201,74,42,.42), transparent 65%), linear-gradient(180deg,#0e0a08,#1a120c);
+  border:1px solid var(--edge); border-bottom:3px double var(--edge); box-shadow:0 0 70px rgba(0,0,0,.55) inset;
+}
+body[data-theme="empire"] .empire-hero-eyebrow{ font-family:'Cinzel',serif; font-size:13px; letter-spacing:4px; color:var(--gold); font-weight:700; margin:0; }
+body[data-theme="empire"] .empire-hero-title{ font-family:'Cinzel',serif; font-weight:900; font-size:44px; margin:14px 0 8px; color:#fff; text-shadow:0 2px 0 #000,0 0 30px rgba(232,185,63,.45); }
+body[data-theme="empire"] .empire-hero-sub{ color:#c9b699; margin:0; font-size:14px; }
+
+body[data-theme="empire"] .empire-hero-copy{
+  position:relative;z-index:4;
+  clip-path:inset(0 100% 0 0);
+  animation:empire-hero-copy-reveal 2.43s linear forwards;
+}
+@keyframes empire-hero-copy-reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+body[data-theme="empire"] .empire-hero-title--intro{
+  position:relative;display:inline-block;isolation:isolate;
+  animation:empire-hero-fire-intro 4.2s ease-out 2.35s forwards;
+}
+body[data-theme="empire"] .empire-hero-title--intro::before{
+  content:attr(data-text);position:absolute;inset:0;color:#fb923c;filter:blur(10px);
+  opacity:0;z-index:-1;animation:empire-hero-fire-heat 1.2s ease-in-out 2.35s 3 both;
+}
+@keyframes empire-hero-fire-intro{
+  0%,18%{transform:translateY(0) scale(1);color:#fff7ed;text-shadow:0 0 6px #fed7aa,0 0 16px #fb923c,0 0 34px #f97316,0 0 70px #dc2626}
+  36%{transform:translateY(-2px) scale(1.02);color:#fff7ed;text-shadow:0 0 8px #fff7ed,0 0 22px #fdba74,0 0 50px #f97316,0 0 95px #b91c1c}
+  56%{transform:translateY(1px) scale(.99);color:#fff7ed;text-shadow:0 0 5px #fed7aa,0 0 14px #fb923c,0 0 28px #ea580c,0 0 60px #991b1b}
+  74%{transform:translateY(0) scale(1);color:#fff7ed;text-shadow:0 0 6px #fed7aa,0 0 16px #fb923c,0 0 34px #f97316,0 0 70px #dc2626}
+  100%{transform:translateY(0) scale(1);color:#fff;text-shadow:0 2px 0 #000,0 0 30px rgba(232,185,63,.45)}
+}
+@keyframes empire-hero-fire-heat{0%,100%{transform:translateY(0) scale(1);opacity:0}20%,70%{transform:translateY(-10px) scale(1.14);opacity:.82}}
+
+body[data-theme="empire"] .empire-hero-runner{
+  position:absolute;bottom:0;left:-140px;height:100%;width:auto;z-index:6;
+  animation:empire-hero-run 2.6s linear forwards;
+}
+@keyframes empire-hero-run{
+  from{left:-140px;opacity:1}
+  86%{opacity:1}
+  to{left:calc(100% - 80px);opacity:0}
+}
+
+body[data-theme="empire"] .empire-hero-idle{
+  position:absolute;bottom:0;right:24px;height:108%;width:auto;z-index:3;opacity:0;
+  animation:empire-hero-idle-in .36s ease-out 2.24s forwards;
+}
+@keyframes empire-hero-idle-in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+
+@media(prefers-reduced-motion:reduce){
+  body[data-theme="empire"] .empire-hero-runner{display:none}
+  body[data-theme="empire"] .empire-hero-copy{animation:none;clip-path:none}
+  body[data-theme="empire"] .empire-hero-title--intro,body[data-theme="empire"] .empire-hero-title--intro::before{animation:none}
+  body[data-theme="empire"] .empire-hero-idle{display:block!important;opacity:1;animation:none}
+}
+
+/* Klikalne wiersze na /accounts -> /account/<id>, z zipa z Windowsa 20.09. */
+.account-row{cursor:pointer}
+.account-row:hover td{background:color-mix(in srgb,var(--blue2) 16%,transparent)}
+.account-login{color:#69a6ff}
+body[data-theme="empire"] .account-row:hover td{background:color-mix(in srgb,var(--gold) 18%,transparent)}
+body[data-theme="empire"] .account-login{color:var(--gold)}
+
+/* Popup powiadomień (dialog na środku) zamiast baneru na górze strony. */
+.flash-modal{border:0;border-radius:10px;padding:0;background:transparent;max-width:520px;width:92vw}
+.flash-modal::backdrop{background:rgba(5,10,18,.65)}
+.flash-modal .flash-card{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;margin-bottom:10px;border-radius:8px;border-left:4px solid;color:#fff;background:var(--panel)}
+.flash-modal .flash-card:last-of-type{margin-bottom:0}
+.flash-card svg{width:22px;height:22px;flex:0 0 auto;margin-top:1px}
+.flash-card.success{border-left-color:#39e890;background-image:linear-gradient(to right,#39e8903d,#39e8901f 50%,#39e89010)}
+.flash-card.success svg{fill:#39e890}
+.flash-card.error{border-left-color:#ff5757;background-image:linear-gradient(to right,#ff57573d,#ff57571f 50%,#ff575710)}
+.flash-card.error svg{fill:#ff5757}
+.flash-modal form{margin:16px 0 0;text-align:center}
+.flash-modal-ok{padding:9px 26px;border-radius:8px}
+
+/* Dashboard ranking: automatic rotation is opt-in and respects the active theme. */
+.ranking-carousel-controls{display:flex;align-items:center;gap:10px}.rank-autoplay-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--muted);user-select:none}.rank-autoplay-toggle input{position:absolute;opacity:0;width:1px;height:1px}.rank-autoplay-track{position:relative;display:inline-block;width:32px;height:18px;border:1px solid var(--edge);border-radius:999px;background:color-mix(in srgb,var(--panel) 72%,var(--muted));transition:background .2s ease,border-color .2s ease,box-shadow .2s ease}.rank-autoplay-track span{position:absolute;top:3px;left:3px;width:10px;height:10px;border-radius:50%;background:var(--text);transition:transform .2s cubic-bezier(.22,1,.36,1),background .2s ease}.rank-autoplay-toggle input:checked+.rank-autoplay-track{background:var(--blue2);border-color:var(--blue2);box-shadow:0 0 10px color-mix(in srgb,var(--blue2) 55%,transparent)}.rank-autoplay-toggle input:checked+.rank-autoplay-track span{transform:translateX(14px);background:#fff}.rank-autoplay-toggle input:focus-visible+.rank-autoplay-track{outline:2px solid var(--blue2);outline-offset:2px}
+\n\n/* Dashboard hero: shared shaman animation with theme-aware fire. */
+.empire-hero{--hero-accent:#77c4ff;--hero-accent-soft:#bce7ff;--hero-fire-hot:#2d8ee8;--hero-fire-deep:#164f9f;--hero-title-shadow:rgba(68,164,255,.46);margin:-6px 0 34px;padding:44px 6vw;text-align:center;position:relative;overflow:hidden;isolation:isolate;border:1px solid var(--edge);border-bottom:3px double var(--edge);border-radius:10px;background:radial-gradient(ellipse 70% 68% at 18% 30%,rgba(24,129,217,.42),transparent 62%),radial-gradient(ellipse 58% 72% at 86% 65%,rgba(53,193,224,.28),transparent 65%),linear-gradient(180deg,#071525,#0d2437);box-shadow:inset 0 0 70px rgba(0,0,0,.55)}
+body[data-theme="ember"] .empire-hero{--hero-accent:#ffb27f;--hero-accent-soft:#ffe0c7;--hero-fire-hot:#fa743f;--hero-fire-deep:#a91f1f;--hero-title-shadow:rgba(244,92,45,.5);background:radial-gradient(ellipse 65% 75% at 18% 25%,rgba(186,48,29,.5),transparent 63%),radial-gradient(ellipse 54% 65% at 88% 70%,rgba(246,136,45,.33),transparent 64%),linear-gradient(180deg,#28100d,#401711)}
+body[data-theme="forest"] .empire-hero{--hero-accent:#85dba3;--hero-accent-soft:#d4ffe0;--hero-fire-hot:#58c784;--hero-fire-deep:#197a4c;--hero-title-shadow:rgba(75,204,125,.46);background:radial-gradient(ellipse 68% 72% at 20% 28%,rgba(28,123,71,.48),transparent 62%),radial-gradient(ellipse 56% 70% at 86% 65%,rgba(137,211,86,.22),transparent 64%),linear-gradient(180deg,#0b2117,#102e20)}
+body[data-theme="empire"] .empire-hero{--hero-accent:var(--gold);--hero-accent-soft:#fff0bc;--hero-fire-hot:#f97316;--hero-fire-deep:#b91c1c;--hero-title-shadow:rgba(232,185,63,.45)}
+.empire-hero-eyebrow{position:relative;z-index:4;font-family:'Cinzel',serif;font-size:13px;letter-spacing:4px;color:var(--hero-accent);font-weight:700;margin:0}.empire-hero-title{position:relative;z-index:4;font-family:'Cinzel',serif;font-weight:900;font-size:44px;margin:14px 0 8px;color:#fff;text-shadow:0 2px 0 #000,0 0 30px var(--hero-title-shadow)}.empire-hero-sub{position:relative;z-index:4;color:color-mix(in srgb,var(--hero-accent-soft) 76%,var(--text));margin:0;font-size:14px}.empire-hero-copy{position:relative;z-index:4;clip-path:inset(0 100% 0 0);animation:empire-hero-copy-reveal 2.43s linear forwards}.empire-hero-title--intro{display:inline-block;isolation:isolate;animation:dashboard-hero-fire-intro 4.2s ease-out 2.35s forwards}.empire-hero-title--intro::before{content:attr(data-text);position:absolute;inset:0;color:var(--hero-fire-hot);filter:blur(10px);opacity:0;z-index:-1;animation:dashboard-hero-fire-heat 1.2s ease-in-out 2.35s 3 both}@keyframes dashboard-hero-fire-intro{0%,18%{transform:translateY(0) scale(1);color:var(--hero-accent-soft);text-shadow:0 0 6px var(--hero-accent-soft),0 0 16px var(--hero-fire-hot),0 0 34px var(--hero-fire-hot),0 0 70px var(--hero-fire-deep)}36%{transform:translateY(-2px) scale(1.02);text-shadow:0 0 8px var(--hero-accent-soft),0 0 22px var(--hero-accent),0 0 50px var(--hero-fire-hot),0 0 95px var(--hero-fire-deep)}56%{transform:translateY(1px) scale(.99);text-shadow:0 0 5px var(--hero-accent-soft),0 0 14px var(--hero-fire-hot),0 0 28px var(--hero-fire-hot),0 0 60px var(--hero-fire-deep)}74%{transform:translateY(0) scale(1);text-shadow:0 0 6px var(--hero-accent-soft),0 0 16px var(--hero-fire-hot),0 0 34px var(--hero-fire-hot),0 0 70px var(--hero-fire-deep)}100%{transform:translateY(0) scale(1);color:#fff;text-shadow:0 2px 0 #000,0 0 30px var(--hero-title-shadow)}}@keyframes dashboard-hero-fire-heat{0%,100%{transform:translateY(0) scale(1);opacity:0}20%,70%{transform:translateY(-10px) scale(1.14);opacity:.82}}
+.empire-hero-runner{position:absolute;bottom:0;left:-140px;height:100%;width:auto;z-index:6;animation:empire-hero-run 2.6s linear forwards}.empire-hero-idle{position:absolute;bottom:0;right:24px;height:108%;width:auto;z-index:3;opacity:0;animation:empire-hero-idle-in .36s ease-out 2.24s forwards}@media(prefers-reduced-motion:reduce){.empire-hero-runner{display:none}.empire-hero-copy{animation:none;clip-path:none}.empire-hero-title--intro,.empire-hero-title--intro::before{animation:none}.empire-hero-idle{display:block!important;opacity:1;animation:none}}@media(max-width:650px){.empire-hero{padding:34px 22px}.empire-hero-title{font-size:31px}.empire-hero-eyebrow{font-size:10px;letter-spacing:2.5px}.empire-hero-sub{font-size:12px;padding-right:65px}.empire-hero-idle{right:4px;height:88%}}
+
+/* Keep the shared shaman strictly inside the hero, regardless of theme. */
+.empire-hero{height:180px;min-height:180px;padding:28px 220px 28px 42px}.empire-hero-runner,.empire-hero-idle{position:absolute!important;bottom:0!important;width:auto!important;height:190px!important;max-height:none!important}.empire-hero-runner{left:-140px}.empire-hero-idle{right:20px!important}@media(max-width:650px){.empire-hero{height:164px;min-height:164px;padding:25px 118px 22px 18px}.empire-hero-runner,.empire-hero-idle{height:158px!important}.empire-hero-idle{right:2px!important}}
+
+/* Anchor animated character to the dashboard banner. */
+#heroBanner{position:relative!important}
+#heroBanner .empire-hero-runner,#heroBanner .empire-hero-idle{position:absolute!important;bottom:0!important;height:170px!important;max-height:170px!important;width:auto!important}
+
+/* Operator's own cursor (static/cursor.cur, "Selección Normal.cur", 2026-09-25).
+   Only the base pointer -- links/buttons keep the normal hand cursor on hover
+   via their own more specific `cursor:pointer` rules above. On by default
+   (data-cursor="custom", see DEFAULT_SETTINGS in app.py); togglable from
+   /manage -> "system" drops back to the browser/OS default cursor. */
+body[data-cursor="custom"]{cursor:url('cursor.cur'),auto}
+
+/* Responsive audit 2026-09: keep the full navigation reachable on short
+   screens and switch to the drawer before the fixed rail crowds the content. */
+html,body{max-width:100%;overflow-x:hidden}
+main{min-width:0;width:auto}
+aside.site-nav{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}
+/* The rail is a flex column. Letting <nav> shrink made its overflowing links
+   paint underneath the logout form at 1080p whenever a submenu was open. */
+aside.site-nav nav{flex:0 0 auto;min-height:0;padding-bottom:12px}
+aside.site-nav .nav-logout{flex:0 0 auto;margin-top:auto;padding-top:4px}
+aside.site-nav .nav-logout .quiet{margin-top:0}
+aside.site-nav{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--blue2) 78%,var(--text)) color-mix(in srgb,var(--panel) 82%,transparent)}
+aside.site-nav::-webkit-scrollbar{width:8px}
+aside.site-nav::-webkit-scrollbar-track{background:color-mix(in srgb,var(--panel) 82%,transparent);border-radius:999px}
+aside.site-nav::-webkit-scrollbar-thumb{background:linear-gradient(180deg,color-mix(in srgb,var(--blue2) 72%,var(--text)),var(--blue2));border:2px solid color-mix(in srgb,var(--panel) 82%,transparent);border-radius:999px}
+aside.site-nav::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,color-mix(in srgb,var(--blue2) 58%,var(--text)),color-mix(in srgb,var(--blue2) 88%,var(--text)))}
+aside.site-nav nav a,aside.site-nav nav summary{min-width:0;overflow-wrap:anywhere}
+.panel,.live-shell,.cards article{min-width:0}
+table{max-width:100%}
+@media(max-width:1100px){
+  .nav-toggle{display:block}
+  aside.site-nav{position:fixed;inset:0 auto 0 0;width:250px;max-width:86vw;transform:translateX(-100%);transition:transform .25s ease;z-index:200;box-shadow:4px 0 24px #0008}
+  body.nav-open aside.site-nav{transform:translateX(0)}
+  body.nav-open{overflow:hidden}
+  .nav-backdrop{display:none}
+  body.nav-open .nav-backdrop{display:block}
+  aside.site-nav nav{grid-template-columns:1fr}
+  aside.site-nav nav details.nav-group{display:flex;grid-column:1/-1}
+  aside.site-nav nav details.nav-group>summary{display:block;width:100%}
+  aside.site-nav nav details.nav-group[open]>a{display:block;width:100%;padding:8px 9px 8px 26px;white-space:normal}
+  main{margin:0;padding:26px clamp(16px,4vw,42px);padding-top:70px}
+}
+/* Compatibility console: optional host/core integrations stay visible but cannot become phantom controls. */
+.capability-console{scroll-margin-top:24px}.capability-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:18px 0}.capability-card{padding:16px;border:1px solid var(--edge);border-radius:12px;background:color-mix(in srgb,var(--panel) 88%,#000);display:grid;gap:12px}.capability-card.needs-action{filter:saturate(.35);opacity:.82}.capability-card.is-enabled{border-color:color-mix(in srgb,var(--blue2) 55%,var(--edge))}.capability-head{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}.capability-head h3{margin:0}.capability-icon{font-size:24px}.capability-state,.feature-action-needed{border:1px solid var(--edge);border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.is-enabled .capability-state{color:#52dda0;border-color:#287654}.needs-action .capability-state,.feature-action-needed{color:#f2c34d;border-color:#8b6420}.capability-card details{border-top:1px solid var(--edge);padding-top:10px}.feature-locked{position:relative;filter:saturate(.25);opacity:.72}.feature-locked :is(input,select,textarea,button){pointer-events:none}.feature-lock-note{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:10px 12px;border:1px dashed #8b6420;border-radius:9px;background:rgba(80,55,12,.22)}.feature-lock-note a{color:#f2c34d;font-weight:800}
+
+/* The extracted Metin2 M1 consists of 4 x 5 minimap tiles, not a square. */
+.live-dashboard-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(310px,1fr);gap:18px;align-items:start}.live-grid{grid-template-columns:minmax(0,510px) minmax(0,510px);justify-content:center;align-items:stretch}
+.world-map{width:100%;height:510px;aspect-ratio:auto;background-size:cover}
+.world-map{width:100%;height:auto;aspect-ratio:4/5;background:#050604 center/cover no-repeat}
+.world-map:before{display:none}
+.world-map[data-map-index="21"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/chunjo-m1.png')}
+.world-map[data-map-index="23"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/chunjo-m2.png')}
+.world-map[data-map-index="24"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/guild-map-02.png')}
+.world-map[data-map-index="25"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/easy-monkey.png')}
+.world-map[data-map-index="108"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/medium-monkey.webp')}
+.world-map[data-map-index="109"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/hard-monkey.webp')}
+.world-map[data-map-index="61"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/mount-sohan.png')}
+.world-map[data-map-index="62"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/doyyumhwaji.png')}
+.world-map[data-map-index="71"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/spider-dungeon-v1.png')}
+.world-map[data-map-index="64"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/orc-valley.png')}
+.world-map[data-map-index="63"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/yongbi-desert.png')}
+.world-map[data-map-index="104"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/spider-dungeon-v1.png')}
+.world-map[data-map-index="65"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/hwang-temple.png')}
+.world-map[data-map-index="4"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/shinsoo-guild.png')}
+.world-map[data-map-index="44"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/jinno-guild.png')}
+.world-map[data-map-index="5"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/easy-monkey.png')}
+.world-map[data-map-index="45"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/easy-monkey.png')}
+.world-map[data-map-index="1"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/shinsoo-m1.png')}
+.world-map[data-map-index="3"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/shinsoo-m2.png')}
+.world-map[data-map-index="41"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/jinno-m1.png')}
+.world-map[data-map-index="43"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/jinno-m2.png')}
+.world-map[data-map-index="67"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/trent-forest.png')}
+.world-map[data-map-index="68"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/trent02-red-forest.png')}
+.world-map[data-map-index="72"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/grotto-v1.png')}
+.world-map[data-map-index="73"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/grotto-v2.png')}
+.density-heat-layer{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}.density-heat-dot{position:absolute;display:block;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
+.world-overview{min-height:510px;padding:17px;background:#0d1929;border:1px solid #294562;border-radius:7px}.world-overview h3{margin:3px 0 14px}.world-summary-grid{display:grid;grid-template-columns:1fr;gap:6px}.world-summary-grid>div{min-height:0;padding:9px 10px;border:1px solid #213852;border-radius:6px;background:#101d2d;display:flex;align-items:center;justify-content:space-between;gap:10px}.world-summary-grid b{order:2;color:#82b6ff;font-size:20px;overflow:hidden;text-overflow:ellipsis}.world-summary-grid span,.overview-restart span{display:block;color:#9db9de;font-size:11px}.overview-maps,.overview-restart,.overview-rates{margin-top:12px;padding-top:12px;border-top:1px solid #213852}.overview-maps h4,.overview-rates h4{margin:0 0 8px}.overview-maps-list{display:block}.overview-maps-list>div,.overview-rates div{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #213852;color:#9db9de;font-size:12px}.overview-maps b,.overview-rates b{color:#79e3af}.overview-restart b{display:block;margin-top:4px;font-size:12px;color:#dcecff}@media(max-width:1350px){.live-dashboard-grid{grid-template-columns:1fr}.world-overview{min-height:0}.live-grid{justify-content:start}}@media(max-width:1000px){.live-grid{grid-template-columns:1fr}.world-map{height:510px;max-width:510px;justify-self:center}}@media(max-width:520px){.world-map{height:440px}}
+@media(min-width:1351px){.live-shell{box-sizing:border-box;width:calc(66.666% - 9px);position:relative}.live-dashboard-grid{display:block}.world-overview{position:absolute;left:calc(100% + 18px);top:0;bottom:0;width:calc(50% - 9px);box-sizing:border-box;min-height:0}.live-map-section{width:100%}}
+/* 2026-09-27, [GA]Seban: the map fix below (and the ranking/activity tabs
+   further down) is scoped to 1351-2199px on purpose. The operator's own
+   monitor is 2560x1440 (~2554px viewport) and asked explicitly to keep that
+   exact resolution on the original, untouched rule above -- it was never the
+   one that looked broken; a 1920x1080 screen was. Everything from here down
+   only overrides the original for screens narrower than a real 2K monitor. */
+@media(min-width:1351px) and (max-width:2199px){
+/* The map card and "Stan serwera" card used a fixed 66.666%/50% split --
+   sized for a narrower layout where both roughly halve the width. On a wide
+   monitor that handed the status list (a simple label/value stack that never
+   needed more room) half the page, while the map -- the one thing meant to
+   grow -- was capped to two-thirds of what was left. Stan serwera gets a
+   fixed, generous-but-bounded width instead; the map claims everything else,
+   up to a cap matching what looked right on a 1920px screen. */
+.live-shell{box-sizing:border-box;width:calc(100% - 400px - 18px)!important;max-width:1130px!important;position:relative}
+.world-overview{position:absolute!important;left:calc(100% + 18px)!important;top:0;bottom:0;width:400px!important;box-sizing:border-box;min-height:0}
+.live-map-section{width:100%}
+}
+
+/* Seban Panel palette: the live widget no longer borrows Tieru's gold/brown skin. */
+.live-shell{background:linear-gradient(135deg,#101d2d,#0c1726);border-color:#213852}
+.live-shell header h2{color:#dcecff}.live-filters{background:#0d1929;border-color:#294562}.live-filters label,.live-shell footer{color:#b7cce5}
+.level-filter button{background:#203d63;color:#dcecff}.level-filter button.active{background:#1f6fe5;color:#fff}
+.world-map,.live-sidebar{border-color:#294562}.live-sidebar{background:#0d1929}.mini-stats div,.live-ranking a{background:#101d2d;border-color:#213852}.mini-stats b,.live-ranking a b{color:#82b6ff}.live-ranking span{color:#79e3af}
+.bot-point.is-stuck{background:#ef4444}.pt-mark,.stuck-mark{display:inline-block;margin-left:5px;padding:1px 4px;border-radius:4px;font-size:10px;line-height:1.3;background:#7c3aed;color:#fff}.stuck-mark{background:#dc2626}.dot.stuck{background:#ef4444}
+.world-map[data-map-index="21"],.world-map[data-map-index="1"],.world-map[data-map-index="41"]{aspect-ratio:4/5}.world-map[data-map-index="23"],.world-map[data-map-index="24"],.world-map[data-map-index="25"],.world-map[data-map-index="61"],.world-map[data-map-index="62"],.world-map[data-map-index="63"],.world-map[data-map-index="64"],.world-map[data-map-index="104"],.world-map[data-map-index="108"],.world-map[data-map-index="109"],.world-map[data-map-index="65"],.world-map[data-map-index="4"],.world-map[data-map-index="44"],.world-map[data-map-index="5"],.world-map[data-map-index="45"],.world-map[data-map-index="3"],.world-map[data-map-index="43"],.world-map[data-map-index="67"],.world-map[data-map-index="68"]{aspect-ratio:1/1}
+/* Exact map canvases: image is never cropped or stretched. */
+.live-dashboard-grid{display:grid!important;grid-template-columns:minmax(0,1fr) 300px!important;gap:18px!important}.live-grid{grid-template-columns:minmax(0,1fr) 300px!important;justify-content:stretch!important}.world-map{height:auto!important;width:100%!important;background-size:100% 100%!important;background-repeat:no-repeat!important}.world-map[data-map-index="21"],.world-map[data-map-index="1"],.world-map[data-map-index="41"]{aspect-ratio:4/5!important}.world-map[data-map-index="23"],.world-map[data-map-index="24"],.world-map[data-map-index="25"],.world-map[data-map-index="61"],.world-map[data-map-index="63"],.world-map[data-map-index="64"],.world-map[data-map-index="104"],.world-map[data-map-index="108"],.world-map[data-map-index="109"],.world-map[data-map-index="65"],.world-map[data-map-index="4"],.world-map[data-map-index="44"],.world-map[data-map-index="5"],.world-map[data-map-index="45"],.world-map[data-map-index="3"],.world-map[data-map-index="43"],.world-map[data-map-index="67"],.world-map[data-map-index="68"]{aspect-ratio:1!important}.quick-leader a,.live-ranking .is-global-leader{color:#ffe28a!important;text-shadow:0 0 9px #edb637}.quick-leader a:after,.live-ranking .is-global-leader:before{content:' ✦';color:#ffe28a;animation:leader-star 1.8s ease-in-out infinite}@media(max-width:1350px){.live-dashboard-grid,.live-grid{grid-template-columns:1fr!important}.world-overview{position:static!important;width:auto!important}}
+/* .live-dashboard-grid has exactly one real child (.live-grid) -- .live-insights
+   escapes it via position:absolute (see the >=1700px rule further down), it's
+   never a real second grid column. The original "minmax(0,1fr) 300px" above
+   reserved a phantom 300px+gap column nothing used, quietly starving the map
+   of width (reported [GA]Seban 2026-09-27, a 1920x1080 screen: map rendered
+   at ~344px and turned tall and narrow). Scoped to 1351-2199px like the other
+   map fixes above -- must come after the original rule on this line so the
+   cascade (equal !important specificity, source order decides) picks this one
+   within that range; a real 2K monitor keeps the original untouched. */
+@media(min-width:1351px) and (max-width:2199px){.live-dashboard-grid{grid-template-columns:minmax(0,1fr)!important}}
+
+/* v1.39: live map uses the active panel theme, not fixed Tieru blue. */
+:root{--live-surface:#0d1929;--live-surface-strong:#101d2d;--live-border:#294562;--live-line:#213852;--live-accent:#1f6fe5;--live-accent-text:#dcecff;--live-number:#82b6ff;--live-progress-end:#49d49a;--live-filter:#203d63}
+body[data-theme="ember"]{--live-surface:#251717;--live-surface-strong:#2b1918;--live-border:#563535;--live-line:#4b302f;--live-accent:#b45337;--live-accent-text:#fff0e5;--live-number:#e7aa78;--live-progress-end:#e0a154;--live-filter:#643d30}
+body[data-theme="forest"]{--live-surface:#12251a;--live-surface-strong:#173021;--live-border:#2a5439;--live-line:#244a33;--live-accent:#2d8b57;--live-accent-text:#ebfff1;--live-number:#85dba3;--live-progress-end:#86d85a;--live-filter:#255f3e}
+body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;--live-border:#4a3520;--live-line:#3a2a18;--live-accent:#e8b93f;--live-accent-text:#f3e9d8;--live-number:#e8b93f;--live-progress-end:#c94a2a;--live-filter:#3a2a18}
+.live-shell{background:linear-gradient(135deg,var(--live-surface-strong),var(--live-surface))!important;border-color:var(--live-border)!important}.live-shell header h2{color:var(--live-accent-text)!important}.live-filters{background:var(--live-surface)!important;border-color:var(--live-border)!important}.live-filters label,.live-shell footer{color:var(--live-accent-text)!important}.live-filters input[type=checkbox]{accent-color:var(--live-accent)!important}.level-filter button{background:var(--live-filter)!important;color:var(--live-accent-text)!important;border-color:var(--live-border)!important}.level-filter button.active{background:var(--live-accent)!important;color:#fff!important}.world-map{border-color:var(--live-border)!important}.live-sidebar,.world-overview{background:var(--live-surface)!important;border-color:var(--live-border)!important}.mini-stats div,.live-ranking a,.world-summary-grid>div{background:var(--live-surface-strong)!important;border-color:var(--live-line)!important}.mini-stats b,.live-ranking a b,.world-summary-grid b{color:var(--live-number)!important}.live-ranking span{color:var(--live-progress-end)!important}.live-activity,.overview-maps,.overview-restart,.overview-rates{border-color:var(--live-line)!important}.activity-line i{background:var(--live-line)!important}.activity-line i:before{background:linear-gradient(90deg,var(--live-accent),var(--live-progress-end))!important}.carousel-arrows button{background:var(--live-accent)!important;color:#fff!important}.quick-rank-slide li{border-color:var(--live-line)!important}.quick-rank-slide li:before,.quick-rank-slide a:hover{color:var(--live-number)!important}.carousel-dots button{background:var(--live-line)!important}.carousel-dots button.active{background:var(--live-accent)!important}
+
+/* v1.39.1: every label and value in the world-status card follows the active theme. */
+.world-summary-grid span,.overview-restart span,.overview-maps-list>div,.overview-rates div{color:var(--live-accent-text)!important}.overview-maps b,.overview-rates b,.overview-restart b{color:var(--live-progress-end)!important}.world-overview h3,.overview-maps h4,.overview-rates h4{color:var(--live-accent-text)!important}.world-overview .eyebrow{color:var(--live-number)!important}
+
+/* v1.40: keep the small dividers in the dashboard world card themed too. */
+.overview-maps-list>div,.overview-rates div{border-color:var(--live-line)!important}
+
+/* v1.41: wysokość .live-sidebar jest teraz ustawiana z JS (dokładnie tyle,
+   ile faktycznie zajmuje mapa -- patrz live-widget.js/syncSidebarHeight).
+   Tu tylko zdejmujemy sztywny floor 510px i pilnujemy, żeby nadmiar treści
+   (ranking/aktywności) przewijał się w środku, a nie rozpychał box. Mapa
+   (.world-map) w ogóle nie jest tu dotykana. */
+.live-sidebar{min-height:0!important;box-sizing:border-box!important;overflow:hidden!important}
+@media(max-width:1000px){.live-sidebar{height:auto!important;max-height:none!important;overflow:visible!important}.live-ranking-section{min-height:0!important}.live-sidebar .live-ranking{height:auto!important;max-height:340px!important;overflow-y:auto!important}}
+
+/* Flagi na żywej mapie: kanał świeci wyłącznie na obwódce, nigdy na fladze. */
+.bot-point{width:18px!important;height:18px!important;box-sizing:border-box!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;--map-channel-ring:#78b6ff}
+.bot-point.ch-1{--map-channel-ring:#43df91}.bot-point.ch-2{--map-channel-ring:#ef5ac9}
+/* CH3/CH4: added 2026-09-28 alongside Playerbots 2.2.36's optional 3rd/4th
+   channel. White/black per operator's request -- picked to stay clear of
+   both the existing CH1 green/CH2 pink rings and the empire flag colors
+   (Chunjo red, Shinsoo blue, Jinno gold). A literal black ring would be
+   invisible against the map's own dark background, so ch-4 gets an extra
+   white outline on top of its dark ring instead of relying on the ring glow
+   alone (which fades to nothing for a near-black color). */
+.bot-point.ch-3{--map-channel-ring:#f5f5f5}
+.bot-point.ch-4{--map-channel-ring:#2b2b30}
+.bot-point.ch-4::before{box-shadow:0 0 0 1px #fff,0 0 5px #fff9}
+.bot-point .bot-point-flag{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit;position:relative;z-index:1}
+.bot-point::before{content:"";position:absolute;inset:-1px;z-index:2;border:1px solid var(--map-channel-ring);border-radius:inherit;box-shadow:0 0 3px color-mix(in srgb,var(--map-channel-ring) 85%,transparent),0 0 7px color-mix(in srgb,var(--map-channel-ring) 42%,transparent);pointer-events:none}
+.bot-point.is-pt,.bot-point.is-pt .bot-point-flag{border-radius:2px!important}.bot-point.is-stuck{background:transparent!important}
+.bot-point-stuck{position:absolute;z-index:4;right:-7px;top:-8px;color:#ff4a48;font:900 13px/1 Arial,sans-serif;text-shadow:0 0 3px #270000,0 0 6px #ff4a48;pointer-events:none}
+.bot-point.is-metin::before,.map-legend-marker--metin::after{inset:-3px;border:2px solid transparent;background:conic-gradient(#ff4d5a,#ffb347,#f9ed69,#53df8b,#48d7ff,#9c74ff,#f05ac9,#ff4d5a);background-origin:border-box;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;box-shadow:0 0 7px #f05ac980;animation:map-metin-ring-rainbow 2.4s linear infinite}.bot-point em{z-index:5;left:12px;top:-18px}
+@keyframes map-metin-ring-rainbow{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+.map-legend-marker{position:relative;display:inline-block;width:18px;height:18px;margin-right:5px;vertical-align:-5px;border-radius:50%;--map-channel-ring:#43df91}.map-legend-marker img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.map-legend-marker::after{content:"";position:absolute;inset:-1px;border:1px solid var(--map-channel-ring);border-radius:inherit;box-shadow:0 0 3px color-mix(in srgb,var(--map-channel-ring) 86%,transparent),0 0 6px color-mix(in srgb,var(--map-channel-ring) 40%,transparent)}.map-legend-marker--ch2{--map-channel-ring:#ef5ac9}
+.map-legend-marker--party,.map-legend-marker--party img{border-radius:2px}.map-legend-marker--stuck b{position:absolute;z-index:2;right:-7px;top:-8px;color:#ff4a48;font:900 13px/1 Arial,sans-serif;text-shadow:0 0 3px #270000}
+.map-legend-channel{display:inline-block;width:11px;height:11px;box-sizing:border-box;margin-right:4px;vertical-align:-1px;border-radius:50%;border:2px solid #43df91;box-shadow:0 0 4px #43df91}.map-legend-channel--ch2{border-color:#ef5ac9;box-shadow:0 0 4px #ef5ac9}
+.map-legend-channel--ch3{border-color:#f5f5f5;box-shadow:0 0 4px #f5f5f5}
+.map-legend-channel--ch4{border-color:#2b2b30;box-shadow:0 0 0 1px #fff,0 0 4px #fff9}
+@media (prefers-reduced-motion:reduce){.bot-point.is-metin::before,.map-legend-marker--metin::after{animation:none}}
+
+/* v1.43: aktywny event czasowy (np. "podwójny drop na godzinę") na danej
+   racie -- wiersz podświetlony na inny kolor, plakietka z bonusem i żywym
+   odliczaniem do końca (JS w live-widget.js), żeby było widać na pierwszy
+   rzut oka że to nie jest stała rata tylko coś co zaraz wygaśnie. */
+.overview-rates .rate-row{flex-wrap:nowrap!important;gap:6px}
+.overview-rates .rate-row>span:first-child{flex:0 0 auto}
+/* value (100%) + bonus (+50% 1h) grouped in one flex child, tight against
+   each other on the row's right edge -- previously the bonus <small> was its
+   own third flex item with flex:1 1 auto inside a justify-content:
+   space-between row, which stretched it to fill the row and shoved it out
+   to the far right edge with a huge gap after "100%" instead of right next
+   to it. Reported by [GA]Seban 2026-09-21. */
+.overview-rates .rate-row .rate-value-group{display:flex;align-items:baseline;gap:6px;flex:0 0 auto;min-width:0}
+.overview-rates .rate-row.rate-event-active{background:color-mix(in srgb,var(--live-accent) 9%,transparent)!important;border-radius:6px;padding:5px 8px!important;border-bottom-color:transparent!important}
+/* Tylko bonus dostaje inny kolor -- "100%" ma zostać w normalnym kolorze
+   wartości, żeby jedynym wyróżnikiem eventu było złote "+50% 1h" obok niego
+   (poprzednio cała wartość 100% też zmieniała kolor na złoty). */
+.overview-rates .rate-bonus{flex:0 0 auto;min-width:0;text-align:right;margin:0;font-size:11px;color:#d7b87c;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* v1.44: legenda znaczników mapy przeniesiona w HTML zaraz pod mapę (była na
+   samym końcu sekcji, więc na telefonie w pionie -- gdzie wszystko stoi w
+   jednej kolumnie -- wyświetlała się dopiero po całym panelu bocznym i
+   "Boty na mapach", zgłoszone 21.09 zrzutami z iPhone'a). .live-grid ma na
+   sztywno 2 kolumny (mapa/panel) -- samo grid-column:1/-1 na 3. dziecku
+   psuło auto-układanie i przesuwało panel boczny pod mapę na desktopie
+   (zgłoszone 21.09 po zmianie). Jawne przypięcie każdego elementu do
+   konkretnej komórki, osobno na desktopie i przy złożeniu w jedną kolumnę
+   (ten sam próg 1350px co reszta .live-grid), więc auto-placement nigdy nie
+   musi zgadywać. */
+.live-grid{grid-template-rows:auto auto!important}
+.live-grid>.world-map{grid-column:1!important;grid-row:1!important}
+.live-grid>.map-legend{grid-column:1/-1!important;grid-row:2!important}
+.live-grid>.live-sidebar{grid-column:2!important;grid-row:1!important}
+@media(max-width:1350px){
+.live-grid>.world-map{grid-column:1!important;grid-row:1!important}
+.live-grid>.map-legend{grid-column:1!important;grid-row:2!important}
+.live-grid>.live-sidebar{grid-column:1!important;grid-row:3!important}
+}
+
+/* v1.45: pasek przewijania Rankingu i Aktywności motywowy -- kolor akcentu
+   (i tła) zmienia się razem z --live-* zmiennymi po zmianie motywu
+   (ember/forest/empire), zamiast sztywnych kolorów sprzed tej poprawki. */
+.live-ranking,#live-activity{scrollbar-width:thin;scrollbar-color:var(--live-line) var(--live-surface-strong)}
+.live-ranking::-webkit-scrollbar,#live-activity::-webkit-scrollbar{width:8px}
+.live-ranking::-webkit-scrollbar-track,#live-activity::-webkit-scrollbar-track{background:var(--live-surface-strong);border-radius:999px}
+.live-ranking::-webkit-scrollbar-thumb,#live-activity::-webkit-scrollbar-thumb{background:var(--live-line);border-radius:999px}
+.live-ranking::-webkit-scrollbar-thumb:hover,#live-activity::-webkit-scrollbar-thumb:hover{background:var(--live-accent)}
+
+/* v1.46: na desktopie .live-ranking-section (flex:1, baza 0%) i .live-activity
+   (baza auto, pełna treść) walczyły o tę samą, ograniczoną wysokość panelu
+   bocznego -- gdy razem nie mieściły się, ranking dostawał dosłownie 0px
+   (potwierdzone w devtools) i nachodził wizualnie na nagłówek "Aktywności"
+   pod spodem. Ranking dostaje teraz stały, capnięty rozmiar (jak na
+   telefonie) i własny scroll, aktywności elastycznie zajmują resztę ze
+   swoim wewnętrznym scrollem -- żadne z nich już nie może zejść do zera. */
+@media(min-width:1351px){
+.live-ranking-section{flex:0 0 auto!important;max-height:380px!important;min-height:0!important;overflow:hidden!important}
+.live-sidebar .live-ranking{flex:1 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow-y:auto!important}
+.live-activity{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+}
+/* Zakladki Ranking/Aktywnosci, tylko 1351-2199px (patrz uzasadnienie zakresu
+   przy .live-shell wyzej): na 2560px kolumna boczna byla juz dosc wysoka pod
+   starym, przywroconym powyzej podzialem 380px/reszta, wiec "dziura" pod
+   rankingiem nigdy tam realnie nie wystepowala -- problem byl tylko na
+   ekranach do ok. 2199px, gdzie mapa (a wiec i kolumna boczna) urosla po
+   poprawce powyzej. Zgloszone [GA]Seban 2026-09-27. */
+.live-sidebar-tabs{display:none}
+@media(min-width:1351px) and (max-width:2199px){
+/* JS mirrors .live-sidebar's height to the map's own (live-widget.js,
+   syncSidebarHeight) so they line up side by side -- fine on a wide screen,
+   but at ~1366px the map itself is short (its width, hence height via
+   aspect-ratio, is squeezed by the fixed 300px sidebar column), and
+   mini-stats (~163px) + the tabs bar (~53px incl. margin) alone ate almost
+   all of it, leaving the active tab (ranking or aktywnosci) too short to
+   show even one row (~15-27px measured). min-height overrides JS's inline
+   style height (CSS min/max-height always win over an explicit height,
+   inline or not), so the sidebar can be taller than a short map when needed
+   -- a short map next to a taller list is normal, nothing breaks visually.
+   Reported [GA]Seban 2026-09-27. */
+.live-sidebar{min-height:460px!important}
+.live-sidebar-tabs{display:flex;gap:6px;margin:10px 0}
+.live-sidebar-tabs button{flex:1;padding:7px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text);font:inherit;font-size:12px;cursor:pointer}
+.live-sidebar-tabs button.active{background:var(--live-accent);color:#fff}
+.live-ranking-section,.live-activity{display:none!important}
+.live-sidebar[data-sidebar-tab="ranking"] .live-ranking-section{display:flex!important;flex:1 1 auto!important;max-height:none!important;min-height:0!important;overflow:hidden!important}
+.live-sidebar[data-sidebar-tab="ranking"] .live-ranking{flex:1 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow-y:auto!important}
+.live-sidebar[data-sidebar-tab="activity"] .live-activity{display:flex!important;flex-direction:column;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+.live-sidebar[data-sidebar-tab="activity"] #live-activity{flex:1 1 auto!important;max-height:none!important;overflow-y:auto!important}
+}
+
+/* Lista "Boty na mapach" jest częścią panelu o stałej wysokości obok mapy.
+   Gdy jest więcej map niż wolnego miejsca, przewija się tylko sama lista —
+   nie rozciąga karty świata ani kolejnych kafelków Dashboardu. */
+@media(min-width:1351px){
+.world-overview{display:flex;flex-direction:column;overflow:hidden}
+.overview-pages{display:flex;flex:1 1 auto;flex-direction:column;min-height:0}
+.overview-page[data-page="2"]{display:flex;flex:1 1 auto;flex-direction:column;min-height:0}
+.overview-page[data-page="2"] .overview-maps{display:flex;flex:1 1 auto;flex-direction:column;min-height:0}
+.overview-page[data-page="2"] .overview-maps-list{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--live-accent) var(--live-surface-strong)}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar{width:8px}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar-track{background:var(--live-surface-strong);border-radius:999px}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar-thumb{background:linear-gradient(var(--live-accent),var(--live-progress-end));border:2px solid var(--live-surface-strong);border-radius:999px}
+.overview-page[data-page="2"] .overview-maps-list::-webkit-scrollbar-thumb:hover{background:var(--live-number)}
+}
+.item-policy-editor{background:color-mix(in srgb,var(--panel) 86%,#000)!important;border-color:var(--edge)!important;color:var(--text)!important;caret-color:var(--blue2)}.item-policy-editor:focus{border-color:var(--blue2)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--blue2) 28%,transparent)}
+.live-insights{display:none!important}@media(min-width:1700px){.live-dashboard-grid{position:relative}.live-insights{display:flex!important;position:absolute;inset:auto 0 auto auto!important;top:0!important;right:0!important;bottom:auto!important;left:auto!important;width:260px;height:auto!important;box-sizing:border-box;flex-direction:column;gap:12px;padding:12px;border:1px solid var(--live-border);border-radius:7px;background:var(--live-surface);z-index:1}.live-insights-tabs{display:flex;gap:6px}.live-insights-tabs button{flex:1;padding:7px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text)}.live-insights-tabs button.active{background:var(--live-accent);color:#fff}.live-insight-page{display:none}.live-insight-page.active{display:grid;gap:9px}.live-insight-page h3{margin:0;color:var(--live-accent-text);font-size:14px}.map-insight-chart,.map-respawn-summary{display:grid;gap:7px}.map-insight-row{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;font-size:12px;color:var(--live-accent-text)}.map-insight-row i{height:8px;border-radius:999px;background:var(--live-line);overflow:hidden}.map-insight-row i:before{content:"";display:block;width:var(--share);height:100%;background:var(--chart-color);border-radius:inherit}.map-respawn-summary>div{padding:9px;border:1px solid var(--live-line);border-radius:6px;background:var(--live-surface-strong)}.map-respawn-summary b,.map-respawn-summary small{display:block}.map-respawn-summary b{color:var(--live-number)}.map-respawn-summary small{margin-top:3px;color:var(--live-accent-text)}}
+.live-insights-toggle{display:none}@media(max-width:1699px){.live-insights-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin:10px 0 0;padding:7px 11px;border:1px solid var(--live-border);border-radius:7px;background:var(--live-filter);color:var(--live-accent-text);font:inherit;font-size:12px;cursor:pointer}.live-shell.show-map-insights .live-insights-toggle{background:var(--live-accent);color:#fff}.live-shell.show-map-insights .live-sidebar{display:none!important}.live-shell.show-map-insights .live-insights{display:flex!important;position:static;inset:auto!important;width:auto;height:auto!important;min-height:0;box-sizing:border-box;flex-direction:column;gap:12px;padding:12px;border:1px solid var(--live-border);border-radius:7px;background:var(--live-surface)}.live-shell.show-map-insights .live-insights-tabs{display:flex;gap:6px}.live-shell.show-map-insights .live-insights-tabs button{flex:1;padding:7px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text)}.live-shell.show-map-insights .live-insights-tabs button.active{background:var(--live-accent);color:#fff}.live-shell.show-map-insights .live-insight-page{display:none}.live-shell.show-map-insights .live-insight-page.active{display:grid;gap:9px}.live-shell.show-map-insights .live-insight-page h3{margin:0;color:var(--live-accent-text);font-size:14px}.live-shell.show-map-insights .map-insight-chart,.live-shell.show-map-insights .map-respawn-summary{display:grid;gap:7px}.live-shell.show-map-insights .map-insight-row{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;font-size:12px;color:var(--live-accent-text)}.live-shell.show-map-insights .map-insight-row i{height:8px;border-radius:999px;background:var(--live-line);overflow:hidden}.live-shell.show-map-insights .map-insight-row i:before{content:"";display:block;width:var(--share);height:100%;background:var(--chart-color);border-radius:inherit}.live-shell.show-map-insights .map-respawn-summary>div{padding:9px;border:1px solid var(--live-line);border-radius:6px;background:var(--live-surface-strong)}.live-shell.show-map-insights .map-respawn-summary b,.live-shell.show-map-insights .map-respawn-summary small{display:block}.live-shell.show-map-insights .map-respawn-summary b{color:var(--live-number)}.live-shell.show-map-insights .map-respawn-summary small{margin-top:3px;color:var(--live-accent-text)}}@media(min-width:1351px) and (max-width:1699px){.live-shell.show-map-insights .live-grid>.live-insights{grid-column:2!important;grid-row:1!important}}@media(max-width:1350px){.live-shell.show-map-insights .live-grid>.live-insights{grid-column:1!important;grid-row:3!important}}
+
+/* Wide dashboard: every map signal stays visible in its own compact panel. */
+.map-insight-card{display:grid;gap:9px;padding:11px;border:1px solid var(--live-border);border-radius:7px;background:var(--live-surface-strong)}
+.map-insight-card h3{margin:0;color:var(--live-accent-text);font-size:14px}
+.map-insight-chart{display:flex;align-items:center;gap:12px}
+.map-insight-list{max-height:220px;overflow-y:auto}
+.map-insight-list{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--live-accent) 75%,var(--live-accent-text)) color-mix(in srgb,var(--live-surface-strong) 70%,transparent)}
+.map-insight-list::-webkit-scrollbar{width:7px}
+.map-insight-list::-webkit-scrollbar-track{background:color-mix(in srgb,var(--live-surface-strong) 70%,transparent);border-radius:999px}
+.map-insight-list::-webkit-scrollbar-thumb{background:linear-gradient(180deg,color-mix(in srgb,var(--live-accent) 85%,var(--live-accent-text)),var(--live-accent));border:1px solid color-mix(in srgb,var(--live-surface-strong) 70%,transparent);border-radius:999px}
+.map-insight-list::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,color-mix(in srgb,var(--live-accent) 65%,var(--live-accent-text)),color-mix(in srgb,var(--live-accent) 92%,var(--live-accent-text)))}
+.insight-empire-filter{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:2px}
+.insight-empire-filter button{padding:4px 9px;border:1px solid var(--live-border);border-radius:14px;background:var(--live-filter);color:var(--live-accent-text);font-size:11px;cursor:pointer}
+.insight-empire-filter button.active{background:var(--live-accent);color:#fff}
+/* "Aktywności w świecie" + "Boty wg poziomu" used to be two separate,
+   always-visible cards stacked with their own scrollbars -- cramped and
+   broke out of the sidebar's width on desktop (screenshot, 2026-10-02).
+   One card, two tabs, same switcher pattern as the existing Ranking/
+   Aktywności tabs on this page (live-sidebar[data-sidebar-tab]). */
+.map-insight-card--world{gap:7px}
+/* Rozciąga się do dołu .live-insights (wysokość tej kolumny jest teraz
+   dopasowana do mapy przez JS, patrz live-widget.js) zamiast zostawiać
+   lukę/schodek pod Ranking/Aktywności. */
+#world-insights-card{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+#world-insights-card .world-tab-panel{flex:1 1 auto;max-height:280px;min-height:0;overflow-y:auto}
+.insight-tabs{display:flex;gap:5px;margin-bottom:2px}
+.insight-tabs button{flex:1;padding:6px 4px;border:1px solid var(--live-border);border-radius:6px;background:var(--live-filter);color:var(--live-accent-text);font-size:11px;cursor:pointer}
+.insight-tabs button.active{background:var(--live-accent);color:#fff}
+.world-tab-panel{display:none}
+#world-insights-card[data-world-tab="activity"] #world-activity-chart{display:block}
+#world-insights-card[data-world-tab="levels"] #world-level-chart{display:block}
+.map-donut{width:78px;aspect-ratio:1;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(circle at center,var(--live-surface) 0 57%,transparent 59%),var(--map-donut);flex:0 0 auto}
+.map-donut b{display:block;color:var(--live-accent-text);font-size:12px;line-height:1.05}
+.map-donut small{display:block;margin-top:2px;color:var(--live-number);font-size:16px;font-weight:800}
+.map-donut-legend{display:grid;gap:5px;min-width:0}
+.map-donut-legend span{display:flex;align-items:center;gap:5px;color:var(--live-accent-text);font-size:11px;white-space:nowrap}
+.map-donut-legend i{width:7px;height:7px;border-radius:50%;background:var(--dot);flex:0 0 auto}
+.map-donut-legend b{margin-left:auto;color:var(--live-number)}
+@media(min-width:1700px){.live-insights{gap:11px!important;padding:0!important;border:0!important;background:transparent!important}.live-insights .map-insight-card{box-shadow:0 8px 18px #0002}.live-insights .map-respawn-summary>div{padding:8px}}
+.world-map[data-map-index="62"],.world-map[data-map-index="71"],.world-map[data-map-index="72"],.world-map[data-map-index="73"]{aspect-ratio:1!important}
+
+/* v1.93.2: at >=1700px .live-insights (Rozklad kanalow / Respawny / Krolestwa)
+   used to float via position:absolute, pinned to .live-dashboard-grid's right
+   edge -- harmless while that edge sat in the unused phantom column above, but
+   now that the phantom column is gone, that same right edge lines up with the
+   real ranking sidebar and the floating panel would sit on top of it. Turned
+   into a real third grid column instead: map | ranking (300px) | insights
+   (260px), so nothing overlaps and the map still gets everything left over.
+   Reported [GA]Seban 2026-09-27 (1920x1080 monitor: map shrank to ~344px tall
+   and narrow, and unused gaps between the map/ranking and the insights cards,
+   and between the world-status card and the page edge). Scoped to max 2199px
+   for the same reason as the rules above -- a real 2K monitor keeps the
+   original, untouched >=1700px rule further up this file. */
+@media(min-width:1700px) and (max-width:2199px){
+  .live-grid{grid-template-columns:minmax(0,1fr) 300px 260px!important}
+  .live-grid>.live-sidebar{grid-column:2!important;grid-row:1!important}
+  .live-insights{position:static!important;inset:auto!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;grid-column:3!important;grid-row:1!important;width:auto!important;z-index:auto!important}
+  .live-grid>.map-legend{grid-column:1/3!important}
+}
+
+/* On a 1920x1080 screen the widened map (width:100% of a much bigger column
+   now that the phantom column is gone) came out ~616px tall for the 4:5-ratio
+   maps -- taller than the space left below the header/filters in one
+   viewport, so seeing the whole map needed scrolling mid-map. Reported
+   [GA]Seban 2026-09-27: "mapa jest wysoka a wąska że nie da się jej całej
+   wyświetlić". Capping height directly (letting width follow the aspect
+   ratio down, instead of the other way around) keeps the same proportions at
+   a size that fits. Same 1351-2199px scope as the rest of this session's
+   fixes -- a real 2K monitor is untouched. */
+@media(min-width:1351px) and (max-width:2199px){
+  .world-map{width:auto!important;max-height:520px!important}
+  /* max-width was a bare px cap -- fine on 1920px where the grid column is
+     wide, but at ~1366px (narrower column, sidebar still fixed at 300px) the
+     cap was WIDER than the actual column, so the aspect-ratio-sized map
+     (width:auto, sized off max-height) overflowed its grid cell sideways and
+     visually sat on top of the sidebar/insights next to it -- exactly the
+     "Diagramy mapy nie wyswietlaja sie" bug reported [GA]Seban 2026-09-27.
+     min(<cap>,100%) never exceeds the column's own width either. */
+  .world-map[data-map-index="21"],.world-map[data-map-index="1"],.world-map[data-map-index="41"]{max-width:min(416px,100%)!important}
+  .world-map[data-map-index="23"],.world-map[data-map-index="24"],.world-map[data-map-index="25"],.world-map[data-map-index="61"],.world-map[data-map-index="63"],.world-map[data-map-index="64"],.world-map[data-map-index="104"],.world-map[data-map-index="108"],.world-map[data-map-index="109"],.world-map[data-map-index="65"],.world-map[data-map-index="4"],.world-map[data-map-index="44"],.world-map[data-map-index="5"],.world-map[data-map-index="45"],.world-map[data-map-index="3"],.world-map[data-map-index="43"],.world-map[data-map-index="67"],.world-map[data-map-index="68"],.world-map[data-map-index="62"],.world-map[data-map-index="71"],.world-map[data-map-index="72"],.world-map[data-map-index="73"]{max-width:min(520px,100%)!important}
+}
+
+/* Bot markers (18x18px, fixed since the map was always ~500-1000px wide) were
+   never scaled to the map itself -- on a narrower rendered map (e.g. ~260px
+   at 1366px wide with the ranking sidebar showing) they turned into an
+   unreadable overlapping blob. container queries key off .world-map's own
+   rendered width, not the viewport, so this also helps the map at any other
+   narrow size (tablet, "Diagramy mapy" toggled, etc.) without a separate
+   breakpoint per case. Above ~600px the markers are untouched (matches the
+   size the map already had everywhere before today, including 2K). Reported
+   [GA]Seban 2026-09-27. */
+.world-map{container-type:inline-size}
+@container (max-width:320px){
+  .bot-point{width:11px!important;height:11px!important}
+  .bot-point em{font-size:8px!important;top:-12px!important;left:6px!important}
+  .bot-point-stuck{right:-5px!important;top:-6px!important;font-size:10px!important}
+}
+@container (min-width:321px) and (max-width:450px){
+  .bot-point{width:13px!important;height:13px!important}
+  .bot-point em{font-size:9px!important;top:-13px!important}
+  .bot-point-stuck{right:-6px!important;top:-7px!important;font-size:11px!important}
+}
+@container (min-width:451px) and (max-width:600px){
+  .bot-point{width:15px!important;height:15px!important}
+}
+}

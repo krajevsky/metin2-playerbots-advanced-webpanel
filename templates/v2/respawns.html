@@ -1,0 +1,56 @@
+{% extends 'v2/base.html' %}
+{% block title %}Respawny · {{ panel_brand }}{% endblock %}
+{% block page_title %}♨ Respawny{% endblock %}
+{% block topbar_actions %}<span class="v2-badge v2-badge-live"><i class="v2-dot"></i>LIVE</span>{% endblock %}
+{% block content %}
+<script>document.body.dataset.ajaxForms='1';</script>
+<p class="muted" style="margin:0 0 var(--sp-4)">Dostosuj tempo i liczebność świata bez wyłączania serwera. Zmiany globalne trafiają do rdzenia przez kolejkę MT2009 i zostają zapisane po restarcie.</p>
+
+<div class="v2-grid cols-2" style="margin-bottom:var(--sp-3)">
+  <form action="{{ url_for('respawns_delay') }}" method="post" class="v2-card v2-stack">
+    <div><p class="faint" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;margin:0 0 2px">Czas odrodzenia</p><h2>⏱ Tempo świata</h2></div>
+    <p class="muted" style="margin:0">100% zachowuje czasy z plików Tieru. Niższa wartość skraca oczekiwanie, przy czym rdzeń nigdy nie zejdzie poniżej 3 sekund.</p>
+    <label><span>🗿 Metiny i bossy <output data-for="delay_boss">{{ regen.delay.boss }}%</output></span><input id="delay_boss" name="delay_boss" type="range" min="10" max="100" step="5" value="{{ regen.delay.boss }}"><small>co {{ regen.delay.boss }}% zwykłego czasu</small></label>
+    <label><span>⚔ Zwykłe potwory <output data-for="delay_mob">{{ regen.delay.mob }}%</output></span><input id="delay_mob" name="delay_mob" type="range" min="10" max="100" step="5" value="{{ regen.delay.mob }}"><small>co {{ regen.delay.mob }}% zwykłego czasu</small></label>
+    <button class="v2-btn-primary" type="submit" style="margin-top:4px">Zastosuj tempo na żywo</button>
+  </form>
+
+  <form action="{{ url_for('respawns_count') }}" method="post" class="v2-card v2-stack">
+    <div><p class="faint" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;margin:0 0 2px">Liczebność</p><h2>✦ Ile stoi na mapie</h2></div>
+    <p class="muted" style="margin:0">Mnożnik uzupełnia każdą linię respawnu przy kolejnym cyklu. NPC, teleporty, rudy i instancje pozostają bez zmian.</p>
+    <label>🗿 Metiny i bossy<select name="count_boss">{% for value in count_choices %}<option value="{{ value }}" {% if regen.count.boss == value %}selected{% endif %}>{{ value }}%{% if value == 100 %} · domyślnie{% endif %}</option>{% endfor %}</select></label>
+    <label>⚔ Zwykłe potwory<select name="count_mob">{% for value in count_choices %}<option value="{{ value }}" {% if regen.count.mob == value %}selected{% endif %}>{{ value }}%{% if value == 100 %} · domyślnie{% endif %}</option>{% endfor %}</select></label>
+    <button class="v2-btn-primary" type="submit" style="margin-top:4px">Zastosuj liczebność na żywo</button>
+  </form>
+</div>
+
+<div class="v2-card v2-stack {{ '' if feature_enabled('map_respawns') else 'feature-locked' }}" style="margin-bottom:var(--sp-3)">
+  {% if not feature_enabled('map_respawns') %}<p class="v2-badge v2-badge-warn" style="width:fit-content">🔒 Dokładne czasy jednej mapy wymagają helpera m2-map-regens — <a href="{{ url_for('manage_panel') }}#compatibility" style="text-decoration:underline">szczegóły</a></p>{% endif %}
+  <div class="v2-row" style="justify-content:space-between"><h2>⌖ Własny czas respawnu</h2><span class="muted" style="font-size:var(--fs-xs)">↻ wymaga krótkiego restartu rdzeni</span></div>
+  <p class="muted" style="margin:0">To precyzyjne ustawienie nadpisuje czas w pliku wybranej mapy. Puste pole przywraca wartość dostarczoną z wydaniem Tieru.</p>
+  <form action="{{ url_for('respawns_map') }}" method="post" class="v2-row" style="align-items:flex-end">
+    <label>Mapa<select name="map_index" id="respawn-map">{% for index, label in map_options %}<option value="{{ index }}" data-stones="{{ '1' if index in stone_maps else '0' }}">{{ label }}</option>{% endfor %}</select></label>
+    <label>Rodzaj<select name="target" id="respawn-target"><option value="mob">Potwory</option><option value="stone">Metiny</option></select></label>
+    <label>Czas (sekundy)<input name="seconds" type="number" min="1" max="3600" placeholder="domyślny" style="width:120px"></label>
+    <button class="v2-btn-primary" type="submit">Zapisz dla mapy</button>
+  </form>
+  <p class="muted" id="respawn-map-hint" style="margin:0;font-size:var(--fs-xs)"></p>
+</div>
+
+<div class="v2-grid cols-wide">
+  <div class="v2-card"><b>🗿 Metiny i bossy</b><p class="muted" style="margin:6px 0 0">Silnik MT2009 łączy je w jedną grupę. Ustawienie dotyczy obu naraz.</p></div>
+  <div class="v2-card"><b>⚡ Zmiany live</b><p class="muted" style="margin:6px 0 0">Wpływają na następny respawn, nie tworzą dodatkowych jednostek natychmiast.</p></div>
+  <div class="v2-card"><b>↻ Mapa</b><p class="muted" style="margin:6px 0 0">Indywidualne sekundy są plikową zmianą mapy, dlatego rdzenie odtwarzają się po zapisaniu.</p></div>
+</div>
+
+<script data-page-script>
+(() => {
+  document.querySelectorAll('input[type="range"]').forEach(input => input.addEventListener('input', () => {
+    const output = document.querySelector(`output[data-for="${input.id}"]`); if (output) output.textContent = input.value + '%';
+  }));
+  const map = document.getElementById('respawn-map'), target = document.getElementById('respawn-target'), hint = document.getElementById('respawn-map-hint');
+  function updateMapTarget(){ const hasStones = map.options[map.selectedIndex].dataset.stones === '1'; target.querySelector('[value="stone"]').disabled = !hasStones; if (!hasStones && target.value === 'stone') target.value = 'mob'; hint.textContent = hasStones ? 'Możesz ustawić osobny czas dla potworów lub Metinów.' : 'Ta mapa nie ma osobnego pliku respawnu Metinów.'; }
+  map.addEventListener('change', updateMapTarget); updateMapTarget();
+})();
+</script>
+{% endblock %}

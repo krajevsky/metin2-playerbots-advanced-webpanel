@@ -1,0 +1,26 @@
+<!doctype html><html lang="{{ ui_language|default('pl') }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ panel_brand }} · Seban Panel</title>
+<link rel="stylesheet" href="{{ static_asset_url('v2/theme.css') }}">
+<style>
+body.v2{display:grid;place-items:center;padding:20px}
+.v2-login-card{width:min(380px,100%);background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);padding:var(--sp-5);box-shadow:var(--shadow)}
+.v2-login-brand{display:flex;align-items:center;gap:10px;margin-bottom:var(--sp-5)}
+.v2-login-brand i{width:38px;height:38px;border-radius:var(--r-md);background:linear-gradient(145deg,var(--accent),#4446c4);
+  display:grid;place-items:center;font-weight:800;color:#fff;font-size:16px}
+.v2-login-brand b{display:block;font-size:15px}
+.v2-login-brand span{display:block;font-size:11px;color:var(--text-faint)}
+.v2-login-card label{margin:var(--sp-4) 0 var(--sp-2)}
+.v2-login-card input{width:100%;padding:10px 12px}
+.v2-login-card button{width:100%;margin-top:var(--sp-4);padding:10px;justify-content:center}
+.v2-flash-error{background:color-mix(in srgb,var(--bad) 16%,var(--surface));color:#ffc9c9;
+  border:1px solid color-mix(in srgb,var(--bad) 40%,transparent);border-radius:var(--r-sm);
+  padding:9px 11px;font-size:var(--fs-sm);margin-bottom:var(--sp-3)}
+</style>
+</head><body class="v2"><form method="post" class="v2-login-card">
+<div class="v2-login-brand"><i>S</i><div><b>{{ panel_brand }}</b><span>Seban Control Center</span></div></div>
+<h1 style="margin-bottom:4px">Panel administracyjny</h1>
+<p class="muted" style="margin:0 0 var(--sp-3)">Zaloguj się, aby kontynuować.</p>
+{% with messages=get_flashed_messages(with_categories=true) %}{% for _, message in messages %}<div class="v2-flash-error">{{message}}</div>{% endfor %}{% endwith %}
+<label>Hasło administratora<input autofocus type="password" name="password" required></label>
+<button class="v2-btn-primary">Zaloguj</button>
+</form></body></html>

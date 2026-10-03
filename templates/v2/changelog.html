@@ -1,0 +1,22 @@
+{% extends 'v2/base.html' %}{% block title %}Changelog · {{ panel_brand }}{% endblock %}
+{% block page_title %}Changelog{% endblock %}
+{% block content %}
+<div class="v2-row" style="margin-bottom:var(--sp-4)">
+  <div class="v2-tabs">
+    <a href="{{url_for('changelog', source='seban')}}"><button class="{{ 'active' if source=='seban' }}" type="button">🛠 Seban Webpanel</button></a>
+    <a href="{{url_for('changelog', source='tieru')}}"><button class="{{ 'active' if source=='tieru' }}" type="button">⚔ Playerbots (Tieru)</button></a>
+  </div>
+</div>
+{% if source=='tieru' %}
+<p class="muted">Prosto z <a href="https://github.com/TieruYT/metin2-playerbots/blob/main/CHANGELOG.md" target="_blank" rel="noopener" style="text-decoration:underline">repozytorium Tieru</a> — najnowsze {{tieru_entries|length}} wydań silnika.</p>
+{% if tieru_error and not tieru_entries %}<div class="v2-card"><p class="muted">Nie udało się pobrać changelogu Tieru: {{tieru_error}}</p></div>{% endif %}
+<div class="v2-card" style="padding:0">
+{% for entry in tieru_entries %}<article class="v2-changelog-entry"><header><strong>{{entry.version}}</strong><time>{{entry.date}}</time></header><div>{{entry.html|safe}}</div></article>{% else %}{% if not tieru_error %}<p class="v2-empty">Brak wpisów.</p>{% endif %}{% endfor %}
+</div>
+{% else %}
+<p class="muted">Każdy hotfix i zmiana panelu jest zapisywana z czasem wdrożenia.</p>
+<div class="v2-card" style="padding:0">
+{% for entry in entries %}<article class="v2-changelog-entry"><header><strong>{{entry.version}}</strong><time>{{entry.timestamp}}</time></header><ul>{% for change in entry.changes %}<li>{{change}}</li>{% endfor %}</ul>{% if entry.via_agent %}<div class="v2-changelog-via via-{{entry.via_agent|lower}}"><span class="v2-changelog-via-dot"></span>via {{entry.via_agent}}{% if entry.via_author %} by <span class="via-rainbow">{{entry.via_author}}<i class="via-star">✦</i></span>{% endif %}</div>{% endif %}</article>{% else %}<p class="v2-empty">Brak wpisów.</p>{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

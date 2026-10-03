@@ -37,6 +37,48 @@ app.config.update(
     PERMANENT_SESSION_LIFETIME=timedelta(days=30),
 )
 
+# Experimental v2 theme (2026-10-03, operator-requested full visual/layout
+# rebuild, not yet published to GitHub -- lives on the local "theme-v2"
+# branch only). Opt-in via ?ui=v2, remembered in a cookie so it survives
+# normal navigation; every existing route is completely untouched either
+# way. render(name, **ctx) is a drop-in replacement for the route's final
+# render_template(name, **ctx) call: it tries templates/v2/<name> first when
+# the visitor has opted in, and silently falls back to the original template
+# if no v2 version exists yet (so pages can be migrated incrementally without
+# ever 404ing for a visitor who's switched on v2).
+from jinja2 import TemplateNotFound  # noqa: E402
+
+
+@app.before_request
+def _ui_version_pick():
+    choice = request.args.get("ui")
+    if choice in ("v2", "v1"):
+        g.ui_version_choice = choice
+
+
+def current_ui_version():
+    choice = getattr(g, "ui_version_choice", None)
+    if choice:
+        return choice
+    return request.cookies.get("ui_version", "v1")
+
+
+@app.after_request
+def _ui_version_persist(response):
+    choice = getattr(g, "ui_version_choice", None)
+    if choice:
+        response.set_cookie("ui_version", choice, max_age=60 * 60 * 24 * 365, samesite="Lax")
+    return response
+
+
+def render(name, **ctx):
+    if current_ui_version() == "v2":
+        try:
+            return render_template(f"v2/{name}", **ctx)
+        except TemplateNotFound:
+            pass
+    return render_template(name, **ctx)
+
 # Nazwy wiosek pochodzą z questów silnika: new_quest_lv52 czyta pierwsze
 # wioski jako { "Yongan", "Joan", "Pyongmoo" } wg królestwa, a new_quest_lv7
 # nazywa drugie Jayang, Bokjung i Bakra.
@@ -3721,7 +3763,7 @@ def globals_for_templates():
         if not rank:
             return escape(label)
         return Markup('<span class="top-level-badge" title="Top 10 poziomu · #%d">%s</span>') % (rank, escape(label))
-    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_label": class_label, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "level_badge": level_badge, "top_level_rank": lambda pid: top_level_rank_map().get(int(pid or 0)), "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings), "ui_language": ui_language, "i18n_payload": translations.i18n_payload() if ui_language == "en" else None}
+    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_label": class_label, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "level_badge": level_badge, "top_level_rank": lambda pid: top_level_rank_map().get(int(pid or 0)), "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings), "ui_language": ui_language, "i18n_payload": translations.i18n_payload() if ui_language == "en" else None, "ui_version": current_ui_version()}
 
 
 @app.after_request
@@ -3793,7 +3835,7 @@ def login():
             session.permanent = True
             return redirect(request.args.get("next") or url_for("dashboard"))
         flash("Nieprawidłowe hasło.", "error")
-    return render_template("login.html")
+    return render("login.html")
 
 
 @app.post("/logout")
@@ -3822,7 +3864,7 @@ def setup():
                 session["seban_admin"] = True
             flash("Konfiguracja została zapisana.")
             return redirect(url_for("dashboard"))
-    return render_template("setup.html", current=current)
+    return render("setup.html", current=current)
 
 
 @app.route("/")
@@ -3845,7 +3887,7 @@ def dashboard():
         "panel_release": {"installed": PANEL_VERSION, "latest": None, "behind": False, "tone": "", "label": "Sprawdzanie…"},
         "rates": {"exp": 0, "drop": 0, "yang": 0}, "events": {},
     }
-    return render_template("dashboard.html", totals=totals, bots=0, system={}, map_rows=[],
+    return render("dashboard.html", totals=totals, bots=0, system={}, map_rows=[],
                            channel_map_rows=[], dashboard_channels=[], shop_map_rows=[], top=[],
                            global_top_id=None, quick_rankings=empty_rankings, world_summary=empty_world,
                            dashboard_deferred=True, panel_version=PANEL_VERSION,
@@ -4099,7 +4141,7 @@ def players():
         character["map_live"] = bool(state)
         if state:
             character["map_index"] = state["map_index"]
-    return render_template("players.html", players=roster, query=query)
+    return render("players.html", players=roster, query=query)
 
 
 @app.route("/players/personalities")
@@ -4131,7 +4173,7 @@ def bot_personalities():
         bot["personality_color"] = BOT_PERSONALITY_COLORS.get(int(bot.get("personality") or 0), "#cfe1fb")
     personalities = [{"id": pid, "label": label, "color": BOT_PERSONALITY_COLORS.get(pid, "#cfe1fb"), "count": counts.get(pid, 0)}
                       for pid, label in sorted(BOT_PERSONALITIES.items())]
-    return render_template("bot_personalities.html", roster=roster, total=total, query=query, selected=selected, personalities=personalities)
+    return render("bot_personalities.html", roster=roster, total=total, query=query, selected=selected, personalities=personalities)
 
 
 @app.route("/guilds")
@@ -4153,7 +4195,7 @@ def guilds():
     summary = {"guilds": len(roster), "online": sum(g["online"] for g in roster),
                "wars": sum(1 for g in roster if g["war_with"]),
                "exp": sum(g["exp_offered"] for g in roster)}
-    return render_template("guilds.html", guilds=roster, query=query, summary=summary,
+    return render("guilds.html", guilds=roster, query=query, summary=summary,
                            player_guilds=player_guild_rows(query),
                            next_wars=[{"empire": empire, "text": guild_war_text(seconds)} for empire, seconds in sorted(next_wars.items())],
                            status_written_at=datetime.fromtimestamp(written_at).strftime("%H:%M") if written_at else None)
@@ -4176,7 +4218,7 @@ def guild(guild_id):
                     FROM player.guild_member gm LEFT JOIN player.player p ON p.id=gm.pid
                     WHERE gm.guild_id=%s
                     ORDER BY (gm.pid=%s) DESC,gm.grade ASC,p.level DESC,p.name ASC""", (guild_id, details["leader_id"] or 0))
-    return render_template("guild.html", guild=details, members=members)
+    return render("guild.html", guild=details, members=members)
 
 
 # kind -> (player_special_flag.flag, unit label for the ranking's "detail"
@@ -4887,7 +4929,7 @@ def player(pid):
     mission_progress = character_mission_progress(pid)
     gm_row = one("SELECT mAuthority FROM common.gmlist WHERE mName=%s LIMIT 1", (character["name"],))
     character["gm_rank"] = gm_row["mAuthority"] if gm_row else ""
-    return render_template("player.html", character=character, equipment=equipment, inventory=inventory, safebox=safebox,
+    return render("player.html", character=character, equipment=equipment, inventory=inventory, safebox=safebox,
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
                             dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks,
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
@@ -5269,7 +5311,7 @@ def economy():
       SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:%%i') AS captured_at, value FROM player.web_seban_metric_snapshot
       WHERE metric='total_yang' AND captured_at >= NOW() - INTERVAL 7 DAY ORDER BY captured_at
     """)
-    return render_template("economy.html", latest=latest, items=items[:500], query=query, trend=trend)
+    return render("economy.html", latest=latest, items=items[:500], query=query, trend=trend)
 
 
 @app.route("/economy/item/<int:vnum>")
@@ -5279,7 +5321,7 @@ def economy_item(vnum):
     item["item_name"] = game_text(item["item_name"])
     history = rows("""SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:%%i') AS captured_at,amount
       FROM player.web_seban_item_snapshot WHERE vnum=%s AND captured_at >= NOW() - INTERVAL 14 DAY ORDER BY captured_at""", (vnum,))
-    return render_template("economy_item.html", item=item, history=history)
+    return render("economy_item.html", item=item, history=history)
 
 
 def _shop_trend(current, previous):
@@ -5535,7 +5577,7 @@ def economy_shops():
         item["sales_24h"] = int(velocity.get("sales", 0))
         item["sales_per_hour"] = float(velocity.get("per_hour", 0))
 
-    return render_template("economy_shops.html", latest=latest, by_map=by_map, query=query,
+    return render("economy_shops.html", latest=latest, by_map=by_map, query=query,
                             empire_totals=empire_totals, kpi=kpi, value_trend=value_trend,
                             market_items=market_items, fastest_items_limit=fastest_items_limit,
                             sales_velocity=all_sales_velocity[:fastest_items_limit],
@@ -5587,7 +5629,7 @@ def items_database():
     for category in types:
         index = int(category["type"])
         category["label"] = ITEM_TYPE_NAMES[index] if 0 <= index < len(ITEM_TYPE_NAMES) else f"ITEM_TYPE_{index}"
-    return render_template("items.html", items=records, types=types, selected_type=item_type, query=query, total=total)
+    return render("items.html", items=records, types=types, selected_type=item_type, query=query, total=total)
 
 
 @app.get("/api/items")
@@ -5922,7 +5964,7 @@ def live_chat_messages(limit=100):
 @app.get("/live-chat")
 @login_required
 def live_chat():
-    return render_template("live_chat.html", messages=live_chat_messages())
+    return render("live_chat.html", messages=live_chat_messages())
 
 
 @app.get("/api/live-chat")
@@ -5934,7 +5976,7 @@ def api_live_chat():
 @app.get("/world-feed")
 @login_required
 def world_feed():
-    return render_template("world_feed.html", events=news_feed_history())
+    return render("world_feed.html", events=news_feed_history())
 
 
 @app.get("/api/world-feed")
@@ -5950,7 +5992,7 @@ def api_world_feed():
 @login_required
 def gm_commands():
     commands = GM_COMMANDS_EN if settings().get("ui_language") == "en" else GM_COMMANDS
-    return render_template("gm_commands.html", commands=commands)
+    return render("gm_commands.html", commands=commands)
 
 
 @app.route("/accounts", methods=["GET", "POST"])
@@ -6060,7 +6102,7 @@ def accounts():
         query_sql += " LIMIT %s"
         params.append(int(display))
     recent = rows(query_sql, params)
-    return render_template("accounts.html", accounts=recent, authorities=authorities, jobs=GM_JOB_OPTIONS, genders=GM_GENDER_OPTIONS, account_query=account_query, display=display)
+    return render("accounts.html", accounts=recent, authorities=authorities, jobs=GM_JOB_OPTIONS, genders=GM_GENDER_OPTIONS, account_query=account_query, display=display)
 
 
 BOT_NAME_STATUSES = ("all", "free", "used", "blocked")
@@ -6164,7 +6206,7 @@ def bot_names():
       LEFT JOIN common.playerbot_name_history h ON h.pid=p.id
       WHERE LEFT(a.login,10)='playerbot_' AND h.pid IS NULL""").get("n", 0)
     pages = max(1, (total + per_page - 1) // per_page)
-    return render_template("bot_names.html", entries=entries, search=search, empire=empire, status=status,
+    return render("bot_names.html", entries=entries, search=search, empire=empire, status=status,
         page=page, pages=pages, total=total, stats=stats, pending=pending, empires=EMPIRES)
 
 
@@ -6415,7 +6457,7 @@ def character_creator():
                 except pymysql.MySQLError:
                     pass
                 flash(f"Nie utworzono postaci: {exc.args[1] if isinstance(exc, pymysql.MySQLError) and len(exc.args)>1 else exc}", "error")
-    return render_template("character_creator.html", authorities=authorities, jobs=GM_JOB_OPTIONS, genders=GM_GENDER_OPTIONS, preselect_account_id=request.args.get("account_id", "").strip())
+    return render("character_creator.html", authorities=authorities, jobs=GM_JOB_OPTIONS, genders=GM_GENDER_OPTIONS, preselect_account_id=request.args.get("account_id", "").strip())
 
 
 @app.route("/account/<int:aid>")
@@ -6453,7 +6495,7 @@ def account_detail(aid):
     # permissions table to invent.
     gm_row = one("SELECT mAuthority FROM common.gmlist WHERE mAccount=%s LIMIT 1", (account["login"],))
     account["authority"] = gm_row["mAuthority"] if gm_row else "PLAYER"
-    return render_template("account_detail.html", account=account, characters=characters)
+    return render("account_detail.html", account=account, characters=characters)
 
 
 def level_bracket_counts():
@@ -6532,7 +6574,7 @@ def maps():
     latest = {"all": build_latest(None)}
     for channel in channels:
         latest[str(channel)] = build_latest(channel)
-    return render_template("maps.html", charts=charts, latest=latest, channels=channels,
+    return render("maps.html", charts=charts, latest=latest, channels=channels,
                            heat_map_options=TRACKED_MAP_OPTIONS,
                            level_now=level_bracket_counts(), level_history=level_bracket_history())
 
@@ -6544,7 +6586,7 @@ def changelog():
     if source not in ("seban", "tieru"):
         source = "seban"
     tieru_entries, tieru_error = ([], None) if source != "tieru" else tieru_changelog_entries()
-    return render_template("changelog.html", entries=changelog_entries(), panel_version=PANEL_VERSION,
+    return render("changelog.html", entries=changelog_entries(), panel_version=PANEL_VERSION,
                             source=source, tieru_entries=tieru_entries, tieru_error=tieru_error)
 
 
@@ -6598,7 +6640,7 @@ def system():
       FROM player.web_seban_system_snapshot WHERE captured_at >= NOW() - INTERVAL 24 HOUR ORDER BY captured_at
     """)
     current = samples[-1] if samples else {}
-    return render_template("system.html", samples=samples, current=current)
+    return render("system.html", samples=samples, current=current)
 
 
 @app.route("/api/system-current")
@@ -6702,7 +6744,7 @@ def rankings():
                 int(row.get("avg_damage") or 0), int(row.get("skill_damage") or 0), game_text(row.get("item_name")))
         else:
             row["detail"] = game_text(row.get("detail"))
-    return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
+    return render("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
                            per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers,
                            people_ranked=people_ranked, people_only=people_only)
 
@@ -6711,7 +6753,7 @@ def rankings():
 def season():
     """Weekly season from the three indexed event types only."""
     if time.time() - _season_cache["at"] < 600:
-        return render_template("season.html", weekly=_season_cache["weekly"], records=_season_cache["records"])
+        return render("season.html", weekly=_season_cache["weekly"], records=_season_cache["records"])
     weekly = rows("""SELECT p.id,p.name,p.level,
         SUM(l.how='STONE_KILL') AS metins,
         SUM(l.how='BOSS_KILL') AS bosses,
@@ -6735,7 +6777,7 @@ def season():
         WHERE l.time>=NOW()-INTERVAL 7 DAY
           AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS')""")
     _season_cache.update(at=time.time(), weekly=weekly, records=records)
-    return render_template("season.html", weekly=weekly, records=records)
+    return render("season.html", weekly=weekly, records=records)
 
 
 
@@ -6767,7 +6809,7 @@ def economy_itemshop():
                     GROUP BY DATE(time) ORDER BY DATE(time)""")
     for row in purchases + popular:
         row["item_name"] = game_text(row.get("item_name"))
-    return render_template("economy_itemshop.html", totals=totals, top_cash=top_cash,
+    return render("economy_itemshop.html", totals=totals, top_cash=top_cash,
                            top_mileage=top_mileage, purchases=purchases, popular=popular,
                            daily=daily)
 
@@ -6796,7 +6838,7 @@ def panel_logs():
         size = PANEL_LOG_FILE.stat().st_size
     except OSError:
         size = 0
-    return render_template("panel_logs.html", log_tail=tail, log_size=size)
+    return render("panel_logs.html", log_tail=tail, log_size=size)
 
 
 @app.route("/diagnostics/panel-logs/download")
@@ -6812,7 +6854,7 @@ def panel_logs_download():
 @app.route("/diagnostics")
 @login_required
 def diagnostics():
-    return render_template("diagnostics.html", diagnostic=fishing_diagnostics())
+    return render("diagnostics.html", diagnostic=fishing_diagnostics())
 
 @app.route("/daily-summary/<int:summary_id>")
 @login_required
@@ -6824,13 +6866,13 @@ def daily_summary(summary_id):
         abort(404)
     details = daily_summary_details(summary["summary_date"])
     summary["level_start"], summary["level_end"] = details["level_start"], details["level_end"]
-    return render_template("daily_summary.html", s=summary, details=details)
+    return render("daily_summary.html", s=summary, details=details)
 
 
 @app.get("/respawns")
 @login_required
 def respawns():
-    return render_template("respawns.html", regen=read_regen_settings(),
+    return render("respawns.html", regen=read_regen_settings(),
                            count_choices=REGEN_COUNT_CHOICES,
                            map_options=MAP_RESPAWN_OPTIONS,
                            stone_maps=MAP_STONE_RESPAWN_IDS,
@@ -7014,7 +7056,7 @@ def events():
             flash("Natychmiastowy event został zatrzymany.", "success")
         return redirect(url_for("events"))
     shown = list(rows) + [{"kind": "", "days": list(range(1, 8)), "start": "20:00", "end": "21:00", "value": 50, "on": True, "map": 0} for _ in range(max(0, 4 - len(rows)))]
-    return render_template("events.html", rows=shown, nows=nows, status=read_events_status(),
+    return render("events.html", rows=shown, nows=nows, status=read_events_status(),
                            world_runs=event_world_runs(nows, read_world_events_status()),
                            event_kinds=EVENT_KINDS, event_labels=EVENT_LABELS,
                            day_names=EVENT_DAY_NAMES, now_minutes=EVENT_NOW_MINUTES,
@@ -7039,7 +7081,7 @@ def manage():
     bot_channels = sorted(per_channel.items()) if len(per_channel) > 1 else []
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
+    return render("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
 
 
 @app.post("/manage/difficulty")
@@ -7111,7 +7153,7 @@ def manage_channels():
 def manage_panel():
     current = settings()
     badge_settings = top_level_badge_settings()
-    return render_template("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED, top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], full_plus9_badges_enabled=full_plus9_badges_enabled(), shop_explain_enabled=shop_explain_enabled())
+    return render("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED, top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], full_plus9_badges_enabled=full_plus9_badges_enabled(), shop_explain_enabled=shop_explain_enabled())
 
 
 @app.post("/manage/panel/features")

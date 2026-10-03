@@ -1,0 +1,33 @@
+{% extends 'v2/base.html' %}{% block title %}Rankingi · {{panel_brand}}{% endblock %}
+{% block page_title %}Rankingi{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">{% if people_ranked %}Boty i gracze razem: 👤 oznacza postać gracza, postaci GM-ów nie są liczone.{% else %}Liczone są tylko boty.{% endif %} Dane pochodzą bezpośrednio z postaci, wyposażenia i questów.</p>
+{% set rank_people_arg = 1 if people_only else none %}
+<div class="v2-scroll-tabs v2-scroll-thin">{% for key,label in kinds.items() %}<a class="{{ 'active' if key==kind else '' }}" href="{{ url_for('rankings',type=key,people=rank_people_arg) }}">{{ label }}</a>{% endfor %}</div>
+{% set rank_sort_arg = weapon30_sort if kind == 'weapon30' else none %}
+<div class="v2-row" style="margin-bottom:var(--sp-3);justify-content:space-between">
+  {% if kind == 'weapon30' %}<div class="v2-tabs"><a href="{{url_for('rankings',type='weapon30',sort='avg',people=rank_people_arg)}}"><button type="button" class="{{ 'active' if weapon30_sort=='avg' }}">Śr. obrażenia</button></a><a href="{{url_for('rankings',type='weapon30',sort='skill',people=rank_people_arg)}}"><button type="button" class="{{ 'active' if weapon30_sort=='skill' }}">Obrażenia umiejętności</button></a><a href="{{url_for('rankings',type='weapon30',sort='upgrade',people=rank_people_arg)}}"><button type="button" class="{{ 'active' if weapon30_sort=='upgrade' }}">Poziom ulepszenia</button></a></div>{% else %}<span></span>{% endif %}
+  {% if people_ranked %}<div class="v2-tabs"><a href="{{ url_for('rankings',type=kind,sort=rank_sort_arg,per_page=per_page) }}"><button type="button" class="{{ '' if people_only else 'active' }}">Wszyscy</button></a><a href="{{ url_for('rankings',type=kind,sort=rank_sort_arg,per_page=per_page,people=1) }}" title="Same postacie ludzi, bez botów"><button type="button" class="{{ 'active' if people_only else '' }}">👤 Tylko gracze</button></a></div>{% endif %}
+</div>
+<div class="v2-card" style="padding:0">
+  <h2 style="padding:var(--sp-4) var(--sp-4) 0">{{ kinds[kind] }}{% if people_only %} · 👤 tylko gracze{% endif %}</h2>
+  <div class="v2-table-wrap" style="border:0;border-radius:0;margin-top:var(--sp-3)">
+  <table><thead><tr><th>#</th><th>Postać</th><th>Klasa</th><th>Gildia</th><th>Poziom</th><th>EXP</th>{% if kind != 'level' %}<th>Wynik</th>{% endif %}</tr></thead><tbody>
+  {% for bot in ranking %}<tr class="{% if loop.first and page == 0 %}v2-rank-leader{% endif %} {% if bot.is_person %}v2-person-row{% endif %}">
+    <td>{% if loop.index <= 3 and page == 0 %}<span class="v2-badge v2-badge-warn">#{{ loop.index }}</span>{% else %}{{ page * per_page + loop.index }}{% endif %}</td>
+    <td>{% set kingdom=empire_info(bot.empire) %}{% if kingdom.flag %}<img class="empire-flag-inline" style="height:14px;vertical-align:middle;margin-right:4px" src="{{empire_flag(bot.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}{% if bot.is_person %}<span title="Postać gracza">👤</span> {% endif %}<a href="{{ url_for('player',pid=bot.id) }}" style="color:var(--accent-soft)">{{ bot.name }}</a></td>
+    <td><span class="v2-class-cell"><img class="class-portrait" src="{{class_portrait(bot.job)}}" alt="{{class_label(bot.job,bot.skill_group)}}" title="{{class_label(bot.job,bot.skill_group)}}">{{class_label(bot.job,bot.skill_group)}}</span></td>
+    <td>{% if bot.guild_name %}<a href="{{ url_for('guilds') }}" style="color:var(--accent-soft)">{{ bot.guild_name }}</a>{% else %}<span class="faint">—</span>{% endif %}</td>
+    <td>{{level_badge(bot.id,bot.level,'Lv ')}}</td>
+    <td><span class="v2-exp-orbs" title="{{bot.experience.percent}}% doświadczenia">{% for n in range(4) %}<i class="{% if bot.experience.percent >= (n + 1) * 25 %}full{% elif bot.experience.percent > n * 25 %}part{% endif %}"></i>{% endfor %}<b>{{bot.experience.percent}}%</b></span></td>
+    {% if kind != 'level' %}<td title="{{ bot.detail }}">{% if bot.vnum and item_icon(bot.vnum) %}<img src="{{ item_icon(bot.vnum) }}" alt="" style="height:20px;vertical-align:middle;margin-right:5px">{% endif %}{% if bot.is_shop %}<img src="{{ item_icon(50200) }}" alt="" title="Wystawione na sklepie" style="height:14px;vertical-align:middle;margin-right:4px"><span style="font-size:var(--fs-xs)">{{ bot.detail }}</span>{% else %}{{ bot.detail }}{% endif %}</td>{% endif %}
+  </tr>{% else %}<tr><td colspan="7"><p class="v2-empty">{% if people_only %}Żaden gracz nie ma jeszcze wpisu w tym rankingu.{% else %}Brak danych.{% endif %}</p></td></tr>{% endfor %}
+  </tbody></table>
+  </div>
+  <div class="v2-pagination">
+    <div class="v2-row"><span class="muted" style="font-size:var(--fs-xs)">Na stronę:</span>{% for n in (100,200,500,1000) %}<a class="{{ 'active' if per_page==n else '' }}" href="{{ url_for('rankings',type=kind,sort=rank_sort_arg,per_page=n,page=0,people=rank_people_arg) }}">{{ n }}</a>{% endfor %}</div>
+    <div class="v2-row">{% if page > 0 %}<a href="{{ url_for('rankings',type=kind,sort=rank_sort_arg,per_page=per_page,page=page-1,people=rank_people_arg) }}">← Poprzednia</a>{% endif %}{% for n in page_numbers %}{% if n is none %}<span class="faint">…</span>{% else %}<a class="{{ 'active' if n==page else '' }}" href="{{ url_for('rankings',type=kind,sort=rank_sort_arg,per_page=per_page,page=n,people=rank_people_arg) }}">{{ n + 1 }}</a>{% endif %}{% endfor %}{% if page < total_pages - 1 %}<a href="{{ url_for('rankings',type=kind,sort=rank_sort_arg,per_page=per_page,page=page+1,people=rank_people_arg) }}">Następna →</a>{% endif %}</div>
+    <form method="get"><input type="hidden" name="type" value="{{kind}}">{% if rank_sort_arg %}<input type="hidden" name="sort" value="{{rank_sort_arg}}">{% endif %}<input type="hidden" name="per_page" value="{{per_page}}">{% if people_only %}<input type="hidden" name="people" value="1">{% endif %}<label style="flex-direction:row;align-items:center;gap:6px">Idź do<input type="number" name="goto_page" min="1" max="{{total_pages}}" value="{{page + 1}}"></label><button class="v2-btn-ghost" type="submit">Idź</button></form>
+  </div>
+</div>
+{% endblock %}

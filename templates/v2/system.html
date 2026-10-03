@@ -1,0 +1,11 @@
+{% extends 'v2/base.html' %}{% block title %}Wydajność · {{panel_brand}}{% endblock %}
+{% block page_title %}CPU, pamięć i dysk{% endblock %}
+{% block content %}
+<div class="v2-grid cols-2" style="margin-bottom:var(--sp-4)">
+  <div class="v2-stat"><span>CPU teraz</span><strong>{{current.cpu_percent or 0}}%</strong></div>
+  <div class="v2-stat"><span>RAM teraz</span><strong>{{current.ram_percent or 0}}%</strong><small>{{current.ram_used_mb or 0}} / {{current.ram_total_mb or 0}} MB</small></div>
+  <div class="v2-stat"><span>Dysk teraz</span><strong>{{current.disk_percent or 0}}%</strong><small>{{ '%.1f'|format((current.disk_used_mb or 0) / 1024) }} / {{ '%.1f'|format((current.disk_total_mb or 0) / 1024) }} GB</small></div>
+</div>
+<div class="v2-card"><canvas id="system" height="90"></canvas></div>
+<script>const d={{samples|tojson}};new Chart(document.getElementById('system'),{type:'line',data:{labels:d.map(x=>x.label),datasets:[{label:'CPU %',data:d.map(x=>x.cpu_percent),borderColor:'#6366f1',tension:.25,pointRadius:0},{label:'RAM %',data:d.map(x=>x.ram_percent),borderColor:'#34d399',tension:.25,pointRadius:0},{label:'Dysk %',data:d.map(x=>x.disk_percent),borderColor:'#fbbf24',tension:.25,pointRadius:0}]},options:{plugins:{legend:{labels:{color:'#99a2b5'}}},scales:{x:{ticks:{color:'#596178',maxTicksLimit:12},grid:{color:'#1a1e28'}},y:{min:0,max:100,ticks:{color:'#596178'},grid:{color:'#1a1e28'}}}}});</script>
+{% endblock %}
