@@ -1,3 +1,9 @@
+## 2026-10-03 · 1.109.6 · Oryginalna ikona Smoczej Alchemii
+
+- Przycięty fragment screenshota w przycisku Smoczej Alchemii zastąpiono czystą ikoną 32 × 32 px z przezroczystością.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.5 · Większe przyciski i czytelne tooltipy wyposażenia
 
 - Przyciski juków, depozytu i sklepu są odrobinę większe oraz dosunięte do prawej krawędzi wyposażenia.
