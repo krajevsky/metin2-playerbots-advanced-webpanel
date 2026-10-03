@@ -1,0 +1,132 @@
+{% extends 'v2/base.html' %}
+{% block title %}Eventy · {{ panel_brand }}{% endblock %}
+{% block page_title %}🎉 Planer eventów{% endblock %}
+{% block topbar_actions %}<span class="v2-event-core"><span>RDZEŃ</span><b>{{ 'połączony' if status else 'czeka na status' }}</b></span>{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ static_asset_url('v2/pages/events.css') }}"><link rel="stylesheet" href="{{ static_asset_url('v2/pages/events-legacy.css') }}">{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Uruchamiaj eventy od razu albo ustawiaj ich tygodniowy harmonogram. Rdzeń Playerbots odczytuje zmianę w ciągu pięciu sekund — restart nie jest potrzebny.</p>
+
+<div class="v2-grid" style="margin-bottom:var(--sp-4)">
+{% for kind in event_kinds %}
+  {% set st = status.get(kind,{}) %}
+  {% set runs = world_runs.get(kind, []) %}
+  <div class="v2-event-status {{ 'is-active' if (st.active or runs) else ('is-scheduled' if st.scheduled else '') }}">
+    <span class="ico">{{ event_icons[kind] }}</span>
+    <div><small>{{ event_labels[kind] }}</small>
+    {% if runs %}<strong>Trwa {{ 'na 1 mapie' if runs|length == 1 else 'na ' ~ runs|length ~ ' mapach' }}</strong>{% for run in runs %}<em>{{ run.map_label }} · {{ run.value }} szt. · do {{ run.until_text }}</em>{% endfor %}
+    {% elif st.active %}<strong>Trwa{% if kind in world_kinds %} · {{ st.value }} jednostek{% elif kind != 'chest' %} · +{{ st.value }}%{% endif %}</strong><em>do {{ st.until_text }}</em>
+    {% elif st.scheduled %}<strong>Zaplanowany</strong><em>następny: {{ st.next_start_text }}</em>
+    {% else %}<strong>Brak aktywnego eventu</strong><em>ustaw szybki event lub plan</em>{% endif %}</div>
+  </div>
+{% endfor %}
+</div>
+
+<div class="v2-card" style="margin-bottom:var(--sp-3)">
+  <p class="faint" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px">Szybki start</p>
+  <h2 style="margin-bottom:var(--sp-3)">Aktywuj teraz</h2>
+  <div class="v2-grid">
+  {% for kind in event_kinds %}
+    {% set now = nows.get(kind) %}
+    {% if kind in world_kinds %}
+    {% set runs = world_runs.get(kind, []) %}
+    <div class="v2-quick-card {{ 'is-running' if runs else '' }}">
+      <div class="v2-row"><span>{{ event_icons[kind] }}</span><b>{{ event_labels[kind] }}</b></div>
+      <p>Eventy na różnych mapach trwają jednocześnie.</p>
+      {% for run in runs %}<form method="post" style="display:contents"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="map" value="{{ run.map }}"><p>📍 {{ run.map_label }} · do {{ run.until_text }}</p>{% if run.manual %}<button name="action" value="stop" class="v2-btn-ghost">Zatrzymaj</button>{% endif %}</form>{% endfor %}
+      <form method="post" style="display:contents">
+        <input type="hidden" name="kind" value="{{ kind }}">
+        <label>Czas<select name="minutes">{% for minute in now_minutes %}<option value="{{ minute }}" {% if minute == 60 %}selected{% endif %}>{{ minute }} min</option>{% endfor %}</select></label>
+        <label>{{ 'Piraci naraz' if kind == 'tanaka' else 'Metiny w fali' }}<input name="value" type="number" min="1" max="{{world_max[kind]}}" value="{{world_defaults[kind]}}"></label>
+        <label>Mapa<select name="map">{% for map_id,map_label in event_maps %}<option value="{{map_id}}">{{map_label}}</option>{% endfor %}</select></label>
+        <button name="action" value="now" class="v2-btn-primary">Aktywuj teraz</button>
+      </form>
+    </div>
+    {% else %}
+    <form method="post" class="v2-quick-card {{ 'is-running' if now and now.until > now_epoch else '' }}">
+      <input type="hidden" name="kind" value="{{ kind }}">
+      <div class="v2-row"><span>{{ event_icons[kind] }}</span><b>{{ event_labels[kind] }}</b></div>
+      {% if now and now.until > now_epoch %}<p>Aktywny do {{ status.get(kind,{}).until_text or 'końca odliczania' }}</p>{% else %}<p>Uruchom jednorazowo</p>{% endif %}
+      <label>Czas<select name="minutes">{% for minute in now_minutes %}<option value="{{ minute }}" {% if minute == 60 %}selected{% endif %}>{{ minute }} min</option>{% endfor %}</select></label>
+      {% if kind != 'chest' %}<label>Bonus<input name="value" type="number" min="1" max="1000" value="50"></label>{% endif %}
+      {% if now and now.until > now_epoch %}<button name="action" value="stop" class="v2-btn-ghost">Zatrzymaj</button>{% else %}<button name="action" value="now" class="v2-btn-primary">Aktywuj teraz</button>{% endif %}
+    </form>
+    {% endif %}
+  {% endfor %}
+  </div>
+</div>
+
+<form method="post" class="v2-card v2-row" style="margin-bottom:var(--sp-3);justify-content:space-between">
+  <div><p class="faint" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px">Eventy światowe</p><h2>Udział botów</h2><p class="muted" style="margin:4px 0 0">Procent kwalifikujących się botów, które dołączą do eventów Tanaka i Zuo.</p></div>
+  <label style="flex-direction:row;align-items:center;gap:10px"><input name="bots" type="range" min="0" max="100" value="{{event_settings.bots}}" oninput="this.nextElementSibling.value=this.value+'%'" style="width:200px"><output style="font-weight:800;color:var(--accent-soft)">{{event_settings.bots}}%</output></label>
+  <button name="action" value="bots" class="v2-btn-primary">Zapisz udział</button>
+</form>
+
+<!-- Weekly calendar planner: complex positioning JS (pixel math per hour-row,
+     lane-packing for overlapping events) -- isolated via @scope(.lw), same
+     technique as the dashboard's live map, rather than rebuilt from scratch. -->
+<div class="lw">
+<section class="panel planner-panel">
+  <div class="planner-intro"><div><p class="eyebrow">TYDZIEŃ POWTARZALNY</p><h2>Harmonogram eventów</h2><p class="muted">Kliknij wolną godzinę, aby dodać event. Kliknij istniejący blok, aby go edytować.</p></div><div class="planner-legend"><span class="legend-live"></span> aktywny <span class="legend-plan"></span> zaplanowany</div></div>
+  <div class="calendar-toolbar"><div class="calendar-event-legend">{% for kind in event_kinds %}<span class="calendar-legend-{{kind}}"><b>{{event_icons[kind]}}</b>{{event_labels[kind]}}</span>{% endfor %}</div><div class="calendar-view-actions"><button type="button" id="calendar-now" class="quiet">◉ Teraz</button><button type="button" id="calendar-midnight" class="quiet">00:00</button><button type="button" id="calendar-add-event" class="secondary">＋ Dodaj event</button></div></div>
+  <form method="post" class="planner-form calendar-schedule-form" id="calendar-schedule-form">
+    <div id="calendar-hidden-fields"></div>
+    <div class="week-calendar" id="week-calendar" aria-label="Tygodniowy harmonogram eventów"></div>
+    <div class="planner-footer"><p class="muted">Bloki są powtarzane co tydzień.</p><button name="action" value="save">Zapisz harmonogram</button></div>
+  </form>
+</section>
+<dialog id="calendar-editor" class="calendar-editor" data-ajax-ignore>
+  <form method="dialog" id="calendar-editor-form" data-ajax-ignore>
+    <header><div><p class="eyebrow" id="calendar-editor-eyebrow">NOWY EVENT</p><h2 id="calendar-editor-title">Dodaj event</h2></div><button type="button" class="quiet" id="calendar-editor-close" aria-label="Zamknij">×</button></header>
+    <label>Event<select id="calendar-editor-kind">{% for kind in event_kinds %}<option value="{{kind}}">{{ event_labels[kind] }}</option>{% endfor %}</select></label>
+    <fieldset><legend>Dni tygodnia</legend><div class="calendar-editor-days" id="calendar-editor-days"></div></fieldset>
+    <div class="calendar-editor-times"><label>Od<input id="calendar-editor-start" type="time" step="900"></label><label>Do<input id="calendar-editor-end" type="time" step="900"></label></div>
+    <label class="calendar-editor-bonus" id="calendar-editor-bonus">Bonus<input id="calendar-editor-value" type="number" min="0" max="1000" value="50"><small>% ponad ratę serwera</small></label>
+    <label class="calendar-editor-map is-hidden" id="calendar-editor-map-wrap">Mapa<select id="calendar-editor-map">{% for map_id,map_label in event_maps %}<option value="{{map_id}}">{{map_label}}</option>{% endfor %}</select></label>
+    <label class="calendar-editor-enabled"><input id="calendar-editor-enabled" type="checkbox" checked><span>Włączony</span></label>
+    <footer><button type="button" id="calendar-editor-delete" class="danger">Usuń</button><span></span><button type="button" class="secondary" id="calendar-editor-cancel">Anuluj</button><button type="submit">Zapisz event</button></footer>
+  </form>
+</dialog>
+</div>
+
+<script>
+document.body.dataset.ajaxForms='1';
+(() => {
+const dayNames=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
+const shortDays=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
+const labels={{ event_labels|tojson }};
+const icons={{ event_icons|tojson }};
+const worldKinds={{ world_kinds|list|tojson }},worldDefaults={{ world_defaults|tojson }},worldMax={{ world_max|tojson }};
+let schedule={{ rows|tojson }}.filter(row=>row.kind);
+let editing=null;
+const $=id=>document.getElementById(id),calendar=$('week-calendar'),form=$('calendar-schedule-form'),hidden=$('calendar-hidden-fields'),dialog=$('calendar-editor'),editor=$('calendar-editor-form');
+const field={kind:$('calendar-editor-kind'),start:$('calendar-editor-start'),end:$('calendar-editor-end'),value:$('calendar-editor-value'),map:$('calendar-editor-map'),mapWrap:$('calendar-editor-map-wrap'),enabled:$('calendar-editor-enabled'),bonus:$('calendar-editor-bonus'),days:$('calendar-editor-days')};
+function minutes(time){const [h,m]=(time||'00:00').split(':').map(Number);return h*60+m}
+function timeAt(hour){return String(hour).padStart(2,'0')+':00'}
+function normal(row){return {kind:labels[row.kind]?row.kind:'chest',days:(row.days||[]).map(Number).filter(day=>day>=1&&day<=7),start:row.start||'20:00',end:row.end||'21:00',value:Number(row.value)||0,map:Number(row.map)||0,on:row.on!==false}}
+function openDialog(index,day=1,hour=20){editing=index;if(index===null){field.kind.value='chest';field.start.value=timeAt(hour);field.end.value=timeAt((hour+1)%24);field.value.value=50;field.map.value='0';field.enabled.checked=true;setDays([day])}else{const row=normal(schedule[index]);field.kind.value=row.kind;field.start.value=row.start;field.end.value=row.end;field.value.value=row.value;field.map.value=String(row.map);field.enabled.checked=row.on;setDays(row.days)}$('calendar-editor-eyebrow').textContent=index===null?'NOWY EVENT':'EDYCJA EVENTU';$('calendar-editor-title').textContent=index===null?'Dodaj event':'Edytuj event';$('calendar-editor-delete').hidden=index===null;syncBonus();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','')}
+function closeDialog(){if(dialog.close)dialog.close();else dialog.removeAttribute('open')}
+function setDays(days){field.days.innerHTML=shortDays.map((name,i)=>`<label><input type="checkbox" value="${i+1}" ${days.includes(i+1)?'checked':''}><span>${name}</span></label>`).join('')}
+function selectedDays(){return [...field.days.querySelectorAll('input:checked')].map(input=>Number(input.value))}
+function syncBonus(){const world=worldKinds.includes(field.kind.value),chest=field.kind.value==='chest';field.bonus.classList.toggle('is-hidden',chest);field.mapWrap.classList.toggle('is-hidden',!world);field.value.disabled=chest;if(world){field.bonus.firstChild.textContent=field.kind.value==='tanaka'?'Piraci naraz':'Metiny w fali';field.value.max=worldMax[field.kind.value];if(!field.value.value||Number(field.value.value)>worldMax[field.kind.value])field.value.value=worldDefaults[field.kind.value];field.bonus.querySelector('small').textContent='liczba jednostek eventu'}else{field.value.max=1000;field.bonus.firstChild.textContent='Bonus';field.bonus.querySelector('small').textContent='% ponad ratę serwera'}}
+function addBlock(day,row,index,start,end,lane=0,count=1){if(end<=start)return;const block=document.createElement('button');block.type='button';block.className=`calendar-event calendar-event-${row.kind}${row.on?'':' is-disabled'}`;block.style.top=(42+start/60*48)+'px';block.style.height=Math.max(30,(end-start)/60*48-4)+'px';block.style.left=`calc(${lane/count*100}% + 4px)`;block.style.right=`calc(${(count-lane-1)/count*100}% + 4px)`;const amount=worldKinds.includes(row.kind)?`${row.value} szt.`:(row.kind!=='chest'?`+${row.value}%`:'');block.innerHTML=`<small class="calendar-event-time">${row.start}–${row.end}</small><span class="calendar-event-body"><b>${icons[row.kind]}</b>${amount?`<em>${amount}</em>`:''}</span>`;block.title=`Edytuj: ${labels[row.kind]} (${row.start}–${row.end})`;block.addEventListener('click',event=>{event.stopPropagation();openDialog(index)});calendar.querySelector(`.calendar-day[data-day="${day}"]`).append(block)}
+function defaultFocusHour(){const now=new Date().getHours(),starts=schedule.map(normal).filter(row=>row.on).map(row=>minutes(row.start)/60).sort((a,b)=>a-b);return starts.find(hour=>hour>=now)??starts[0]??now}
+function scrollCalendar(hour,animated=true){const target=42+hour*48-calendar.clientHeight/2+24;calendar.scrollTo({top:Math.max(0,target),behavior:animated?'smooth':'auto'})}
+function render(){calendar.innerHTML=`<div class="calendar-hours"><div class="calendar-corner">Czas</div>${Array.from({length:24},(_,hour)=>`<div class="calendar-hour">${timeAt(hour)}</div>`).join('')}</div><div class="calendar-days">${dayNames.map((name,index)=>`<section class="calendar-day" data-day="${index+1}"><h3>${name}<small>${shortDays[index]}</small></h3>${Array.from({length:24},(_,hour)=>`<button type="button" class="calendar-slot" data-hour="${hour}" aria-label="Dodaj event: ${name}, ${timeAt(hour)}"></button>`).join('')}</section>`).join('')}</div>`;calendar.querySelectorAll('.calendar-slot').forEach(slot=>slot.addEventListener('click',()=>openDialog(null,Number(slot.closest('.calendar-day').dataset.day),Number(slot.dataset.hour))));const segments=Array.from({length:7},()=>[]);schedule.forEach((raw,index)=>{const row=normal(raw),start=minutes(row.start),end=minutes(row.end);row.days.forEach(day=>{if(end>start)segments[day-1].push({row,index,start,end});else{segments[day-1].push({row,index,start,end:1440});segments[day===7?0:day].push({row,index,start:0,end})}})});segments.forEach((items,dayIndex)=>{items.sort((a,b)=>a.start-b.start||a.end-b.end);const lanes=[];items.forEach(item=>{let lane=lanes.findIndex(lastEnd=>lastEnd<=item.start);if(lane<0){lane=lanes.length;lanes.push(item.end)}else lanes[lane]=item.end;item.lane=lane;item.count=items.filter(other=>other.start<item.end&&other.end>item.start).length});items.forEach(item=>addBlock(dayIndex+1,item.row,item.index,item.start,item.end,item.lane,item.count))});requestAnimationFrame(()=>scrollCalendar(defaultFocusHour(),false))}
+function serialize(){hidden.innerHTML='';schedule.map(normal).slice(0,16).forEach((row,index)=>{const put=(name,value)=>{const input=document.createElement('input');input.type='hidden';input.name=`r${index}_${name}`;input.value=value;hidden.append(input)};put('kind',row.kind);put('start',row.start);put('end',row.end);put('value',row.kind==='chest'?0:row.value);put('map',row.map);row.days.forEach(day=>put('d'+day,'1'));if(row.on)put('on','1')});if(!schedule.length){const input=document.createElement('input');input.type='hidden';input.name='r0_kind';input.value='';hidden.append(input)}}
+$('calendar-now').addEventListener('click',()=>scrollCalendar(new Date().getHours()));$('calendar-midnight').addEventListener('click',()=>scrollCalendar(0));$('calendar-add-event').addEventListener('click',()=>openDialog(null,1,20));$('calendar-editor-close').addEventListener('click',closeDialog);$('calendar-editor-cancel').addEventListener('click',closeDialog);field.kind.addEventListener('change',syncBonus);$('calendar-editor-delete').addEventListener('click',()=>{if(editing!==null){schedule.splice(editing,1);render()}closeDialog()});editor.addEventListener('submit',event=>{event.preventDefault();const days=selectedDays();if(!days.length){window.showActionToast('Wybierz co najmniej jeden dzień.', 'error');return}const row={kind:field.kind.value,days,start:field.start.value,end:field.end.value,value:field.kind.value==='chest'?0:Number(field.value.value)||0,map:worldKinds.includes(field.kind.value)?Number(field.map.value)||0:0,on:field.enabled.checked};if(!row.start||!row.end){window.showActionToast('Ustaw godzinę rozpoczęcia i zakończenia.', 'error');return}if(editing===null){if(schedule.length>=16){window.showActionToast('Można zapisać maksymalnie 16 eventów.', 'error');return}schedule.push(row)}else schedule[editing]=row;render();closeDialog()});form.addEventListener('submit',serialize);render();
+})();
+</script>
+
+<div class="v2-card" style="margin-top:var(--sp-3);padding:0">
+  <p class="faint" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;margin:var(--sp-4) var(--sp-4) 0">Historia</p>
+  <h2 style="padding:0 var(--sp-4)">📜 Ostatnie zakończone eventy</h2>
+  <p class="muted" style="padding:4px var(--sp-4) 0;margin:0">Statystyki liczone ze zdarzeń w logu, nie ze stanu ekwipunku.</p>
+  {% if event_history %}
+  <div class="v2-table-wrap" style="border:0;border-radius:0;margin-top:var(--sp-3)">
+  <table><thead><tr><th>Event</th><th>Bonus</th><th>Od</th><th>Do</th><th>Wynik</th></tr></thead><tbody>
+  {% for run in event_history %}<tr id="run-{{run.id}}"><td>{{run.label}}</td><td>{% if run.base_kind == 'chest' %}—{% elif run.base_kind in world_kinds %}{{ run.value }} szt.{% else %}+{{ run.value }}%{% endif %}</td><td>{{run.started_at.strftime('%d.%m %H:%M')}}</td><td>{{run.ended_at.strftime('%d.%m %H:%M')}}</td><td>{{run.summary}}</td></tr>{% endfor %}
+  </tbody></table>
+  </div>
+  {% else %}<p class="v2-empty">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}
+</div>
+{% endblock %}

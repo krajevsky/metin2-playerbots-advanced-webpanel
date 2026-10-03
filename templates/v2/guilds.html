@@ -1,0 +1,29 @@
+{% extends 'v2/base.html' %}
+{% block title %}Gildie botów · {{ panel_brand }}{% endblock %}
+{% block page_title %}Gildie{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ static_asset_url('v2/pages/guilds.css') }}">{% endblock %}
+{% block content %}
+<script>document.body.dataset.ajaxForms='1';</script>
+<p class="muted" style="margin:0 0 var(--sp-3)">Klasa wynika z siły mistrza i percentyla królestwa. Lista jest sortowana: Elitarne, Silne, Średnie, Zwykłe.</p>
+{% if status_written_at %}
+<div class="v2-grid" style="margin-bottom:var(--sp-3)">
+  <div class="v2-stat"><span>Gildie botów</span><strong>{{summary.guilds}}</strong></div>
+  <div class="v2-stat"><span>Boty online w gildiach</span><strong>{{summary.online}}</strong></div>
+  <div class="v2-stat"><span>Toczące się wojny</span><strong>{{summary.wars}}</strong></div>
+  <div class="v2-stat"><span>Exp ofiarowany od startu</span><strong>{{'{:,}'.format(summary.exp).replace(',', ' ')}}</strong></div>
+</div>
+{% if next_wars %}<div class="v2-card v2-row" style="justify-content:space-between;margin-bottom:var(--sp-3)"><b>⚔ Następna wojna gildii botów</b><div class="v2-row">{% for row in next_wars %}{% set kingdom=empire_info(row.empire) %}<span class="v2-row" style="gap:4px"><img class="empire-flag-inline" src="{{empire_flag(row.empire)}}" alt="{{kingdom.name}}">{{kingdom.name}}: <strong>{{row.text}}</strong></span>{% endfor %}</div></div>{% endif %}
+<form class="v2-row" style="margin-bottom:var(--sp-3)"><input name="q" value="{{query}}" placeholder="Nazwa gildii lub nick mistrza" style="flex:1;min-width:160px"><button class="v2-btn-primary">Szukaj</button></form>
+<div class="v2-table-wrap" style="margin-bottom:var(--sp-2)"><table><thead><tr><th>Gildia</th><th>Królestwo</th><th>Klasa</th><th>Poziom</th><th>Członkowie</th><th>Online</th><th>Mistrz</th><th>Śr. siła</th><th>Ranking</th><th>Wojny<br><small>Z/R/P</small></th><th>Exp gildii</th><th>Wojna</th></tr></thead><tbody>
+{% for g in guilds %}<tr><td><a href="{{url_for('guild',guild_id=g.id)}}" style="color:var(--accent-soft)">{{g.name}}</a></td><td>{% set kingdom=empire_info(g.empire) %}<img class="empire-flag-inline" src="{{empire_flag(g.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{{kingdom.name}}</td><td><span class="v2-tier v2-tier-{{g.tier}}">{{g.tier_label}}</span></td><td>{{g.level}}</td><td>{{g.members}}</td><td><b style="color:var(--good)">{{g.online}}</b></td><td>{% if g.master_pid %}<a href="{{url_for('player',pid=g.master_pid)}}" style="color:var(--accent-soft)">{{g.master or '—'}}</a>{% else %}{{g.master or '—'}}{% endif %}</td><td>{{'{:,}'.format(g.avg_strength).replace(',', ' ')}}</td><td>{{'{:,}'.format(g.ladder).replace(',', ' ')}}</td><td>{{g.wins}} / {{g.draws}} / {{g.losses}}</td><td>{{'{:,}'.format(g.exp_offered).replace(',', ' ')}}</td><td>{% if g.war_with %}<span class="v2-war-live">⚔ {{g.war_with}}<small>{{g.war_score}} : {{g.war_enemy_score}}</small></span>{% else %}<span class="faint">—</span>{% endif %}</td></tr>{% else %}<tr><td colspan="12"><p class="v2-empty">Rdzenie nie zgłosiły jeszcze gildii botów. Po restarcie pierwszy spis siły odbywa się po około 10 minutach.</p></td></tr>{% endfor %}
+</tbody></table></div>
+<p class="muted" style="font-size:var(--fs-xs)">Dane z rdzeni Playerbots · raport co minutę{% if status_written_at %} · ostatni zapis: {{status_written_at}}{% endif %}</p>
+{% else %}
+<div class="v2-card"><h2>System gildii przygotowuje pierwszy raport</h2><p class="muted">Rdzeń po starcie wykonuje spis siły botów po około 10 minutach. Wtedy przypisze klasy istniejącym gildiom i zacznie publikować ich status.</p></div>
+{% endif %}
+<h2 style="margin:var(--sp-5) 0 4px">Gildie graczy</h2>
+<p class="muted" style="margin:0 0 var(--sp-3)">Gildie, których mistrzem jest człowiek: bez klasy (to percentyl botów) i bez liczby osób online.</p>
+<div class="v2-table-wrap"><table><thead><tr><th>Gildia</th><th>Królestwo</th><th>Poziom</th><th>Członkowie</th><th>Mistrz</th><th>Ranking</th><th>Wojny<br><small>Z/R/P</small></th></tr></thead><tbody>
+{% for g in player_guilds %}<tr><td><a href="{{url_for('guild',guild_id=g.id)}}" style="color:var(--accent-soft)">{{g.name}}</a></td><td>{% set kingdom=empire_info(g.empire) %}{% if empire_flag(g.empire) %}<img class="empire-flag-inline" src="{{empire_flag(g.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}{{kingdom.name}}</td><td>{{g.level}}</td><td>{{g.members}}</td><td><a href="{{url_for('player',pid=g.master_pid)}}" style="color:var(--accent-soft)">{{g.master or '—'}}</a></td><td>{{'{:,}'.format(g.ladder).replace(',', ' ')}}</td><td>{{g.wins}} / {{g.draws}} / {{g.losses}}</td></tr>{% else %}<tr><td colspan="7"><p class="v2-empty">Żadnej gildii nie prowadzi jeszcze człowiek.</p></td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

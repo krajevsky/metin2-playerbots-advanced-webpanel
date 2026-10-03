@@ -1,0 +1,70 @@
+{% extends 'v2/base.html' %}{% block title %}Mapy · {{panel_brand}}{% endblock %}
+{% block page_title %}Mapy w czasie{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ static_asset_url('v2/pages/maps-legacy.css') }}">{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Natężenie graczy z ostatnich 24 godzin oraz zdarzenia odnotowane w logach serwera.</p>
+{% if channels|length > 1 %}<div class="v2-pillset" id="maps-channel-tabs" role="tablist" style="margin-bottom:var(--sp-3)">
+  <button type="button" class="active" data-channel="all">Wszystkie kanały</button>
+  {% for ch in channels %}<button type="button" data-channel="{{ch}}">Kanał {{ch}}</button>{% endfor %}
+</div>{% endif %}
+
+<div class="v2-card" style="margin-bottom:var(--sp-3)">
+  <div class="v2-row" style="justify-content:space-between;margin-bottom:var(--sp-3)">
+    <div><h2>Natężenie na mapach</h2><p class="muted" style="margin:4px 0 0">Kliknij wiersz lub zaznacz mapy poniżej, aby odfiltrować wykres.</p></div>
+    <button class="v2-btn-ghost" type="button" id="maps-all">Wszystkie mapy</button>
+  </div>
+  <div id="map-series-filters" class="v2-row" style="margin-bottom:var(--sp-3)"></div>
+  <canvas id="maps" height="90"></canvas>
+</div>
+
+<div class="v2-card" style="margin-bottom:var(--sp-3)">
+  <h2 style="margin-bottom:var(--sp-3)">Aktualne natężenie</h2>
+  <div class="v2-table-wrap" style="border:0"><table class="map-current-table"><thead><tr><th>Mapa</th><th>Postacie</th></tr></thead><tbody id="maps-current-body">{% for m in latest['all'] %}<tr data-map-index="{{m.map_index}}" tabindex="0" title="Pokaż tylko tę mapę na wykresie" style="cursor:pointer"><td>{{map_name(m.map_index)}}</td><td>{{m.character_count}}</td></tr>{% else %}<tr><td colspan="2"><p class="v2-empty">Czekam na dane.</p></td></tr>{% endfor %}</tbody></table></div>
+</div>
+
+<div class="v2-card" style="margin-bottom:var(--sp-3)">
+  <h2>📊 Boty wg przedziału poziomu</h2>
+  <p class="muted" style="margin:4px 0 var(--sp-3)">Ile obecnie jest botów w każdym przedziale poziomu (co 10) i jak ta liczba zmieniała się w ostatnich dniach.</p>
+  <div class="v2-grid" id="level-bracket-now" style="margin-bottom:var(--sp-3)">{% for bracket, count in level_now %}<div class="v2-stat" style="padding:10px 12px"><strong style="font-size:var(--fs-lg);margin:2px 0">{{count}}</strong><span>Lv {{bracket}}</span></div>{% else %}<p class="v2-empty">Czekam na dane.</p>{% endfor %}</div>
+  <canvas id="levelHistory" height="80"></canvas>
+  {% if not level_history.labels %}<p class="muted" style="margin:var(--sp-3) 0 0">Historia przedziałów poziomu dopiero się zbiera (migawka co 5 minut) — wykres napełni się w ciągu najbliższych godzin.</p>{% endif %}
+</div>
+
+<div class="v2-card lw">
+  <h2>🔥 Mapa cieplna zdarzeń</h2>
+  <p class="muted" style="margin:4px 0 var(--sp-3)">Śmierci botów, rozbite Metiny i zabite bossy z dostępnej historii gry. Pozycje są grupowane w siatce mapy, a większa plama oznacza większą liczbę zdarzeń w danym obszarze.</p>
+  <div class="heat-controls"><select id="heat-kind"><option value="deaths">Zgony botów</option><option value="metins">Rozbite Metiny</option><option value="bosses">Zabite bossy</option></select><select id="heat-map">{% for index, label in heat_map_options %}<option value="{{index}}">{{label}}</option>{% endfor %}</select><b id="heat-count">Ładowanie…</b></div>
+  <div id="heatmap" class="world-map heatmap"><div class="map-caption" id="heat-caption">Chunjo M1</div></div>
+</div>
+
+<script>
+let i18nExact=null;
+const tr=value=>{if(!i18nExact){const node=document.getElementById('i18n-data');if(!node)return value;try{i18nExact=JSON.parse(node.textContent).exact||{}}catch(_){i18nExact={}}}return i18nExact[value]||value};
+const allCharts={{charts|tojson}};
+const allLatest={{latest|tojson}};
+let activeChannel='all';
+let mapHistory=allCharts[activeChannel];
+const mapColors=['#6366f1','#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#4ade80','#f472b6','#facc15','#2dd4bf','#ef4444','#818cf8','#a3e635','#38bdf8'];
+let checked=new Set(mapHistory.series.map(s=>s.id));
+const filters=document.getElementById('map-series-filters');
+const currentBody=document.getElementById('maps-current-body');
+const canvas=document.getElementById('maps');
+const makeDataset=(series,index)=>({label:series.name,data:series.data,borderColor:mapColors[index%mapColors.length],backgroundColor:mapColors[index%mapColors.length]+'22',borderWidth:2,tension:.25,pointRadius:0,pointHoverRadius:4});
+const chart=new Chart(canvas,{type:'line',data:{labels:mapHistory.labels,datasets:[]},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{displayColors:true,callbacks:{title:items=>items.length?tr('Godzina')+': '+items[0].label:'',label:item=>tr(item.dataset.label)+': '+item.formattedValue+' '+tr('postaci')}}},scales:{x:{ticks:{color:'#596178',maxTicksLimit:12},grid:{color:'#1a1e28'}},y:{beginAtZero:true,ticks:{color:'#596178',precision:0},grid:{color:'#1a1e28'}}}}});
+function render(){chart.data.labels=mapHistory.labels;chart.data.datasets=mapHistory.series.filter(s=>checked.has(s.id)).map((s,index)=>makeDataset(s,mapHistory.series.indexOf(s)));chart.update();filters.querySelectorAll('input').forEach(input=>input.checked=checked.has(Number(input.value)));document.querySelectorAll('.map-current-table tr[data-map-index]').forEach(row=>row.classList.toggle('selected',checked.size===1&&checked.has(Number(row.dataset.mapIndex))));}
+function renderFilters(){filters.innerHTML='';mapHistory.series.forEach((series,index)=>{const label=document.createElement('label');label.style.cssText='display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer';label.innerHTML=`<input type="checkbox" value="${series.id}" checked><i style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${mapColors[index%mapColors.length]}"></i><span>${series.name}</span>`;label.querySelector('input').addEventListener('change',event=>{const id=Number(event.target.value);event.target.checked?checked.add(id):checked.delete(id);render()});filters.append(label)});}
+function renderCurrentTable(){const rows=allLatest[activeChannel]||[];currentBody.innerHTML=rows.length?rows.map(m=>`<tr data-map-index="${m.map_index}" tabindex="0" title="Pokaż tylko tę mapę na wykresie" style="cursor:pointer"><td>${m.map_name}</td><td>${m.character_count}</td></tr>`).join(''):'<tr><td colspan="2" class="muted">Czekam na dane.</td></tr>';bindCurrentTableRows();}
+function bindCurrentTableRows(){document.querySelectorAll('.map-current-table tr[data-map-index]').forEach(row=>{row.addEventListener('click',()=>chooseOne(row.dataset.mapIndex));row.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();chooseOne(row.dataset.mapIndex)}})});}
+function chooseOne(id){checked.clear();checked.add(Number(id));render();canvas.scrollIntoView({behavior:'smooth',block:'center'});}
+function switchChannel(channel){activeChannel=channel;mapHistory=allCharts[channel]||allCharts.all;checked=new Set(mapHistory.series.map(s=>s.id));renderFilters();renderCurrentTable();render();document.querySelectorAll('#maps-channel-tabs button').forEach(btn=>btn.classList.toggle('active',btn.dataset.channel===channel));}
+document.querySelectorAll('#maps-channel-tabs button').forEach(btn=>btn.addEventListener('click',()=>switchChannel(btn.dataset.channel)));
+renderFilters();bindCurrentTableRows();
+document.getElementById('maps-all').addEventListener('click',()=>{mapHistory.series.forEach(s=>checked.add(s.id));render()});render();
+const levelHistory={{level_history|tojson}};
+if(levelHistory.labels.length){
+  const levelCanvas=document.getElementById('levelHistory');
+  const levelDatasets=levelHistory.series.map((s,index)=>({label:s.name,data:s.data,borderColor:mapColors[index%mapColors.length],backgroundColor:mapColors[index%mapColors.length]+'22',borderWidth:2,tension:.25,pointRadius:0,pointHoverRadius:4,fill:false}));
+  new Chart(levelCanvas,{type:'line',data:{labels:levelHistory.labels,datasets:levelDatasets},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#99a2b5',boxWidth:12}},tooltip:{displayColors:true,callbacks:{title:items=>items.length?tr('Godzina')+': '+items[0].label:'',label:item=>item.dataset.label+': '+item.formattedValue+' '+tr('botów')}}},scales:{x:{ticks:{color:'#596178',maxTicksLimit:12},grid:{color:'#1a1e28'}},y:{beginAtZero:true,ticks:{color:'#596178',precision:0},grid:{color:'#1a1e28'}}}}});
+}
+</script><script src="{{url_for('static',filename='heat-layer.js')}}"></script><script src="{{url_for('static',filename='heatmap.js')}}"></script>
+{% endblock %}

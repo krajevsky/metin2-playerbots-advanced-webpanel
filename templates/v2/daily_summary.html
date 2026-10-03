@@ -1,0 +1,46 @@
+{% extends 'v2/base.html' %}{% block title %}Podsumowanie dnia {{ s.day_number }} · {{ panel_brand }}{% endblock %}
+{% block page_title %}📅 Podsumowanie dnia {{ s.day_number }}{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('dashboard') }}" class="v2-btn-ghost">← Dashboard</a>{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">{{ s.summary_date.strftime('%d.%m.%Y') }} · pełna doba 00:00–24:00. Konta GM i stali towarzysze graczy są pomijani w osiągnięciach.</p>
+<div class="v2-grid" style="margin-bottom:var(--sp-4)">
+  <div class="v2-stat"><span>Boty w grze</span><strong>{{ s.bots_start if s.bots_start is not none else '—' }} → {{ s.bots_end if s.bots_end is not none else '—' }}</strong></div>
+  <div class="v2-stat"><span>Yang w obiegu</span><strong style="font-size:var(--fs-base)">{{ '{:,}'.format(s.yang_start).replace(',', ' ') if s.yang_start is not none else '—' }} → {{ '{:,}'.format(s.yang_end).replace(',', ' ') if s.yang_end is not none else '—' }}</strong></div>
+  <div class="v2-stat"><span>Przedmiotów ulepszonych na +9</span><strong>{{ s.refine9_count }}</strong></div>
+  <div class="v2-stat"><span>Zniszczonych kamieni Metin</span><strong>{{ s.metin_count }}</strong></div>
+  <div class="v2-stat"><span>Pokonanych bossów</span><strong>{{ s.boss_count if s.boss_count is not none else '—' }}</strong></div>
+  <div class="v2-stat"><span>Szkatułki Umarłego Rozpruwacza</span><strong style="font-size:var(--fs-base)">{{ '{:,}'.format(details.reaper_chests_today).replace(',', ' ') }} / {{ '{:,}'.format(details.reaper_chests_total).replace(',', ' ') }}</strong><small>tego dnia / ogółem</small></div>
+  <div class="v2-stat"><span>Wyłowionych ryb</span><strong>{{ '{:,}'.format(s.fish_count).replace(',', ' ') if s.fish_count is not none else '—' }}</strong></div>
+  <div class="v2-stat"><span>Wykopanej rudy</span><strong>{{ '{:,}'.format(s.mining_count).replace(',', ' ') if s.mining_count is not none else '—' }}</strong></div>
+  <div class="v2-stat"><span>Smoczych Monet w obiegu</span><strong style="font-size:var(--fs-base)">{{ '{:,}'.format(s.cash_start).replace(',', ' ') if s.cash_start is not none else '—' }} → {{ '{:,}'.format(s.cash_end).replace(',', ' ') if s.cash_end is not none else '—' }}</strong></div>
+  <div class="v2-stat"><span>Zorganizowane eventy</span><strong>{{ s.events_count }}</strong></div>
+  <div class="v2-stat"><span>Najwyższy poziom</span><strong>Lv {{ s.level_start if s.level_start is not none else '—' }} → Lv {{ s.level_end if s.level_end is not none else '—' }}</strong></div>
+  <div class="v2-stat"><span>Sklepów offline</span><strong>{{ s.shops_start if s.shops_start is not none else '—' }} → {{ s.shops_end if s.shops_end is not none else '—' }}</strong></div>
+</div>
+
+<div class="v2-card" style="margin-bottom:var(--sp-3)">
+  <p class="faint" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px">Liderzy dnia</p>
+  <h2 style="margin-bottom:var(--sp-3)">🏆 Najlepsze wyniki</h2>
+  <div class="v2-grid cols-2">
+  {% for label,icon,leader,suffix in [
+    ('Najwięcej pokonanych graczy','⚔',details.pvp,' pokonanych'),
+    ('Najwięcej udanych ulepszeń','✨',details.refine_success,' udanych'),
+    ('Najwięcej spalonych przedmiotów','🔥',details.refine_burned,' spalonych'),
+    ('Największy zarobek ze sklepu','💰',details.shop,' Yang')
+  ] %}<div class="v2-stat"><span>{{icon}} {{label}}</span>{% if leader %}<strong style="font-size:var(--fs-lg)"><a href="{{url_for('player',pid=leader.id)}}" style="color:var(--accent-soft)">{{leader.name}}</a></strong><small>{{'{:,}'.format(leader.score).replace(',', ' ')}}{{suffix}}</small>{% else %}<strong>—</strong><small>brak zdarzeń</small>{% endif %}</div>{% endfor %}
+  </div>
+</div>
+
+{% if details.highlights %}
+<div class="v2-card">
+  <p class="faint" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px">Najcenniejsze osiągnięcia</p>
+  <h2 style="margin-bottom:var(--sp-3)">🔨 Najlepsze +9 dnia</h2>
+  <div class="v2-grid cols-2">
+  {% for item in details.highlights %}<div class="v2-stat v2-row" style="align-items:center;gap:10px">
+    {% if item.kind == 'hammer' %}<img src="{{static_asset_url('icons/plus9-set-badge.png')}}" alt="Złoty Młot Kowala" style="width:34px;height:34px">{% elif item.vnum and item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.name}}" style="width:34px;height:34px">{% endif %}
+    <div><strong style="display:block">{{item.name}}</strong><span class="muted" style="font-size:var(--fs-xs)">{{item.detail}}</span><br><small>Gracz: <a href="{{url_for('player',pid=item.player_id)}}" style="color:var(--accent-soft)">{{item.player_name}}</a></small></div>
+  </div>{% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

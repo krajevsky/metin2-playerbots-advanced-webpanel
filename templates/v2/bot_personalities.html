@@ -1,0 +1,25 @@
+{% extends 'v2/base.html' %}
+{% block title %}Osobowości botów · {{panel_brand}}{% endblock %}
+{% block page_title %}Osobowości botów{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ static_asset_url('v2/pages/guilds.css') }}">{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Tylko boty aktualnie zalogowane — osobowość, czynność i mapa są odczytywane na żywo.</p>
+<div class="v2-scroll-tabs v2-scroll-thin">
+  <a class="{% if not selected %}active{% endif %}" href="{{url_for('bot_personalities',q=query)}}">Wszystkie · {{personalities|sum(attribute='count')}}</a>
+  {% for p in personalities %}<a class="{% if selected==p.id|string %}active{% endif %}" href="{{url_for('bot_personalities',q=query,personality=p.id)}}" style="{% if selected==p.id|string %}background:{{p.color}}33;border-color:{{p.color}};color:{{p.color}}{% endif %}">{{p.label}} · {{p.count}}</a>{% endfor %}
+</div>
+<form class="v2-row" method="get" style="margin-bottom:var(--sp-3)"><input type="hidden" name="personality" value="{{selected}}"><input id="personality-search" name="q" value="{{query}}" placeholder="Szukaj po nicku" autocomplete="off" style="flex:1;min-width:160px"><button class="v2-btn-primary">Szukaj</button>{% if query or selected %}<a href="{{url_for('bot_personalities')}}"><button type="button" class="v2-btn-ghost">Wyczyść</button></a>{% endif %}</form>
+<p class="muted" style="margin:0 0 var(--sp-2);font-size:var(--fs-xs)">{{total}} bot{{'a' if total==1 else 'ów'}}{% if selected %} z tą osobowością{% endif %} · pokazano do 200</p>
+<div class="v2-table-wrap"><table><thead><tr><th>Bot</th><th>Klasa</th><th>Poziom</th><th>EXP</th><th>Osobowość</th><th>Czynność</th><th>Mapa</th></tr></thead><tbody>
+{% for bot in roster %}<tr class="v2-clickable-row" data-href="{{url_for('player',pid=bot.id)}}" tabindex="0" title="Pokaż kartę postaci">
+  <td><span class="v2-class-cell">{% set kingdom=empire_info(bot.empire) %}{% if kingdom.flag %}<img class="empire-flag-inline" src="{{empire_flag(bot.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}<img class="class-portrait" src="{{class_portrait(bot.job)}}" alt="" aria-hidden="true"><a href="{{url_for('player',pid=bot.id)}}" style="color:var(--accent-soft)">{{bot.name}}</a></span></td>
+  <td>{{job_name(bot.job)}}</td>
+  <td>{{level_badge(bot.id,bot.level,'Lv ')}}</td>
+  <td><span class="v2-exp-orbs" title="{{bot.experience.percent}}% doświadczenia">{% for n in range(4) %}<i class="{% if bot.experience.percent >= (n + 1) * 25 %}full{% elif bot.experience.percent > n * 25 %}part{% endif %}"></i>{% endfor %}<b>{{bot.experience.percent}}%</b></span></td>
+  <td><b style="color:{{bot.personality_color}}">{{bot.personality_label}}</b></td>
+  <td>{{bot.action_label}}</td>
+  <td>{{bot.map_display}}</td>
+</tr>{% else %}<tr><td colspan="7"><p class="v2-empty">Brak botów pasujących do filtra.</p></td></tr>{% endfor %}
+</tbody></table></div>
+<script>document.querySelectorAll('table tbody tr.v2-clickable-row').forEach(row=>{row.addEventListener('click',()=>{window.location=row.dataset.href});row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();window.location=row.dataset.href}})});</script>
+{% endblock %}

@@ -1,0 +1,3 @@
+body.v2 .v2-item-cell{display:flex;align-items:center;gap:8px}
+body.v2 .v2-item-cell img{width:24px;height:24px;object-fit:contain;flex:0 0 auto}
+body.v2 .v2-item-cell a{color:var(--accent-soft)}

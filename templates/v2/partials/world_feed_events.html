@@ -1,0 +1,30 @@
+{% set ns = namespace(last_day=None) %}
+{% for event in events %}
+{% if event.day_label != ns.last_day %}
+<div class="v2-feed-day">{{event.day_label}}</div>
+{% set ns.last_day = event.day_label %}
+{% endif %}
+<article class="v2-feed-card{% if event.kind=='refine' and event.refine_tier>=9 %} v2-feed-card--legendary{% endif %}" data-cursor="{{event.cursor}}">
+  {% if event.kind=='announcement' %}
+  <div class="v2-feed-avatar v2-feed-avatar--legendary" aria-hidden="true">✦</div>
+  {% else %}
+  <div class="v2-feed-avatar"><img src="{{class_portrait(event.job)}}" alt="" aria-hidden="true">
+    {% set kingdom=empire_info(event.empire) %}{% if kingdom.flag %}<img class="v2-feed-flag" src="{{empire_flag(event.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}
+  </div>
+  {% endif %}
+  <div class="v2-feed-body">
+    <div class="v2-feed-head">
+      {% if event.kind=='announcement' %}<span class="v2-feed-name">{{event.method or 'Legendarne wydarzenie'}}</span><span class="v2-badge v2-badge-warn">✦ Ogłoszenie</span>
+      {% else %}<a class="v2-feed-name" href="{{url_for('player',pid=event.player_id)}}">{{event.actor}}</a>{% endif %}
+      {% if event.kind=='refine' %}<span class="v2-badge v2-badge-{{ 'warn' if event.refine_tier>=9 else 'good' }}">+{{event.refine_tier}}</span>
+      {% elif event.kind=='skill' %}<span class="v2-badge v2-badge-live">✦ Mistrzostwo</span>
+      {% elif event.kind=='find' %}<span class="v2-badge v2-badge-good">🐚 Rzadkość</span>
+      {% elif event.kind=='chest' %}<span class="v2-badge v2-badge-warn">🎁 Szkatułka Ripera</span>{% endif %}
+      <span class="v2-feed-time" title="{{event.time_full}}">{{event.time_label}}</span>
+    </div>
+    <p class="v2-feed-msg">{{event.message}}{% if event.kind=='chest' and event.vnum and item_icon(event.vnum) %}<img class="v2-feed-icon" src="{{item_icon(event.vnum)}}" alt="Nagroda" title="Nagroda ze szkatułki">{% elif event.kind=='refine' %}{% if event.vnum and item_icon(event.vnum) %}<img class="v2-feed-icon" src="{{item_icon(event.vnum)}}" alt="{{event.method}}" title="{{event.method}}">{% elif event.method=='u kowala' %}<img class="v2-feed-icon" src="{{ static_asset_url('refine-method/kowal.png') }}" alt="u kowala" title="u kowala">{% elif event.method %}<span class="muted" style="font-size:var(--fs-xs)">{{event.method}}</span>{% endif %}{% endif %}</p>
+  </div>
+</article>
+{% else %}
+<div class="v2-empty"><b style="display:block;color:var(--text-dim);margin-bottom:4px">Brak wydarzeń.</b>Gdy ktoś ulepszy coś na +7 i wyżej, zdobędzie mistrzostwo umiejętności, złowi Małż albo otworzy Szkatułkę Umarłego Rozpruwacza, pojawi się tutaj.</div>
+{% endfor %}

@@ -1,0 +1,6 @@
+body.v2 .v2-dot-legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:var(--sp-3);font-size:var(--fs-xs);color:var(--text-dim)}
+body.v2 .v2-dot-legend span{display:inline-flex;align-items:center;gap:5px}
+body.v2 .v2-dot-legend i{width:8px;height:8px;border-radius:50%}
+body.v2 .v2-trend-up{color:var(--good)}
+body.v2 .v2-trend-down{color:var(--bad)}
+body.v2 .v2-trend-flat{color:var(--text-faint)}

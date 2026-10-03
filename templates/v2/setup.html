@@ -1,0 +1,15 @@
+{% extends 'v2/base.html' %}{% block title %}Pierwsza konfiguracja · Metin2 Singleplayer{% endblock %}
+{% block page_title %}Skonfiguruj panel{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Te ustawienia można później zmienić w Zarządzaniu.</p>
+<form method="post" class="v2-card v2-stack" style="max-width:480px">
+  <label>Nazwa panelu <input name="panel_name" maxlength="48" value="Metin2 Singleplayer" required></label>
+  <label>Alarm bez ruchu <input name="stuck_minutes" type="number" min="1" max="120" value="5" required><small>minut</small></label>
+  <label>Kolorystyka <select name="theme"><option value="ocean">Ocean</option><option value="ember">Ember</option><option value="forest">Forest</option><option value="empire" selected>Cesarstwo</option></select></label>
+  <label>Źródło monitoringu <select name="monitor_mode"><option value="vps">VPS / host</option><option value="docker">Docker / lokalnie</option></select></label>
+  <label class="v2-row" style="flex-direction:row;align-items:center;gap:8px"><input id="enable-auth" type="checkbox" name="auth_enabled" value="1" style="width:auto"><span>Ochrona hasłem <small class="faint">(opcjonalnie)</small></span></label>
+  <label id="setup-password" hidden>Hasło panelu <input name="panel_password" type="password" minlength="8" autocomplete="new-password" placeholder="co najmniej 8 znaków"></label>
+  <button class="v2-btn-primary" type="submit">Zapisz i otwórz panel</button>
+</form>
+<script>const check=document.getElementById('enable-auth'),password=document.getElementById('setup-password');check.addEventListener('change',()=>password.hidden=!check.checked);</script>
+{% endblock %}

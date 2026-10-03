@@ -1,0 +1,51 @@
+{% extends 'v2/base.html' %}
+{% block title %}Konta · {{panel_brand}}{% endblock %}
+{% block page_title %}Konta{% endblock %}
+{% block content %}
+<script>document.body.dataset.ajaxForms='1';</script>
+<div class="v2-card v2-stack" style="margin-bottom:var(--sp-4)">
+  <h2>Nowe konto</h2>
+  <form method="post" id="account-create-form" class="v2-grid cols-2">
+    <label>Login<input required name="login" maxlength="30" pattern="[A-Za-z0-9_]+"></label>
+    <label>Hasło<input required name="password" type="password" minlength="6"></label>
+    <label>E-mail <small class="faint">(opcjonalnie)</small><input name="email" type="email"></label>
+    <label>Kod usunięcia postaci<input required name="deletion_code" type="password" inputmode="numeric" minlength="7" maxlength="7" pattern="[0-9]{7}" placeholder="Dokładnie 7 cyfr"></label>
+    <label>Rodzaj konta<select name="authority" id="account-authority">{% for authority in authorities %}<option value="{{authority}}">{{authority}}</option>{% endfor %}</select></label>
+    <div class="gm-only v2-grid cols-2" hidden style="grid-column:1/-1">
+      <label>Królestwo<select name="empire"><option value="1">Shinsoo</option><option value="2">Chunjo</option><option value="3">Jinno</option></select></label>
+      <label>Nick postaci GM <small class="faint">(np. [GM]Seban)</small><input name="gm_name" maxlength="24" pattern="(?:[A-Za-z0-9_]{2,24}|\[[A-Za-z0-9_]{1,6}\][A-Za-z0-9_]{2,16})"></label>
+      <label>Klasa postaci<select name="gm_job">{% for value,label in jobs %}<option value="{{value}}">{{label}}</option>{% endfor %}</select></label>
+      <label>Płeć postaci<select name="gm_gender">{% for value,label in genders %}<option value="{{value}}">{{label}}</option>{% endfor %}</select></label>
+    </div>
+    <button class="v2-btn-primary" style="grid-column:1/-1;width:fit-content">Utwórz konto</button>
+  </form>
+</div>
+
+<div class="v2-row" style="justify-content:space-between;margin-bottom:var(--sp-3)">
+  <h2 style="margin:0">Konta serwera</h2>
+  <form class="v2-row" method="get">
+    <input name="q" value="{{account_query}}" placeholder="🔍 Login lub nick postaci">
+    <label style="flex-direction:row;align-items:center;gap:6px">Wyświetlaj<select name="display"><option value="100" {% if display=='100' %}selected{% endif %}>100</option><option value="1000" {% if display=='1000' %}selected{% endif %}>1000</option><option value="all" {% if display=='all' %}selected{% endif %}>Wszystkie</option></select></label>
+    <button class="v2-btn-ghost" type="submit">Szukaj</button>
+  </form>
+</div>
+<div class="v2-table-wrap">
+<table><thead><tr><th>ID</th><th>Login</th><th>E-mail</th><th>Królestwo</th><th>Utworzono</th><th>Ostatnia gra</th></tr></thead><tbody>
+{% for account in accounts %}<tr class="account-row" data-href="{{ url_for('account_detail', aid=account.id) }}" tabindex="0" title="Pokaż konto" style="cursor:pointer">
+  <td class="faint">{{account.id}}</td>
+  <td><span class="account-login" style="color:var(--accent-soft)">{{account.login}}</span></td>
+  <td>{{account.email}}</td>
+  <td>{% set empire=empire_info(account.empire) %}{% if empire.flag %}<span class="v2-row" style="gap:5px"><img src="{{empire_flag(account.empire)}}" alt="{{empire.name}}" style="height:14px">{{empire.name}}</span>{% else %}—{% endif %}</td>
+  <td>{{account.create_time}}</td>
+  <td>{{account.last_play or '—'}}</td>
+</tr>{% else %}<tr><td colspan="6"><p class="v2-empty">Brak kont pasujących do wyszukiwania.</p></td></tr>{% endfor %}
+</tbody></table>
+</div>
+<style>body.v2 .account-row:hover td{background:var(--surface-2)}</style>
+<script>
+(() => {
+const authority=document.getElementById('account-authority'),gm=document.querySelector('.gm-only');function toggleGM(){gm.hidden=authority.value==='PLAYER'}authority.addEventListener('change',toggleGM);toggleGM();
+document.querySelectorAll('table tbody tr.account-row').forEach(row=>{row.addEventListener('click',()=>{window.location=row.dataset.href});row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();window.location=row.dataset.href}})});
+})();
+</script>
+{% endblock %}

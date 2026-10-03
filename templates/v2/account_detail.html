@@ -1,0 +1,40 @@
+{% extends 'v2/base.html' %}
+{% block title %}Konto {{account.login}} · {{panel_brand}}{% endblock %}
+{% block page_title %}{{account.login}}{% endblock %}
+{% block topbar_actions %}<a class="v2-btn-ghost" href="{{url_for('accounts')}}">← Konta</a>{% endblock %}
+{% block content %}
+<div class="v2-row" style="margin-bottom:var(--sp-4)">
+  {% set empire=empire_info(account.empire) %}
+  {% if empire.flag %}<span class="v2-badge" style="background:var(--surface-2)"><img src="{{empire_flag(account.empire)}}" alt="{{empire.name}}" style="height:13px;margin-right:4px;vertical-align:middle">{{empire.name}}</span>{% else %}<span class="faint">Brak przypisanego królestwa</span>{% endif %}
+  <span class="v2-badge" style="background:var(--surface-2)">{{'🛡 GM (' + account.authority + ')' if account.authority != 'PLAYER' else '👤 Gracz'}}</span>
+  <span class="v2-badge" style="background:var(--surface-2)">💎 {{'{:,}'.format(account.cash).replace(',', ' ')}} Smoczych Monet</span>
+  <span class="v2-badge" style="background:var(--surface-2)">✉ {{account.email or '—'}}</span>
+  <span class="v2-badge" style="background:var(--surface-2)">🗓 {{account.create_time.strftime('%d.%m.%Y %H:%M') if account.create_time else '—'}}</span>
+  <span class="v2-badge" style="background:var(--surface-2)">🕐 {{account.last_play.strftime('%d.%m.%Y %H:%M') if account.last_play else '—'}}</span>
+  {% for p in account.premiums %}<span class="v2-badge v2-badge-good">⭐ {{p.label}} do {{p.expires.strftime('%d.%m.%Y')}}</span>{% else %}<span class="faint">⭐ Brak aktywnego VIP</span>{% endfor %}
+</div>
+
+<div class="v2-row" style="justify-content:space-between;margin-bottom:var(--sp-3)">
+  <h2 style="margin:0">Postacie ({{characters|length}}/4)</h2>
+  <a class="v2-btn-primary" href="{{url_for('character_creator', account_id=account.id)}}">➕ Stwórz nową postać</a>
+</div>
+<div class="v2-table-wrap">
+  <table>
+    <thead><tr><th></th><th>Nick</th><th>Poziom</th><th>Czas gry</th><th>Ostatnie logowanie</th><th>Yang</th></tr></thead>
+    <tbody>
+      {% for c in characters %}
+      <tr>
+        <td><img class="class-portrait" src="{{class_portrait(c.job)}}" alt="{{c.class_profile.name}}" title="{{c.class_profile.name}}"></td>
+        <td><a href="{{url_for('player', pid=c.id)}}" style="color:var(--accent-soft)">{{c.name}}</a> <span class="faint">· {{c.class_profile.name}}</span></td>
+        <td>{{level_badge(c.id,c.level)}}</td>
+        <td>{{c.playtime_hours}} h {{c.playtime_minutes}} min</td>
+        <td>{{c.last_play.strftime('%d.%m.%Y %H:%M') if c.last_play else '—'}}</td>
+        <td>{{'{:,}'.format(c.gold or 0).replace(',', ' ')}}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6"><p class="v2-empty">Brak postaci na tym koncie.</p></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

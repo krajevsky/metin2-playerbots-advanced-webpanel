@@ -1,0 +1,21 @@
+{% for entry in messages %}
+{% if entry.type == 'NOTICE' %}
+<article class="v2-chat-line v2-chat-line--legendary" data-channel="notice">
+  <time>{{entry.time}}</time>
+  <span class="v2-chat-msg"><b>{{entry.notice_label}}</b> {{entry.message}}</span>
+  <span class="v2-chat-badge">OGŁOSZENIE</span>
+</article>
+{% else %}
+<article class="v2-chat-line" data-channel="{{entry.type|lower}}">
+  <time>{{entry.time}}</time>
+  {% set kingdom=empire_info(entry.empire) %}
+  {% if kingdom.flag %}<img class="v2-chat-flag" src="{{empire_flag(entry.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{% endif %}
+  <img class="v2-chat-avatar" src="{{class_portrait(entry.job)}}" alt="" aria-hidden="true">
+  <a class="v2-chat-name" href="{{url_for('player',pid=entry.player_id)}}" translate="no">{{entry.author}}</a>
+  <span class="v2-chat-msg" translate="no">{{entry.message}}</span>
+  <span class="v2-chat-badge">{{ 'WOŁAJ' if entry.type == 'SHOUT' else 'HANDEL' }}</span>
+</article>
+{% endif %}
+{% else %}
+<div class="v2-empty"><b style="display:block;color:var(--text-dim);margin-bottom:4px">Brak przechwyconych wiadomości.</b>Gdy ktoś napisze na Wołaj lub Handel, pojawi się tutaj automatycznie.</div>
+{% endfor %}

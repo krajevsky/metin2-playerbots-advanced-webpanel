@@ -1,0 +1,28 @@
+{% extends 'v2/base.html' %}{% block title %}Diagnostyka · {{ panel_brand }}{% endblock %}
+{% block page_title %}⌁ Diagnostyka Playerbots{% endblock %}
+{% block topbar_actions %}<span class="v2-badge v2-badge-good">TYLKO DO ODCZYTU</span>{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Skrócony odczyt bieżących statusów rdzenia, logów gry i dziennika zdarzeń. Nie zmienia ustawień ani danych świata.</p>
+<div class="v2-grid" style="margin-bottom:var(--sp-3)">
+  <div class="v2-stat"><span>Boty online</span><strong>{{ diagnostic.online }}</strong></div>
+  <div class="v2-stat"><span>Łowią teraz</span><strong>{{ diagnostic.anglers|length }}</strong></div>
+  <div class="v2-stat"><span>Waga wędkowania</span><strong>{{ diagnostic.weights.FISHING }}%</strong></div>
+  <div class="v2-stat"><span>Zdarzenia FISH w bazie</span><strong>{{ diagnostic.database_events }}</strong></div>
+</div>
+<div class="v2-card" style="margin-bottom:var(--sp-3)">
+  <h2>Wniosek dla wędkowania</h2>
+  {% if diagnostic.anglers %}<p style="margin:8px 0 0">Rdzeń raportuje aktywnych wędkarzy. Poniżej znajduje się ich bieżący status.</p>
+  {% else %}<p class="muted" style="margin:8px 0 0">Żaden aktywny bot nie raportuje akcji „Łowi ryby”. W Playerbots decyzja, czy bot będzie wędkarzem, zapada raz na bota; zmiana wagi działa więc dla kolejnej puli botów, a nie od razu dla istniejącej populacji.</p>{% endif %}
+</div>
+<div class="v2-card" style="margin-bottom:var(--sp-3);padding:0">
+  <h2 style="padding:var(--sp-4) var(--sp-4) 0">Boty aktualnie łowiące</h2>
+  <div class="v2-table-wrap" style="border:0;margin-top:var(--sp-3)"><table><thead><tr><th>Bot</th><th>Poziom</th><th>Mapa</th><th>Status</th></tr></thead><tbody>{% for bot in diagnostic.anglers %}<tr><td><a href="{{ url_for('player',pid=bot.id) }}" style="color:var(--accent-soft)">{{bot.name}}</a></td><td>{{level_badge(bot.id,bot.level,'Lv ')}}</td><td>{{bot.map_name}}</td><td>{{bot.status or bot.action_label}}</td></tr>{% else %}<tr><td colspan="4"><p class="v2-empty">Brak aktywnych wędkarzy.</p></td></tr>{% endfor %}</tbody></table></div>
+</div>
+<div class="v2-card">
+  <h2>Ostatnie wpisy związane z łowieniem</h2>
+  <p class="muted" style="margin:4px 0 var(--sp-3)">Przeszukiwane są ostatnie 256 KB każdego logu rdzenia, bez pobierania ani wysyłania całych plików.</p>
+  <div class="v2-scroll-thin" style="max-height:420px;overflow-y:auto;font-family:ui-monospace,monospace;font-size:var(--fs-xs);color:var(--text-dim)">
+    {% for item in diagnostic.log_matches %}<div style="padding:6px 0;border-bottom:1px solid var(--border-soft)"><time style="color:var(--text-faint);margin-right:8px">{{item.core}}</time>{{item.line}}</div>{% else %}<p class="v2-empty">Brak wpisów związanych z fishing / wędką / wędkowaniem.</p>{% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'v2/base.html' %}
+{% block title %}Logi panelu · {{panel_brand}}{% endblock %}
+{% block page_title %}Logi panelu{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Błędy działania samego webpanelu (nie gry) — z pełnym śladem (traceback), która strona/akcja to wywołała i kiedy. Jeśli coś się zepsuło, pobierz plik poniżej i załącz go do zgłoszenia.</p>
+<div class="v2-card v2-row" style="justify-content:space-between;margin-bottom:var(--sp-3)">
+  <a class="v2-btn-ghost" href="{{url_for('panel_logs_download')}}">📥 Pobierz pełny plik logów</a>
+  <span class="muted" style="font-size:var(--fs-xs)">Rozmiar aktywnego pliku: {{ '%.1f'|format(log_size / 1024) }} KB {% if not log_tail %}— pusty, jeszcze żaden błąd nie został zapisany{% endif %}</span>
+</div>
+<div class="v2-card">
+  <h2 style="margin-bottom:var(--sp-3)">Ostatnie wpisy (do 500 linii)</h2>
+  {% if log_tail %}<pre class="v2-scroll-thin" style="margin:0;white-space:pre-wrap;overflow-x:auto;font-family:ui-monospace,monospace;font-size:var(--fs-xs);color:var(--text-dim);max-height:600px;overflow-y:auto">{{log_tail}}</pre>{% else %}<p class="v2-empty">Brak zapisanych błędów — panel nie zarejestrował jeszcze żadnego wyjątku od czasu wdrożenia tej funkcji.</p>{% endif %}
+</div>
+{% endblock %}

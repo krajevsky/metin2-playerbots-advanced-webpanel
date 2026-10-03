@@ -1,0 +1,12 @@
+/* Legacy heatmap widget styles, scoped via native CSS @scope(.lw) --
+   extracted verbatim from style.css (.world-map/.map-caption), manage.css
+   (.heat-controls/.heatmap/.heat-point) and live-overrides.css
+   (.density-heat-layer/.density-heat-dot, used by heat-layer.js). */
+@scope (.lw) {
+.world-map{height:600px;position:relative;overflow:hidden;background:radial-gradient(circle at 48% 40%,#17251b 0,#0c120f 52%,#060807 100%);border:1px solid #5b4b26;border-radius:6px;box-shadow:inset 0 0 70px #000}.world-map:before{content:'';position:absolute;inset:0;opacity:.14;background-image:linear-gradient(#8f7835 1px,transparent 1px),linear-gradient(90deg,#8f7835 1px,transparent 1px);background-size:10% 10%}.map-caption{position:absolute;z-index:2;left:12px;top:10px;background:#080a08cc;border:1px solid #5b4b26;padding:4px 8px;border-radius:4px;color:#e8d488;font-size:12px}
+.heat-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.heat-controls b{color:#ffb85c}.heatmap{max-width:510px;aspect-ratio:4/5;background:#070c13 center/cover no-repeat}.heatmap[data-map-index="23"],.heatmap[data-map-index="24"],.heatmap[data-map-index="25"],.heatmap[data-map-index="63"],.heatmap[data-map-index="64"]{aspect-ratio:1}.heat-point{position:absolute;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#ff553d;border:1px solid #ffe3a3;box-shadow:0 0 18px 5px #ff553d99;opacity:.5}.heatmap:before{display:none}
+.density-heat-layer{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}.density-heat-dot{position:absolute;display:block;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
+}
+
+/* v2-native maps.html bits, outside the legacy @scope block */
+body.v2 .map-current-table tr[data-map-index].selected td{background:var(--accent-dim)}

@@ -2,6 +2,20 @@
    native CSS @scope -- verbatim from style.css + live-overrides.css,
    so the live map / donuts / carousel keep their exact proven behavior
    and colors without leaking into the rest of the v2 shell. */
+/* @scope() only limits which elements a SELECTOR inside it can match -- it
+   does not make a :root{} rule start matching .lw instead of the real
+   <html> root. The two :root blocks below (style.css + live-overrides.css)
+   would silently become no-ops without this: every var(--edge)/var(--blue2)/
+   var(--live-accent) etc used by the scoped rules below would resolve to
+   nothing, and the "isolated" widget would render colorless. Re-declaring
+   the same variables directly on .lw (plain rule, not @scope'd) fixes it --
+   custom properties inherit normally regardless of @scope. */
+.lw{
+  --bg:#09111e;--panel:#101d2d;--edge:#213852;--text:#edf5ff;--muted:#91a8c5;--blue2:#1f6fe5;--gold:#f2c34d;
+  --leader-ink:#edf5ff;--leader-ink-2:#f2c34d;--leader-ink-3:#77c4ff;
+  --live-surface:#0d1929;--live-surface-strong:#101d2d;--live-border:#294562;--live-line:#213852;
+  --live-accent:#1f6fe5;--live-accent-text:#dcecff;--live-number:#82b6ff;--live-progress-end:#49d49a;--live-filter:#203d63;
+}
 @scope (.lw) {
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&display=swap');
 :root{--bg:#09111e;--panel:#101d2d;--edge:#213852;--text:#edf5ff;--muted:#91a8c5;--blue2:#1f6fe5;--gold:#f2c34d;

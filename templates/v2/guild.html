@@ -1,0 +1,18 @@
+{% extends 'v2/base.html' %}{% block title %}{{ guild.name }} · Gildie{% endblock %}
+{% block page_title %}{{guild.name}}{% endblock %}
+{% block content %}
+<a href="{{url_for('guilds')}}" style="color:var(--accent-soft);font-size:var(--fs-sm);display:inline-block;margin-bottom:var(--sp-3)">← Powrót do gildii</a>
+<p class="muted" style="margin:-8px 0 var(--sp-3)">poziom {{guild.level or 0}}</p>
+<div class="v2-grid" style="margin-bottom:var(--sp-4)">
+  <div class="v2-stat"><span>Lider</span><strong style="font-size:var(--fs-lg)">{% if guild.leader_id %}<a href="{{url_for('player',pid=guild.leader_id)}}" style="color:inherit">{{guild.leader_name}}</a>{% else %}—{% endif %}</strong>{% if guild.leader_level %}<small>{{level_badge(guild.leader_id,guild.leader_level,'Lv ')}}</small>{% endif %}</div>
+  <div class="v2-stat"><span>Członkowie</span><strong>{{guild.member_count}}</strong><small>aktualny skład</small></div>
+  <div class="v2-stat"><span>Punkty rangi</span><strong>{{'{:,}'.format(guild.ladder_point or 0).replace(',', ' ')}}</strong><small>ranking gildii</small></div>
+  <div class="v2-stat"><span>Wojny</span><strong>{{guild.win}} / {{guild.draw}} / {{guild.loss}}</strong><small>wygrane / remisy / porażki</small></div>
+</div>
+<div class="v2-card" style="padding:0">
+  <h2 style="padding:var(--sp-4) var(--sp-4) 0">Członkowie gildii</h2>
+  <div class="v2-table-wrap" style="border:0;margin-top:var(--sp-3)"><table><thead><tr><th>Postać</th><th>Rola</th><th>Poziom</th><th>Klasa</th><th>Mapa</th><th>Darowizna</th></tr></thead><tbody>
+  {% for m in members %}<tr><td>{% if m.name %}<a href="{{url_for('player',pid=m.pid)}}" style="color:var(--accent-soft)">{{m.name}}</a>{% else %}<span class="faint">usunięta postać #{{m.pid}}</span>{% endif %}</td><td>{% if m.pid == guild.leader_id %}<span class="v2-badge v2-badge-warn">Lider</span>{% elif m.is_general %}<span class="v2-badge v2-badge-good">Generał</span>{% else %}Członek{% endif %}</td><td>{{level_badge(m.pid,m.level or 0)}}</td><td>{{job_name(m.job) if m.job is not none else '—'}}</td><td>{{map_name(m.map_index) if m.map_index is not none else '—'}}</td><td>{{'{:,}'.format(m.offer or 0).replace(',', ' ')}}</td></tr>{% else %}<tr><td colspan="6"><p class="v2-empty">Brak zapisanych członków.</p></td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endblock %}

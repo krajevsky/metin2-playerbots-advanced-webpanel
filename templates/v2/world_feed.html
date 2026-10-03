@@ -1,0 +1,42 @@
+{% extends 'v2/base.html' %}
+{% block title %}Wiadomości ze świata · {{panel_brand}}{% endblock %}
+{% block page_title %}Wiadomości ze świata{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ static_asset_url('v2/pages/world_feed.css') }}">{% endblock %}
+{% block content %}
+<div class="v2-tabs" style="margin-bottom:var(--sp-3)">
+  <a href="{{url_for('world_feed')}}"><button type="button" class="active">✦ Wiadomości ze świata</button></a>
+  <a href="{{url_for('live_chat')}}"><button type="button">▤ Czat na żywo</button></a>
+</div>
+<p class="muted" style="margin:0 0 var(--sp-3)">Oś czasu najważniejszych osiągnięć: ulepszenia +7 i wyżej, zdobyte mistrzostwa umiejętności i rzadkie znaleziska.</p>
+<div class="v2-card" id="worldFeedTimeline">
+  {% include 'v2/partials/world_feed_events.html' %}
+</div>
+<div class="v2-row" style="justify-content:center;margin-top:var(--sp-3)">
+  <button type="button" id="worldFeedMore" class="v2-btn-ghost" {% if events|length < 40 %}hidden{% endif %}>Załaduj starsze wydarzenia</button>
+  <p id="worldFeedEnd" class="muted" hidden>To już wszystkie wydarzenia z ostatnich 14 dni.</p>
+</div>
+<script>
+(() => {
+  const timeline = document.getElementById('worldFeedTimeline');
+  const moreButton = document.getElementById('worldFeedMore');
+  const endLabel = document.getElementById('worldFeedEnd');
+  let cursor = null, loading = false;
+  const cards = timeline.querySelectorAll('.v2-feed-card');
+  if (cards.length) cursor = cards[cards.length - 1].dataset.cursor;
+  moreButton?.addEventListener('click', async () => {
+    if (loading || !cursor) return;
+    loading = true; moreButton.textContent = 'Wczytywanie…';
+    try {
+      const res = await fetch(`{{url_for('api_world_feed')}}?before=${encodeURIComponent(cursor)}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      const data = await res.json();
+      if (data.ok) {
+        timeline.insertAdjacentHTML('beforeend', data.html);
+        cursor = data.next_before;
+        if (!data.has_more || !cursor) { moreButton.hidden = true; endLabel.hidden = false; }
+      }
+    } catch (_) {}
+    loading = false; moreButton.textContent = 'Załaduj starsze wydarzenia';
+  });
+})();
+</script>
+{% endblock %}

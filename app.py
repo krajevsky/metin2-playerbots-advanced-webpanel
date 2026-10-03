@@ -72,11 +72,21 @@ def _ui_version_persist(response):
 
 
 def render(name, **ctx):
+    # Only falls back to v1 when templates/v2/<name>.html itself is missing
+    # (checked via get_source, which doesn't resolve {% include %}/{% extends
+    # %}) -- NOT via a broad try/render/except TemplateNotFound around the
+    # actual render, which used to also swallow a broken {% include %} INSIDE
+    # an existing v2 template and silently re-render v1, making a real bug
+    # look like a successful v1 fallback. Confirmed live 2026-10-03: a v2
+    # template with a missing partials/ file returned 200 with v1 markup and
+    # no error, masking the bug.
     if current_ui_version() == "v2":
         try:
-            return render_template(f"v2/{name}", **ctx)
+            app.jinja_env.loader.get_source(app.jinja_env, f"v2/{name}")
         except TemplateNotFound:
             pass
+        else:
+            return render_template(f"v2/{name}", **ctx)
     return render_template(name, **ctx)
 
 # Nazwy wiosek pochodzą z questów silnika: new_quest_lv52 czyta pierwsze
@@ -5667,7 +5677,8 @@ def api_items():
     count_label = f"{total} przedmiotów" + (" pasuje do wyszukiwania" if query else (" w wybranej kategorii" if item_type else " · pełna lista bez stron"))
     if total > 500:
         count_label += " (pokazano pierwsze 500 — zawęź wyszukiwanie)"
-    return {"ok": True, "html": translated_fragment(render_template("partials/items_catalog.html", items=records)), "count_label": count_label}
+    partial = "v2/partials/items_catalog.html" if current_ui_version() == "v2" else "partials/items_catalog.html"
+    return {"ok": True, "html": translated_fragment(render_template(partial, items=records)), "count_label": count_label}
 
 
 CHAT_FEED_TYPES = ("SHOUT", "TRADE", "NOTICE")
@@ -5970,7 +5981,8 @@ def live_chat():
 @app.get("/api/live-chat")
 @login_required
 def api_live_chat():
-    return {"ok": True, "html": translated_fragment(render_template("partials/live_chat_messages.html", messages=live_chat_messages()))}
+    template = "v2/partials/live_chat_messages.html" if current_ui_version() == "v2" else "partials/live_chat_messages.html"
+    return {"ok": True, "html": translated_fragment(render_template(template, messages=live_chat_messages()))}
 
 
 @app.get("/world-feed")
@@ -5984,7 +5996,8 @@ def world_feed():
 def api_world_feed():
     before = request.args.get("before") or None
     events = news_feed_history(before=before)
-    return {"ok": True, "html": translated_fragment(render_template("partials/world_feed_events.html", events=events)),
+    template = "v2/partials/world_feed_events.html" if current_ui_version() == "v2" else "partials/world_feed_events.html"
+    return {"ok": True, "html": translated_fragment(render_template(template, events=events)),
             "next_before": events[-1]["cursor"] if events else None, "has_more": len(events) >= 40}
 
 

@@ -1,0 +1,31 @@
+{% extends 'v2/base.html' %}
+{% block title %}Czat na żywo · {{panel_brand}}{% endblock %}
+{% block page_title %}Wiadomości{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ static_asset_url('v2/pages/live_chat.css') }}">{% endblock %}
+{% block content %}
+<div class="v2-tabs v2-chat-tabs">
+  <a href="{{url_for('world_feed')}}"><button type="button">✦ Wiadomości ze świata</button></a>
+  <a href="{{url_for('live_chat')}}"><button type="button" class="active">▤ Czat na żywo</button></a>
+</div>
+<div class="v2-chat-window">
+  <div class="v2-chat-head"><h2>Protokół wiadomości</h2><span class="v2-chat-live"><i></i>LIVE · odświeżanie co 4 s</span></div>
+  <div class="v2-chat-guide">Wołaj i Handel · nick prowadzi do karty postaci · ostatnie 100 wiadomości, zapisane trwale · tylko wiadomości zapisane przez rdzeń gry</div>
+  <div id="live-chat-messages" class="v2-chat-scroll v2-scroll-thin" aria-live="polite">{% include 'v2/partials/live_chat_messages.html' %}</div>
+  <div class="v2-chat-foot"><span>Podgląd tylko do odczytu · nie wysyła wiadomości do gry</span><button type="button" class="v2-btn-ghost" id="live-chat-refresh">↻ Odśwież</button></div>
+</div>
+<script>
+(() => {
+  const box = document.getElementById('live-chat-messages');
+  const refresh = document.getElementById('live-chat-refresh');
+  let inFlight = false;
+  async function update(){
+    if(inFlight) return; inFlight=true;
+    try { const res=await fetch('{{url_for("api_live_chat")}}',{headers:{'X-Requested-With':'XMLHttpRequest'}}); const data=await res.json(); if(data.ok){ const stick=box.scrollHeight-box.scrollTop-box.clientHeight<42; box.innerHTML=data.html; if(stick) box.scrollTop=box.scrollHeight; } }
+    catch (_) {} finally { inFlight=false; }
+  }
+  refresh.addEventListener('click', update);
+  box.scrollTop=box.scrollHeight;
+  setInterval(update,4000);
+})();
+</script>
+{% endblock %}

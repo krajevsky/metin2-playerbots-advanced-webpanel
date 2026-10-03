@@ -1,0 +1,11 @@
+/* v2: guilds.html, guild.html, bot_personalities.html */
+body.v2 .v2-tier{display:inline-flex;padding:3px 9px;border-radius:var(--r-full);font-size:var(--fs-xs);font-weight:700;border:1px solid var(--border)}
+body.v2 .v2-tier-0{background:color-mix(in srgb,var(--warn) 18%,var(--surface));border-color:var(--warn);color:var(--warn)}
+body.v2 .v2-tier-1{background:var(--surface-2);border-color:var(--border);color:var(--text)}
+body.v2 .v2-tier-2{background:color-mix(in srgb,var(--accent) 16%,var(--surface));border-color:var(--accent);color:var(--accent-soft)}
+body.v2 .v2-tier-3{color:var(--text-faint)}
+body.v2 .v2-war-live{display:inline-grid;gap:1px;color:var(--bad);font-weight:700;font-size:var(--fs-xs)}
+body.v2 .v2-war-live small{color:color-mix(in srgb,var(--bad) 70%,var(--text))}
+body.v2 .v2-clickable-row{cursor:pointer}
+body.v2 .v2-clickable-row:hover td{background:var(--surface-2)}
+body.v2 .empire-flag-inline{height:14px;vertical-align:middle;margin-right:4px}

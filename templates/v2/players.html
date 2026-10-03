@@ -1,0 +1,20 @@
+{% extends 'v2/base.html' %}{% block title %}Gracze i boty · {{panel_brand}}{% endblock %}
+{% block page_title %}Gracze i boty{% endblock %}
+{% block topbar_actions %}<form class="v2-row" style="margin:0"><input name="q" value="{{query}}" placeholder="Nick lub ID postaci"><button class="v2-btn-primary" type="submit">Szukaj</button></form>{% endblock %}
+{% block content %}
+<script>document.body.dataset.ajaxForms='1';</script>
+<div class="v2-table-wrap">
+<table><thead><tr><th>ID</th><th>Postać</th><th>Królestwo</th><th>Poziom</th><th>Klasa</th><th>Mapa</th><th>Yang</th><th>Czas gry</th></tr></thead><tbody>
+{% for p in players %}<tr>
+  <td class="faint">{{p.id}}</td>
+  <td><a href="{{url_for('player',pid=p.id)}}" style="color:var(--accent-soft)">{% if p.is_sidekick %}<img style="height:16px;vertical-align:middle;margin-right:3px" src="{{static_asset_url('sidekick-badge.png')}}" alt="Stały towarzysz gracza" title="Stały towarzysz gracza">{% endif %}{% if p.full_plus9_equipment %}<img style="height:16px;vertical-align:middle;margin-right:3px" src="{{static_asset_url('icons/plus9-set-badge.png')}}" alt="Pełny ekwipunek +9" title="Pełny ekwipunek +9">{% endif %}{{p.name}}</a></td>
+  <td>{% set kingdom=empire_info(p.empire) %}{% if kingdom.flag %}<img class="empire-flag-inline" style="height:14px;vertical-align:middle;margin-right:4px" src="{{empire_flag(p.empire)}}" alt="{{kingdom.name}}" title="{{kingdom.name}}">{{kingdom.name}}{% else %}—{% endif %}</td>
+  <td>{{level_badge(p.id,p.level)}}</td>
+  <td><span class="v2-class-cell"><img class="class-portrait" src="{{class_portrait(p.job)}}" alt="{{job_name(p.job)}}">{{job_name(p.job)}}</span></td>
+  <td>{{map_name(p.map_index)}}{% if p.map_live %}<br><small style="color:var(--good)">na żywo</small>{% else %}<br><small class="faint">ostatni zapis</small>{% endif %}</td>
+  <td>{{'{:,}'.format(p.gold or 0).replace(',', ' ')}}</td>
+  <td>{{p.playtime // 60}} h</td>
+</tr>{% else %}<tr><td colspan="8"><p class="v2-empty">Brak wyników.</p></td></tr>{% endfor %}
+</tbody></table>
+</div>
+{% endblock %}

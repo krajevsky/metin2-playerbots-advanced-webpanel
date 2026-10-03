@@ -1,0 +1,24 @@
+{% extends 'v2/base.html' %}{% block title %}Sezon · {{ panel_brand }}{% endblock %}
+{% block page_title %}🏆 Sezon i rekordy świata{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Punkty: Metin 150 · boss 500 · ulepszenie +7 lub wyżej 200. Dane są liczone z ostatnich 7 dni.</p>
+<div class="v2-grid" style="margin-bottom:var(--sp-4)">
+  <div class="v2-stat"><span>Metiny — rekord świata</span><strong>{{ records.metins or 0 }}</strong></div>
+  <div class="v2-stat"><span>Bossy — rekord świata</span><strong>{{ records.bosses or 0 }}</strong></div>
+  <div class="v2-stat"><span>Ulepszenia +7</span><strong>{{ records.refine7 or 0 }}</strong></div>
+  <div class="v2-stat"><span>Najwyższy poziom</span><strong>Lv {{ records.level or 0 }}</strong></div>
+</div>
+<div class="v2-card" style="padding:0">
+  <h2 style="padding:var(--sp-4) var(--sp-4) 0">Ranking tygodnia</h2>
+  {% if weekly|selectattr('is_person')|list %}<p class="muted" style="padding:6px var(--sp-4) 0;margin:0">👤 to postać gracza; postaci GM-ów nie są liczone.</p>{% endif %}
+  <div class="v2-table-wrap" style="border:0;border-radius:0;margin-top:var(--sp-3)">
+  <table><thead><tr><th>#</th><th>Postać</th><th>Poziom</th><th>Metiny</th><th>Bossy</th><th>+7</th><th>Punkty</th></tr></thead><tbody>
+  {% for bot in weekly %}<tr {% if bot.is_person %}class="v2-person-row"{% endif %}>
+    <td>{{ loop.index }}</td>
+    <td>{% if bot.is_person %}<span title="Postać gracza">👤</span> {% endif %}<a href="{{ url_for('player',pid=bot.id) }}" style="color:var(--accent-soft)">{{bot.name}}</a></td>
+    <td>{{level_badge(bot.id,bot.level,'Lv ')}}</td><td>{{bot.metins or 0}}</td><td>{{bot.bosses or 0}}</td><td>{{bot.refine7 or 0}}</td><td><b>{{bot.points}}</b></td>
+  </tr>{% else %}<tr><td colspan="7"><p class="v2-empty">Brak zdarzeń z ostatnich 7 dni.</p></td></tr>{% endfor %}
+  </tbody></table>
+  </div>
+</div>
+{% endblock %}

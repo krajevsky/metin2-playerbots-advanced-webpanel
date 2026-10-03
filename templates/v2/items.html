@@ -1,0 +1,41 @@
+{% extends 'v2/base.html' %}
+{% block title %}Baza przedmiotów · {{panel_brand}}{% endblock %}
+{% block page_title %}Baza ID przedmiotów{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ static_asset_url('v2/pages/items.css') }}">{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Komplet danych z aktualnej bazy serwera: nazwy, VNUM-y oraz ikony klienta.</p>
+<nav class="v2-item-types">
+  <a class="{% if not selected_type %}active{% endif %}" href="{{url_for('items_database',q=query)}}">Wszystkie przedmioty</a>
+  {% for t in types %}<a class="{% if selected_type==t.type|string %}active{% endif %}" href="{{url_for('items_database',q=query,type=t.type)}}">{% if item_icon(t.icon_vnum) %}<img src="{{item_icon(t.icon_vnum)}}" alt="">{% endif %}{{t.label}} <small>{{t.count}}</small></a>{% endfor %}
+</nav>
+<form class="v2-row" method="get" style="margin-bottom:var(--sp-2)">
+  <input type="hidden" name="type" value="{{selected_type}}">
+  <input id="item-search" name="q" value="{{query}}" placeholder="Szukaj po nazwie lub VNUM" autocomplete="off">
+  <button class="v2-btn-primary" type="submit">Szukaj</button>
+  {% if query %}<a class="v2-btn v2-btn-ghost" href="{{url_for('items_database',type=selected_type)}}">Wyczyść</a>{% endif %}
+</form>
+<p id="item-count" class="muted" style="font-size:var(--fs-xs);margin:0 0 var(--sp-3)">{{total}} przedmiotów{% if selected_type %} w wybranej kategorii{% endif %} · pełna lista bez stron</p>
+<section id="item-catalog" class="item-catalog">
+  {% for item in items %}<article class="v2-item-card">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="" loading="lazy">{% endif %}<div><b>{{item.name}}</b><small>VNUM {{item.vnum}} · typ {{item.type}}{% if item.subtype is not none %}/{{item.subtype}}{% endif %}</small>{% if item.gold %}<small>Cena: {{'{:,}'.format(item.gold).replace(',', ' ')}} Yang</small>{% endif %}</div></article>{% endfor %}
+</section>
+<script>
+document.body.dataset.ajaxForms='1';
+(() => {
+const itemSearch=document.getElementById('item-search'),itemType=document.querySelector('input[name=type]'),itemCatalog=document.getElementById('item-catalog'),itemCount=document.getElementById('item-count');
+let debounceTimer=null,inFlight=null;
+async function runSearch(){
+  const params=new URLSearchParams({q:itemSearch.value.trim(),type:itemType.value||''});
+  history.replaceState(null,'','{{url_for("items_database")}}?'+params);
+  const controller=new AbortController();
+  if(inFlight) inFlight.abort();
+  inFlight=controller;
+  try{
+    const res=await fetch('{{url_for("api_items")}}?'+params,{headers:{'X-Requested-With':'XMLHttpRequest'},signal:controller.signal});
+    const data=await res.json();
+    if(data.ok){itemCatalog.innerHTML=data.html;itemCount.textContent=data.count_label;}
+  }catch(err){if(err.name!=='AbortError')console.error(err);}
+}
+itemSearch.addEventListener('input',()=>{clearTimeout(debounceTimer);debounceTimer=setTimeout(runSearch,300);});
+})();
+</script>
+{% endblock %}

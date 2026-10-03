@@ -1,0 +1,77 @@
+{% extends 'v2/base.html' %}
+{% block title %}Nazwy postaci botów · {{panel_brand}}{% endblock %}
+{% block page_title %}Nazwy postaci botów{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 var(--sp-3)">Pula nicków, z której silnik ubiera każdego bota w momencie, gdy jego konto powstaje w bazie — nie wtedy, gdy go "wpuszczamy". Nick jest przydzielany raz i zostaje na stałe. Priorytety/blokady działają dopiero na boty, które <b>jeszcze nie mają żadnego nicku</b>.</p>
+
+<div class="v2-grid" style="margin-bottom:var(--sp-4)">
+  <div class="v2-stat"><span>Nicków w puli</span><strong>{{stats.total or 0}}</strong></div>
+  <div class="v2-stat"><span>Już przydzielonych</span><strong>{{stats.used_count or 0}}</strong></div>
+  <div class="v2-stat"><span>Zablokowanych</span><strong>{{stats.blocked_count or 0}}</strong></div>
+  <div class="v2-stat"><span>Własnych (dodanych ręcznie)</span><strong>{{stats.custom_count or 0}}</strong></div>
+</div>
+
+<div class="v2-grid cols-2" style="margin-bottom:var(--sp-4)">
+  <div class="v2-card v2-stack">
+    <h2>➕ Dodaj nowe nicki do kolejki</h2>
+    <form method="post" action="{{url_for('bot_names_add')}}" class="v2-stack">
+      <label>Nicki (jeden na linię)<textarea name="names" rows="4" placeholder="NowyNick1&#10;NowyNick2&#10;NowyNick3" required></textarea></label>
+      <label>Królestwo<select name="empire">{% for eid, e in empires.items() %}<option value="{{eid}}">{{e.name}}</option>{% endfor %}</select></label>
+      <label>Priorytet <small class="faint">(wyższy = wcześniej w kolejce)</small><input type="number" name="priority" value="0" min="0" max="1000"></label>
+      <button class="v2-btn-primary" style="width:fit-content">Dodaj do kolejki</button>
+    </form>
+  </div>
+  <div class="v2-card v2-stack">
+    <h2>⚙ Zastosuj teraz</h2>
+    <p class="muted" style="margin:0">{% if pending %}Jest <b>{{pending}}</b> bot(ów) bez żadnego nicku — kliknięcie nada im nazwy według aktualnych priorytetów/blokad.{% else %}Obecnie 0 botów bez nicku. Przycisk zadziała po pełnym wipe/reseed z większą pulą.{% endif %}</p>
+    <form method="post" action="{{url_for('bot_names_reconcile')}}"><button class="v2-btn-ghost" {% if not pending %}disabled{% endif %}>Nadaj nicki oczekującym botom ({{pending}})</button></form>
+  </div>
+</div>
+
+<form method="get" class="v2-row" style="margin-bottom:var(--sp-3)">
+  <input name="q" value="{{search}}" placeholder="🔍 Szukaj nicku">
+  <select name="empire"><option value="0" {% if empire==0 %}selected{% endif %}>Wszystkie królestwa</option>{% for eid, e in empires.items() %}<option value="{{eid}}" {% if empire==eid %}selected{% endif %}>{{e.name}}</option>{% endfor %}</select>
+  <select name="status">
+    <option value="all" {% if status=='all' %}selected{% endif %}>Wszystkie statusy</option>
+    <option value="free" {% if status=='free' %}selected{% endif %}>Wolne (w kolejce)</option>
+    <option value="used" {% if status=='used' %}selected{% endif %}>Już przydzielone</option>
+    <option value="blocked" {% if status=='blocked' %}selected{% endif %}>Zablokowane</option>
+  </select>
+  <button class="v2-btn-ghost" type="submit">Filtruj</button>
+</form>
+
+<div class="v2-table-wrap">
+  <table>
+    <thead><tr><th>Nick</th><th>Królestwo</th><th>Źródło</th><th>Priorytet</th><th>Status</th><th>Akcje</th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr style="{% if e.blocked %}opacity:.55{% endif %}">
+        <td><b>{{e.name}}</b>{% if e.pid and e.current_name != e.name %} <small class="faint">(teraz: {{e.current_name}})</small>{% endif %}</td>
+        <td>{% set empire=empire_info(e.empire) %}{% if empire.flag %}<span class="v2-row" style="gap:4px"><img src="{{empire_flag(e.empire)}}" alt="{{empire.name}}" style="height:13px">{{empire.name}}</span>{% else %}—{% endif %}</td>
+        <td class="faint">{{'Własny' if e.source=='custom' else 'Baza silnika'}}</td>
+        <td><form method="post" action="{{url_for('bot_names_priority', name=e.name)}}" class="v2-row" style="gap:4px"><input type="number" name="priority" value="{{e.priority}}" min="0" max="1000" style="width:68px"><button class="v2-btn-ghost" title="Zapisz priorytet" type="submit">✓</button></form></td>
+        <td>{% if e.blocked %}<span class="v2-badge v2-badge-bad">⛔ Zablokowany</span>{% elif e.pid %}<span class="v2-badge v2-badge-good">✅ Bot #{{e.pid}}{% if e.level is not none %} (Lv {{e.level}}){% endif %}</span>{% else %}<span class="v2-badge v2-badge-warn">⏳ W kolejce</span>{% endif %}</td>
+        <td>
+          <div class="v2-row" style="gap:4px">
+          {% if e.blocked %}
+          <form method="post" action="{{url_for('bot_names_unblock', name=e.name)}}"><button class="v2-btn-ghost" type="submit">Odblokuj</button></form>
+          {% elif not e.pid %}
+          <form method="post" action="{{url_for('bot_names_block', name=e.name)}}"><button class="v2-btn-ghost" type="submit">Zablokuj</button></form>
+          {% if e.source=='custom' %}<form method="post" action="{{url_for('bot_names_delete', name=e.name)}}" onsubmit="return confirm('Usunąć ten nick z kolejki?');"><button type="submit" style="background:color-mix(in srgb,var(--bad) 18%,var(--surface-2));color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 40%,transparent);border-radius:var(--r-sm);padding:8px 14px;font:inherit;font-size:var(--fs-sm);cursor:pointer">Usuń</button></form>{% endif %}
+          {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6"><p class="v2-empty">Brak nicków pasujących do filtrów.</p></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if pages > 1 %}
+<div class="v2-row" style="margin-top:var(--sp-3)">
+  {% for p in range(1, pages+1) %}<a class="v2-btn-ghost {% if p==page %}active{% endif %}" style="{% if p==page %}background:var(--accent);color:#fff{% endif %}" href="{{url_for('bot_names', q=search, empire=empire, status=status, page=p)}}">{{p}}</a>{% endfor %}
+</div>
+{% endif %}
+<script>document.body.dataset.ajaxForms='1';</script>
+{% endblock %}
