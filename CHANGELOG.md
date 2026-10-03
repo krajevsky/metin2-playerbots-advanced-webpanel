@@ -1,3 +1,8 @@
+## 2026-10-03 · 1.109.13 · Tooltipy equipmentu i inventory ponad ikonami
+
+- Tooltip aktywnego przedmiotu z wyposażenia oraz dolnej siatki inventory jest renderowany ponad ikonami Alchemii, juków, depozytu i sklepu.
+- Podnoszony jest tylko aktywny slot z tooltipem, dzięki czemu tło equipmentu nie zasłania już przycisków interfejsu.
+
 ## 2026-10-03 · 1.109.12 · Tooltipy nad przyciskami ekwipunku
 
 - Podczas wskazywania założonego przedmiotu cała warstwa wyposażenia przechodzi nad przyciski Alchemii, juków, depozytu i sklepu.

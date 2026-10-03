@@ -280,3 +280,12 @@
 .metin-inventory .equipment-layer:has(.equip-slot:hover){z-index:100!important}
 .metin-inventory .equipment-layer .item-tip{z-index:110!important}
 .metin-inventory .inventory-native-tabs button.inventory-ds-button,.metin-inventory .inventory-native-tabs button.inventory-ds-button:hover,.metin-inventory .inventory-native-tabs button.inventory-ds-button:focus{appearance:none!important;background:none!important;background-color:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;filter:none!important;outline:0!important}
+
+
+/* v1.109.13: raise only the hovered item and tooltip, never the opaque layer background. */
+.metin-inventory .equipment-layer:has(.equip-slot:hover),
+.metin-inventory .inventory-layer:has(.inv-slot:hover){z-index:auto!important}
+.metin-inventory .equip-slot:hover,
+.metin-inventory .inv-slot:hover{z-index:100!important}
+.metin-inventory .equip-slot .item-tip,
+.metin-inventory .inv-slot .item-tip{z-index:110!important}
