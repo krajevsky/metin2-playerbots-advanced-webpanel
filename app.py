@@ -1830,28 +1830,11 @@ def playerbots_release_status(check_remote=True):
 
 
 def panel_release_status():
-    """Compare the installed panel with GitHub on every dashboard refresh."""
-    installed = PANEL_VERSION.strip()
-    latest = None
-    error = None
-    try:
-        request_github = Request(PANEL_VERSION_URL, headers={"User-Agent": "Metin2-Singleplayer-Panel"})
-        with urlopen(request_github, timeout=3) as response:
-            latest = response.read(80).decode("utf-8", errors="replace").strip()
-        if not version_key(latest):
-            raise ValueError("GitHub nie zwrócił poprawnego numeru wersji panelu.")
-        latest = latest.lstrip("vV")
-    except (OSError, ValueError, HTTPError, URLError) as exc:
-        error = str(exc)[:120] or "Nie udało się połączyć z GitHub."
-        latest = None
-    installed_key, latest_key = version_key(installed), version_key(latest)
-    if installed_key and latest_key:
-        behind = installed_key < latest_key
-        return {"installed": installed, "latest": latest, "behind": behind,
-                "tone": "outdated" if behind else "current",
-                "label": f"Dostępna {latest}" if behind else "Aktualna"}
-    return {"installed": installed, "latest": latest, "behind": False, "tone": "unknown",
-            "label": "Nie udało się sprawdzić GitHub" if error else "Brak wersji lokalnej"}
+    """Installed panel version only. The panel can't update itself -- it only
+    moves with Tieru's releases -- so a "newer version available" tracker just
+    nagged the player; the dashboard now shows what is running and nothing else."""
+    return {"installed": PANEL_VERSION.strip(), "latest": None, "behind": False,
+            "tone": "current", "label": "Zainstalowana wersja"}
 
 
 def update_csrf_token():

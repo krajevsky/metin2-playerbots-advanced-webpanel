@@ -1,3 +1,11 @@
+## 2026-10-03 · 1.108.1 · Spójne ikony zwojów, tłumaczenie sezonu, koniec trackera wersji
+
+- **Ulepszenia +9 pokazują ikonę zwoju tak samo jak +7/+8** (brakowało powiązania z przedmiotem zwoju), a metoda jest po angielsku: "by scroll (Blessing Scroll)".
+- **/season** w całości po angielsku: przełącznik Tydzień/Wszechczasów, kategorie, nagłówki i opisy punktów.
+- **Usunięto tracker najnowszej wersji panelu** z dashboardu. Panel aktualizuje się tylko razem z wydaniami Tieru, więc informacja "Dostępna …" była tylko irytująca. Zostaje zainstalowana wersja.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-03 · 1.108.0 · Sezon: zakładki kategorii i ranking wszechczasów; poprawna metoda ulepszeń +9
 
 - **/season: przełącznik Tydzień / Wszechczasów oraz zakładki Punkty, Metiny, Bossy, Potwory, Ulepszenia +7.** Widok wszechczasów czyta liczniki całego życia postaci z silnika (`player_special_flag`), więc jest dokładny i szybki. W widoku tygodniowym potwory nie są liczone (brak zdarzenia w logu), więc ta zakładka tam się nie pojawia.
