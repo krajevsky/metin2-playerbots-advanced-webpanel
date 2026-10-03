@@ -882,6 +882,14 @@ EXACT.update({
     "Następna →": "Next →",
     "Idź do strony": "Go to page",
     "Idź": "Go",
+    "Wojownik Ciało": "Warrior Body",
+    "Wojownik Umysł": "Warrior Mind",
+    "Ninja Ostrze": "Ninja Blade",
+    "Ninja Łuk": "Ninja Bow",
+    "Sura Broń": "Sura Weapon",
+    "Sura Czarna Magia": "Sura Dark Magic",
+    "Szaman Smok": "Shaman Dragon",
+    "Szaman Leczenie": "Shaman Healing",
 })
 
 # --- respawns.html ---

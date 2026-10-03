@@ -315,6 +315,7 @@ DEFAULT_SETTINGS = {
     "legendary_notice_live_chat": "1", "legendary_notice_world_feed": "1", "legendary_notice_ticker": "1",
     "reaper_chest_world_feed": "1",
     "fastest_shop_items_limit": "15",
+    "show_skill_paths": "0",
 }
 try:
     ITEM_DEFS = json.loads((Path(__file__).parent / "static" / "item_defs.json").read_text(encoding="utf-8"))
@@ -434,6 +435,17 @@ POINT_TO_APPLY = {6: 1, 8: 2, 13: 3, 15: 4, 12: 5, 14: 6, 17: 7, 19: 8, 21: 9, 3
 EMPIRE_EXPR = "COALESCE(NULLIF(pi.empire,0),0)" if ENGINE_MT2009 else "COALESCE(NULLIF(pi.empire,0),a.empire,0)"
 
 JOB_NAMES = ("Wojownik", "Ninja", "Sura", "Szaman")
+# Each class's two skill trees (player.player.skill_group, 1 or 2 once chosen,
+# 0 before level 5ish/the first pick) -- same job+group keys as SKILLS below,
+# named after the path rather than listing its five/six skills. Requested for
+# the rankings' class column (operator, 2026-10-03) so "Sura" there reads as
+# "Sura Broń" or "Sura Czarna Magia" instead of leaving the split invisible.
+SKILL_PATH_NAMES = {
+    (0, 1): "Wojownik Ciało", (0, 2): "Wojownik Umysł",
+    (1, 1): "Ninja Ostrze", (1, 2): "Ninja Łuk",
+    (2, 1): "Sura Broń", (2, 2): "Sura Czarna Magia",
+    (3, 1): "Szaman Smok", (3, 2): "Szaman Leczenie",
+}
 SKILLS = {
     # Exact vnum/name pairs from Tieru's current panel. The old mapping put
     # display names next to the wrong VNUMs, hence correct icons looked wrong.
@@ -981,6 +993,12 @@ def class_profile(job):
         return CLASS_PROFILES.get(int(job), CLASS_PROFILES[0])
     except (TypeError, ValueError):
         return CLASS_PROFILES[0]
+
+
+def skill_path_name(job, group):
+    """None before the character has picked a skill tree (group 0) or for an
+    unknown job -- callers fall back to the plain class_profile()["name"]."""
+    return SKILL_PATH_NAMES.get((int(job or 0) % 4, int(group or 0)))
 
 
 def parse_skills(raw, job, group):
@@ -3677,6 +3695,12 @@ def globals_for_templates():
     ui_language = current_settings.get("ui_language", "pl")
     def job_name(job):
         return class_profile(job)["name"]
+    def class_label(job, group):
+        if current_settings.get("show_skill_paths") == "1":
+            path = skill_path_name(job, group)
+            if path:
+                return path
+        return class_profile(job)["name"]
     def class_portrait(job):
         return url_for("static", filename=f"class-portraits/{class_profile(job)['portrait']}")
     def empire_flag(empire):
@@ -3697,7 +3721,7 @@ def globals_for_templates():
         if not rank:
             return escape(label)
         return Markup('<span class="top-level-badge" title="Top 10 poziomu · #%d">%s</span>') % (rank, escape(label))
-    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "level_badge": level_badge, "top_level_rank": lambda pid: top_level_rank_map().get(int(pid or 0)), "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings), "ui_language": ui_language, "i18n_payload": translations.i18n_payload() if ui_language == "en" else None}
+    return {"tieru_url": tieru_url, "panel_brand": current_settings.get("panel_name", "Metin2 Singleplayer"), "settings": current_settings, "map_name": map_name, "item_icon": item_icon, "job_name": job_name, "class_label": class_label, "class_profile": class_profile, "class_portrait": class_portrait, "empire_info": empire_info, "empire_flag": empire_flag, "static_asset_url": static_asset_url, "level_badge": level_badge, "top_level_rank": lambda pid: top_level_rank_map().get(int(pid or 0)), "feature_enabled": lambda name: panel_feature_enabled(name, current_settings), "panel_features": panel_feature_states(current_settings), "ui_language": ui_language, "i18n_payload": translations.i18n_payload() if ui_language == "en" else None}
 
 
 @app.after_request
@@ -6656,11 +6680,13 @@ def rankings():
         empires = {row["id"]: row["empire"] for row in empire_rows}
         for row in ranking:
             row["empire"] = empires.get(row["id"], 0)
-        progress_rows = rows("SELECT id,level,exp,job FROM player.player WHERE id IN (" + marks + ")", ids)
+        progress_rows = rows("SELECT id,level,exp,job,skill_group FROM player.player WHERE id IN (" + marks + ")", ids)
         progress = {row["id"]: experience_progress(row["level"], row["exp"]) for row in progress_rows}
         jobs = {row["id"]: row["job"] for row in progress_rows}
+        skill_groups = {row["id"]: row["skill_group"] for row in progress_rows}
         for row in ranking:
             row["job"] = jobs.get(row["id"], 0)
+            row["skill_group"] = skill_groups.get(row["id"], 0)
             row["experience"] = progress.get(row["id"], {"percent": 0})
         # Guild name per ranked bot/player, requested alongside pagination
         # (2026-09-27) -- same join /player/ uses for its own guild_name.
@@ -7111,6 +7137,17 @@ def manage_panel_legendary_announcements():
     else:
         flash("Ogłoszenia o legendarnych wydarzeniach wyłączone we wszystkich miejscach.", "success")
     return redirect(url_for("manage_panel", _anchor="legendary-announcements"))
+
+
+@app.post("/manage/panel/skill-paths")
+@login_required
+def manage_panel_skill_paths():
+    enabled = "1" if "1" in request.form.getlist("enabled") else "0"
+    write_settings({"show_skill_paths": enabled})
+    flash("Kolumna klasy w rankingach pokazuje " +
+          ("ścieżkę magii (np. „Sura Czarna Magia”)." if enabled == "1" else "tylko nazwę klasy, bez ścieżki magii."),
+          "success")
+    return redirect(url_for("manage_panel", _anchor="skill-paths"))
 
 
 @app.post("/manage/panel/reaper-chests")

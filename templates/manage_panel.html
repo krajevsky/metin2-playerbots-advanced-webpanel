@@ -15,6 +15,13 @@
     <button>Zapisz miejsca ogłoszeń</button>
   </form>
 </section>
+<section class="panel panel-settings-card" id="skill-paths">
+  <div><p class="eyebrow">RANKINGI · WYGLĄD</p><h2>✦ Ścieżka magii w kolumnie klasy</h2><p class="muted">Pokazuje w rankingach konkretną ścieżkę umiejętności zamiast samej klasy: Wojownik Ciało/Umysł, Ninja Ostrze/Łuk, Sura Broń/Czarna Magia, Szaman Smok/Leczenie. Postacie, które jeszcze nie wybrały ścieżki, nadal pokazują samą klasę.</p></div>
+  <form action="{{ url_for('manage_panel_skill_paths') }}" method="post" class="manage-form">
+    <label class="checkbox-row"><span>Pokazuj ścieżkę magii zamiast samej klasy</span><input type="hidden" name="enabled" value="0"><input type="checkbox" name="enabled" value="1" {% if settings.get('show_skill_paths','0') == '1' %}checked{% endif %}><small>/rankings</small></label>
+    <button>Zapisz ustawienie</button>
+  </form>
+</section>
 <section class="panel panel-settings-card" id="reaper-chests">
   <div><p class="eyebrow">WIADOMOŚCI · SKRZYNIE</p><h2>💀 Szkatułki Umarłego Rozpruwacza</h2><p class="muted">Włącz lub ukryj w Wieściach ze świata informacje o otwarciu skrzyni i zdobytej nagrodzie. Licznik w podsumowaniu dnia pozostaje dostępny.</p></div>
   <form action="{{ url_for('manage_panel_reaper_chests') }}" method="post" class="manage-form">

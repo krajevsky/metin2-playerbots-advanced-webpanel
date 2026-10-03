@@ -1,6 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
 
+## 2026-10-03 · 1.105.0 · Ścieżka magii w kolumnie klasy rankingów
+
+- **Nowe, opcjonalne ustawienie w Zarządzanie → Panel webowy: „Ścieżka magii w kolumnie klasy”.** Po włączeniu rankingi pokazują konkretną ścieżkę umiejętności zamiast samej klasy: Wojownik Ciało/Umysł, Ninja Ostrze/Łuk, Sura Broń/Czarna Magia, Szaman Smok/Leczenie — zarówno po polsku, jak i po angielsku. Domyślnie wyłączone; postacie, które jeszcze nie wybrały ścieżki, nadal pokazują samą klasę.
+- Zażądane przez operatora (3 października) — zapytanie o 8 nazw ścieżek zmapowane 1:1 na istniejący podział umiejętności (`job`+`skill_group` w `player.player`), bez nowej infrastruktury.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-03 · 1.104.0 · Smocza Alchemia na karcie postaci
 
 - **Karta `/player/` otrzymała okno Alchemii Smoczych Kamieni odtworzone z oryginalnego klienta gry.** Panel korzysta z właściwego tła, zakładek, przycisków klas i obu zestawów alchemii wyciągniętych bezpośrednio z paczki klienta.
