@@ -1,3 +1,12 @@
+## 2026-10-03 · 1.109.1 · Korekta układu natywnego ekwipunku
+
+- Pole wyposażenia zaczyna się 33 px pod belką tytułową, więc hełm i górne sloty nie są już zasłonięte.
+- Usunięto pustą przestrzeń między wyposażeniem i zakładkami I–IV.
+- Ikony Alchemii, juków, depozytu i sklepu przeniesiono do prawego dolnego rogu wyposażenia.
+- Przedmioty w depozycie mają ten sam natywny rozmiar 32 px co przedmioty w ekwipunku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.0 · Oryginalne okno ekwipunku z klienta gry
 
 - Ekwipunek w karcie postaci ma ponownie natywny rozmiar 176 × 565 px.
