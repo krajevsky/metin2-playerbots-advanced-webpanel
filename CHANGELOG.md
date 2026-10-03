@@ -1,3 +1,10 @@
+## 2026-10-03 · 1.108.0 · Sezon: zakładki kategorii i ranking wszechczasów; poprawna metoda ulepszeń +9
+
+- **/season: przełącznik Tydzień / Wszechczasów oraz zakładki Punkty, Metiny, Bossy, Potwory, Ulepszenia +7.** Widok wszechczasów czyta liczniki całego życia postaci z silnika (`player_special_flag`), więc jest dokładny i szybki. W widoku tygodniowym potwory nie są liczone (brak zdarzenia w logu), więc ta zakładka tam się nie pojawia.
+- **Ulepszenia +9 w wiadomościach ze świata podają teraz prawdziwą metodę** (kowal, zwój, gildia) zamiast zawsze "u kowala". Metodę bierzemy z zapisu `refinelog` z tej samej sekundy i tego samego gracza; poprzednio ~22% takich ulepszeń (zwojem) było źle oznaczonych. Zaktualizowano już zapisane wpisy.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-03 · 1.107.2 · Smocza Alchemia i branding projektu
 
 - Przywrócono tooltipy, filtrowanie klas i zachowanie wybranej strony Smoczej Alchemii po automatycznym odświeżeniu.

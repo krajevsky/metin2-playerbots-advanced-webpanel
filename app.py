@@ -1180,14 +1180,18 @@ def _refine9_event_rows(since, before=None, scan_limit=200_000):
     that new item's id directly -- same source daily_summary_details()
     already trusts for its own +9 highlights. Operator's call (2026-10-03):
     panel-side workaround over an engine rebuild. The one real loss: this
-    table has no refine *method* (blacksmith/scroll/guild), only refinelog
-    does -- defaults to "u kowala" (overwhelmingly the common case in the
-    data) rather than leaving it blank."""
+    table has no refine *method* (blacksmith/scroll/guild) -- that is taken
+    from the matching refinelog row (same pid and second), see the SELECT."""
     clauses, params = ["l.how='REFINE SUCCESS'", "l.hint LIKE '%%+9'", "l.time>=%s"], [since]
     if before:
         clauses.append("l.time<%s")
         params.append(before)
-    return rows(f"""SELECT l.who AS pid,l.hint AS item_name,l.what AS item_id,l.time,p.name,p.job,{EMPIRE_EXPR} AS empire
+    # The method isn't in log.log, but the same successful refine IS in
+    # log.refinelog at the same pid+second, mislabelled step=8 (the engine
+    # logs the pre-refine item -- see NotifyRefineSuccess()). That row's
+    # setType is the real method, so join on it instead of guessing.
+    return rows(f"""SELECT l.who AS pid,l.hint AS item_name,l.what AS item_id,l.time,p.name,p.job,{EMPIRE_EXPR} AS empire,
+        (SELECT r.setType FROM log.refinelog r WHERE r.pid=l.who AND r.time=l.time AND r.is_success=1 AND r.step=8 LIMIT 1) AS set_type
       FROM log.log l JOIN player.player p ON p.id=l.who
       LEFT JOIN player.player_index pi ON pi.id=p.account_id
       LEFT JOIN account.account a ON a.id=p.account_id
@@ -1196,6 +1200,13 @@ def _refine9_event_rows(since, before=None, scan_limit=200_000):
 
 
 def _classify_refine9_events(raw):
+    scroll_vnums = {int(str(r["set_type"]).split(":", 1)[1]) for r in raw
+                    if r.get("set_type") and str(r["set_type"]).startswith("SCROLL:") and str(r["set_type"]).split(":", 1)[1].isdigit()}
+    scroll_names = {}
+    if scroll_vnums:
+        marks = ",".join(["%s"] * len(scroll_vnums))
+        scroll_names = {r["vnum"]: game_text(r["locale_name"]) for r in
+                        rows(f"SELECT vnum,locale_name FROM player.item_proto WHERE vnum IN ({marks})", list(scroll_vnums))}
     events, seen = [], set()
     for row in raw:
         name = game_text(row.get("name"))
@@ -1206,11 +1217,22 @@ def _classify_refine9_events(raw):
         if key in seen:
             continue
         seen.add(key)
+        set_type = str(row.get("set_type") or "")
+        method_vnum = 0
+        if set_type in REFINE_METHOD_LABELS:
+            method = REFINE_METHOD_LABELS[set_type]
+        elif set_type.startswith("SCROLL:") and set_type.split(":", 1)[1].isdigit():
+            method_vnum = int(set_type.split(":", 1)[1])
+            scroll_name = scroll_names.get(method_vnum)
+            method = f"zwojem ({scroll_name})" if scroll_name else "zwojem"
+        else:
+            # no matching refinelog row (rare) -- say so rather than invent a method
+            method = None
         events.append({
             "key": key, "time": row["time"], "message": f"{name} ulepszył {item_name}", "kind": "refine",
-            "actor": name, "method": "u kowala", "refine_tier": 9,
+            "actor": name, "method": method, "refine_tier": 9,
             "player_id": int(row.get("pid") or 0), "job": int(row.get("job") or 0),
-            "empire": int(row.get("empire") or 0), "vnum": 0, "socket0": 0,
+            "empire": int(row.get("empire") or 0), "vnum": method_vnum, "socket0": 0,
         })
     return events
 
@@ -6793,11 +6815,18 @@ def rankings():
                            people_ranked=people_ranked, people_only=people_only)
 
 
-@app.route("/season")
-def season():
-    """Weekly season from the three indexed event types only."""
-    if time.time() - _season_cache["at"] < 600:
-        return render_template("season.html", weekly=_season_cache["weekly"], records=_season_cache["records"])
+SEASON_CATEGORIES = {
+    "points": ("Punkty", "points"),
+    "metins": ("Metiny", "metins"),
+    "bosses": ("Bossy", "bosses"),
+    "monsters": ("Potwory", "monsters"),
+    "refine7": ("Ulepszenia +7", "refine7"),
+}
+
+
+def _season_week_rows():
+    if time.time() - _season_cache["at"] < 600 and _season_cache.get("weekly") is not None:
+        return _season_cache["weekly"], _season_cache["records"]
     weekly = rows("""SELECT p.id,p.name,p.level,
         SUM(l.how='STONE_KILL') AS metins,
         SUM(l.how='BOSS_KILL') AS bosses,
@@ -6805,13 +6834,10 @@ def season():
         FROM log.log l JOIN player.player p ON p.id=l.who
         WHERE l.time>=NOW()-INTERVAL 7 DAY AND """ + ranking_scope_sql("p") + """
           AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS')
-        GROUP BY p.id ORDER BY (SUM(l.how='STONE_KILL')*150+SUM(l.how='BOSS_KILL')*500+SUM(l.how='REFINE SUCCESS' AND (l.hint LIKE '%%+7' OR l.hint LIKE '%%+8' OR l.hint LIKE '%%+9'))*200) DESC,p.level DESC LIMIT 30""")
-    people = person_ids([row["id"] for row in weekly])
+        GROUP BY p.id""")
     for row in weekly:
+        row["monsters"] = 0
         row["points"] = int(row.get("metins") or 0)*150 + int(row.get("bosses") or 0)*500 + int(row.get("refine7") or 0)*200
-        row["is_person"] = row["id"] in people
-    # The highest level is the ranked world's: the admin account's game
-    # masters stand at 90 and would have held this tile for good.
     records = one("""SELECT
         SUM(l.how='STONE_KILL') AS metins,
         SUM(l.how='BOSS_KILL') AS bosses,
@@ -6821,7 +6847,49 @@ def season():
         WHERE l.time>=NOW()-INTERVAL 7 DAY
           AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS')""")
     _season_cache.update(at=time.time(), weekly=weekly, records=records)
-    return render_template("season.html", weekly=weekly, records=records)
+    return weekly, records
+
+
+def _season_alltime_rows():
+    # Engine-kept lifetime counters (player_special_flag, the same table the
+    # character Y-panel reads), pivoted per character. Exact, and cheap.
+    # The +7 count isn't a lifetime flag, so the all-time "Ulepszenia" column
+    # is every successful refine (stat_refine_success) instead.
+    alltime = rows("""SELECT p.id,p.name,p.level,
+        COALESCE(SUM(CASE WHEN f.flag='stat_stone' THEN f.value END),0) AS metins,
+        COALESCE(SUM(CASE WHEN f.flag='stat_boss' THEN f.value END),0) AS bosses,
+        COALESCE(SUM(CASE WHEN f.flag='stat_monster' THEN f.value END),0) AS monsters,
+        COALESCE(SUM(CASE WHEN f.flag='stat_refine_success' THEN f.value END),0) AS refine7
+        FROM player.player p JOIN player.player_special_flag f ON f.pid=p.id
+        WHERE """ + ranking_scope_sql("p") + """
+          AND f.flag IN ('stat_stone','stat_boss','stat_monster','stat_refine_success')
+        GROUP BY p.id,p.name,p.level HAVING metins>0 OR bosses>0 OR monsters>0 OR refine7>0""")
+    for row in alltime:
+        row["points"] = int(row["metins"]) * 150 + int(row["bosses"]) * 500
+    return alltime
+
+
+@app.route("/season")
+def season():
+    """Weekly and all-time leaderboards, split into category tabs."""
+    view = request.args.get("view", "week")
+    if view not in ("week", "alltime"):
+        view = "week"
+    cat = request.args.get("cat", "points")
+    if cat not in SEASON_CATEGORIES or (view == "week" and cat == "monsters"):
+        cat = "points"
+    if view == "alltime":
+        ranking = _season_alltime_rows()
+        records = None
+    else:
+        ranking, records = _season_week_rows()
+    sort_key = SEASON_CATEGORIES[cat][1]
+    ranking = sorted(ranking, key=lambda r: (int(r.get(sort_key) or 0), int(r.get("level") or 0)), reverse=True)[:30]
+    people = person_ids([row["id"] for row in ranking])
+    for row in ranking:
+        row["is_person"] = row["id"] in people
+    return render_template("season.html", ranking=ranking, records=records, view=view, cat=cat,
+                           categories=SEASON_CATEGORIES)
 
 
 
