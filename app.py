@@ -5942,7 +5942,7 @@ def world_feed():
 def api_world_feed():
     before = request.args.get("before") or None
     events = news_feed_history(before=before)
-    return {"ok": True, "html": render_template("partials/world_feed_events.html", events=events),
+    return {"ok": True, "html": translated_fragment(render_template("partials/world_feed_events.html", events=events)),
             "next_before": events[-1]["cursor"] if events else None, "has_more": len(events) >= 40}
 
 

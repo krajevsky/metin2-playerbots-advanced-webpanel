@@ -852,6 +852,8 @@ EXACT.update({
         "A timeline of the most important achievements: +7 and higher refines, earned skill masteries and rare finds — exactly what's shown in the dashboard ticker, just with the full history.",
     "Załaduj starsze wydarzenia": "Load older events",
     "To już wszystkie wydarzenia z ostatnich 14 dni.": "That's all the events from the last 14 days.",
+    "Dziś": "Today",
+    "Wczoraj": "Yesterday",
 })
 
 # --- players.html ---
@@ -1554,6 +1556,11 @@ EXACT.update({
     "Pasek wiadomości na dole": "Message bar at the bottom",
     "cały panel": "whole panel",
     "Zapisz miejsca ogłoszeń": "Save announcement locations",
+    "✦ Ścieżka magii w kolumnie klasy": "✦ Skill path in the class column",
+    "Pokazuje w rankingach konkretną ścieżkę umiejętności zamiast samej klasy: Wojownik Ciało/Umysł, Ninja Ostrze/Łuk, Sura Broń/Czarna Magia, Szaman Smok/Leczenie. Postacie, które jeszcze nie wybrały ścieżki, nadal pokazują samą klasę.":
+        "Shows the specific skill path in rankings instead of just the class: Warrior Body/Mind, Ninja Blade/Bow, Sura Weapon/Dark Magic, Shaman Dragon/Healing. Characters who haven't picked a path yet still show just the class.",
+    "Pokazuj ścieżkę magii zamiast samej klasy": "Show the skill path instead of just the class",
+    "/rankings": "/rankings",
     "WIADOMOŚCI · SKRZYNIE": "MESSAGES · CHESTS",
     "💀 Szkatułki Umarłego Rozpruwacza": "💀 Reaper's Chests",
     "Włącz lub ukryj w Wieściach ze świata informacje o otwarciu skrzyni i zdobytej nagrodzie. Licznik w podsumowaniu dnia pozostaje dostępny.":
