@@ -267,3 +267,9 @@
 .metin-inventory .inventory-native-tabs .inventory-horse-button{top:203px!important;left:97px!important}
 .metin-inventory .inventory-native-tabs .inventory-deposit-button{top:203px!important;left:116px!important}
 .metin-inventory .inventory-native-tabs .inventory-shop-button{top:203px!important;left:135px!important}
+
+/* v1.109.5: larger right-aligned utility buttons and downward top-slot tooltips. */
+.metin-inventory .inventory-native-tabs .inventory-horse-button{left:101px!important;top:201px!important;width:19px!important;height:19px!important}
+.metin-inventory .inventory-native-tabs .inventory-deposit-button{left:122px!important;top:201px!important;width:19px!important;height:19px!important}
+.metin-inventory .inventory-native-tabs .inventory-shop-button{left:143px!important;top:201px!important;width:19px!important;height:19px!important}
+.metin-inventory .equip-slot.weapon .item-tip,.metin-inventory .equip-slot.body .item-tip,.metin-inventory .equip-slot.head .item-tip,.metin-inventory .equip-slot.ear .item-tip,.metin-inventory .equip-slot.shield .item-tip,.metin-inventory .equip-slot.arrow .item-tip{top:calc(100% + 4px)!important;bottom:auto!important}

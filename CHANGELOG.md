@@ -1,3 +1,10 @@
+## 2026-10-03 · 1.109.5 · Większe przyciski i czytelne tooltipy wyposażenia
+
+- Przyciski juków, depozytu i sklepu są odrobinę większe oraz dosunięte do prawej krawędzi wyposażenia.
+- Tooltipy górnych slotów otwierają się pod przedmiotem, dzięki czemu karta panelu nie ucina ich górnej części.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.4 · Ikony bezpośrednio nad zakładkami ekwipunku
 
 - Reguły położenia ikon Alchemii, juków, depozytu i sklepu mają teraz właściwą szczegółowość CSS, dzięki czemu przeglądarka umieszcza je przy dolnej krawędzi wyposażenia, tuż nad przyciskami I–IV.
