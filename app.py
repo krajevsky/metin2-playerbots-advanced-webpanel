@@ -5715,7 +5715,7 @@ def api_items():
     return {"ok": True, "html": translated_fragment(render_template("partials/items_catalog.html", items=records)), "count_label": count_label}
 
 
-CHAT_FEED_TYPES = ("SHOUT", "TRADE", "NOTICE")
+CHAT_FEED_TYPES = ("SHOUT", "TRADE", "NOTICE", "NORMAL")
 # Player-originated public messages reach log.chat_log directly.  Playerbots
 # broadcast without a client descriptor, so their own public output is
 # deliberately written by the engine into each core's syslog instead.
@@ -5962,7 +5962,7 @@ def live_chat_messages(limit=100):
           LEFT JOIN player.player p ON p.id=c.who_id
           LEFT JOIN player.player_index pi ON pi.id=p.account_id
           LEFT JOIN account.account a ON a.id=p.account_id
-         WHERE c.type IN ('SHOUT','TRADE')
+         WHERE c.type IN ('SHOUT','TRADE','NORMAL')
          ORDER BY c.`when` DESC
          LIMIT %s
     """

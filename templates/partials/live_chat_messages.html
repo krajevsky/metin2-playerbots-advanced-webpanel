@@ -16,7 +16,7 @@
   {#- What a player or a bot wrote, and the nick, stay as written in every language (translate="no", which translations.py and i18n-watch.js honour). #}
   <a class="metin-chat-name" href="{{url_for('player',pid=entry.player_id)}}" translate="no">{{entry.author}}</a>
   <span class="metin-chat-separator">:</span><span class="metin-chat-message" translate="no">{{entry.message}}</span>
-  <span class="metin-chat-channel">{{ 'WOŁAJ' if entry.type == 'SHOUT' else 'HANDEL' }}</span>
+  <span class="metin-chat-channel">{{ {'SHOUT':'WOŁAJ','TRADE':'HANDEL'}.get(entry.type, 'CZAT') }}</span>
 </article>
 {% endif %}
 {% else %}

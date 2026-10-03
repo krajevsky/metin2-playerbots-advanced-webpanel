@@ -885,6 +885,7 @@ EXACT.update({
     "Idź do strony": "Go to page",
     "Idź": "Go",
     "Sprzedaże na sklepie Offline": "Offline shop sales",
+    "CZAT": "CHAT",
     "Tydzień": "Week",
     "Wszechczasów": "All time",
     "OSTATNIE 7 DNI": "LAST 7 DAYS",
