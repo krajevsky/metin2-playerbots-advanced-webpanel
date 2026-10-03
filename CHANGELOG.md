@@ -1,6 +1,13 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
 
+## 2026-10-03 · 1.106.1 · Ranking broni: naprawione dla wszystkich typów + tłumaczenie
+
+- **Ranking "Broń" uwzględniał realne obrażenia tylko dla mieczy** — sztylety, łuki, wachlarze wciąż liczone starym wzorem `wymagany_poziom×10+refine`, więc np. sztylet Ninja +2 na 55 poziom nadal wygrywał z lepiej wyposażonymi postaciami. Znaleziono: `item_proto.value4` (maks. obrażenia) + `value5` (bonus z ulepszenia) to w rzeczywistości uniwersalna para kolumn obecna w **każdym** typie broni — sprawdzone na wszystkich 7 podtypach (miecze, sztylety, łuki, włócznie, dzwonki, wachlarze). Ranking liczy teraz to samo dla wszystkich, bez wyjątków i bez wzorów zapasowych — amunicja (strzały) jawnie wykluczona, żeby nie wskakiwała na szczyt rankingu (miała zawyżone wartości z innego powodu).
+- **Panel po angielsku pokazywał "(wymagany level 45)"** zamiast "(required level 45)" w szczegółach rankingu broni/zbroi — ogólna reguła tłumacząca samo słowo "poziom" → "level" działała wcześniej niż reguła dla całej frazy, zostawiając "wymagany" nieprzetłumaczone. Dodano regułę dla całej frazy przed ogólną.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-03 · 1.106.0 · Brakujące ulepszenia +9 w wiadomościach ze świata + poprawiony ranking broni
 
 - **Naprawiono brak ulepszeń +9 w "Wiadomościach ze świata" i tickerze dashboardu.** Przyczyna: silnik gry przy udanym ulepszeniu +8→+9 zapisuje do `log.refinelog` nazwę i poziom przedmiotu *sprzed* ulepszenia (czyli "+8"), więc ta tabela nigdy nie miała ani jednego wiersza z poziomem 9 — zweryfikowane bezpośrednio w bazie (0 z ~900 tys. wierszy). To błąd po stronie silnika C++ (`NotifyRefineSuccess()` w `char_item.cpp` przekazuje stary obiekt przedmiotu zamiast nowego); operator zdecydował na razie o obejściu w panelu zamiast przebudowy silnika. Panel doczytuje teraz brakujące +9 bezpośrednio z `log.log` (ten sam niezawodny mechanizm co w Podsumowaniu dnia, gdzie nazwa przedmiotu jest zapisywana poprawnie) i scala je z istniejącymi +7/+8. Metoda ulepszenia (kowal/zwój) nie jest tam dostępna, więc domyślnie pokazuje "u kowala" — w danych to zdecydowanie najczęstszy przypadek.

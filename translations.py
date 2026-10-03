@@ -1884,6 +1884,13 @@ PATTERNS_RAW = [
     (r'^🕐 Ostatnio: (.+)$', '🕐 Last seen: $1'),
     (r'^💍 Poślubiony/a z (.+)$', '💍 Married to $1'),
     (r'Wojownik', 'Warrior'),
+    # Before the generic "poziom (\d+)" below: /rankings' weapon/armor detail
+    # string ("Krwawy Miecz+9 (wymagany poziom 45)") is one dynamic CONCAT,
+    # so only a pattern catches it -- PATTERNS_RAW is applied in list order,
+    # so this has to come first or the generic rule below eats "poziom 45"
+    # on its own and leaves "wymagany" stranded in Polish (reported live,
+    # 2026-10-03).
+    (r'\(wymagany poziom (\d+)\)', '(required level $1)'),
     (r'poziom (\d+)', 'level $1'),
     (r'Premium \(ogólne, VIP\)', 'Premium (general, VIP)'),
     (r' do (\d{2}\.\d{2}\.\d{4})$', ' until $1'),
