@@ -177,6 +177,7 @@
 .ds-readonly{position:absolute;z-index:3;left:217px;top:492px;width:60px;height:22px;display:grid;place-items:center;color:#e8e1d7;text-shadow:1px 1px #000;background:url('/static/dragon-soul-ui/m_button01.png') center/60px 22px no-repeat;cursor:help}
 .ds-hint{text-align:center;font-size:11px;margin:7px auto 0;max-width:287px}
 .dragon-soul-window .item-tip{z-index:80}
+.ds-equip-slot.tip-below .item-tip{top:calc(100% + 4px)!important;bottom:auto!important}
 @media(max-width:420px){.dragon-soul-window{transform:scale(.92);transform-origin:top center;margin-bottom:-42px}}
 
 @media(min-width:1051px){.bot-profile-head{grid-template-columns:minmax(0,1fr) 350px}}
