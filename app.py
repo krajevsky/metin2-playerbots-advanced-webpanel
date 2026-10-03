@@ -1170,6 +1170,51 @@ def _refine_event_rows(since, before=None, scan_limit=200_000):
       ORDER BY r.time DESC LIMIT %s""", params + [scan_limit])
 
 
+def _refine9_event_rows(since, before=None, scan_limit=200_000):
+    """+9 successes specifically, missing from log.refinelog entirely (every
+    engine build so far: 0 rows at step=9, confirmed live 2026-10-03 --
+    NotifyRefineSuccess() in char_item.cpp logs the pre-refine item/level,
+    not the result, so a genuine +8->+9 success is written there as "+8").
+    log.log's own REFINE SUCCESS entry doesn't have that bug (ItemLog() is
+    called with the new, already-upgraded item) and its `what` column is
+    that new item's id directly -- same source daily_summary_details()
+    already trusts for its own +9 highlights. Operator's call (2026-10-03):
+    panel-side workaround over an engine rebuild. The one real loss: this
+    table has no refine *method* (blacksmith/scroll/guild), only refinelog
+    does -- defaults to "u kowala" (overwhelmingly the common case in the
+    data) rather than leaving it blank."""
+    clauses, params = ["l.how='REFINE SUCCESS'", "l.hint LIKE '%%+9'", "l.time>=%s"], [since]
+    if before:
+        clauses.append("l.time<%s")
+        params.append(before)
+    return rows(f"""SELECT l.who AS pid,l.hint AS item_name,l.what AS item_id,l.time,p.name,p.job,{EMPIRE_EXPR} AS empire
+      FROM log.log l JOIN player.player p ON p.id=l.who
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      LEFT JOIN account.account a ON a.id=p.account_id
+      WHERE {' AND '.join(clauses)}
+      ORDER BY l.time DESC LIMIT %s""", params + [scan_limit])
+
+
+def _classify_refine9_events(raw):
+    events, seen = [], set()
+    for row in raw:
+        name = game_text(row.get("name"))
+        item_name = game_text(row.get("item_name"))
+        if not name or not item_name:
+            continue
+        key = f"REFINE:{row.get('pid')}:{row.get('item_id')}:{row.get('time')}"
+        if key in seen:
+            continue
+        seen.add(key)
+        events.append({
+            "key": key, "time": row["time"], "message": f"{name} ulepszył {item_name}", "kind": "refine",
+            "actor": name, "method": "u kowala", "refine_tier": 9,
+            "player_id": int(row.get("pid") or 0), "job": int(row.get("job") or 0),
+            "empire": int(row.get("empire") or 0), "vnum": 0, "socket0": 0,
+        })
+    return events
+
+
 def _classify_refine_events(raw):
     scroll_vnums = {int(r["setType"].split(":", 1)[1]) for r in raw
                     if r.get("setType") and str(r["setType"]).startswith("SCROLL:") and str(r["setType"]).split(":", 1)[1].isdigit()}
@@ -1254,6 +1299,7 @@ def sync_news_events():
             since = cursor_row["value"] if cursor_row and cursor_row.get("value") else "2020-01-01 00:00:00"
             events = _classify_news_events(_news_event_source_rows(since=since, scan_limit=2_000_000))
             events += _classify_refine_events(_refine_event_rows(since=since))
+            events += _classify_refine9_events(_refine9_event_rows(since=since))
             if events:
                 cur.executemany("""INSERT IGNORE INTO player.web_seban_news_event
                   (event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier,method)
@@ -3408,10 +3454,18 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
             LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
             ORDER BY power_score DESC,best.vnum DESC,p.level DESC {limit_clause}""")
     if kind == "weapon":
-        # Weapon attack power isn't covered by the operator's armor table --
-        # left on the tier*10+refine heuristic (2026-09-26) rather than
-        # guessing at a similar flat-bonus-per-refine formula unverified.
-        # Same shop-stand inclusion as armor above, type=1 is ITEM_WEAPON.
+        # value2 (max base damage) + value5 (the refine-step damage bonus,
+        # identical 0/7/13/20/26/35/45/56/68/81 table for every weapon that
+        # has one) is the proto's own real attack power -- but only swords
+        # and a couple of other subtypes (0, 4, 5) carry it; daggers/fans/
+        # bells etc (subtype 1, 2, 3, 6, 7) have value2=0 for every item, so
+        # for those we keep the old tier*10+refine heuristic (2026-09-26) as
+        # a fallback rather than ranking them all at zero. Found live
+        # 2026-10-03: a lower-tier sword fully refined to +9 (real damage
+        # 130-152) ranked *below* a higher-tier sword at only +4 (94-120)
+        # under the old heuristic alone, because req_level*10 swamped the
+        # 0-9 refine signal -- confirmed via item_proto.value1/value2/value5
+        # for both items before changing this.
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,best.vnum,
             CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',best.vnum)),' (wymagany poziom ',COALESCE(best.req_level,0),')') AS detail,
             COALESCE(best.power_score,0) AS power_score,
@@ -3420,9 +3474,13 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
             LEFT JOIN (
                 SELECT i.owner_id,i.vnum,
                     COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0) AS req_level,
-                    COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)*10+MOD(i.vnum,10) AS power_score,
+                    IF(ip2.subtype IN (0,4,5) AND ip2.value2>0, ip2.value2+ip2.value5,
+                       COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)*10+MOD(i.vnum,10)) AS power_score,
                     CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop,
-                    ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)*10+MOD(i.vnum,10) DESC, i.window='EQUIPMENT' DESC) AS rn
+                    ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY
+                        IF(ip2.subtype IN (0,4,5) AND ip2.value2>0, ip2.value2+ip2.value5,
+                           COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)*10+MOD(i.vnum,10)) DESC,
+                        i.window='EQUIPMENT' DESC) AS rn
                 FROM player.item i JOIN player.item_proto ip2 ON ip2.vnum=i.vnum AND ip2.type=1
                 WHERE i.window IN ('EQUIPMENT','IKASHOP_OFFLINESHOP')
             ) best ON best.owner_id=p.id AND best.rn=1
