@@ -187,3 +187,6 @@
 .ds-equip-slot:hover .item-tip,.ds-bag-slot:hover .item-tip{display:block}
 .ds-readonly[data-brand-lock="viaSeban"]{color:#f2c34d;font-size:10px;font-weight:700;letter-spacing:.01em;text-shadow:1px 1px #000,0 0 5px rgba(242,195,77,.35)}
 .ds-readonly[data-brand-lock="viaSeban"]:empty::after{content:"viaSeban"}
+
+/* v1.108.2: inventory grew with the Dragon Soul column; scale item art with slots. */
+.metin-inventory .equip-slot>img,.metin-inventory .inv-slot>img,.safebox-inventory .safebox-slot>img{width:84%;height:84%;max-width:84%;max-height:84%;object-fit:contain}

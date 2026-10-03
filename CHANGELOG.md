@@ -1,3 +1,9 @@
+## 2026-10-03 · 1.108.2 · Ikony dopasowane do powiększonego ekwipunku
+
+- Ikony wyposażenia, plecaka i magazynu skalują się teraz razem ze slotami w poszerzonej kolumnie profilu. Zachowano rozmiar potrzebny dla okna Smoczej Alchemii.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.108.1 · Spójne ikony zwojów, tłumaczenie sezonu, koniec trackera wersji
 
 - **Ulepszenia +9 pokazują ikonę zwoju tak samo jak +7/+8** (brakowało powiązania z przedmiotem zwoju), a metoda jest po angielsku: "by scroll (Blessing Scroll)".
