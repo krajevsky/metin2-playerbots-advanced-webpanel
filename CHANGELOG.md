@@ -1,3 +1,10 @@
+## 2026-10-03 · 1.109.12 · Tooltipy nad przyciskami ekwipunku
+
+- Podczas wskazywania założonego przedmiotu cała warstwa wyposażenia przechodzi nad przyciski Alchemii, juków, depozytu i sklepu.
+- Tooltip wraz z nazwą i parametrami nie jest już przecinany ikonami interfejsu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.11 · Ikony +0–+6 dla wszystkich Smoczych Kamieni
 
 - Wspólna reguła ikon obejmuje jawnie wszystkie sześć rodzin: Diament, Rubin, Jadeit, Szafir, Granat i Onyks.
