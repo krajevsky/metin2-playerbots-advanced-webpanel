@@ -1,3 +1,10 @@
+## 2026-10-03 · 1.104.2 · Tooltipy i podpis Smoczej Alchemii
+
+- Tooltipy Smoczych Kamieni nie pokazują ogólnego pola wymaganego poziomu, którego nie prezentuje to okno w kliencie gry.
+- Przycisk podglądu został zastąpiony spójnym z UI gry podpisem `viaSeban`, utrzymywanym także po odświeżeniu fragmentu ekwipunku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.104.1 · Poprawki okna Smoczej Alchemii
 
 - Kamienie w kole i ekwipunku alchemii pokazują pełne tooltipy po najechaniu.

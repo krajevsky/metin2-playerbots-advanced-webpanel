@@ -4771,6 +4771,10 @@ def load_dragon_soul_items(pid):
       ORDER BY i.window,i.pos
     """, (pid,))
     _enrich_items(items)
+    # The game Dragon Soul tooltip does not present the generic equipment level
+    # requirement here; keep the web replica consistent with that dedicated UI.
+    for item in items:
+        item['base_stats'] = [stat for stat in item.get('base_stats', []) if not stat.startswith('Wymagany poziom:')]
     bag, decks = [], {0: {}, 1: {}}
     for item in items:
         pos = int(item.get("pos") or 0)

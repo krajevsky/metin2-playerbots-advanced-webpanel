@@ -174,7 +174,7 @@
 .ds-equip-slot>b,.ds-bag-slot>b{position:absolute;right:1px;bottom:0;color:#fff;font-size:10px;text-shadow:1px 1px #000}
 .ds-equip-0{left:128px;top:53px}.ds-equip-1{left:59px;top:93px}.ds-equip-2{left:59px;top:179px}.ds-equip-3{left:128px;top:219px}.ds-equip-4{left:194px;top:179px}.ds-equip-5{left:194px;top:93px}
 .ds-bag-slot{left:calc(15px + var(--col)*32px);top:calc(355px + var(--row)*32px)}
-.ds-readonly{position:absolute;z-index:3;left:217px;top:492px;width:60px;height:22px;display:grid;place-items:center;color:#e8e1d7;text-shadow:1px 1px #000;background:url('/static/dragon-soul-ui/m_button01.png') center/60px 22px no-repeat;cursor:help}
+.ds-readonly{position:absolute;z-index:3;left:217px;top:492px;width:60px;height:22px;display:grid;place-items:center;color:#f2c34d;text-shadow:1px 1px #000,0 0 5px rgba(242,195,77,.35);background:url('/static/dragon-soul-ui/m_button01.png') center/60px 22px no-repeat;cursor:help;font-size:10px;font-weight:700;letter-spacing:.01em}.ds-readonly>span:first-child{display:block}.ds-readonly[data-brand-lock="viaSeban"]:empty::after{content:"viaSeban"}
 .ds-hint{text-align:center;font-size:11px;margin:7px auto 0;max-width:287px}
 .dragon-soul-window .item-tip{z-index:80}
 .ds-equip-slot:hover .item-tip,.ds-bag-slot:hover .item-tip{display:block}

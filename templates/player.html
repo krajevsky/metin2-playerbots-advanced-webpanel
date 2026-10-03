@@ -96,6 +96,8 @@ function bindDragonSoul(){
   const kindNames=document.documentElement.lang==='en'
     ? ['Dragon Diamond','Dragon Ruby','Dragon Jade','Dragon Sapphire','Dragon Garnet','Dragon Onyx']
     : ['Smoczy Diament','Smoczy Rubin','Smoczy Jadeit','Smoczy Szafir','Smoczy Granat','Smoczy Onyks'];
+  const brand=win.querySelector('[data-brand-lock]');
+  if(brand&&brand.dataset.brandLock==='viaSeban'&&!brand.textContent.trim())brand.innerHTML='<span aria-hidden="true">viaSeban</span><span class="sr-only">viaSeban</span>';
   const render=()=>{
     const kind=Number(win.dataset.dsKind||0), page=Number(win.dataset.dsPage||0), deck=Number(win.dataset.dsDeck||0);
     const art=win.querySelector('.ds-kind-art'); if(art)art.src=`/static/dragon-soul-ui/tap${String(kind+1).padStart(2,'0')}.png`;
