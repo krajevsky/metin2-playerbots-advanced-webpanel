@@ -1,0 +1,62 @@
+<section class="native-character-shell" id="native-character-window" aria-label="Okno postaci">
+  <div class="native-character-page native-character-status active" data-character-page="status">
+    <img class="native-character-portrait" src="{{class_portrait(character.job)}}" alt="{{character.job_name}}">
+    <span class="native-character-guild">{{character.guild_name or '—'}}</span>
+    <span class="native-character-name" tabindex="0">{{character.name}}<span class="native-rank-tip"><b>{{character.honor.title}}</b><span>Punkty Rangi: {{'{:,}'.format(character.honor.points).replace(',', ' ')}}</span></span></span>
+    <span class="native-value level">{{character.level}}</span>
+    <span class="native-value exp">{{'{:,}'.format(character.experience.current).replace(',', ' ')}}</span>
+    <span class="native-value next-exp">{{'{:,}'.format(character.experience.required).replace(',', ' ')}}</span>
+    <span class="native-value available-stat">{{character.stat_point or 0}}</span>
+    <span class="native-value stat-vit">{{character.status_window.ht}}</span>
+    <span class="native-value stat-int">{{character.status_window.iq}}</span>
+    <span class="native-value stat-str">{{character.status_window.st}}</span>
+    <span class="native-value stat-dex">{{character.status_window.dx}}</span>
+    <span class="native-value hp">{{character.hp}}/{{character.max_hp}}</span>
+    <span class="native-value mp">{{character.mp}}/{{character.max_mp}}</span>
+    <span class="native-value attack">{{character.status_window.attack}}</span>
+    <span class="native-value defense">{{character.status_window.defense}}</span>
+    <span class="native-value move-speed">{{character.status_window.move_speed}}</span>
+    <span class="native-value magic-attack">{{character.status_window.magic_attack}}</span>
+    <span class="native-value attack-speed">{{character.status_window.attack_speed}}</span>
+    <span class="native-value magic-defense">{{character.status_window.magic_defense}}</span>
+    <span class="native-value casting-speed">{{character.status_window.casting_speed}}</span>
+    <span class="native-value evade">{{character.status_window.evade}}</span>
+    <button type="button" class="native-bonus-button" aria-expanded="false">Bonusy</button>
+    <div class="native-bonus-popover" hidden>
+      <b>Bonusy wyposażenia</b>
+      {% for item in equipment %}{% if item.bonuses %}<span>{{item.item_name}}: {{item.bonuses|join(', ')}}</span>{% endif %}{% else %}<span>Brak założonych przedmiotów z bonusami.</span>{% endfor %}
+    </div>
+  </div>
+
+  <div class="native-character-page native-character-skills" data-character-page="skills" hidden>
+    <span class="native-skill-points">{{character.skill_point or 0}}</span>
+    <div class="native-skill-groups"><button type="button" class="active" data-skill-group="class">{{character.job_name}}</button><button type="button" data-skill-group="horse">Jazda</button></div>
+    <div class="native-skill-grid" data-skill-grid="class">
+      {% for skill in character.skills %}{% set skill_index = loop.index0 %}{% set stage = 2 if skill.master_type >= 2 or skill.level >= 30 else 1 if skill.master_type == 1 or skill.level >= 20 else 0 %}
+        {% for stage_index in range(3) %}{% set suffix = '' if stage_index == 0 else '_m' if stage_index == 1 else '_p' if stage_index == stage and skill.master_type >= 3 else '_g' %}<div class="native-skill-cell{% if stage_index != stage or skill.level == 0 %} inactive{% endif %}" style="--skill-col:{{(skill_index % 2) * 3 + stage_index}};--skill-row:{{skill_index // 2}}" title="{{skill.name}} · {{skill.rank}}"><img src="{{url_for('static',filename='skill_icons/'+skill.vnum|string+suffix+'.png')}}" alt="{{skill.name}}" onerror="this.style.visibility='hidden'">{% if stage_index == stage and skill.level %}<b>{{skill.rank}}</b>{% endif %}</div>{% endfor %}
+      {% endfor %}
+    </div>
+    <div class="native-skill-grid" data-skill-grid="horse" hidden>
+      {% for skill in character.horse_skills %}<div class="native-skill-cell{% if not skill.level %} inactive{% endif %}" style="--skill-col:{{loop.index0}};--skill-row:0" title="{{skill.name}} · {{skill.rank}}"><img src="{{url_for('static',filename='skill_icons/'+skill.vnum|string+skill.icon_suffix+'.png')}}" alt="{{skill.name}}" onerror="this.style.visibility='hidden'">{% if skill.level %}<b>{{skill.rank}}</b>{% endif %}</div>{% endfor %}
+    </div>
+    <div class="native-passive-levels">
+      {% for skill in character.passive_skills %}<span style="--passive-col:{{loop.index0 % 6}};--passive-row:{{loop.index0 // 6}}" title="{{skill.name}}">{% if skill.level %}{{skill.rank}}{% endif %}</span>{% endfor %}
+    </div>
+  </div>
+
+  <div class="native-character-page native-character-quests" data-character-page="quests" hidden>
+    <div class="native-quest-list" aria-label="Aktywne zadania">
+      {% for m in mission_progress %}<article class="native-quest-row">
+        <img src="{{url_for('static',filename='quest-icon.png')}}" alt="">
+        <div class="native-quest-copy"><b>{{m.label}}</b><span>{{m.current}} / {{m.target}} {{m.unit}}</span>{% if m.detail %}<small>{{m.detail}}</small>{% endif %}<i aria-label="Postęp {{m.percent}}%"><em style="width:{{m.percent}}%"></em></i></div>
+      </article>{% else %}<p class="native-quest-empty">Brak aktywnych zadań.</p>{% endfor %}
+    </div>
+  </div>
+
+  <nav class="native-character-tabs" aria-label="Zakładki okna postaci">
+    <button type="button" class="active" data-character-tab="status">Status</button>
+    <button type="button" data-character-tab="skills">Umiejętn.</button>
+    <button type="button" disabled>Emocje</button>
+    <button type="button" data-character-tab="quests">Zadania</button>
+  </nav>
+</section>

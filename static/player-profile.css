@@ -171,7 +171,7 @@
 .ds-equipment,.ds-bag{position:absolute;z-index:4;inset:0;pointer-events:none}
 .ds-equip-slot,.ds-bag-slot{position:absolute;width:32px;height:32px;display:flex;align-items:center;justify-content:center;pointer-events:auto}
 .ds-equip-slot>img,.ds-bag-slot>img{max-width:32px;max-height:32px;object-fit:contain;filter:drop-shadow(0 1px 1px #000)}
-.ds-equip-slot>b,.ds-bag-slot>b{position:absolute;right:1px;bottom:0;color:#fff;font-size:10px;text-shadow:1px 1px #000}
+.ds-equip-slot>b,.ds-bag-slot>b{position:absolute;right:3px;bottom:3px;color:#fff;font-size:10px;text-shadow:1px 1px #000}
 .ds-equip-0{left:128px;top:53px}.ds-equip-1{left:59px;top:93px}.ds-equip-2{left:59px;top:179px}.ds-equip-3{left:128px;top:219px}.ds-equip-4{left:194px;top:179px}.ds-equip-5{left:194px;top:93px}
 .ds-bag-slot{left:calc(15px + var(--col)*32px);top:calc(355px + var(--row)*32px)}
 .ds-readonly{position:absolute;z-index:3;left:217px;top:492px;width:60px;height:22px;display:grid;place-items:center;color:#e8e1d7;text-shadow:1px 1px #000;background:url('/static/dragon-soul-ui/m_button01.png') center/60px 22px no-repeat;cursor:help}
@@ -289,3 +289,48 @@
 .metin-inventory .inv-slot:hover{z-index:100!important}
 .metin-inventory .equip-slot .item-tip,
 .metin-inventory .inv-slot .item-tip{z-index:110!important}
+
+/* v1.110.0: native character Status / Skills / Quests window. */
+.native-character-shell{position:relative;width:248px;height:358px;margin:16px auto 22px;font:11px Tahoma,Arial,sans-serif;color:#eee;filter:drop-shadow(0 5px 8px #0008)}
+.native-character-page{position:absolute;inset:0;background-size:248px 356px;background-repeat:no-repeat;background-position:0 0}
+.native-character-status{background-image:url('/static/character-status-ui.png')}
+.native-character-skills{background-image:url('/static/character-skills-ui.png')}
+.native-character-quests{background-image:url('/static/character-quests-ui.png')}
+.native-character-page[hidden]{display:none!important}
+.native-character-portrait{position:absolute;left:5px;top:5px;width:48px;height:46px;object-fit:cover;object-position:top;image-rendering:pixelated}
+.native-character-guild,.native-character-name{position:absolute;top:31px;height:17px;display:grid;place-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eee;text-shadow:1px 1px #000}
+.native-character-guild{left:59px;width:87px}.native-character-name{left:151px;width:88px;overflow:visible;cursor:help}
+.native-rank-tip{display:none;position:absolute;z-index:50;left:50%;bottom:calc(100% + 7px);transform:translateX(-50%);min-width:150px;padding:8px 10px;border:1px solid #8b744d;background:rgba(13,12,10,.96);color:#ddd;text-align:center;box-shadow:0 4px 12px #000}
+.native-rank-tip b,.native-rank-tip span{display:block}.native-rank-tip b{color:#fff;margin-bottom:3px}.native-character-name:hover .native-rank-tip,.native-character-name:focus .native-rank-tip{display:block}
+.native-value{position:absolute;display:grid;place-items:center;color:#fff;text-shadow:1px 1px #000;font-size:10px;line-height:1}
+.native-value.level{left:10px;top:66px;width:36px;height:24px}.native-value.exp{left:54px;top:66px;width:90px;height:24px}.native-value.next-exp{left:150px;top:66px;width:90px;height:24px}
+.native-value.available-stat{left:202px;top:105px;width:25px;height:14px;color:#d9a849}
+.native-value.stat-vit,.native-value.stat-int,.native-value.stat-str,.native-value.stat-dex{left:50px;width:39px;height:16px}
+.native-value.stat-vit{top:128px}.native-value.stat-int{top:153px}.native-value.stat-str{top:178px}.native-value.stat-dex{top:202px}
+.native-value.hp,.native-value.mp,.native-value.attack,.native-value.defense{left:146px;width:89px;height:16px}
+.native-value.hp{top:128px}.native-value.mp{top:153px}.native-value.attack{top:178px}.native-value.defense{top:202px}
+.native-value.move-speed,.native-value.attack-speed,.native-value.casting-speed{left:66px;width:52px;height:18px}
+.native-value.move-speed{top:250px}.native-value.attack-speed{top:275px}.native-value.casting-speed{top:300px}
+.native-value.magic-attack,.native-value.magic-defense,.native-value.evade{left:200px;width:35px;height:18px}
+.native-value.magic-attack{top:250px}.native-value.magic-defense{top:275px}.native-value.evade{top:300px}
+.native-bonus-button{position:absolute;left:191px;top:226px;width:43px;height:18px;padding:0;border:0;background:transparent;color:transparent;cursor:pointer}
+.native-bonus-popover{position:absolute;z-index:60;left:242px;top:177px;width:245px;max-height:190px;overflow:auto;padding:9px;border:1px solid #8b744d;background:rgba(13,12,10,.97);box-shadow:0 5px 15px #000;color:#ddd}
+.native-bonus-popover>b,.native-bonus-popover>span{display:block}.native-bonus-popover>b{color:#e8b94f;margin-bottom:5px}.native-bonus-popover>span{font-size:10px;margin:3px 0}
+.native-skill-points{position:absolute;left:211px;top:40px;width:21px;color:#e4a535;text-align:center;font-weight:700}
+.native-skill-groups{position:absolute;z-index:5;left:10px;top:41px;display:flex;gap:3px}.native-skill-groups button{height:16px;padding:0 10px;border:0;background:transparent;color:#b9a58c;font:10px Tahoma;cursor:pointer}.native-skill-groups button.active{color:#f1d38d}
+.native-skill-grid{position:absolute;left:14px;top:61px;width:220px;height:149px}.native-skill-grid[hidden]{display:none!important}
+.native-skill-cell{position:absolute;left:calc(var(--skill-col) * 36px);top:calc(var(--skill-row) * 37px);width:34px;height:34px;display:grid;place-items:center}.native-skill-cell img{max-width:30px;max-height:30px;image-rendering:pixelated}.native-skill-cell.inactive img{filter:grayscale(.72) brightness(.48);opacity:.76}.native-skill-cell b{position:absolute;right:3px;bottom:3px;color:#fff;font-size:10px;text-shadow:-1px -1px #000,1px 1px #000}
+.native-passive-levels{position:absolute;left:15px;top:243px;width:220px;height:71px;pointer-events:none}.native-passive-levels span{position:absolute;left:calc(var(--passive-col) * 36px);top:calc(var(--passive-row) * 37px);width:33px;height:33px;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 3px 3px 0;box-sizing:border-box;color:#fff;font-size:9px;text-shadow:-1px -1px #000,1px 1px #000}
+.native-character-tabs{position:absolute;z-index:20;left:4px;bottom:2px;width:240px;height:29px;display:grid;grid-template-columns:55px 68px 58px 59px}
+.native-character-tabs button{border:0;background:transparent;color:transparent;cursor:pointer}.native-character-tabs button:disabled{cursor:default}.native-character-tabs button:focus-visible{outline:1px solid #dfb75b;outline-offset:-3px}
+.native-quest-list{position:absolute;left:3px;right:7px;top:28px;height:296px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#a69374 #171717}
+.native-quest-row{height:41px;box-sizing:border-box;display:flex;align-items:center;gap:9px;padding:3px 10px 3px 15px;color:#ddd;text-shadow:1px 1px #000}
+.native-quest-row img{width:32px;height:32px;flex:0 0 32px;image-rendering:pixelated}
+.native-quest-copy{min-width:0;flex:1;position:relative;padding-bottom:6px;line-height:1.05}
+.native-quest-copy b,.native-quest-copy span,.native-quest-copy small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.native-quest-copy b{font-size:11px;color:#e7e7e7}.native-quest-copy span{font-size:9px;color:#d4c8b5;margin-top:2px}.native-quest-copy small{font-size:8px;color:#aaa;margin-top:1px}
+.native-quest-copy i{position:absolute;left:0;right:2px;bottom:0;height:3px;background:#16130f;border:1px solid #564731;box-sizing:border-box}.native-quest-copy i em{display:block;height:100%;background:#c69231}
+.native-quest-empty{margin:36px 20px;color:#aaa;text-align:center}
+.native-quest-list::-webkit-scrollbar{width:8px}.native-quest-list::-webkit-scrollbar-track{background:#171717}.native-quest-list::-webkit-scrollbar-thumb{background:#85745b;border:1px solid #bbaa8a}
+
+@media(max-width:650px){.native-bonus-popover{left:3px;top:240px;width:222px}}

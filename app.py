@@ -1010,19 +1010,37 @@ def parse_skills(raw, job, group):
         offset = vnum * 6
         master, level = (raw[offset] if offset < len(raw) else 0), (raw[offset + 1] if offset + 1 < len(raw) else 0)
         rank = skill_rank(master, level)
-        if level:
-            result.append({"vnum": vnum, "name": name, "level": level, "master_type": master, "rank": rank,
-                           "icon_suffix": skill_icon_suffix(master, level)})
+        result.append({"vnum": vnum, "name": name, "level": level, "master_type": master, "rank": rank,
+                       "icon_suffix": skill_icon_suffix(master, level)})
     return result
 
 
 # The client stores support skills alongside class skills. Tieru's panel does
 # not ship their artwork, which made this section fall back to text only.
 PASSIVE_SKILLS = {
-    121: "Dowodzenie", 122: "Combo", 123: "Wędkarstwo", 124: "Górnictwo", 125: "Kowalstwo",
-    126: "Język Shinsoo", 127: "Język Chunjo", 128: "Język Jinno", 129: "Polimorfia",
+    # Kolejność odpowiada polom w klienckim oknie: sześć ikon w pierwszym
+    # rzędzie, potem dwa obce języki, jeździectwo i przywołanie konia.
+    122: "Combo", 123: "Wędkarstwo", 121: "Dowodzenie", 124: "Górnictwo", 125: "Sprint",
+    129: "Polimorfia", 126: "Język Shinsoo", 127: "Język Chunjo", 128: "Język Jinno",
     130: "Poziom konia", 131: "Przywołanie konia",
 }
+
+
+HORSE_SKILLS = {137: "Cięcie z Siodła", 138: "Stąpnięcie Konia", 139: "Fala Mocy", 140: "Grad Strzał z Konia"}
+
+
+def parse_horse_skills(raw):
+    if isinstance(raw, memoryview): raw = raw.tobytes()
+    if isinstance(raw, str): raw = raw.encode("latin1", "ignore")
+    raw = raw or b""
+    result = []
+    for vnum, name in HORSE_SKILLS.items():
+        offset = vnum * 6
+        master = raw[offset] if offset < len(raw) else 0
+        level = raw[offset + 1] if offset + 1 < len(raw) else 0
+        result.append({"vnum": vnum, "name": name, "level": level, "master_type": master,
+                       "rank": skill_rank(master, level), "icon_suffix": skill_icon_suffix(master, level)})
+    return result
 
 
 def parse_passive_skills(raw):
@@ -1033,14 +1051,11 @@ def parse_passive_skills(raw):
     for vnum, name in PASSIVE_SKILLS.items():
         offset = vnum * 6
         master, level = (raw[offset] if offset < len(raw) else 0), (raw[offset + 1] if offset + 1 < len(raw) else 0)
-        if level:
-            # Horse riding and calling a horse use their own 1–30 numeric
-            # progression in the client. They are not M/G/P skills even when
-            # their value crosses 20, 30 or 40.
-            horse_skill = vnum in (130, 131)
-            result.append({"vnum": vnum, "name": name, "level": level, "master_type": master,
-                           "rank": str(level) if horse_skill else skill_rank(master, level),
-                           "icon_suffix": "" if horse_skill else skill_icon_suffix(master, level)})
+        # Horse riding and calling a horse use their own 1–30 numeric progression.
+        horse_skill = vnum in (130, 131)
+        result.append({"vnum": vnum, "name": name, "level": level, "master_type": master,
+                       "rank": str(level) if horse_skill else skill_rank(master, level),
+                       "icon_suffix": "" if horse_skill else skill_icon_suffix(master, level)})
     return result
 
 
@@ -1405,7 +1420,10 @@ def news_feed_history(before=None, limit=40, days=14):
 PLAYERBOT_STATUS_LEGACY_COLUMNS = ("pid", "personality", "ambition", "role", "in_party", "goal",
                                     "action", "updated_ms", "map_index", "x", "y", "hp", "max_hp", "status")
 _LIVE_STATUS_INT_FIELDS = ("personality", "ambition", "role", "goal", "action", "updated_ms",
-                            "map_index", "x", "y", "hp", "max_hp", "persona", "mood", "mood_lock", "lock_level")
+                            "map_index", "x", "y", "hp", "max_hp", "mp", "max_mp",
+                            "st", "ht", "dx", "iq", "attack", "magic_attack", "defense",
+                            "magic_defense", "attack_speed", "move_speed", "casting_speed", "evade",
+                            "persona", "mood", "mood_lock", "lock_level")
 
 
 def live_statuses():
@@ -5020,7 +5038,19 @@ def player(pid):
     character["mp_percent"] = min(100, round(int(character.get("mp") or 0) * 100 / character["max_mp"], 1))
     skill_raw = character.pop("skill_level", b"")
     character["skills"] = parse_skills(skill_raw, character.get("job"), character.get("skill_group"))
+    character["horse_skills"] = parse_horse_skills(skill_raw)
     character["passive_skills"] = parse_passive_skills(skill_raw)
+    own_language = {1: 126, 2: 127, 3: 128}.get(int(character.get("empire") or 0))
+    character["passive_skills"] = [skill for skill in character["passive_skills"]
+                                   if skill["vnum"] != own_language]
+    character["status_window"] = {
+        "st": int(character.get("st") or 0), "ht": int(character.get("ht") or 0),
+        "dx": int(character.get("dx") or 0), "iq": int(character.get("iq") or 0),
+        "attack": character.get("attack", "—"), "magic_attack": character.get("magic_attack", "—"),
+        "defense": character.get("defense", "—"), "magic_defense": character.get("magic_defense", "—"),
+        "attack_speed": character.get("attack_speed", "—"), "move_speed": character.get("move_speed", "—"),
+        "casting_speed": character.get("casting_speed", "—"), "evade": character.get("evade", "—"),
+    }
     equipment, inventory, safebox, horse_bag = load_character_items(pid, character["account_id"])
     dragon_soul_inventory, dragon_soul_decks = load_dragon_soul_items(pid)
     character["full_plus9_equipment"] = full_plus9_badges_enabled() and is_full_plus9_equipment(equipment)
