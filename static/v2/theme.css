@@ -33,6 +33,12 @@
 
 *,*::before,*::after{box-sizing:border-box}
 html{color-scheme:dark}
+/* Absolutely-positioned descendants (bot name tags on the live map, etc.)
+   still count toward an ancestor's scrollable overflow even though they're
+   out of normal flow -- v1 hit the exact same thing (style.css has the same
+   fix) for bots near a map's right edge. Clip at the viewport instead of
+   chasing every individual source. */
+html,body.v2{max-width:100%;overflow-x:hidden}
 body.v2{
   margin:0; min-height:100vh; background:var(--bg); color:var(--text);
   font:var(--fs-base)/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
