@@ -1271,7 +1271,7 @@ _ITEM_STAT_LABELS = {
     "Odzyskanie PŻ po zabiciu": "HP Recovery on Kill", "Odporność na omdlenie": "Stun Resist",
     "Odporność na spowolnienie": "Slow Resist", "Odporność na przewrócenie": "Knockback Resist",
     "Zasięg łuku": "Bow Range", "Wartość ataku": "Attack Value", "Wartość obrony": "Defense Value",
-    "Wartość magicznego ataku": "Magic Attack Value", "Magiczna wartość obrony": "Magic Defense Value",
+    "Wartość magicznego ataku": "Magic Attack Value", "Magiczna wartość obrony": "Magic Defense Value", "Magiczna Obrona": "Magic Defense",
     "Maks. wytrzymałość": "Max Stamina", "Silny przeciw wojownikom": "Strong vs Warrior",
     "Silny przeciw ninja": "Strong vs Ninja", "Silny przeciw surom": "Strong vs Sura",
     "Silny przeciw szamanom": "Strong vs Shaman", "Silny przeciw potworom": "Strong vs Monster",

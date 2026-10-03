@@ -1,3 +1,10 @@
+## 2026-10-03 · 1.109.10 · Nazwy bonusów ulepszonych Smoczych Kamieni
+
+- Punkty 97 i 98 z silnika są rozpoznawane jako Wartość Magicznego Ataku i Magiczna Obrona, zgodnie z definicjami klienta.
+- Ulepszony Smoczy Kamień dziedziczy nazwę i typ bazowego prototypu, więc tooltip nie pokazuje już zastępczej nazwy VNUM.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.9 · Pełne tooltipy górnych kamieni Alchemii
 
 - Tooltipy diamentu oraz dwóch górnych bocznych kamieni otwierają się pod slotem, dzięki czemu nazwa i początek opisu nie są ucinane nad oknem Alchemii.
