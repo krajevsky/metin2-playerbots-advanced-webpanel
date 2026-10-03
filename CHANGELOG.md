@@ -1,3 +1,11 @@
+## 2026-10-03 · 1.104.1 · Poprawki okna Smoczej Alchemii
+
+- Kamienie w kole i ekwipunku alchemii pokazują pełne tooltipy po najechaniu.
+- Zakładki rodzaju i klasy pokazują wyłącznie właściwe kamienie, bez nakładania zawartości pozostałych stron.
+- Wybrany rodzaj, klasa i zestaw Smoczej Alchemii pozostają aktywne po automatycznym odświeżeniu ekwipunku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
 

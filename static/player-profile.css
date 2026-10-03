@@ -169,6 +169,7 @@
 .ds-deck-tabs img{display:block;width:32px;height:32px}
 .ds-equipment,.ds-bag{position:absolute;z-index:4;inset:0;pointer-events:none}
 .ds-equip-slot,.ds-bag-slot{position:absolute;width:32px;height:32px;display:flex;align-items:center;justify-content:center;pointer-events:auto}
+.ds-bag-slot[hidden],.ds-equipment[hidden]{display:none!important}
 .ds-equip-slot>img,.ds-bag-slot>img{max-width:32px;max-height:32px;object-fit:contain;filter:drop-shadow(0 1px 1px #000)}
 .ds-equip-slot>b,.ds-bag-slot>b{position:absolute;right:1px;bottom:0;color:#fff;font-size:10px;text-shadow:1px 1px #000}
 .ds-equip-0{left:128px;top:53px}.ds-equip-1{left:59px;top:93px}.ds-equip-2{left:59px;top:179px}.ds-equip-3{left:128px;top:219px}.ds-equip-4{left:194px;top:179px}.ds-equip-5{left:194px;top:93px}
@@ -176,6 +177,9 @@
 .ds-readonly{position:absolute;z-index:3;left:217px;top:492px;width:60px;height:22px;display:grid;place-items:center;color:#e8e1d7;text-shadow:1px 1px #000;background:url('/static/dragon-soul-ui/m_button01.png') center/60px 22px no-repeat;cursor:help}
 .ds-hint{text-align:center;font-size:11px;margin:7px auto 0;max-width:287px}
 .dragon-soul-window .item-tip{z-index:80}
+.ds-equip-slot:hover .item-tip,.ds-bag-slot:hover .item-tip{display:block}
+.ds-equip-slot.tip-left .item-tip,.ds-bag-slot.tip-left .item-tip{left:0!important;transform:none!important}
+.ds-equip-slot.tip-right .item-tip,.ds-bag-slot.tip-right .item-tip{left:auto!important;right:0!important;transform:none!important}
 @media(max-width:420px){.dragon-soul-window{transform:scale(.92);transform-origin:top center;margin-bottom:-42px}}
 
 @media(min-width:1051px){.bot-profile-head{grid-template-columns:minmax(0,1fr) 350px}}
