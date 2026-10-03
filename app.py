@@ -3404,7 +3404,7 @@ def cached_dashboard_ranking(kind, limit=10, ttl=300):
     return data
 
 
-def bot_ranking(kind, sort_by="avg", people_only=False):
+def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None):
     base = ranking_scope_sql("p", people_only)
     # Fetches every matching row (up to a generous safety cap, not a
     # per-page one) -- /rankings paginates in Python instead of pushing
@@ -3470,6 +3470,10 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
         # (130-152 damage) ranked *below* a higher-tier sword at only +4
         # (94-120) under the old req_level*10+refine heuristic, because
         # req_level swamped the 0-9 refine signal.
+        # weapon_type (validated against WEAPON_SUBTYPES by the route before
+        # this call) narrows to one subtype; otherwise every real weapon
+        # (everything but subtype 6, ammunition) is eligible.
+        subtype_clause = f"ip2.subtype={WEAPON_SUBTYPES[weapon_type][0]}" if weapon_type in WEAPON_SUBTYPES else "ip2.subtype<>6"
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,best.vnum,
             CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',best.vnum)),' (wymagany poziom ',COALESCE(best.req_level,0),')') AS detail,
             COALESCE(best.power_score,0) AS power_score,
@@ -3481,7 +3485,7 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
                     ip2.value4+ip2.value5 AS power_score,
                     CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop,
                     ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY ip2.value4+ip2.value5 DESC, i.window='EQUIPMENT' DESC) AS rn
-                FROM player.item i JOIN player.item_proto ip2 ON ip2.vnum=i.vnum AND ip2.type=1 AND ip2.subtype<>6
+                FROM player.item i JOIN player.item_proto ip2 ON ip2.vnum=i.vnum AND ip2.type=1 AND {subtype_clause}
                 WHERE i.window IN ('EQUIPMENT','IKASHOP_OFFLINESHOP')
             ) best ON best.owner_id=p.id AND best.rn=1
             LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
@@ -3597,12 +3601,18 @@ def bot_ranking(kind, sort_by="avg", people_only=False):
     # ktos wszedl ze starym ?type=hunting, kind nie ma go juz w kinds i strona
     # pokazuje domyslny ranking poziomu.
     if kind == "shops":
-        # The keepers the cores report are bots; a person's stall is in no file.
-        keeper_ids = [pid for pid, state in live_statuses().items() if int(state.get("action") or 0) == 13]
-        if not keeper_ids or people_only:
-            return []
-        placeholders = ",".join(["%s"] * len(keeper_ids))
-        return rows(f"SELECT p.id,p.name,p.level,p.gold,'Stragan otwarty' AS detail FROM player.player p WHERE p.id IN ({placeholders}) ORDER BY p.level DESC {limit_clause}", keeper_ids)
+        # Replaced 2026-10-03 (operator: "Wystawione Stragany" was a leftover
+        # from before offline shops existed -- it only ever listed who
+        # currently has a stall *open live*, which is a status, not an
+        # achievement to rank). Real money instead: all-time Yang earned
+        # from offline-shop sales, log.ikarusshop_log -- same BUY_ITEM/TAX
+        # pattern daily_summary_details()'s "shop" leader already uses.
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,
+            SUM(GREATEST(0,l.yang-IF(l.extra LIKE 'TAX: %%',CAST(SUBSTRING_INDEX(l.extra,' ',-1) AS UNSIGNED),0))) AS score,
+            CONCAT(FORMAT(SUM(GREATEST(0,l.yang-IF(l.extra LIKE 'TAX: %%',CAST(SUBSTRING_INDEX(l.extra,' ',-1) AS UNSIGNED),0))),0),' Yang ze sprzedaży') AS detail
+            FROM log.ikarusshop_log l JOIN player.player p ON p.id=l.shop_owner
+            WHERE l.what='BUY_ITEM' AND {base}
+            GROUP BY p.id,p.name HAVING score>0 ORDER BY score DESC,p.level DESC {limit_clause}""")
     if kind == "skills":
         # Kazdy bot z profesja, a nie czterysta najwyzszych poziomem.
         # Ranking umiejetnosci posortowany najpierw po poziomie odpowiada
@@ -4245,13 +4255,25 @@ SPECIAL_FLAG_RANKINGS = {
     "damage_max_horse": ("stat_damage_horse", "obrażeń (konno, rekord)"),
     "damage_max_skill": ("stat_damage_skill", "obrażeń (umiejętność, rekord)"),
     "yang_earned": ("stat_gold", "Yang zdobytych łącznie"),
-    "yang_npc_sale": ("stat_sell_shop", "Yang ze sprzedaży u NPC"),
+    # yang_npc_sale (stat_sell_shop) removed 2026-10-03: this engine almost
+    # never writes it (1 row total in player_special_flag vs thousands for
+    # every other stat_* flag -- bots don't sell to NPCs through whatever
+    # code path calls AddPlayerStat for it) -- same reason "hunting" was
+    # removed earlier (dead stat, not a panel bug to fix).
     "monsters_killed": ("stat_monster", "zabitych potworów łącznie"),
     "minibosses": ("stat_miniboss", "pokonanych minibossów"),
     "pvp_kills_total": ("stat_empire", "pokonanych graczy (wrogie królestwo)"),
     "duel_wins": ("stat_duel", "wygranych pojedynków"),
     "mining": ("stat_mining", "wykopanych rud"),
 }
+# /rankings?type=weapon&weapon_type=<key> -- item_proto.subtype values for
+# ITEM_WEAPON, confirmed live 2026-10-03 by sampling every subtype's actual
+# item names (0: Miecz/Długi Miecz/..., 1: Sztylet/Nóż/..., 2: Łuk/Kompozytowy
+# Łuk/..., 3: Glewia/Włócznia/Trójząb/Halabarda/... (two-handed), 4: ...Dzwon,
+# 5: ...Wachlarz). subtype 6 (arrows) and 7 (a single oddball vnum) are
+# deliberately not offered as filter choices.
+WEAPON_SUBTYPES = {"sword": (0, "Miecz"), "dagger": (1, "Sztylet"), "bow": (2, "Łuk"),
+                    "twohand": (3, "Broń dwuręczna"), "bell": (4, "Dzwon"), "fan": (5, "Wachlarz")}
 
 
 def character_stat_summary(pid):
@@ -6675,9 +6697,9 @@ def rankings():
         # dla kazdego bota - ranking miał wiec 100 pozycji z "Ukonczone do Lv 0"
         # (Tieru, 13 wrzesnia).
         "gold": "Yang", "items": "Przedmioty", "horse": "Koń", "biologist": "Biolog",
-        "shops": "Otwarte stragany", "skills": "Umiejętności", "plus9": "Przedmiot +9", "playtime": "Czas gry", "bosses": "Bossy", "refine": "Pomyślne ulepszenia", "refine_rate": "Skuteczność ulepszeń", "fish": "Wyłowione ryby",
+        "shops": "Sprzedaże na sklepie Offline", "skills": "Umiejętności", "plus9": "Przedmiot +9", "playtime": "Czas gry", "bosses": "Bossy", "refine": "Pomyślne ulepszenia", "refine_rate": "Skuteczność ulepszeń", "fish": "Wyłowione ryby",
         "damage_max": "Rekord obrażeń (zwykłe)", "damage_max_horse": "Rekord obrażeń (konno)", "damage_max_skill": "Rekord obrażeń (umiejętność)",
-        "yang_earned": "Zdobyty Yang (łącznie)", "yang_npc_sale": "Yang ze sprzedaży u NPC",
+        "yang_earned": "Zdobyty Yang (łącznie)",
         "monsters_killed": "Zabite potwory (łącznie)", "minibosses": "Pokonane minibossy", "pvp_kills_total": "Pokonani gracze (PVP)", "duel_wins": "Wygrane pojedynki", "mining": "Wykopane rudy",
     }
     kind = request.args.get("type", "level")
@@ -6686,6 +6708,9 @@ def rankings():
     weapon30_sort = request.args.get("sort", "avg") if kind == "weapon30" else "avg"
     if weapon30_sort not in ("avg", "skill", "upgrade"):
         weapon30_sort = "avg"
+    weapon_type = request.args.get("weapon_type") if kind == "weapon" else None
+    if weapon_type not in WEAPON_SUBTYPES:
+        weapon_type = None
     try:
         per_page = int(request.args.get("per_page", 100))
     except (TypeError, ValueError):
@@ -6696,7 +6721,7 @@ def rankings():
     # so a person far down a ranking of bots is still found (blipu, 28.09).
     people_ranked = include_real_players_in_rankings()
     people_only = people_ranked and request.args.get("people") == "1"
-    all_ranking = bot_ranking(kind, weapon30_sort, people_only)
+    all_ranking = bot_ranking(kind, weapon30_sort, people_only, weapon_type)
     total = len(all_ranking)
     total_pages = max(1, -(-total // per_page))  # ceil division
     # "goto_page" (the jump-to-page box, 1-based, what the operator actually
@@ -6761,6 +6786,7 @@ def rankings():
         else:
             row["detail"] = game_text(row.get("detail"))
     return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
+                           weapon_type=weapon_type, weapon_subtypes=WEAPON_SUBTYPES,
                            per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers,
                            people_ranked=people_ranked, people_only=people_only)
 

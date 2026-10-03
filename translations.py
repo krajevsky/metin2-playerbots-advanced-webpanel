@@ -1884,13 +1884,46 @@ PATTERNS_RAW = [
     (r'^🕐 Ostatnio: (.+)$', '🕐 Last seen: $1'),
     (r'^💍 Poślubiony/a z (.+)$', '💍 Married to $1'),
     (r'Wojownik', 'Warrior'),
-    # Before the generic "poziom (\d+)" below: /rankings' weapon/armor detail
-    # string ("Krwawy Miecz+9 (wymagany poziom 45)") is one dynamic CONCAT,
-    # so only a pattern catches it -- PATTERNS_RAW is applied in list order,
-    # so this has to come first or the generic rule below eats "poziom 45"
-    # on its own and leaves "wymagany" stranded in Polish (reported live,
-    # 2026-10-03).
-    (r'\(wymagany poziom (\d+)\)', '(required level $1)'),
+
+    # --- rankings() route: every ranking kind's "detail" column, a single
+    # SQL CONCAT() string per row (operator, 2026-10-03: "właściwie wszystko
+    # w rankingach jest do przetłumaczenia" -- reviewed every kind in
+    # bot_ranking(), not just the ones reported). Where a row combines an
+    # item's own name with trailing stat text in one string (weapon/armor),
+    # {N: "item"}-style group tagging looks the name up in ITEM_NAMES --
+    # EXACT alone only translates a *whole* text node, and "Krwawy Miecz+9
+    # (wymagany poziom 45)" as one string never is one. Must come before the
+    # generic "poziom (\d+)" below, or that rule eats "poziom 45" out of the
+    # weapon/armor string on its own first and this one no longer matches
+    # (same bug as the first, narrower "wymagany poziom" fix, 2026-10-03).
+    (r'^Średnie obrażenia: (-?\d+)% · Obrażenia umiejętności: (-?\d+)% · (.+)$',
+     'Average damage: $1% · Skill damage: $2% · $3', {3: "item"}),
+    (r'^(.+) \(wymagany poziom (\d+)\)$', '$1 (required level $2)', {1: "item"}),
+    (r'^(.+) \((\d+) obrony\)$', '$1 ($2 defense)', {1: "item"}),
+    (r'^(\d[\d,\s]*) złowionych ryb$', '$1 fish caught'),
+    (r'^(\d+) zabitych bossów · 7 dni$', '$1 bosses killed · 7 days'),
+    (r'^(\d+) pomyślnych ulepszeń$', '$1 successful upgrades'),
+    (r'^([\d.]+)% \((\d+)/(\d+) ulepszeń\)$', '$1% ($2/$3 upgrades)'),
+    (r'^(\d+) przedmiotów$', '$1 items'),
+    (r'^Koń Lv (\d+)$', 'Horse Lv $1'),
+    (r'^(\d+) / (\d+) misji$', '$1 / $2 missions'),
+    (r'^([\d,\s]+) Yang ze sprzedaży$', '$1 Yang from sales'),
+    (r'^Brak rozwiniętych umiejętności$', 'No developed skills'),
+    (r'^(\d[\d,\s]*) obrażeń \(zwykłe, rekord\)$', '$1 damage (normal, record)'),
+    (r'^(\d[\d,\s]*) obrażeń \(konno, rekord\)$', '$1 damage (mounted, record)'),
+    (r'^(\d[\d,\s]*) obrażeń \(umiejętność, rekord\)$', '$1 damage (skill, record)'),
+    (r'^(\d[\d,\s]*) Yang zdobytych łącznie$', '$1 Yang earned total'),
+    (r'^(\d[\d,\s]*) zabitych potworów łącznie$', '$1 monsters killed total'),
+    # Not "pokonanych minibossów"/"pokonanych graczy" -- the earlier, more
+    # general (\d+) pokonanych\b rule below (line ~1786, applied first since
+    # it comes first in this list) already turns "pokonanych" into
+    # "defeated" on its own by the time these run, same ordering quirk as
+    # above.
+    (r'^(\d[\d,\s]*) defeated minibossów$', '$1 minibosses defeated'),
+    (r'^(\d[\d,\s]*) defeated graczy \(wrogie królestwo\)$', '$1 players defeated (enemy kingdom)'),
+    (r'^(\d[\d,\s]*) wygranych pojedynków$', '$1 duels won'),
+    (r'^(\d[\d,\s]*) wykopanych rud$', '$1 ore mined'),
+
     (r'poziom (\d+)', 'level $1'),
     (r'Premium \(ogólne, VIP\)', 'Premium (general, VIP)'),
     (r' do (\d{2}\.\d{2}\.\d{4})$', ' until $1'),
@@ -1906,12 +1939,6 @@ PATTERNS_RAW = [
     (r'^💰 Potencjalny zarobek: ([\d\s]+) Yang$', '💰 Potential earnings: $1 Yang'),
     (r'^Magazyn \(pusty\)$', 'Storage (empty)'),
     (r'^Magazyn$', 'Storage'),
-
-    # --- rankings() route's weapon30 detail string (Python f-string, not
-    # template text: "Średnie obrażenia: 39% · Obrażenia umiejętności: -11%
-    # · Item Name") ---
-    (r'^Średnie obrażenia: (-?\d+)% · Obrażenia umiejętności: (-?\d+)% · (.+)$',
-     'Average damage: $1% · Skill damage: $2% · $3'),
 
     # --- rankings.html ---
     (r'^Boty i gracze razem: 👤 oznacza postać gracza, a postaci GM-ów \(z rangą w common\.gmlist\) nie są liczone\. ',
@@ -2181,7 +2208,7 @@ def _compile_pattern(entry):
         def group(token):
             number = int(token.group(1))
             text = match.group(number) or ""
-            table = {"mob": MOB_NAMES}.get(names.get(number))
+            table = {"mob": MOB_NAMES, "item": ITEM_NAMES}.get(names.get(number))
             return table.get(text, text) if table is not None else text
         return re.sub(r'\\g<(\d+)>', group, replacement)
     return re.compile(entry[0]), substitute

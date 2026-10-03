@@ -1,6 +1,15 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
 
+## 2026-10-03 · 1.107.0 · Filtr rodzaju broni, pełne tłumaczenie rankingów, nowy ranking sklepów
+
+- **Nowy filtr rodzaju broni w rankingu "Broń"**: Miecz, Sztylet, Łuk, Broń dwuręczna, Dzwon, Wachlarz — każdy liczony osobno, więc sztylet Ninja i miecz Wojownika nie rywalizują już bezpośrednio na tej samej liście (łuki mają z natury wyższe wartości ataku niż sztylety, więc sztylet nigdy nie wygrywał).
+- **Kompleksowy przegląd tłumaczeń we wszystkich 25 rodzajach rankingów** — nie tylko to, co zostało zgłoszone. Naprawione m.in.: "40/41 ulepszeń", "3606 złowionych ryb", obrażenia (zwykłe/konno/umiejętność, rekord), Yang zdobyty/ze sprzedaży, zabici/pokonani przeciwnicy, wykopane rudy, misje biologa, oraz nazwy przedmiotów wewnątrz dłuższych opisów (np. "Krwawy Miecz+9 (wymagany poziom 45)" i "Ubranie Czarn. Wiatru+6 (126 obrony)" — wcześniej tłumaczyła się tylko reszta zdania, nazwa przedmiotu zostawała po polsku, bo te dwie rzeczy są jednym połączonym tekstem w bazie). Jedna rzecz zostaje po polsku: nazwy umiejętności w rankingu "Umiejętności" (np. "Strach") — nie ma dla nich osobnej tabeli angielskich nazw, to osobny temat na przyszłość.
+- **"Wystawione Stragany" zastąpione realnym rankingiem "Sprzedaże na sklepie Offline"** — poprzednia wersja pokazywała tylko kto ma akurat otwarty stragan live (status, nie osiągnięcie, z czasów sprzed sklepów offline). Nowa liczy całkowity Yang zarobiony ze sprzedaży na sklepie offline, tym samym sprawdzonym mechanizmem co Podsumowanie dnia.
+- **Usunięty ranking "Yang ze sprzedaży u NPC"** — silnik prawie nigdy nie zapisuje tej statystyki (1 wiersz w całej bazie), więc ranking był pusty/bezużyteczny. Ten sam powód, dla którego wcześniej usunięto "Polowanie".
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-03 · 1.106.1 · Ranking broni: naprawione dla wszystkich typów + tłumaczenie
 
 - **Ranking "Broń" uwzględniał realne obrażenia tylko dla mieczy** — sztylety, łuki, wachlarze wciąż liczone starym wzorem `wymagany_poziom×10+refine`, więc np. sztylet Ninja +2 na 55 poziom nadal wygrywał z lepiej wyposażonymi postaciami. Znaleziono: `item_proto.value4` (maks. obrażenia) + `value5` (bonus z ulepszenia) to w rzeczywistości uniwersalna para kolumn obecna w **każdym** typie broni — sprawdzone na wszystkich 7 podtypach (miecze, sztylety, łuki, włócznie, dzwonki, wachlarze). Ranking liczy teraz to samo dla wszystkich, bez wyjątków i bez wzorów zapasowych — amunicja (strzały) jawnie wykluczona, żeby nie wskakiwała na szczyt rankingu (miała zawyżone wartości z innego powodu).
