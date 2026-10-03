@@ -113,6 +113,7 @@
 .shop-slot>b.shop-price{left:1px;bottom:0;color:#f2df9a}
 .shop-slot:hover{z-index:5}
 .shop-slot:hover .item-tip{display:block}
+.shop-slot.tip-below .item-tip{top:calc(100% + 4px)!important;bottom:auto!important}
 .shop-total{margin:8px 0 0;max-width:560px;text-align:right;font-weight:700;color:#f2df9a}
 @media(max-width:650px){.shop-slot>b{font-size:7px}}
 .shop-inventory{background:var(--panel)!important;border-color:var(--edge)!important}

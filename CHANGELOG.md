@@ -1,3 +1,11 @@
+## 2026-10-03 · 1.109.8 · Tooltipy sklepów i ulepszone Smocze Kamienie
+
+- Tooltipy przedmiotów w pierwszych czterech rzędach sklepu otwierają się w dół, dzięki czemu panel nie ucina wyliczeń ceny.
+- Ulepszone Smocze Kamienie +0–+6 używają ikony bazowego kamienia, więc są widoczne również po założeniu w kole Alchemii.
+- Tooltip Smoczego Kamienia pokazuje jakość, poziom ulepszenia i pozostały czas w języku polskim oraz angielskim.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.7 · Tooltipy ponad Alchemią i przezroczysty przycisk
 
 - Tooltipy wyposażenia mogą zasłaniać przycisk Smoczej Alchemii i nie chowają się już pod jego warstwą.

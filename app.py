@@ -3672,8 +3672,15 @@ def item_icon_url(vnum):
     except (TypeError, ValueError):
         return None
     # Most upgrade series use the same client icon for +0 through +9.
-    # Prefer an explicit mapping, then fall back to the base VNUM safely.
-    icon = ITEM_ICONS.get(str(value)) or ITEM_ICONS.get(str(value - value % 10))
+    candidates = (value, value - value % 10)
+    # Dragon Stones keep one icon across refinement levels +0 through +6.
+    # Their refinement digit is the tens digit (for example 114460 -> 114400).
+    ds_base = value - value % 100
+    ds_proto = ITEM_DEFS.get(str(ds_base), {})
+    if int(ds_proto.get("type") or 0) == 29:
+        candidates += (ds_base,)
+    icon = next((ITEM_ICONS.get(str(candidate)) for candidate in candidates
+                 if ITEM_ICONS.get(str(candidate))), None)
     return url_for("static", filename=f"icons/{quote(icon)}") if icon else None
 
 
@@ -4787,6 +4794,29 @@ def _enrich_items(items):
     return items
 
 
+DRAGON_SOUL_QUALITIES = ("Matowy", "Przejrzysty", "Bez skazy", "Znakomity", "Wyborny")
+
+
+def dragon_soul_meta(vnum, seconds_left=0):
+    """Decode quality/refinement stored in a Dragon Stone VNUM."""
+    try:
+        value = int(vnum)
+        ds_base = value - value % 100
+        quality = (value // 100) % 10
+        refinement = (value // 10) % 10
+        seconds_left = int(seconds_left or 0)
+    except (TypeError, ValueError):
+        return None
+    proto = ITEM_DEFS.get(str(ds_base), {})
+    if int(proto.get("type") or 0) != 29 or not 0 <= quality < len(DRAGON_SOUL_QUALITIES):
+        return None
+    return {
+        "quality": DRAGON_SOUL_QUALITIES[quality],
+        "level": refinement,
+        "remaining_text": format_seconds_short(seconds_left) if seconds_left > 0 else None,
+    }
+
+
 def load_dragon_soul_items(pid):
     """Return both Dragon Soul decks and the six-by-six paged alchemy bag.
 
@@ -4806,6 +4836,7 @@ def load_dragon_soul_items(pid):
     _enrich_items(items)
     for item in items:
         item['base_stats'] = [stat for stat in item.get('base_stats', []) if not stat.startswith('Wymagany poziom:')]
+        item["dragon_soul_meta"] = dragon_soul_meta(item.get("vnum"), item.get("socket0"))
     bag, decks = [], {0: {}, 1: {}}
     for item in items:
         pos = int(item.get("pos") or 0)
