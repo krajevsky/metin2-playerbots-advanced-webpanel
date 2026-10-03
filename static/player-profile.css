@@ -261,3 +261,9 @@
 .metin-inventory .inventory-native-tabs{z-index:70}
 .metin-inventory .inventory-ds-button{top:186px!important}
 .metin-inventory .inventory-horse-button,.metin-inventory .inventory-deposit-button,.metin-inventory .inventory-shop-button{top:202px!important}
+
+/* v1.109.4: beat the shared absolute-button selector with equal specificity. */
+.metin-inventory .inventory-native-tabs .inventory-ds-button{top:186px!important;left:10px!important}
+.metin-inventory .inventory-native-tabs .inventory-horse-button{top:203px!important;left:97px!important}
+.metin-inventory .inventory-native-tabs .inventory-deposit-button{top:203px!important;left:116px!important}
+.metin-inventory .inventory-native-tabs .inventory-shop-button{top:203px!important;left:135px!important}

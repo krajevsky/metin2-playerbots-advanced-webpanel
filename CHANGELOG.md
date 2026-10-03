@@ -1,3 +1,9 @@
+## 2026-10-03 · 1.109.4 · Ikony bezpośrednio nad zakładkami ekwipunku
+
+- Reguły położenia ikon Alchemii, juków, depozytu i sklepu mają teraz właściwą szczegółowość CSS, dzięki czemu przeglądarka umieszcza je przy dolnej krawędzi wyposażenia, tuż nad przyciskami I–IV.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.3 · Wyrównanie przycisków ekwipunku
 
 - Ikony okien znajdują się bezpośrednio nad zakładkami I–IV i pozostają widoczne podczas najechania na wyposażenie.
