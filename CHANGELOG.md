@@ -1,6 +1,12 @@
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
 
+## 2026-10-03 · 1.107.1 · Brakujące tłumaczenia: Wachlarz i Sprzedaże na sklepie Offline
+
+- Dwa przeoczone w poprzedniej wersji: etykiety filtra broni (Miecz/Sztylet/Łuk/Broń dwuręczna/Dzwon/Wachlarz) i nazwa rankingu "Sprzedaże na sklepie Offline" nie miały wpisów w słowniku angielskim.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-03 · 1.107.0 · Filtr rodzaju broni, pełne tłumaczenie rankingów, nowy ranking sklepów
 
 - **Nowy filtr rodzaju broni w rankingu "Broń"**: Miecz, Sztylet, Łuk, Broń dwuręczna, Dzwon, Wachlarz — każdy liczony osobno, więc sztylet Ninja i miecz Wojownika nie rywalizują już bezpośrednio na tej samej liście (łuki mają z natury wyższe wartości ataku niż sztylety, więc sztylet nigdy nie wygrywał).
