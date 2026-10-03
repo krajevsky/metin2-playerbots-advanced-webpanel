@@ -7176,7 +7176,7 @@ def manage():
     bot_channels = sorted(per_channel.items()) if len(per_channel) > 1 else []
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES)
+    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES, world_extras=read_world_extras() if ENGINE_MT2009 else None)
 
 
 @app.post("/manage/difficulty")
@@ -7432,6 +7432,75 @@ def manage_spawn_plan():
         flash(str(exc) or "Nie udało się zapisać planu wejścia.", "error")
     else:
         flash("Plan wejścia zapisany. Kontener gry zostanie odtworzony z nowymi ustawieniami.")
+    return redirect(url_for("manage"))
+
+
+# Tieru's "Dodatki świata" and Alchemy switch (his /rates/world_extras,
+# /rates/mob_hp, /rates/dragon_soul, 1-3 October): the same player.quest flags
+# and the same web_admin_queue commands as his panel, so the game's
+# web_admin.quest applies them live and a restart keeps them.
+def read_world_extras():
+    raw = read_global_quest_flags(("m2_ds_eyes_per_day", "m2_extra_ds_drop", "m2_extra_coupon_drop", "m2_dragon_soul_off", "m2_mob_hp"))
+    eyes = int(raw.get("m2_ds_eyes_per_day") or 0)
+    return {
+        "eyes": eyes if 1 <= eyes <= 100 else 10,
+        "ds": max(0, min(100, int(raw.get("m2_extra_ds_drop") or 0))),
+        "coupon": max(0, min(100, int(raw.get("m2_extra_coupon_drop") or 0))),
+        "alchemy_off": 1 if int(raw.get("m2_dragon_soul_off") or 0) > 0 else 0,
+        "mob_hp": (lambda v: 100 if v <= 0 else max(10, min(300, v)))(int(raw.get("m2_mob_hp") or 0)),
+    }
+
+
+@app.post("/manage/world-extras")
+@login_required
+def manage_world_extras():
+    if not ENGINE_MT2009:
+        return redirect(url_for("manage"))
+    values = []
+    for key, low, high in (("eyes", 1, 100), ("ds", 0, 100), ("coupon", 0, 100)):
+        raw = (request.form.get(key, "") or "").strip()
+        if not raw.isdigit() or not low <= int(raw) <= high:
+            flash("Wartości dodatków świata: Smocze Kamienie 0–100%, Cor Draconis 1–100, drop z Metinów 0–100%.", "error")
+            return redirect(url_for("manage"))
+        values.append(int(raw))
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,'m2_ds_eyes_per_day','',%s)", (values[0],))
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,'m2_extra_ds_drop','',%s)", (values[1],))
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,'m2_extra_coupon_drop','',%s)", (values[2],))
+    status, _ = queue_game_admin_command("WORLD_EXTRAS", ",".join(str(v) for v in values))
+    flash("Dodatki świata zapisane" + (" — działają od razu." if status == "done" else " — zadziałają po restarcie gry."))
+    return redirect(url_for("manage"))
+
+
+@app.post("/manage/mob-hp")
+@login_required
+def manage_mob_hp():
+    if not ENGINE_MT2009:
+        return redirect(url_for("manage"))
+    raw = (request.form.get("pct", "") or "").strip()
+    if not raw.isdigit() or not 10 <= int(raw) <= 300:
+        flash("Zdrowie potworów: od 10% do 300%.", "error")
+        return redirect(url_for("manage"))
+    value = int(raw)
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,'m2_mob_hp','',%s)", (value,))
+    status, _ = queue_game_admin_command("MOB_HP", str(value))
+    flash(f"Zdrowie potworów, metinów i bossów: {value}% " + ("— działa od razu." if status == "done" else "— zadziała po restarcie gry."))
+    return redirect(url_for("manage"))
+
+
+@app.post("/manage/dragon-soul")
+@login_required
+def manage_dragon_soul():
+    if not ENGINE_MT2009:
+        return redirect(url_for("manage"))
+    value = (request.form.get("off", "") or "").strip()
+    if value not in ("0", "1"):
+        return redirect(url_for("manage"))
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) VALUES (0,'m2_dragon_soul_off','',%s)", (int(value),))
+    status, _ = queue_game_admin_command("DRAGON_SOUL", value)
+    if value == "1":
+        flash("Alchemia Smoczych Kamieni wyłączona — znika u wszystkich graczy " + ("(działa od razu)." if status == "done" else "(zadziała po restarcie gry)."))
+    else:
+        flash("Alchemia Smoczych Kamieni włączona " + ("— działa od razu." if status == "done" else "— zadziała po restarcie gry."))
     return redirect(url_for("manage"))
 
 
