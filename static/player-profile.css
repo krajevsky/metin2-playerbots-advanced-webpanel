@@ -273,3 +273,8 @@
 .metin-inventory .inventory-native-tabs .inventory-deposit-button{left:122px!important;top:201px!important;width:19px!important;height:19px!important}
 .metin-inventory .inventory-native-tabs .inventory-shop-button{left:143px!important;top:201px!important;width:19px!important;height:19px!important}
 .metin-inventory .equip-slot.weapon .item-tip,.metin-inventory .equip-slot.body .item-tip,.metin-inventory .equip-slot.head .item-tip,.metin-inventory .equip-slot.ear .item-tip,.metin-inventory .equip-slot.shield .item-tip,.metin-inventory .equip-slot.arrow .item-tip{top:calc(100% + 4px)!important;bottom:auto!important}
+
+/* v1.109.7: tooltips above utility controls; transparent Dragon Soul button. */
+.metin-inventory .equipment-layer:has(.equip-slot:hover){z-index:auto!important}
+.metin-inventory .equipment-layer .item-tip{z-index:90!important}
+.metin-inventory .inventory-native-tabs button.inventory-ds-button,.metin-inventory .inventory-native-tabs button.inventory-ds-button:hover,.metin-inventory .inventory-native-tabs button.inventory-ds-button:focus{appearance:none!important;background:none!important;background-color:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;filter:none!important;outline:0!important}

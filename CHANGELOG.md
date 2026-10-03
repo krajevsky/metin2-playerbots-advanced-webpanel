@@ -1,3 +1,10 @@
+## 2026-10-03 · 1.109.7 · Tooltipy ponad Alchemią i przezroczysty przycisk
+
+- Tooltipy wyposażenia mogą zasłaniać przycisk Smoczej Alchemii i nie chowają się już pod jego warstwą.
+- Przycisk Alchemii nie dodaje tła, obramowania ani efektu motywu do przezroczystego PNG.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.6 · Oryginalna ikona Smoczej Alchemii
 
 - Przycięty fragment screenshota w przycisku Smoczej Alchemii zastąpiono czystą ikoną 32 × 32 px z przezroczystością.
