@@ -3666,6 +3666,21 @@ def login_required(view):
     return wrapped
 
 
+def dragon_soul_base_vnum(vnum):
+    """Base icon/prototype VNUM for all six Dragon Stone families and +0..+6."""
+    try:
+        value = int(vnum)
+    except (TypeError, ValueError):
+        return None
+    family = value // 10000
+    # 11 diamond, 12 ruby, 13 jade, 14 sapphire, 15 garnet, 16 onyx.
+    if 11 <= family <= 16:
+        base = value - value % 100
+        if str(base) in ITEM_ICONS or str(base) in ITEM_DEFS:
+            return base
+    return None
+
+
 def item_icon_url(vnum):
     try:
         value = int(vnum)
@@ -3673,11 +3688,11 @@ def item_icon_url(vnum):
         return None
     # Most upgrade series use the same client icon for +0 through +9.
     candidates = (value, value - value % 10)
-    # Dragon Stones keep one icon across refinement levels +0 through +6.
-    # Their refinement digit is the tens digit (for example 114460 -> 114400).
-    ds_base = value - value % 100
-    ds_proto = ITEM_DEFS.get(str(ds_base), {})
-    if int(ds_proto.get("type") or 0) == 29:
+    # Every Dragon Stone family keeps one icon across refinement +0 through +6.
+    # This is intentionally independent of item_proto: portable installations
+    # can lack exact refined prototypes while still carrying all client icons.
+    ds_base = dragon_soul_base_vnum(value)
+    if ds_base is not None:
         candidates += (ds_base,)
     icon = next((ITEM_ICONS.get(str(candidate)) for candidate in candidates
                  if ITEM_ICONS.get(str(candidate))), None)
@@ -4690,7 +4705,7 @@ def _enrich_items(items):
         # The live DB may only know the exact refined VNUM as "VNUM 114460";
         # use 114400 for its proper name/type, just as the client does.
         if not proto:
-            dragon_soul_proto = ITEM_DEFS.get(str(item_vnum - item_vnum % 100), {})
+            dragon_soul_proto = ITEM_DEFS.get(str(dragon_soul_base_vnum(item_vnum) or 0), {})
             if int(dragon_soul_proto.get("type") or 0) == 29:
                 proto = dragon_soul_proto
                 if game_text(item.get("item_name")).startswith("VNUM "):
@@ -4811,14 +4826,14 @@ def dragon_soul_meta(vnum, seconds_left=0):
     """Decode quality/refinement stored in a Dragon Stone VNUM."""
     try:
         value = int(vnum)
-        ds_base = value - value % 100
+        ds_base = dragon_soul_base_vnum(value)
         quality = (value // 100) % 10
         refinement = (value // 10) % 10
         seconds_left = int(seconds_left or 0)
     except (TypeError, ValueError):
         return None
-    proto = ITEM_DEFS.get(str(ds_base), {})
-    if int(proto.get("type") or 0) != 29 or not 0 <= quality < len(DRAGON_SOUL_QUALITIES):
+    proto = ITEM_DEFS.get(str(ds_base or 0), {})
+    if ds_base is None or int(proto.get("type") or 0) != 29 or not 0 <= quality < len(DRAGON_SOUL_QUALITIES):
         return None
     return {
         "quality": DRAGON_SOUL_QUALITIES[quality],

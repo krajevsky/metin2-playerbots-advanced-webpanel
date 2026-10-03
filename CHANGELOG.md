@@ -1,3 +1,10 @@
+## 2026-10-03 · 1.109.11 · Ikony +0–+6 dla wszystkich Smoczych Kamieni
+
+- Wspólna reguła ikon obejmuje jawnie wszystkie sześć rodzin: Diament, Rubin, Jadeit, Szafir, Granat i Onyks.
+- Rozpoznawanie ulepszonego kamienia nie zależy już od obecności jego dokładnego prototypu w lokalnym zestawie danych.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.10 · Nazwy bonusów ulepszonych Smoczych Kamieni
 
 - Punkty 97 i 98 z silnika są rozpoznawane jako Wartość Magicznego Ataku i Magiczna Obrona, zgodnie z definicjami klienta.
