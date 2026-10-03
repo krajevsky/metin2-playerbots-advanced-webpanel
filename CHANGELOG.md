@@ -1,3 +1,13 @@
+## 2026-10-03 · 1.109.2 · Przyciski okien w natywnym ekwipunku
+
+- Przycisk Smoczej Alchemii ma duży rozmiar i znajduje się po lewej stronie wyposażenia, zgodnie z klientem gry.
+- Juki konne, depozyt i sklep mieszczą się w prawym dolnym rogu wyposażenia; po otwarciu innego okna przyciski znikają.
+- Krzyżyk w Smoczej Alchemii, depozycie i jukach wraca do ekwipunku.
+- Ikony założonych przedmiotów wyrównano względem pól klienta, a ich tooltipy wyświetlają się nad belką okna.
+- Tytuł okna ekwipunku zmienia się na „Inventory” po wybraniu języka angielskiego.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-03 · 1.109.1 · Korekta układu natywnego ekwipunku
 
 - Pole wyposażenia zaczyna się 33 px pod belką tytułową, więc hełm i górne sloty nie są już zasłonięte.

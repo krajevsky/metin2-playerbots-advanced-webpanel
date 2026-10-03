@@ -236,3 +236,23 @@
 .inventory-native-tabs>button.inventory-native-button:nth-of-type(4){left:calc(50% + 46px)}
 .inventory-native-tabs>a.inventory-native-button{left:calc(50% + 67px)}
 .safebox-inventory .safebox-slot>img{width:auto!important;height:auto!important;max-width:32px!important;max-height:100%!important;object-fit:contain}
+
+
+/* v1.109.2: native inventory controls and layering. */
+.metin-inventory::before{content:attr(data-window-title);z-index:20}
+.metin-inventory .inventory-native-tabs{position:absolute!important;inset:0!important;width:176px!important;height:221px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;pointer-events:none;z-index:30}
+.metin-inventory .inventory-native-tabs .inventory-native-button{position:absolute!important;top:auto!important;display:grid!important;place-items:center!important;margin:0!important;pointer-events:auto}
+.metin-inventory .inventory-ds-button{left:10px!important;top:178px!important;width:35px!important;height:35px!important;padding:0!important;border:0!important;background:transparent!important}
+.metin-inventory .inventory-ds-button img{width:35px!important;height:35px!important;max-width:none!important;max-height:none!important}
+.metin-inventory .inventory-horse-button{left:97px!important;top:194px!important;width:17px!important;height:17px!important;padding:1px!important}
+.metin-inventory .inventory-deposit-button{left:116px!important;top:194px!important;width:17px!important;height:17px!important;padding:1px!important}
+.metin-inventory .inventory-shop-button{left:135px!important;top:194px!important;width:17px!important;height:17px!important;padding:1px!important}
+.metin-inventory .equipment-layer .equip-slot>img{transform:translate(2px,2px)}
+.metin-inventory .equipment-layer .item-tip{z-index:80}
+.storage-close{cursor:pointer}
+.ds-storage-close{position:absolute;z-index:100;right:8px;top:8px;width:21px;height:21px;padding:0;border:0;background:transparent;color:transparent}
+.alternate-storage{position:relative;padding-top:31px}
+.alternate-storage-close{position:absolute;z-index:50;right:2px;top:0;width:25px;height:25px;padding:0;border:1px solid var(--edge);border-radius:4px;background:color-mix(in srgb,var(--panel) 88%,#000);color:var(--text);font:700 17px/1 Arial,sans-serif}
+.alternate-storage-close:hover{border-color:var(--accent);color:var(--accent)}
+
+.metin-inventory .equipment-layer:has(.equip-slot:hover){z-index:60}

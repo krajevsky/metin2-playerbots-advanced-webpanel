@@ -1,6 +1,7 @@
 {% from '_macros.html' import tooltip %}
 <div id="inventory-storage">
-  <div class="metin-inventory" aria-label="Ekwipunek postaci">
+  <div class="metin-inventory" aria-label="Ekwipunek postaci" data-window-title="{{ 'Inventory' if ui_language == 'en' else 'Ekwipunek' }}">
+    <div class="storage-tabs inventory-native-tabs" aria-label="Okna ekwipunku"><button type="button" class="inventory-native-button inventory-ds-button" data-storage="dragon" title="Smocza Alchemia"><img src="{{url_for('static',filename='inventory-native/dragon-soul.png')}}" alt="Smocza Alchemia"></button><button type="button" class="inventory-native-button inventory-horse-button" data-storage="horse" {% if not has_horse_bag %}disabled title="Ta postać nie ma odblokowanych juków konnych"{% else %}title="Juki konne"{% endif %}><img src="{{url_for('static',filename='inventory-native/horse.png')}}" alt="Juki konne"></button><button type="button" class="inventory-native-button inventory-deposit-button" data-storage="safebox" title="Depozyt{% if not has_safebox %} (pusty){% endif %}"><img src="{{url_for('static',filename='inventory-native/deposit.png')}}" alt="Depozyt"></button><a class="inventory-native-button inventory-shop-button" href="#offline-shop" title="Podgląd sklepu"><img src="{{url_for('static',filename='inventory-native/shop.png')}}" alt="Podgląd sklepu"></a></div>
     <div class="equipment-layer">{% for slot in ['weapon','body','head','foots','wrist','neck','ear','shield','unique1','unique2','arrow','belt'] %}{% set item=equipment.get(slot) %}<div class="equip-slot {{slot}}{% if slot in ('weapon','unique1') %} tip-left{% elif slot in ('neck','ear','arrow') %} tip-right{% endif %}">{% if item %}{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{{ tooltip(item) }}{% endif %}</div>{% endfor %}</div>
     <div class="inv-tabs">{% for label, page in [('I',0),('II',1),('III',2),('IV',3)] %}<button {% if page == 0 %}class="active" {% endif %}data-page="{{page}}"><span class="tab-shine"></span><span class="tab-ripple"></span><span class="tab-label">{{label}}</span></button>{% endfor %}</div>
     <div class="inventory-layer">{% for item in inventory %}{% set page=(item.pos // 45) %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="inv-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" data-page="{{page}}" {% if page != 0 %}hidden{% endif %} style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div>
@@ -8,7 +9,8 @@
   </div>
   <p id="inventory-empty" class="muted" hidden>Ta strona ekwipunku jest pusta.</p>
 </div>
-<div id="safebox-storage" hidden>
+<div id="safebox-storage" class="alternate-storage" hidden>
+  <button type="button" class="storage-close alternate-storage-close" data-storage="inventory" aria-label="Wróć do ekwipunku" title="Wróć do ekwipunku">×</button>
   <div class="safebox-tabs"><button class="active" data-page="0">Strona I</button><button data-page="1">Strona II</button><button data-page="2">Strona III</button></div>
   <div class="safebox-inventory"><div class="safebox-layer">{% for item in safebox %}{% set page=item.pos // 45 %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="safebox-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" data-page="{{page}}" {% if page != 0 %}hidden{% endif %} style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div></div>
   <p id="safebox-empty" class="muted" hidden>Ta strona magazynu jest pusta.</p>
@@ -16,6 +18,7 @@
 
 <div id="dragon-soul-storage" hidden>
   <div class="dragon-soul-window" data-ds-kind="0" data-ds-page="0" data-ds-deck="0" aria-label="Alchemia Smoczych Kamieni">
+    <button type="button" class="storage-close ds-storage-close" data-storage="inventory" aria-label="Wróć do ekwipunku" title="Wróć do ekwipunku"></button>
     <img class="ds-window-bg" src="{{url_for('static',filename='dragon-soul-ui/dragon_soul_bg.png')}}" alt="">
     <strong class="ds-title">Alchemia Smoczych Kamieni</strong>
     <img class="ds-kind-art" src="{{url_for('static',filename='dragon-soul-ui/tap01.png')}}" alt="">
@@ -30,7 +33,8 @@
   <p class="muted ds-hint">Oryginalny układ klienta gry · zestawy i Smocze Kamienie są odczytywane bezpośrednio z postaci.</p>
 </div>
 
-{% if has_horse_bag %}<div id="horse-storage" hidden>
+{% if has_horse_bag %}<div id="horse-storage" class="alternate-storage" hidden>
+  <button type="button" class="storage-close alternate-storage-close" data-storage="inventory" aria-label="Wróć do ekwipunku" title="Wróć do ekwipunku">×</button>
   <p class="muted horse-bag-hint">Juki konne — widoczne tylko przy przywołanym i odblokowanym u stajennego koniu.</p>
   <div class="safebox-inventory"><div class="safebox-layer">{% for item in horse_bag %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="safebox-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div></div>
 </div>{% endif %}

@@ -59,7 +59,6 @@
   </article>
   <aside class="inventory-panel">
     <h2>⚔ Zawartość ekwipunku</h2>
-    <div class="storage-tabs inventory-native-tabs" aria-label="Okna ekwipunku"><button class="active inventory-home-button" data-storage="inventory" title="Ekwipunek">Ekwipunek</button><button class="inventory-native-button" data-storage="dragon" title="Smocza Alchemia"><img src="{{url_for('static',filename='inventory-native/dragon-soul.png')}}" alt="Smocza Alchemia"></button><button class="inventory-native-button" data-storage="horse" {% if not has_horse_bag %}disabled title="Ta postać nie ma odblokowanych juków konnych"{% else %}title="Juki konne"{% endif %}><img src="{{url_for('static',filename='inventory-native/horse.png')}}" alt="Juki konne"></button><button class="inventory-native-button" data-storage="safebox" title="Depozyt{% if not has_safebox %} (pusty){% endif %}"><img src="{{url_for('static',filename='inventory-native/deposit.png')}}" alt="Depozyt"></button><a class="inventory-native-button" href="#offline-shop" title="Podgląd sklepu"><img src="{{url_for('static',filename='inventory-native/shop.png')}}" alt="Podgląd sklepu"></a></div>
     <div id="inventory-live-region">{% set gold = character.gold %}{% include '_inventory_fragment.html' %}</div>
   </aside>
 </section>
@@ -88,6 +87,7 @@ function bindInventoryFragment(){
   if (horseStorage) horseStorage.hidden=activeStorage!=='horse';
   const dragonStorage=document.getElementById('dragon-soul-storage');
   if (dragonStorage) dragonStorage.hidden=activeStorage!=='dragon';
+  document.querySelectorAll('[data-storage]').forEach(b=>b.onclick=()=>{activeStorage=b.dataset.storage;bindInventoryFragment()});
   bindDragonSoul();
 }
 function bindDragonSoul(){
@@ -113,7 +113,6 @@ function bindDragonSoul(){
   win.querySelectorAll('[data-ds-deck-button]').forEach(b=>b.onclick=()=>{dsDeck=Number(b.dataset.dsDeckButton);win.dataset.dsDeck=String(dsDeck);render()});
   render();
 }
-document.querySelectorAll('.storage-tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.storage-tabs button').forEach(x=>x.classList.toggle('active',x===b));activeStorage=b.dataset.storage;bindInventoryFragment()});
 bindInventoryFragment();
 // Wired straight to the same always-live SQL the full page render uses (see
 // load_character_items in app.py) -- no separate cache, no waiting for a
