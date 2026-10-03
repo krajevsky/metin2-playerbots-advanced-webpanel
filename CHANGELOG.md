@@ -1,3 +1,11 @@
+## 2026-10-03 · 1.107.2 · Smocza Alchemia i branding projektu
+
+- Przywrócono tooltipy, filtrowanie klas i zachowanie wybranej strony Smoczej Alchemii po automatycznym odświeżeniu.
+- Tooltipy kamieni ponownie pomijają ogólny wymagany poziom, a okno ma podpis viaSeban.
+- Ekran logowania otrzymał oficjalny baner Seban WEBPANEL dopasowany do ciemnobrązowo-złotego motywu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 > Odznaka `via` na dole każdego wpisu pokazuje, kto/co stoi za daną zmianą. Praca z asystą AI (Claude albo Codex) dostaje formę `![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)` albo `![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)` — w panelu "Seban" dostaje animowany, przelewający się kolor + gwiazdkę. Kod wniesiony wprost przez Tieru (bez asysty AI, np. przy łączeniu funkcji z jego panelu) dostaje samo `![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)`, bez "by".
 
 

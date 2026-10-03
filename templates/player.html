@@ -75,6 +75,7 @@ document.body.dataset.ajaxForms='1';
 if(window.__playerRefreshInterval)clearInterval(window.__playerRefreshInterval);
 if(window.__playerLiveLogTimer)clearInterval(window.__playerLiveLogTimer);
 let invPage=0, safeboxPage=0, activeStorage='inventory';
+let dsKind=0, dsPage=0, dsDeck=0;
 function setPage(n){invPage=n;document.querySelectorAll('.inv-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.inv-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('inventory-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}
 function setSafeboxPage(n){safeboxPage=n;document.querySelectorAll('.safebox-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.safebox-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('safebox-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}
 function bindInventoryFragment(){
@@ -91,6 +92,9 @@ function bindInventoryFragment(){
 }
 function bindDragonSoul(){
   const win=document.querySelector('.dragon-soul-window'); if(!win)return;
+  win.dataset.dsKind=String(dsKind); win.dataset.dsPage=String(dsPage); win.dataset.dsDeck=String(dsDeck);
+  const brand=win.querySelector('[data-brand-lock]');
+  if(brand&&brand.dataset.brandLock==='viaSeban'&&!brand.textContent.trim())brand.innerHTML='<span aria-hidden="true">viaSeban</span><span class="sr-only">viaSeban</span>';
   const kindNames=document.documentElement.lang==='en'
     ? ['Dragon Diamond','Dragon Ruby','Dragon Jade','Dragon Sapphire','Dragon Garnet','Dragon Onyx']
     : ['Smoczy Diament','Smoczy Rubin','Smoczy Jadeit','Smoczy Szafir','Smoczy Granat','Smoczy Onyks'];
@@ -104,9 +108,9 @@ function bindDragonSoul(){
     win.querySelectorAll('.ds-equipment').forEach(x=>x.hidden=Number(x.dataset.dsDeck)!==deck);
     win.querySelectorAll('.ds-bag-slot').forEach(x=>x.hidden=Number(x.dataset.dsKind)!==kind||Number(x.dataset.dsPage)!==page);
   };
-  win.querySelectorAll('[data-ds-kind-button]').forEach(b=>b.onclick=()=>{win.dataset.dsKind=b.dataset.dsKindButton;render()});
-  win.querySelectorAll('[data-ds-page-button]').forEach(b=>b.onclick=()=>{win.dataset.dsPage=b.dataset.dsPageButton;render()});
-  win.querySelectorAll('[data-ds-deck-button]').forEach(b=>b.onclick=()=>{win.dataset.dsDeck=b.dataset.dsDeckButton;render()});
+  win.querySelectorAll('[data-ds-kind-button]').forEach(b=>b.onclick=()=>{dsKind=Number(b.dataset.dsKindButton);win.dataset.dsKind=String(dsKind);render()});
+  win.querySelectorAll('[data-ds-page-button]').forEach(b=>b.onclick=()=>{dsPage=Number(b.dataset.dsPageButton);win.dataset.dsPage=String(dsPage);render()});
+  win.querySelectorAll('[data-ds-deck-button]').forEach(b=>b.onclick=()=>{dsDeck=Number(b.dataset.dsDeckButton);win.dataset.dsDeck=String(dsDeck);render()});
   render();
 }
 document.querySelectorAll('.storage-tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.storage-tabs button').forEach(x=>x.classList.toggle('active',x===b));activeStorage=b.dataset.storage;bindInventoryFragment()});
