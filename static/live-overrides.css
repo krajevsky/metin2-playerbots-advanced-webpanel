@@ -359,3 +359,14 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 .map-donut-row .map-donut-wrap{flex:0 0 42%;max-width:42%;min-width:0;margin:0;height:auto;aspect-ratio:1}
 .map-donut-row .map-donut-legend{flex:1 1 0;min-width:0;margin:0;max-height:240px}
 .map-donut-legend[hidden]{display:none!important}
+
+/* Lista kanałów/królestw: pasek przewijania w kolorze motywu */
+.map-donut-legend{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--live-accent,#e8b93f) 70%,transparent) transparent;padding-right:6px}
+.map-donut-legend::-webkit-scrollbar{width:6px}
+.map-donut-legend::-webkit-scrollbar-track{background:transparent}
+.map-donut-legend::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--live-accent,#e8b93f),color-mix(in srgb,var(--live-accent,#e8b93f) 45%,transparent));border-radius:99px}
+/* Wszystkie widgety w pudełku wyśrodkowane; gdy nie ma listy, wykres zajmuje całość */
+.map-distribution{align-items:stretch}
+.map-donut-row{justify-content:center}
+.map-donut-row.is-single .map-donut-wrap{flex:1 1 100%;max-width:100%;aspect-ratio:auto;height:230px;display:flex;align-items:center;justify-content:center}
+.map-donut-row.is-single .map-donut-wrap canvas{max-width:100%;max-height:230px}
