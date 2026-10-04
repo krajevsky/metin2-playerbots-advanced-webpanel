@@ -3237,7 +3237,8 @@ def character_mission_progress(pid):
         held = one("SELECT COALESCE(SUM(count),0) AS amount FROM player.item WHERE owner_id=%s AND vnum=%s",
                    (pid, wanted_vnum)).get("amount", 0)
         current = active_research["target"] if collecting_key else max(0, int(state.get("collect_count") or 0))
-        stage = list(research_by_name).index(active_research["quest"]) + 1
+        # Six herb analyses precede this chain: Orc Tooth is mission 7, Curse Book mission 8.
+        stage = list(research_by_name).index(active_research["quest"]) + 7
         missions.append({"label": f"Biolog {stage}/8: {active_research['specimen']}",
                          "current": min(current, active_research["target"]), "target": active_research["target"],
                          "unit": "oddanych", "detail": (f"Aktualnie szuka: {active_research['key']}"
