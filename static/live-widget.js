@@ -229,11 +229,12 @@
       const id = String(bot.id); visibleIds.add(id);
       let point = map.querySelector(`.bot-point[data-bot-id="${CSS.escape(id)}"]`);
       if (!point) { point = document.createElement('a'); point.dataset.botId = id; map.appendChild(point); }
-      point.className = `bot-point ch-${bot.channel || 1} ${bot.in_party ? 'is-pt' : ''}${bot.stuck ? ' is-stuck' : ''}${bot.fighting_metin ? ' is-metin' : ''}`;
+      const dotStatus = bot.stuck ? 'red' : bot.fighting_metin ? 'yellow' : bot.in_party ? 'purple' : 'green';
+      point.className = `bot-point dot-${dotStatus} ch-${bot.channel || 1} ${bot.in_party ? 'is-pt' : ''}${bot.stuck ? ' is-stuck' : ''}${bot.fighting_metin ? ' is-metin' : ''}`;
       point.href = `/player/${bot.id}`;
       point.style.left = `${Math.max(1,Math.min(99,bot.px))}%`; point.style.top = `${Math.max(1,Math.min(99,bot.py))}%`;
       point.title = `${bot.name} · poziom ${bot.level}${knownChannels.length > 1 ? ' · CH' + (bot.channel || 1) : ''}${bot.in_party ? ' · PT' : ''}${bot.stuck ? ' · możliwie zablokowany' : ''}${bot.fighting_metin ? ' · walczy z Metinem' : ''}`;
-      const html = `<img class="bot-point-flag" src="/static/empires/${empireFlag(bot.empire)}" alt="" aria-hidden="true">${bot.stuck ? '<i class="bot-point-stuck" aria-label="Możliwie zawieszony">!</i>' : ''}${$('show-names').checked ? `<em>${escape(bot.name)} ${levelMarkup(bot)}</em>` : ''}`;
+      const html = `${$('show-names').checked ? `<em class="kd-${Number(bot.empire) || 0}">${escape(bot.name)} ${levelMarkup(bot)} (CH ${bot.channel || 1})</em>` : ''}`;
       if (point.innerHTML !== html) point.innerHTML = html;
     });
     map.querySelectorAll('.bot-point').forEach(point => { if (!visibleIds.has(point.dataset.botId)) point.remove(); });

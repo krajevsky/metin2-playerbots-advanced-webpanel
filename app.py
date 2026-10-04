@@ -7053,6 +7053,40 @@ def read_panel_log_files(max_lines=500):
     return "\n".join(lines[-max_lines:])
 
 
+@app.route("/diagnostics/decisions")
+@login_required
+def decisions_page():
+    """Decyzje botów z log.playerbot_listing (Tieru's /decisions, 2.2.39+):
+    dlaczego bot wystawił przedmiot i jak wyliczył cenę. Ostatnie 60 wpisów,
+    opcjonalnie tylko jednego bota (nick albo pid)."""
+    lang = settings().get("ui_language", "pl")
+    bot = (request.args.get("bot") or "").strip()
+    params, where = [], ""
+    if bot:
+        if bot.isdigit():
+            where = "WHERE l.pid=%s"
+            params.append(int(bot))
+        else:
+            where = "WHERE p.name=%s"
+            params.append(bot)
+    try:
+        records = rows(f"""SELECT l.*, p.name AS bot_name FROM log.playerbot_listing l
+            LEFT JOIN player.player p ON p.id=l.pid {where}
+            ORDER BY COALESCE(l.last_at,l.listed_at) DESC LIMIT 60""", params)
+    except pymysql.MySQLError:
+        records = []
+    entries = []
+    for row in records:
+        try:
+            ex = decisions.explain_listing(row, lang, _decision_item_name, apply_text)
+        except Exception:
+            app.logger.exception("Nie można wyjaśnić decyzji")
+            ex = None
+        entries.append({"row": row, "ex": ex, "bot_name": game_text(row.get("bot_name")) or f"pid {row.get('pid')}",
+                        "item": _decision_item_name(row.get("vnum"))})
+    return render_template("decisions.html", entries=entries, bot=bot)
+
+
 @app.route("/diagnostics/panel-logs")
 @login_required
 def panel_logs():

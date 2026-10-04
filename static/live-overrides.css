@@ -330,3 +330,27 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 @container (min-width:451px) and (max-width:600px){
   .bot-point{width:15px!important;height:15px!important}
 }
+
+/* 2026-10-04: kropki znowu okrągłe, kolor = status (zielony solo, fioletowy
+   grupa, żółty walka z metinem, czerwony zablokowany). Królestwo idzie kolorem
+   nicku, kanał jest w nawiasie obok nicku. Flagi, pierścienie kanałów i wykrzyknik
+   zostały wyłączone. */
+.bot-point{border-radius:50%!important;border:1px solid rgba(0,0,0,.75)!important;box-shadow:0 0 0 1px rgba(0,0,0,.45),0 0 6px currentColor!important;overflow:visible!important}
+.bot-point::before{display:none!important}
+.bot-point .bot-point-flag,.bot-point .bot-point-stuck{display:none!important}
+.bot-point.is-pt,.bot-point.is-pt .bot-point-flag{border-radius:50%!important}
+.bot-point.dot-green{background:#3ddc84!important;color:#3ddc84}
+.bot-point.dot-purple{background:#a66bff!important;color:#a66bff}
+.bot-point.dot-yellow{background:#ffd23f!important;color:#ffd23f}
+.bot-point.dot-red{background:#ff3b3b!important;color:#ff3b3b}
+.bot-point em.kd-1{color:#ff5a5a!important}
+.bot-point em.kd-2{color:#ffd84a!important}
+.bot-point em.kd-3{color:#5aa8ff!important}
+
+.map-legend .map-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+.map-legend .kd-legend b{margin-right:8px}.map-legend .kd-1{color:#ff5a5a}.map-legend .kd-2{color:#ffd84a}.map-legend .kd-3{color:#5aa8ff}
+
+.map-distribution{display:flex;flex-direction:column}.map-distribution .map-donut-wrap{flex:0 0 auto}
+.map-donut-legend{list-style:none;margin:8px 0 0;padding:0 4px;max-height:200px;overflow-y:auto;display:grid;gap:3px;font-size:11px;color:#cfe0f7}
+.map-donut-legend li{display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.map-donut-legend i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
