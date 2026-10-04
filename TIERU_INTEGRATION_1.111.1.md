@@ -1,6 +1,6 @@
 # Integracja wydania 1.111.1 z Playerbots — informacje dla Tieru
 
-Wydanie webpanelu 1.111.1 przygotowano i sprawdzono na MT2009 Playerbots 2.2.69. Po ręcznej aktualizacji źródeł przebudowano obraz metin2/game:mt2009 i uruchomiono nowy kontener gry. Webpanel i jego zasoby zbudowano jako osobny obraz seban-panel.
+Wydanie webpanelu 1.111.1 przygotowano na MT2009 Playerbots 2.2.69, a następnie zespół Playerbots sprawdził wszystkie 57 stron na świecie testowym z wersją 2.2.70. Webpanel i jego zasoby są budowane jako osobny obraz seban-panel.
 
 ## Dane pobierane z silnika
 
@@ -14,7 +14,7 @@ Wydanie webpanelu 1.111.1 przygotowano i sprawdzono na MT2009 Playerbots 2.2.69.
 
 ## Zakres kompilacji
 
-- Po aktualizacji do Playerbots 2.2.69 przebudowano cały obraz usługi game z linux-port/docker/game.
+- Przy aktualizacji Playerbots obraz usługi game jest przebudowywany z linux-port/docker/game; integrację wydania zweryfikowano na 2.2.70.
 - Nie dodawano nowego protokołu, tabeli ani eksportera C++ specjalnie dla UI 1.111.1. Panel wykorzystuje dane już zapisywane przez Playerbots.
 - Nie zmieniano NotifyRefineSuccess() zapisującego w refinelog nazwę przedmiotu sprzed ulepszenia. Panel obchodzi problem przez połączenie log.log i log.refinelog. Docelowa poprawka rdzenia może przekazywać wynikowy przedmiot +9, ale nie jest wymagana.
 
@@ -25,6 +25,7 @@ Wydanie webpanelu 1.111.1 przygotowano i sprawdzono na MT2009 Playerbots 2.2.69.
 - Zmiany schematów ikashop_offlineshop, ikarusshop_log, refinelog i player_special_flag wymagają migracji panelu.
 - Aktualizować razem plik VERSION i M2_PLAYERBOTS_VERSION. Panel porównuje je ze statusem aktualizatora i wybiera najwyższy prawidłowy numer.
 - Przy poprawce +9 zachować refinelog.setType: POWER, GUILD, DEVILTOWER i SCROLL:vnum.
+- Kolejka web_admin_queue może zakończyć wydawanie przedmiotów stanami full, qty_too_big, player_offline, no_skill, has_item oraz partial. Są one częścią QUEUE_FINAL_STATUSES, aby panel nie czekał do timeoutu po poprawnej odpowiedzi rdzenia.
 
 ## Test integracyjny
 

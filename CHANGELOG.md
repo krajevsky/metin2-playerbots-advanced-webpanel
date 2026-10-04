@@ -25,7 +25,7 @@ To największa dotychczasowa przebudowa karty postaci oraz kolejny duży etap ro
 - Widget „Boty na mapach” ponownie pokazuje kompletną listę. Naprawiono położenie obok wykresu, przewijanie i wyrównanie kart.
 - Dolne widgety korzystają ze wspólnej pamięci podręcznej i ładują ostatni kompletny zestaw natychmiast. Mapa nadal odświeża pozycje niezależnie co 1,5 sekundy.
 - Tracker wersji panelu nie porównuje już lokalnej wersji z wydaniem na GitHubie.
-- Wykrywanie wersji Playerbots uwzględnia ręczne aktualizacje. Panel wybiera najnowszy poprawny numer z konfiguracji Compose i statusu aktualizatora; ujednolicono raportowanie zainstalowanej wersji 2.2.69.
+- Wykrywanie wersji Playerbots uwzględnia ręczne aktualizacje. Panel wybiera najnowszy poprawny numer z konfiguracji Compose i statusu aktualizatora; ujednolicono raportowanie zainstalowanej wersji.
 - Ulepszenia +9 wróciły do Wiadomości ze świata i /world-feed/. Panel scala log.log z log.refinelog, dzięki czemu pokazuje +9 oraz rzeczywistą metodę: kowal, gildia albo zwój wraz z ikoną.
 
 ### /season/ — rankingi według osiągnięcia
@@ -49,7 +49,9 @@ To największa dotychczasowa przebudowa karty postaci oraz kolejny duży etap ro
 
 ### Zaplecze i zgodność
 
-- Panel korzysta z danych Playerbots 2.2.69: playerbot_status.tsv, player.item, player.item_proto, player.ikashop_offlineshop, log.ikarusshop_log, log.refinelog, log.log i player.player_special_flag.
+- Panel został sprawdzony przez zespół Playerbots na świecie testowym z wersją 2.2.70: zweryfikowano 57 stron bez wykrytych regresji.
+- Kolejka wydawania przedmiotów rozpoznaje wszystkie stany końcowe Playerbots 2.2.70: full, qty_too_big, player_offline, no_skill, has_item i partial. Panel kończy oczekiwanie także przy odmowie lub częściowej realizacji, zamiast pozostawiać operację jako oczekującą.
+- Panel korzysta z danych Playerbots 2.2.70: playerbot_status.tsv, player.item, player.item_proto, player.ikashop_offlineshop, log.ikarusshop_log, log.refinelog, log.log i player.player_special_flag.
 - Okna przedmiotów pozostają tylko do odczytu poza istniejącymi, jawnie opisanymi akcjami, takimi jak teleport do sklepu.
 - Zachowano zgodność z polską i angielską wersją panelu oraz aktualizacją Playerbots wykonywaną automatycznie lub ręcznie.
 
