@@ -354,3 +354,8 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 .map-donut-legend{list-style:none;margin:8px 0 0;padding:0 4px;max-height:200px;overflow-y:auto;display:grid;gap:3px;font-size:11px;color:#cfe0f7}
 .map-donut-legend li{display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .map-donut-legend i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+
+.map-donut-row{display:flex;align-items:center;gap:12px;min-width:0}
+.map-donut-row .map-donut-wrap{flex:0 0 42%;max-width:42%;min-width:0;margin:0;height:auto;aspect-ratio:1}
+.map-donut-row .map-donut-legend{flex:1 1 0;min-width:0;margin:0;max-height:240px}
+.map-donut-legend[hidden]{display:none!important}

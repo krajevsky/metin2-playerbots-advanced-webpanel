@@ -85,6 +85,7 @@
       mapTileTitle.textContent=frame.title;
       mapChart.destroy();
       mapChart=new Chart(el('map-donut'),frame.config);
+      const legendBox=el('map-donut-legend');if(legendBox)legendBox.hidden=frame.config!==donutConfig;
     },8000);
   }
 }const slides=[...document.querySelectorAll('.quick-rank-slide')],dots=[...document.querySelectorAll('.carousel-dots button')],title=el('quick-rank-title'),subtitle=el('quick-rank-subtitle');let active=0;function show(index){if(!slides.length)return;active=(index+slides.length)%slides.length;slides.forEach((slide,i)=>{const isActive=i===active;slide.hidden=!isActive;if(isActive){slide.classList.remove('rank-enter');void slide.offsetWidth;slide.classList.add('rank-enter')}});dots.forEach((dot,i)=>dot.classList.toggle('active',i===active));title.textContent=slides[active].dataset.title;subtitle.textContent=slides[active].dataset.subtitle}
