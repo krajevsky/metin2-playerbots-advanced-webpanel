@@ -233,7 +233,7 @@ BIOLOGIST_RESEARCH_MISSIONS = (
     {"quest": "collect_quest_lv30", "level": 30, "specimen": "Ząb Orka", "specimen_vnum": 30006, "target": 10, "key": "Kamień Duchowy Jinunggyi", "key_vnum": 30220},
     {"quest": "collect_quest_lv40", "level": 40, "specimen": "Księga Klątw", "specimen_vnum": 30047, "target": 15, "key": "Świątynny Kamień Duchowy", "key_vnum": 30221},
     {"quest": "collect_quest_lv50", "level": 50, "specimen": "Pamiątka po Demonie", "specimen_vnum": 30015, "target": 15, "key": "Kamień Duchowy Sagyi", "key_vnum": 30222},
-    {"quest": "collect_quest_lv60", "level": 60, "specimen": "Lodowa Kulka", "specimen_vnum": 30050, "target": 20, "key": "Kamień Duchowy Aurtumryu", "key_vnum": 30223},
+    {"quest": "collect_quest_lv60", "level": 60, "specimen": "Matowy Lód", "specimen_vnum": 30050, "target": 20, "key": "Kamień Duchowy Aurtumryu", "key_vnum": 30223},
     {"quest": "collect_quest_lv70", "level": 70, "specimen": "Konar Zelkova", "specimen_vnum": 30165, "target": 25, "key": "Kamień Duchowy Gyimok", "key_vnum": 30224},
     {"quest": "collect_quest_lv80", "level": 80, "specimen": "Certyfikat Tugyisa", "specimen_vnum": 30166, "target": 30, "key": "Kamień Duchowy Tugyi", "key_vnum": 30225},
     {"quest": "collect_quest_lv85", "level": 85, "specimen": "Czerwony Konar Duchodrzewa", "specimen_vnum": 30167, "target": 40, "key": "Kamień Duchowy Lasu", "key_vnum": 30226},
@@ -3237,9 +3237,9 @@ def character_mission_progress(pid):
         held = one("SELECT COALESCE(SUM(count),0) AS amount FROM player.item WHERE owner_id=%s AND vnum=%s",
                    (pid, wanted_vnum)).get("amount", 0)
         current = active_research["target"] if collecting_key else max(0, int(state.get("collect_count") or 0))
-        # Six herb analyses precede this chain: Orc Tooth is mission 7, Curse Book mission 8.
+        # Six herb analyses precede the eight research quests, making 14 stages in total.
         stage = list(research_by_name).index(active_research["quest"]) + 7
-        missions.append({"label": f"Biolog {stage}/8: {active_research['specimen']}",
+        missions.append({"label": f"Biolog {stage}/14: {active_research['specimen']}",
                          "current": min(current, active_research["target"]), "target": active_research["target"],
                          "unit": "oddanych", "detail": (f"Aktualnie szuka: {active_research['key']}"
                          if collecting_key else f"Zbiera: {active_research['specimen']}") + f" · w ekwipunku: {int(held or 0)}"})

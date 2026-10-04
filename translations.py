@@ -2028,7 +2028,7 @@ EXACT.update({
     "Koń bojowy: próba na pustyni": "Battle horse: desert trial",
 })
 PATTERNS_RAW += [
-    (r'^Biolog (\d+)/8: (.+)$', 'Biologist $1/8: $2'),
+    (r'^Biolog (\d+)/14: (.+)$', 'Biologist $1/14: $2'),
     (r'^Biolog: misja wstępna (\d+) z (\d+)$', 'Biologist: preliminary mission $1 of $2'),
     (r'^Aktualnie szuka: (.+)$', 'Currently looking for: $1'),
     (r'^Zbiera: (.+)$', 'Collecting: $1'),
