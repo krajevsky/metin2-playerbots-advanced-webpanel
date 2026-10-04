@@ -1,8 +1,8 @@
-<section class="native-character-shell" id="native-character-window" aria-label="Okno postaci">
+<section class="native-character-shell" id="native-character-window" aria-label="{{ 'Character window' if ui_language == 'en' else 'Okno postaci' }}">
   <div class="native-character-page native-character-status active" data-character-page="status">
     <img class="native-character-portrait" src="{{class_portrait(character.job)}}" alt="{{character.job_name}}">
     <span class="native-character-guild">{{character.guild_name or '—'}}</span>
-    <span class="native-character-name" tabindex="0">{{character.name}}<span class="native-rank-tip"><b class="honor {{character.honor.css}}">{{character.honor.title}}</b><span>Punkty Rangi: {{'{:,}'.format(character.honor.points).replace(',', ' ')}}</span></span></span>
+    <span class="native-character-name" tabindex="0">{{character.name}}<span class="native-rank-tip"><b class="honor {{character.honor.css}}">{{character.honor.title}}</b><span>{{ 'Rank points' if ui_language == 'en' else 'Punkty Rangi' }}: {{'{:,}'.format(character.honor.points).replace(',', ' ')}}</span></span></span>
     <span class="native-value level">{{character.level}}</span>
     <span class="native-value exp">{{'{:,}'.format(character.experience.current).replace(',', ' ')}}</span>
     <span class="native-value next-exp">{{'{:,}'.format(character.experience.required).replace(',', ' ')}}</span>
@@ -21,16 +21,16 @@
     <span class="native-value magic-defense">{{character.status_window.magic_defense}}</span>
     <span class="native-value casting-speed">{{character.status_window.casting_speed}}</span>
     <span class="native-value evade">{{character.status_window.evade}}</span>
-    <button type="button" class="native-bonus-button" aria-expanded="false">Bonusy</button>
+    <button type="button" class="native-bonus-button" aria-expanded="false">{{ 'Bonuses' if ui_language == 'en' else 'Bonusy' }}</button>
     <div class="native-bonus-popover" hidden>
-      <b>Bonusy wyposażenia</b>
-      {% for item in equipment %}{% if item.bonuses %}<span>{{item.item_name}}: {{item.bonuses|join(', ')}}</span>{% endif %}{% else %}<span>Brak założonych przedmiotów z bonusami.</span>{% endfor %}
+      <b>{{ 'Equipment bonuses' if ui_language == 'en' else 'Bonusy wyposażenia' }}</b>
+      {% for item in equipment %}{% if item.bonuses %}<span>{{item.item_name}}: {{item.bonuses|join(', ')}}</span>{% endif %}{% else %}<span>{{ 'No equipped items with bonuses.' if ui_language == 'en' else 'Brak założonych przedmiotów z bonusami.' }}</span>{% endfor %}
     </div>
   </div>
 
   <div class="native-character-page native-character-skills" data-character-page="skills" hidden>
     <span class="native-skill-points">{{character.skill_point or 0}}</span>
-    <div class="native-skill-groups"><button type="button" class="active" data-skill-group="class">{{character.job_name}}</button><button type="button" data-skill-group="horse">Jazda</button></div>
+    <div class="native-skill-groups"><button type="button" class="active" data-skill-group="class">{{character.job_name}}</button><button type="button" data-skill-group="horse">{{ 'Riding' if ui_language == 'en' else 'Jazda' }}</button></div>
     <div class="native-skill-grid" data-skill-grid="class">
       {% for skill in character.skills %}{% set skill_index = loop.index0 %}{% set stage = 2 if skill.master_type >= 2 or skill.level >= 30 else 1 if skill.master_type == 1 or skill.level >= 20 else 0 %}
         {% for stage_index in range(3) %}{% set suffix = '' if stage_index == 0 else '_m' if stage_index == 1 else '_p' if stage_index == stage and skill.master_type >= 3 else '_g' %}<div class="native-skill-cell{% if stage_index != stage or skill.level == 0 %} inactive{% endif %}" style="--skill-col:{{(skill_index % 2) * 3 + stage_index}};--skill-row:{{skill_index // 2}}" title="{{skill.name}} · {{skill.rank}}"><img src="{{url_for('static',filename='skill_icons/'+skill.vnum|string+suffix+'.png')}}" alt="{{skill.name}}" onerror="this.style.visibility='hidden'">{% if stage_index == stage and skill.level %}<b>{{skill.rank}}</b>{% endif %}</div>{% endfor %}
@@ -45,18 +45,18 @@
   </div>
 
   <div class="native-character-page native-character-quests" data-character-page="quests" hidden>
-    <div class="native-quest-list" aria-label="Aktywne zadania">
+    <div class="native-quest-list" aria-label="{{ 'Active quests' if ui_language == 'en' else 'Aktywne zadania' }}">
       {% for m in mission_progress %}<article class="native-quest-row">
         <img src="{{url_for('static',filename='quest-icon.png')}}" alt="">
-        <div class="native-quest-copy"><b>{{m.label}}</b><span>{{m.current}} / {{m.target}} {{m.unit}}</span>{% if m.detail %}<small>{{m.detail}}</small>{% endif %}<i aria-label="Postęp {{m.percent}}%"><em style="width:{{m.percent}}%"></em></i></div>
-      </article>{% else %}<p class="native-quest-empty">Brak aktywnych zadań.</p>{% endfor %}
+        <div class="native-quest-copy"><b>{{m.label}}</b><span>{{m.current}} / {{m.target}} {{m.unit}}</span>{% if m.detail %}<small>{{m.detail}}</small>{% endif %}<i aria-label="{{ 'Progress' if ui_language == 'en' else 'Postęp' }} {{m.percent}}%"><em style="width:{{m.percent}}%"></em></i></div>
+      </article>{% else %}<p class="native-quest-empty">{{ 'No active quests.' if ui_language == 'en' else 'Brak aktywnych zadań.' }}</p>{% endfor %}
     </div>
   </div>
 
-  <nav class="native-character-tabs" aria-label="Zakładki okna postaci">
+  <nav class="native-character-tabs" aria-label="{{ 'Character window tabs' if ui_language == 'en' else 'Zakładki okna postaci' }}">
     <button type="button" class="active" data-character-tab="status">Status</button>
-    <button type="button" data-character-tab="skills">Umiejętn.</button>
-    <button type="button" disabled>Emocje</button>
-    <button type="button" data-character-tab="quests">Zadania</button>
+    <button type="button" data-character-tab="skills">{{ 'Skills' if ui_language == 'en' else 'Umiejętn.' }}</button>
+    <button type="button" disabled>{{ 'Emotes' if ui_language == 'en' else 'Emocje' }}</button>
+    <button type="button" data-character-tab="quests">{{ 'Quests' if ui_language == 'en' else 'Zadania' }}</button>
   </nav>
 </section>

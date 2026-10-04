@@ -13,17 +13,17 @@
     <div class="vital-bars" aria-label="Stan postaci"><div class="vital hp"><span>❤ PŻ</span><div class="bar"><i style="width:{{character.hp_percent}}%"></i></div><b>{{character.hp_percent}}%</b></div><div class="vital mp"><span>✦ PM</span><div class="bar"><i style="width:{{character.mp_percent}}%"></i></div><b>{{character.mp_percent}}%</b></div><div class="vital exp"><span>⚡ EXP</span><div class="bar"><i style="width:{{character.experience.percent}}%"></i></div><b>{{character.experience.percent}}% · {{'{:,}'.format(character.experience.current).replace(',', ' ')}} / {{'{:,}'.format(character.experience.required).replace(',', ' ')}}</b></div></div>
     <dl class="bot-live-details"><div><dt>Pozycja</dt><dd>{{character.x}}, {{character.y}}</dd></div><div><dt>Ranga</dt><dd><span class="honor {{character.honor.css}}">{{character.honor.title}}</span> · {{'{:,}'.format(character.honor.points).replace(',', ' ')}} pkt</dd></div><div><dt>Osobowość</dt><dd>{{character.personality}}</dd></div>{% if character.persona %}<div><dt>Persona</dt><dd>{{character.persona}}</dd></div><div><dt>Nastrój</dt><dd>{{character.mood}}{% if character.hold %} · {{character.hold}}{% endif %}{% if character.mood_lock %} <small class="muted">({{character.mood_lock}})</small>{% endif %}</dd></div>{% endif %}<div><dt>Ambicja</dt><dd>{{character.ambition}}</dd></div><div><dt>Aktualny cel</dt><dd>{{character.goal}}</dd></div><div><dt>Akcja</dt><dd>{{character.action}}</dd></div><div><dt>Koń</dt><dd>Lv {{character.horse_level}}</dd></div></dl>
     <div class="native-player-windows">
-      <section id="native-player-map" class="native-player-map{% if character.map_portrait %} is-portrait{% endif %}" aria-label="Pozycja postaci na mapie">
+      <section id="native-player-map" class="native-player-map{% if character.map_portrait %} is-portrait{% endif %}" aria-label="{{ 'Character position on map' if ui_language == 'en' else 'Pozycja postaci na mapie' }}">
         <div class="native-player-map-title">{{character.map_name}}</div>
         <div class="native-player-map-stage">
-          {% if character.map_image %}<img class="native-player-map-image" src="{{url_for('static', filename='maps/' ~ character.map_image)}}" alt="Mapa {{character.map_name}}">{% endif %}
+          {% if character.map_image %}<img class="native-player-map-image" src="{{url_for('static', filename='maps/' ~ character.map_image)}}" alt="{{ 'Map' if ui_language == 'en' else 'Mapa' }} {{character.map_name}}">{% endif %}
           <img class="native-player-map-marker" src="{{url_for('static', filename='player-map-marker.png')}}" alt="" aria-hidden="true" style="left:{{character.map_px}}%;top:{{character.map_py}}%">
-          <div class="native-player-map-unavailable"{% if character.map_image %} hidden{% endif %}>Brak obrazu tej mapy</div>
+          <div class="native-player-map-unavailable"{% if character.map_image %} hidden{% endif %}>{{ 'Map image unavailable' if ui_language == 'en' else 'Brak obrazu tej mapy' }}</div>
         </div>
       </section>
       {% include '_character_native_window.html' %}
       {% if offline_shop %}
-      <section id="offline-shop" class="native-shop-window" aria-label="Sklep offline: {{offline_shop.name}}">
+      <section id="offline-shop" class="native-shop-window" aria-label="{{ 'Offline shop' if ui_language == 'en' else 'Sklep offline' }}: {{offline_shop.name}}">
         <div class="native-shop-name">{{offline_shop.name}}</div>
         <div class="native-shop-layer">
           {% for o in offline_shop.offers %}
@@ -35,7 +35,7 @@
           {% endfor %}
         </div>
         <div class="native-shop-total">{{'{:,}'.format(offline_shop.total_value).replace(',', ' ')}} Yang</div>
-        <button type="button" class="native-shop-teleport" id="teleport-shop-btn" data-x="{{offline_shop.x}}" data-y="{{offline_shop.y}}">Teleportuj do sklepu</button>
+        <button type="button" class="native-shop-teleport" id="teleport-shop-btn" data-x="{{offline_shop.x}}" data-y="{{offline_shop.y}}">{{ 'Teleport to shop' if ui_language == 'en' else 'Teleportuj do sklepu' }}</button>
         <small id="teleport-shop-status" class="native-shop-teleport-status" aria-live="polite"></small>
       </section>
       {% endif %}
@@ -192,16 +192,17 @@ async function refreshPlayerMap(){
 }
 if(window.__playerMapTimer)clearInterval(window.__playerMapTimer);
 window.__playerMapTimer=setInterval(refreshPlayerMap,3000);
+const nativeUiEnglish=document.documentElement.lang==='en';
 async function runTeleport(btn, statusEl, payload){
-  btn.disabled = true; statusEl.textContent = '⏳ Teleportowanie Twojej postaci w grze...';
+  btn.disabled = true; statusEl.textContent = nativeUiEnglish ? '⏳ Teleporting your character in game...' : '⏳ Teleportowanie Twojej postaci w grze...';
   try {
     const res = await fetch('/api/admin/teleport-me', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
     const data = await res.json();
-    if (data.ok) statusEl.textContent = `✅ Przeteleportowano ${data.name} do bota w grze!`;
-    else if (data.error === 'bot_offline') statusEl.textContent = '⛔ Ten bot nie jest teraz online, nie znam jego pozycji.';
-    else if (data.error === 'no_human_player' || data.error === 'player_offline') statusEl.textContent = '⛔ Żadna Twoja postać nie jest teraz zalogowana w grze.';
-    else statusEl.textContent = '⛔ Nie udało się (' + (data.status || data.error || 'błąd') + ').';
-  } catch (_) { statusEl.textContent = '⛔ Błąd sieci.'; }
+    if (data.ok) statusEl.textContent = nativeUiEnglish ? `✅ Teleported ${data.name} to the bot in game!` : `✅ Przeteleportowano ${data.name} do bota w grze!`;
+    else if (data.error === 'bot_offline') statusEl.textContent = nativeUiEnglish ? '⛔ This bot is currently offline, so its position is unknown.' : '⛔ Ten bot nie jest teraz online, nie znam jego pozycji.';
+    else if (data.error === 'no_human_player' || data.error === 'player_offline') statusEl.textContent = nativeUiEnglish ? '⛔ None of your characters is currently logged in to the game.' : '⛔ Żadna Twoja postać nie jest teraz zalogowana w grze.';
+    else statusEl.textContent = (nativeUiEnglish ? '⛔ Failed (' : '⛔ Nie udało się (') + (data.status || data.error || (nativeUiEnglish ? 'error' : 'błąd')) + ').';
+  } catch (_) { statusEl.textContent = nativeUiEnglish ? '⛔ Network error.' : '⛔ Błąd sieci.'; }
   btn.disabled = false;
 }
 const teleportBtn=document.getElementById('teleport-me-btn'),teleportStatus=document.getElementById('teleport-me-status');

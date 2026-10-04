@@ -296,6 +296,9 @@
 .native-character-status{background-image:url('/static/character-status-ui.png')}
 .native-character-skills{background-image:url('/static/character-skills-ui.png')}
 .native-character-quests{background-image:url('/static/character-quests-ui.png')}
+html[lang="en"] .native-character-status{background-image:url('/static/character-status-ui-en.png')}
+html[lang="en"] .native-character-skills{background-image:url('/static/character-skills-ui-en.png')}
+html[lang="en"] .native-character-quests{background-image:url('/static/character-quests-ui-en.png')}
 .native-character-page[hidden]{display:none!important}
 .native-character-portrait{position:absolute;left:5px;top:5px;width:48px;height:46px;object-fit:cover;object-position:top;image-rendering:pixelated}
 .native-character-guild,.native-character-name{position:absolute;top:31px;height:17px;display:grid;place-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eee;text-shadow:1px 1px #000}
