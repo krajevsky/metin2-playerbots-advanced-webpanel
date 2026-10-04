@@ -1789,16 +1789,19 @@ def update_status():
 
 
 def installed_playerbots_version():
-    """Read the live MT2009 version reported by the isolated updater watcher."""
+    """Return the newest valid version reported by compose or the updater."""
     current = update_status()
-    reported = str(current.get("version") or "").strip()
-    if version_key(reported):
-        return reported
+    candidates = []
+    for value in (os.environ.get("PLAYERBOTS_VERSION"), current.get("version")):
+        value = str(value or "").strip()
+        key = version_key(value)
+        if key:
+            candidates.append((key, value.lstrip("vV")))
     if current.get("state") == "ok":
         match = re.search(r"version ([0-9]+(?:\.[0-9]+)+)", current.get("message", ""))
         if match:
-            return match.group(1)
-    return os.environ.get("PLAYERBOTS_VERSION", "nieustawiona")
+            candidates.append((version_key(match.group(1)), match.group(1)))
+    return max(candidates, default=((), "nieustawiona"))[1]
 
 def version_key(value):
     match = re.fullmatch(r"v?([0-9]+(?:\.[0-9]+)+)", str(value or "").strip(), re.I)
