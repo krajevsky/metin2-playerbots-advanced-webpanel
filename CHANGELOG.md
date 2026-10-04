@@ -1,3 +1,60 @@
+## 2026-10-04 · 1.111.1 · UI z gry przejmuje webpanel!
+
+To największa dotychczasowa przebudowa karty postaci oraz kolejny duży etap rozwoju dashboardu, sezonów i rankingów. Webpanel korzysta teraz z języka wizualnego klienta Metin2, zachowując dane na żywo, responsywność i obsługę języka polskiego oraz angielskiego.
+
+### /player/ — interaktywny interfejs z gry
+
+- Cała karta gracza została złożona z natywnych okien Metin2. Ekwipunek, status postaci, umiejętności, Smocza Alchemia, magazyn, mapa, sklep offline i misje tworzą jeden spójny pulpit z oryginalnymi tłami, ramkami, slotami, belkami i zakładkami klienta.
+- Układ reaguje na szerokość ekranu. Na komputerze mapa, karta postaci i sklep stoją obok siebie, a na mniejszych urządzeniach mapa przechodzi nad pozostałe okna.
+- Okno postaci pokazuje aktualny stan z momentu wejścia na stronę. Wartości WIT, INT, SIŁ i ZR, PŻ, PM, ataku, obrony, szybkości oraz uników wyrównano do pól klienta.
+- Najechanie na nazwę postaci pokazuje rangę i punkty rangi, a nazwa rangi otrzymuje właściwy kolor.
+- Okno umiejętności odwzorowuje kolejność klienta. Każda umiejętność zajmuje trzy kolejne pola: poziomy 1–20, M1–M10 oraz G1–P. Poprawiono podpisy umiejętności pasywnych, pozycję cyfr i kontrast nieaktywnych ikon.
+- Smocza Alchemia obsługuje sześć rodzin kamieni, jakość, stopień +0–+6, zestaw, pozostały czas i bonusy. Punkty 97 i 98 są prezentowane jako Wartość Magicznego Ataku i Magiczna Obrona. Ulepszone kamienie dziedziczą właściwą nazwę oraz ikonę bazowego prototypu.
+- Tooltipy przedmiotów otwierają się pod kursorem lub slotem, gdy nad ikoną brakuje miejsca. Nie są już ucinane przez kartę, belkę, zakładki ani przyciski.
+- Ekwipunek zachowuje cztery strony i rzeczywisty rozmiar przedmiotów. Broń oraz inne przedmioty wielopolowe rezerwują wszystkie zajmowane sloty.
+- Magazyn korzysta z natywnego tła i trzech przełączanych stron. Otwiera się z przycisku depozytu, zachowuje czytelny rozmiar ikon i wraca do ekwipunku po zamknięciu.
+- Sklep offline otwiera się automatycznie wraz z kartą gracza. Siatkę przekształcono do układu 16 × 10, dodano nazwę sklepu, wartość potencjalnego zarobku w polu Yang oraz kompaktowy przycisk „Teleportuj do sklepu”.
+- Mapa pokazuje aktualne położenie postaci. Korzysta z tych samych obrazów i granic co dashboard, skaluje mapy o różnych proporcjach, a znacznik obraca się zgodnie z kierunkiem ruchu wyliczonym z kolejnych pozycji.
+- Okno misji przejęło Kartotekę biologa. Pokazuje zadanie, zbierany przedmiot, stan ekwipunku i pasek postępu. Numeracja obejmuje pełne 14 etapów: Ząb Orka to 7/14, Księga Klątw 8/14, Pamiątka po Demonie 9/14, Matowy Lód 10/14, a Notatka Przywódcy 14/14.
+- Zakładka Emocje pozostaje częścią oryginalnej ramki, lecz nie prowadzi do pustego widoku. Status, Umiejętności i Zadania działają bez opuszczania karty.
+
+### /dashboard/ — mapa świata i wiarygodniejsze dane
+
+- Mapa na żywo wróciła do klasycznych kropek. Nazwa bota przy znaczniku ma kolor jego królestwa, a obok nicku widoczny jest kanał gry.
+- Ranking i aktywności mapy działają jako zakładki. Diagramy można rozwinąć, a rozkład kanałów, respawny, królestwa, aktywności świata i poziomy botów mają czytelny układ.
+- Widget „Boty na mapach” ponownie pokazuje kompletną listę. Naprawiono położenie obok wykresu, przewijanie i wyrównanie kart.
+- Dolne widgety korzystają ze wspólnej pamięci podręcznej i ładują ostatni kompletny zestaw natychmiast. Mapa nadal odświeża pozycje niezależnie co 1,5 sekundy.
+- Tracker wersji panelu nie porównuje już lokalnej wersji z wydaniem na GitHubie.
+- Wykrywanie wersji Playerbots uwzględnia ręczne aktualizacje. Panel wybiera najnowszy poprawny numer z konfiguracji Compose i statusu aktualizatora; ujednolicono raportowanie zainstalowanej wersji 2.2.69.
+- Ulepszenia +9 wróciły do Wiadomości ze świata i /world-feed/. Panel scala log.log z log.refinelog, dzięki czemu pokazuje +9 oraz rzeczywistą metodę: kowal, gildia albo zwój wraz z ikoną.
+
+### /season/ — rankingi według osiągnięcia
+
+- Sezon można sortować według punktów, zniszczonych Metinów, pokonanych bossów i udanych ulepszeń.
+- Dodano przełącznik Tydzień / Wszechczasów. Widok całego życia korzysta z liczników player.player_special_flag, a tygodniowy z wydarzeń okresu sezonu.
+- Zakładki, nagłówki, opisy punktów i przełączniki otrzymały kompletne wersje angielskie.
+
+### /rankings/ — prawdziwe wyniki zamiast martwych liczników
+
+- „Wystawione Stragany” zastąpił ranking „Sprzedaże na sklepie Offline”. Wynik oznacza łączny Yang faktycznie uzyskany ze sprzedaży.
+- Usunięto „Yang ze sprzedaży u NPC”, ponieważ silnik zapisał tę statystykę tylko raz w całej historii świata.
+- Kolumna klasy może pokazywać ścieżkę magii: Ciało/Umysł, Ostrze/Łuk, Broń/Czarną Magię oraz Smok/Leczenie, także po angielsku.
+- Ranking broni porównuje rzeczywiste parametry mieczy, sztyletów, łuków, broni dwuręcznej, dzwonów i wachlarzy z item_proto. Amunicja jest wykluczona.
+
+### Język angielski i spójność
+
+- Natywne okna gracza otrzymały osobne angielskie warianty grafik. Przetłumaczono tytuły, zakładki i przyciski, w tym „Teleport to shop”, bez nakładania tekstu na polskie napisy.
+- Rozszerzono tłumaczenia dynamiczne biologa, umiejętności, map, aktywności, historii ekwipunku, sprzedaży offline, sezonów i rankingów.
+- Nicki, wypowiedzi graczy i botów oraz surowe dane pozostają w oryginalnej postaci.
+
+### Zaplecze i zgodność
+
+- Panel korzysta z danych Playerbots 2.2.69: playerbot_status.tsv, player.item, player.item_proto, player.ikashop_offlineshop, log.ikarusshop_log, log.refinelog, log.log i player.player_special_flag.
+- Okna przedmiotów pozostają tylko do odczytu poza istniejącymi, jawnie opisanymi akcjami, takimi jak teleport do sklepu.
+- Zachowano zgodność z polską i angielską wersją panelu oraz aktualizacją Playerbots wykonywaną automatycznie lub ręcznie.
+
+![Via Codex & Claude](https://img.shields.io/badge/Via-Codex%20%26%20Claude-8B5CF6)
+
 ## 2026-10-03 · 1.109.13 · Tooltipy equipmentu i inventory ponad ikonami
 
 - Tooltip aktywnego przedmiotu z wyposażenia oraz dolnej siatki inventory jest renderowany ponad ikonami Alchemii, juków, depozytu i sklepu.
