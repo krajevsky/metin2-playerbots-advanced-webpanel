@@ -9,16 +9,37 @@
 <section class="bot-profile-head">
   <article>
     <div class="profile-tags">{% set empire=empire_info(character.empire) %}{% if empire.flag %}<span class="empire-badge empire-badge--profile"><img src="{{empire_flag(character.empire)}}" alt="{{empire.name}}">{{empire.name}}</span>{% endif %}<span>HP {{character.hp}} / {{character.max_hp}}</span><span>MP {{character.mp}} / {{character.max_mp}}</span><span>Yang {{'{:,}'.format(character.gold or 0).replace(',', ' ')}}</span><span>{{map_name(character.map_index)}}</span>{% if character.channel %}<span title="{{'Aktualnie online' if character.channel_live else 'Ostatnio widziany, bot offline'}}">{{'📡' if character.channel_live else '💤'}} CH{{character.channel}}</span>{% endif %}<span>⏱ {{character.playtime_hours}} h {{character.playtime_minutes}} min</span><span>🕐 Ostatnio: {{character.last_play.strftime('%d.%m.%Y %H:%M') if character.last_play else '—'}}</span><span>💎 {{'{:,}'.format(character.cash).replace(',', ' ')}} Smoczych Monet</span>{% if character.marriage_partner %}<span>💍 Poślubiony/a z {{character.marriage_partner}}</span>{% endif %}{% if character.guild_name %}<span>🏯 {{character.guild_name}}{% if character.guild_grade %} ({{character.guild_grade}}){% endif %}</span>{% endif %}{% for p in character.premiums %}<span>⭐ {{p.label}} do {{p.expires.strftime('%d.%m.%Y')}}</span>{% else %}<span class="muted">⭐ Brak aktywnego VIP</span>{% endfor %}</div>
-    <div class="profile-actions">{% if offline_shop %}<a class="button secondary" href="#offline-shop">🏪 Zobacz sklepik</a>{% endif %}<button type="button" class="secondary" id="teleport-me-btn" data-pid="{{character.id}}">⚡ Teleportuj moją postać w grze (1 klik)</button><small id="teleport-me-status" class="muted"></small></div>
+    <div class="profile-actions"><button type="button" class="secondary" id="teleport-me-btn" data-pid="{{character.id}}">⚡ Teleportuj moją postać w grze (1 klik)</button><small id="teleport-me-status" class="muted"></small></div>
     <div class="vital-bars" aria-label="Stan postaci"><div class="vital hp"><span>❤ PŻ</span><div class="bar"><i style="width:{{character.hp_percent}}%"></i></div><b>{{character.hp_percent}}%</b></div><div class="vital mp"><span>✦ PM</span><div class="bar"><i style="width:{{character.mp_percent}}%"></i></div><b>{{character.mp_percent}}%</b></div><div class="vital exp"><span>⚡ EXP</span><div class="bar"><i style="width:{{character.experience.percent}}%"></i></div><b>{{character.experience.percent}}% · {{'{:,}'.format(character.experience.current).replace(',', ' ')}} / {{'{:,}'.format(character.experience.required).replace(',', ' ')}}</b></div></div>
     <dl class="bot-live-details"><div><dt>Pozycja</dt><dd>{{character.x}}, {{character.y}}</dd></div><div><dt>Ranga</dt><dd><span class="honor {{character.honor.css}}">{{character.honor.title}}</span> · {{'{:,}'.format(character.honor.points).replace(',', ' ')}} pkt</dd></div><div><dt>Osobowość</dt><dd>{{character.personality}}</dd></div>{% if character.persona %}<div><dt>Persona</dt><dd>{{character.persona}}</dd></div><div><dt>Nastrój</dt><dd>{{character.mood}}{% if character.hold %} · {{character.hold}}{% endif %}{% if character.mood_lock %} <small class="muted">({{character.mood_lock}})</small>{% endif %}</dd></div>{% endif %}<div><dt>Ambicja</dt><dd>{{character.ambition}}</dd></div><div><dt>Aktualny cel</dt><dd>{{character.goal}}</dd></div><div><dt>Akcja</dt><dd>{{character.action}}</dd></div><div><dt>Koń</dt><dd>Lv {{character.horse_level}}</dd></div></dl>
-    {% include '_character_native_window.html' %}
-    {% if offline_shop %}<section class="panel" id="offline-shop"><h2><img src="{{url_for('static',filename='icons/50200.png')}}" alt="" class="shop-icon"> <button type="button" class="shop-name-tip" id="shop-name-toggle"><span class="shop-name-tip-label">{{offline_shop.name}}</span>{% if offline_shop.is_premium %}<span class="shop-name-tip-premium">Premium</span>{% endif %}{% if offline_shop.expired %}<span class="shop-name-tip-expired">Wygasł</span>{% endif %}</button></h2><p class="muted">{{offline_shop.map_name}}, współrzędne {{offline_shop.x}}, {{offline_shop.y}}.{% if offline_shop.expired %} <strong class="shop-expired-note">Czas sklepu wygasł — oferta nie jest już aktywna.</strong>{% endif %}</p><div class="live-log-actions"><button type="button" class="secondary" id="teleport-shop-btn" data-x="{{offline_shop.x}}" data-y="{{offline_shop.y}}">⚡ Teleportuj moją postać do sklepu</button><small id="teleport-shop-status" class="muted"></small></div>
-    <div id="shop-window" hidden class="shop-window-box">
-      <div class="shop-inventory" aria-label="Zawartość sklepu offline" style="--rows:{{offline_shop.rows or 8}}"><div class="shop-layer">{% for o in offline_shop.offers %}<div class="shop-slot{% if o.row < 4 %} tip-below{% endif %}{% if o.col <= 1 %} tip-left{% elif o.col >= 8 %} tip-right{% endif %}" style="--col:{{o.col}};--row:{{o.row}};--size:{{o.item_size}}">{% if o.icon_url %}<img src="{{o.icon_url}}" loading="lazy" alt="{{o.item_name}}">{% else %}<span>{{o.vnum}}</span>{% endif %}{% if o.count > 1 %}<b class="shop-count">{{o.count}}</b>{% endif %}<b class="shop-price">{{'{:,}'.format(o.price).replace(',', ' ')}}</b>{{ tooltip(o, o.price) }}</div>{% endfor %}</div></div>
-      {% if offline_shop.offers %}<p class="shop-total">💰 Potencjalny zarobek: {{'{:,}'.format(offline_shop.total_value).replace(',', ' ')}} Yang</p>{% else %}<p class="muted">Stragan jest otwarty, ale nic nie ma wystawione.</p>{% endif %}
+    <div class="native-player-windows">
+      <section id="native-player-map" class="native-player-map{% if character.map_portrait %} is-portrait{% endif %}" aria-label="Pozycja postaci na mapie">
+        <div class="native-player-map-title">{{character.map_name}}</div>
+        <div class="native-player-map-stage">
+          {% if character.map_image %}<img class="native-player-map-image" src="{{url_for('static', filename='maps/' ~ character.map_image)}}" alt="Mapa {{character.map_name}}">{% endif %}
+          <img class="native-player-map-marker" src="{{url_for('static', filename='player-map-marker.png')}}" alt="" aria-hidden="true" style="left:{{character.map_px}}%;top:{{character.map_py}}%">
+          <div class="native-player-map-unavailable"{% if character.map_image %} hidden{% endif %}>Brak obrazu tej mapy</div>
+        </div>
+      </section>
+      {% include '_character_native_window.html' %}
+      {% if offline_shop %}
+      <section id="offline-shop" class="native-shop-window" aria-label="Sklep offline: {{offline_shop.name}}">
+        <div class="native-shop-name">{{offline_shop.name}}</div>
+        <div class="native-shop-layer">
+          {% for o in offline_shop.offers %}
+          <div class="shop-slot{% if o.row < 4 %} tip-below{% endif %}{% if o.col <= 2 %} tip-left{% elif o.col >= 13 %} tip-right{% endif %}" style="--col:{{o.col}};--row:{{o.row}};--size:{{o.item_size}}">
+            {% if o.icon_url %}<img src="{{o.icon_url}}" loading="lazy" alt="{{o.item_name}}">{% else %}<span>{{o.vnum}}</span>{% endif %}
+            {% if o.count > 1 %}<b class="shop-count">{{o.count}}</b>{% endif %}
+            {{ tooltip(o, o.price) }}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="native-shop-total">{{'{:,}'.format(offline_shop.total_value).replace(',', ' ')}} Yang</div>
+        <button type="button" class="native-shop-teleport" id="teleport-shop-btn" data-x="{{offline_shop.x}}" data-y="{{offline_shop.y}}">Teleportuj do sklepu</button>
+        <small id="teleport-shop-status" class="native-shop-teleport-status" aria-live="polite"></small>
+      </section>
+      {% endif %}
     </div>
-    </section>{% endif %}
     <section class="panel bot-log"><h2>📜 Historia ekwipunku</h2><div class="gear-history-filters" role="group" aria-label="Filtr historii ekwipunku"><button type="button" data-gear-filter="trade">Handel</button><button type="button" data-gear-filter="bonus">Bonusy</button><button type="button" data-gear-filter="refine">Ulepszanie</button><button type="button" data-gear-filter="other">Inne</button><button type="button" class="active" data-gear-filter="all">Wszystko</button></div><div class="log-lines" id="gear-history-lines">{% for line in gear_history %}<div class="gear-{{line.kind}}" data-gear-tab="{{line.tab}}"><time>{{line.time}}</time><span><b>{{line.label}}</b> {{line.item}}{% if line.detail %} <small>{{line.detail}}</small>{% endif %}</span></div>{% else %}<p class="muted">Brak zapisanych zdarzeń ekwipunku.</p>{% endfor %}</div></section>
     <section class="panel bot-log"><h2>📟 Dziennik zdarzeń bota (logi na żywo)</h2><p class="muted">Linie z logu rdzenia gry wspominające tę postać — zbierane od otwarcia tej strony, nie znikają między odświeżeniami.</p><div class="live-log-actions"><button type="button" class="secondary" id="live-log-toggle" data-pid="{{character.id}}">⏸ Zatrzymaj śledzenie</button><button type="button" class="secondary" id="live-log-copy">📋 Kopiuj logi</button></div><div id="live-log-box" class="live-log-box">Wczytywanie logów…</div></section>
     <section class="panel"><h2>🏆 Statystyki postaci (panel Y)</h2><table><tbody>
@@ -141,6 +162,36 @@ async function refreshInventory(){
   } catch (_) {}
 }
 window.__playerRefreshInterval=setInterval(refreshInventory, 5000);
+let lastPlayerMapPosition=null,lastPlayerMapAngle=0;
+async function refreshPlayerMap(){
+  try{
+    const res=await fetch('/api/player/{{character.id}}/position',{cache:'no-store'});
+    if(!res.ok)return;
+    const data=await res.json(),root=document.getElementById('native-player-map');
+    if(!data.ok||!root)return;
+    root.classList.toggle('is-portrait',Boolean(data.portrait));
+    root.querySelector('.native-player-map-title').textContent=data.map_name;
+    const stage=root.querySelector('.native-player-map-stage');
+    let image=root.querySelector('.native-player-map-image');
+    if(data.map_image){
+      if(!image){image=document.createElement('img');image.className='native-player-map-image';image.alt='';stage.prepend(image)}
+      if(image.getAttribute('src')!==data.map_image)image.src=data.map_image;
+    }else if(image){image.remove()}
+    const marker=root.querySelector('.native-player-map-marker');
+    marker.style.left=Math.max(0,Math.min(100,data.px))+'%';
+    marker.style.top=Math.max(0,Math.min(100,data.py))+'%';
+    if(lastPlayerMapPosition&&lastPlayerMapPosition.map===data.map_index){
+      const dx=data.x-lastPlayerMapPosition.x,dy=data.y-lastPlayerMapPosition.y;
+      if(Math.hypot(dx,dy)>1)lastPlayerMapAngle=Math.atan2(dy,dx)*180/Math.PI+90;
+    }
+    marker.style.setProperty('--marker-angle',lastPlayerMapAngle+'deg');
+    lastPlayerMapPosition={map:data.map_index,x:data.x,y:data.y};
+    marker.hidden=!data.map_image;
+    root.querySelector('.native-player-map-unavailable').hidden=Boolean(data.map_image);
+  }catch(_){}
+}
+if(window.__playerMapTimer)clearInterval(window.__playerMapTimer);
+window.__playerMapTimer=setInterval(refreshPlayerMap,3000);
 async function runTeleport(btn, statusEl, payload){
   btn.disabled = true; statusEl.textContent = '⏳ Teleportowanie Twojej postaci w grze...';
   try {
@@ -157,10 +208,6 @@ const teleportBtn=document.getElementById('teleport-me-btn'),teleportStatus=docu
 teleportBtn?.addEventListener('click', () => runTeleport(teleportBtn, teleportStatus, {pid: Number(teleportBtn.dataset.pid)}));
 const teleportShopBtn=document.getElementById('teleport-shop-btn'),teleportShopStatus=document.getElementById('teleport-shop-status');
 teleportShopBtn?.addEventListener('click', () => runTeleport(teleportShopBtn, teleportShopStatus, {x: Number(teleportShopBtn.dataset.x), y: Number(teleportShopBtn.dataset.y)}));
-document.getElementById('shop-name-toggle')?.addEventListener('click', () => {
-  const win = document.getElementById('shop-window');
-  if (win) win.hidden = !win.hidden;
-});
 const liveLogToggle=document.getElementById('live-log-toggle'),liveLogBox=document.getElementById('live-log-box'),liveLogCopy=document.getElementById('live-log-copy');
 // Accumulate + dedupe instead of replacing each poll -- a plain tail of the
 // live syslog only holds ~800 lines across every bot on the server, so a

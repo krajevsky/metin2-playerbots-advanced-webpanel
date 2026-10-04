@@ -9,10 +9,11 @@
   </div>
   <p id="inventory-empty" class="muted" hidden>Ta strona ekwipunku jest pusta.</p>
 </div>
-<div id="safebox-storage" class="alternate-storage" hidden>
+<div id="safebox-storage" class="alternate-storage native-safebox-window" hidden>
   <button type="button" class="storage-close alternate-storage-close" data-storage="inventory" aria-label="Wróć do ekwipunku" title="Wróć do ekwipunku">×</button>
-  <div class="safebox-tabs"><button class="active" data-page="0">Strona I</button><button data-page="1">Strona II</button><button data-page="2">Strona III</button></div>
+  <strong class="native-safebox-title">{{ 'Storage' if ui_language == 'en' else 'Magazyn' }}</strong>
   <div class="safebox-inventory"><div class="safebox-layer">{% for item in safebox %}{% set page=item.pos // 45 %}{% set local=item.pos % 45 %}{% set col=local % 5 %}<div class="safebox-slot{% if col == 0 %} tip-left{% elif col == 4 %} tip-right{% endif %}" data-page="{{page}}" {% if page != 0 %}hidden{% endif %} style="--col:{{col}};--row:{{local // 5}};--size:{{item.item_size}}">{% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="{{item.item_name}}">{% else %}<span>{{item.vnum}}</span>{% endif %}{% if item.count > 1 %}<b>{{item.count}}</b>{% endif %}{{ tooltip(item) }}</div>{% endfor %}</div></div>
+  <div class="safebox-tabs" aria-label="Strony magazynu"><button class="active" data-page="0">I</button><button data-page="1">II</button><button data-page="2">III</button></div>
   <p id="safebox-empty" class="muted" hidden>Ta strona magazynu jest pusta.</p>
 </div>
 

@@ -2,7 +2,7 @@
   <div class="native-character-page native-character-status active" data-character-page="status">
     <img class="native-character-portrait" src="{{class_portrait(character.job)}}" alt="{{character.job_name}}">
     <span class="native-character-guild">{{character.guild_name or '—'}}</span>
-    <span class="native-character-name" tabindex="0">{{character.name}}<span class="native-rank-tip"><b>{{character.honor.title}}</b><span>Punkty Rangi: {{'{:,}'.format(character.honor.points).replace(',', ' ')}}</span></span></span>
+    <span class="native-character-name" tabindex="0">{{character.name}}<span class="native-rank-tip"><b class="honor {{character.honor.css}}">{{character.honor.title}}</b><span>Punkty Rangi: {{'{:,}'.format(character.honor.points).replace(',', ' ')}}</span></span></span>
     <span class="native-value level">{{character.level}}</span>
     <span class="native-value exp">{{'{:,}'.format(character.experience.current).replace(',', ' ')}}</span>
     <span class="native-value next-exp">{{'{:,}'.format(character.experience.required).replace(',', ' ')}}</span>

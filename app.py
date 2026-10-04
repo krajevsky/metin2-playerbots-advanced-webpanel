@@ -94,6 +94,16 @@ MAP_ICON_VNUM = {
     61: 30042,  # Góra Sohan -> Pazur Tygrysa
 }
 MAP_KINGDOM = {1: 1, 3: 1, 4: 1, 5: 1, 21: 2, 23: 2, 24: 2, 25: 2, 41: 3, 43: 3, 44: 3, 45: 3}
+MAP_IMAGE_FILES = {
+    1: "shinsoo-m1.png", 3: "shinsoo-m2.png", 4: "shinsoo-guild.png", 5: "easy-monkey.png",
+    21: "chunjo-m1.png", 23: "chunjo-m2.png", 24: "guild-map-02.png", 25: "easy-monkey.png",
+    41: "jinno-m1.png", 43: "jinno-m2.png", 44: "jinno-guild.png", 45: "easy-monkey.png",
+    61: "mount-sohan.png", 62: "doyyumhwaji.png", 63: "yongbi-desert.png", 64: "orc-valley.png",
+    65: "hwang-temple.png", 66: "deviltower.png", 67: "trent-forest.png", 68: "trent02-red-forest.png",
+    72: "grotto-v1.png", 73: "grotto-v2.png", 104: "spider-dungeon-v1.png",
+    108: "medium-monkey.webp", 109: "hard-monkey.webp",
+}
+
 TRACKED_MAP_OPTIONS = tuple((index, MAP_NAMES[index]) for index in MAP_BOUNDS)
 MAP_RESPAWN_OPTIONS = (
     (1, "Shinsoo M1 — Yongan"), (3, "Shinsoo M2 — Jayang"), (21, "Chunjo M1 — Joan"),
@@ -4548,9 +4558,9 @@ def bot_offline_shop(pid):
     same tooltip enrichment (_enrich_items) as the /player/ equipment and
     inventory grids, so the shop window shows the same icon/name/base
     stats/bonuses/socketed stones -- just with a price line added on top.
-    pos is laid out by the engine as a 10-wide grid (confirmed against live
-    stalls: positions jump 4->10, 14->21 etc, i.e. row breaks every 10), which
-    is also what the in-game offline shop window itself displays as.
+    The database keeps the stand as 160 linear cells. The web window reshapes
+    those cells into the supplied 16-column by 10-row game-style background;
+    item order and all listing data stay unchanged.
 
     A line just sold is still a row with that window: the db core empties its
     ikashop_data at once and the window changes only when the game core saves
@@ -4568,21 +4578,24 @@ def bot_offline_shop(pid):
       FROM player.item i LEFT JOIN player.item_proto p ON p.vnum=i.vnum
       WHERE i.owner_id=%s AND i.window='IKASHOP_OFFLINESHOP' AND i.ikashop_data IS NOT NULL AND i.ikashop_data<>'' ORDER BY i.pos""", (pid,))
     _enrich_items(offers)
-    # A bot's stand has two pages since 28 September, cells 80-159 the
-    # second under the first (playerbotify's apply_bot_shop_two_pages), so a
-    # row runs on past 8 and the grid is as tall as the rows the stand fills;
-    # "% 8" drew the second page over the first.
+    occupied = set()
     for offer in offers:
-        offer["icon_url"] = item_icon_url(offer["vnum"])
-        offer["price"] = int(offer.get("price") or 0)
-        offer["col"] = int(offer["pos"] or 0) % 10
-        offer["row"] = int(offer["pos"] or 0) // 10
-        offer["explain"] = explain_shop_offer(offer["id"], offer["price"])
-    shop_rows = 16 if any(o["row"] >= 8 for o in offers) else 8
+        height = max(1, min(3, int(offer.get("item_size") or 1)))
+        placement = None
+        for cell in range(160):
+            col, row = cell % 20, cell // 20
+            if row + height <= 8 and all((col, row + dy) not in occupied for dy in range(height)):
+                placement = (col, row)
+                break
+        if placement is None:
+            continue
+        offer["col"], offer["row"] = placement
+        occupied.update((offer["col"], offer["row"] + dy) for dy in range(height))
+        offer["icon_url"] = item_icon_url(offer.get("vnum"))
     return {
         "name": game_text(shop["name"]) or "Bez nazwy", "map_index": int(shop["map"]), "map_name": map_name(shop["map"]),
         "x": int(shop["x"]), "y": int(shop["y"]), "is_premium": bool(shop["is_premium"]),
-        "expired": int(shop.get("duration") or 0) == 0, "offers": offers, "rows": shop_rows,
+        "expired": int(shop.get("duration") or 0) == 0, "offers": offers,
         # price is already the whole-stack listing price (confirmed live:
         # e.g. 40x Peleryna Meestwa for 3 250 000, not 3 250 000 each) --
         # multiplying by count again inflated the total for any stack >1.
@@ -5019,6 +5032,16 @@ def player(pid):
     ]
     character["playtime_hours"] = int(character.get("playtime") or 0) // 60
     character["playtime_minutes"] = int(character.get("playtime") or 0) % 60
+    map_index = int(character.get("map_index") or 0)
+    map_bound = MAP_BOUNDS.get(map_index)
+    character["map_name"] = map_name(map_index)
+    character["map_image"] = MAP_IMAGE_FILES.get(map_index)
+    character["map_portrait"] = bool(map_bound and map_bound[2] != map_bound[3])
+    if map_bound:
+        character["map_px"] = max(0, min(100, (int(character.get("x") or 0) - map_bound[0]) / map_bound[2] * 100))
+        character["map_py"] = max(0, min(100, (int(character.get("y") or 0) - map_bound[1]) / map_bound[3] * 100))
+    else:
+        character["map_px"] = character["map_py"] = 50
     marriage = one("""SELECT p2.name AS partner_name FROM player.marriage m
       JOIN player.player p2 ON p2.id = IF(m.pid1=%s, m.pid2, m.pid1)
       WHERE (m.pid1=%s OR m.pid2=%s) AND m.is_married=1""", (pid, pid, pid))
@@ -5067,6 +5090,25 @@ def player(pid):
                             mission_progress=mission_progress, gm_ranks=GM_RANK_OPTIONS,
                             admin_warps=PLAYER_ADMIN_WARPS)
 
+
+
+@app.get("/api/player/<int:pid>/position")
+@login_required
+def api_player_position(pid):
+    saved = one("SELECT id,name,map_index,x,y FROM player.player WHERE id=%s", (pid,))
+    if not saved:
+        return {"ok": False, "error": "not_found"}, 404
+    live = live_statuses().get(pid)
+    position = live or saved
+    map_index = int(position.get("map_index") or 0)
+    bound = MAP_BOUNDS.get(map_index)
+    x, y = int(position.get("x") or 0), int(position.get("y") or 0)
+    px = max(0, min(100, (x - bound[0]) / bound[2] * 100)) if bound else 50
+    py = max(0, min(100, (y - bound[1]) / bound[3] * 100)) if bound else 50
+    image = MAP_IMAGE_FILES.get(map_index)
+    return {"ok": True, "live": bool(live), "map_index": map_index, "map_name": map_name(map_index),
+            "map_image": f"/static/maps/{image}" if image else None,
+            "portrait": bool(bound and bound[2] != bound[3]), "x": x, "y": y, "px": px, "py": py}
 
 @app.get("/api/admin/item-search")
 @login_required

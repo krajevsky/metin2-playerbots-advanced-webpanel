@@ -1,11 +1,3 @@
-## 2026-10-04 · 1.110.0 · Okno postaci z interfejsu gry
-
-- Sekcje statystyk i umiejętności w /player/ zastąpiono oknem odwzorowanym z klienta gry.
-- Zakładki Status, Umiejętn. i Zadania są aktywne; Emocje pozostają widoczne i nieaktywne.
-- Nazwa postaci pokazuje w tooltipie nazwę rangi i punkty rangi.
-- Umiejętności pokazują stopnie podstawowy, M, G i P oraz osobną kartę Jazda.
-- Bieżące statystyki końcowe są pobierane z rozszerzonej migawki rdzenia Playerbots.
-
 ## 2026-10-03 · 1.109.13 · Tooltipy equipmentu i inventory ponad ikonami
 
 - Tooltip aktywnego przedmiotu z wyposażenia oraz dolnej siatki inventory jest renderowany ponad ikonami Alchemii, juków, depozytu i sklepu.

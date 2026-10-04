@@ -334,3 +334,428 @@
 .native-quest-list::-webkit-scrollbar{width:8px}.native-quest-list::-webkit-scrollbar-track{background:#171717}.native-quest-list::-webkit-scrollbar-thumb{background:#85745b;border:1px solid #bbaa8a}
 
 @media(max-width:650px){.native-bonus-popover{left:3px;top:240px;width:222px}}
+
+
+/* Native 16 x 10 offline-shop window shown beside the character window. */
+.native-player-windows{display:flex;align-items:flex-start;justify-content:center;gap:18px;flex-wrap:wrap;margin:16px auto 22px}
+.native-player-windows .native-character-shell{flex:0 0 248px;margin:0}
+.native-shop-window{position:relative;flex:0 0 654px;width:654px;height:315px;margin:0;background:url('/static/shop-native-ui.png') 0 0/654px 315px no-repeat;filter:drop-shadow(0 5px 8px #0008);isolation:isolate;overflow:visible!important}
+.native-shop-layer{position:absolute;left:8px;top:23px;width:640px;height:255px}
+.native-shop-window .shop-slot{left:calc(var(--col) * 40px)!important;top:calc(var(--row) * 25.5px)!important;width:40px!important;height:calc(var(--size) * 25.5px)!important;border:0!important;background:transparent!important}
+.native-shop-window .shop-slot img{width:auto;max-width:32px;height:auto;max-height:calc(var(--size) * 25.5px);object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 1px 1px #000)}
+.native-shop-window .shop-slot>b.shop-count{right:3px;bottom:1px;top:auto;color:#fff;font:700 10px Tahoma,Arial,sans-serif;text-shadow:-1px -1px #000,1px 1px #000}
+.native-shop-window .shop-slot:hover{z-index:100}
+.native-shop-window .shop-slot .item-tip{z-index:110}
+.native-shop-total{position:absolute;left:28px;top:285px;width:260px;height:21px;display:flex;align-items:center;padding-left:6px;box-sizing:border-box;color:#f2df9a;font:700 10px Tahoma,Arial,sans-serif;text-shadow:1px 1px #000;white-space:nowrap}
+@media(max-width:760px){.native-shop-window{transform:scale(.78);transform-origin:top center;margin-bottom:-69px}.native-player-windows{gap:12px}}
+@media(max-width:540px){.native-shop-window{transform:scale(.58);margin-bottom:-132px}}
+
+/* Native character + offline shop: 150% character UI and matching shop height. */
+.native-player-windows{
+  align-items:flex-start;
+  gap:16px;
+}
+.native-player-windows .native-character-shell{
+  flex:0 0 248px;
+  transform:scale(1.5);
+  transform-origin:top left;
+  margin:0 124px 179px 0;
+}
+.native-shop-window{
+  transform:scale(1.705);
+  transform-origin:top left;
+  margin:0 461px 222px 0;
+}
+.native-shop-layer{
+  left:9px;
+  top:24px;
+}
+.native-shop-name{
+  position:absolute;
+  left:22px;
+  right:22px;
+  top:2px;
+  height:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  color:#eee;
+  font:11px Tahoma,Arial,sans-serif;
+  text-shadow:1px 1px #000;
+  white-space:nowrap;
+}
+.native-shop-total{
+  left:28px;
+  top:285px;
+  width:260px;
+  justify-content:center;
+  padding-left:0;
+}
+@media(max-width:1250px){
+  .native-player-windows .native-character-shell{
+    transform:scale(1.35);
+    margin-right:87px;
+    margin-bottom:125px;
+  }
+  .native-shop-window{
+    transform:scale(1.45);
+    margin-right:294px;
+    margin-bottom:142px;
+  }
+}
+@media(max-width:760px){
+  .native-player-windows .native-character-shell{
+    transform:scale(1.15);
+    margin-right:37px;
+    margin-bottom:54px;
+  }
+  .native-shop-window{
+    transform:scale(.78);
+    transform-origin:top left;
+    margin-right:-144px;
+    margin-bottom:-69px;
+  }
+}
+@media(max-width:540px){
+  .native-player-windows .native-character-shell{
+    transform:scale(1);
+    margin-right:0;
+    margin-bottom:0;
+  }
+  .native-shop-window{
+    transform:scale(.58);
+    margin-right:-275px;
+    margin-bottom:-132px;
+  }
+}
+
+/* Final native window sizing: 120% of the original character window. */
+.native-player-windows .native-character-shell{
+  transform:scale(1.2);
+  margin-right:50px;
+  margin-bottom:72px;
+}
+.native-shop-window{
+  transform:scale(1.365);
+  margin-right:239px;
+  margin-bottom:115px;
+}
+@media(max-width:1250px){
+  .native-player-windows .native-character-shell{
+    transform:scale(1.1);
+    margin-right:25px;
+    margin-bottom:36px;
+  }
+  .native-shop-window{
+    transform:scale(1.25);
+    margin-right:164px;
+    margin-bottom:79px;
+  }
+}
+@media(max-width:760px){
+  .native-player-windows .native-character-shell{
+    transform:scale(1);
+    margin-right:0;
+    margin-bottom:0;
+  }
+  .native-shop-window{
+    transform:scale(.78);
+    margin-right:-144px;
+    margin-bottom:-69px;
+  }
+}
+@media(max-width:540px){
+  .native-shop-window{
+    transform:scale(.58);
+    margin-right:-275px;
+    margin-bottom:-132px;
+  }
+}
+
+/* The supplied shop artwork contains an exact 20 x 8 grid (64 px cells in source). */
+.native-shop-layer{
+  left:6px;
+  top:22px;
+  width:640px;
+  height:256px;
+}
+.native-shop-window .shop-slot{
+  left:calc(var(--col) * 32px)!important;
+  top:calc(var(--row) * 32px)!important;
+  width:32px!important;
+  height:calc(var(--size) * 32px)!important;
+}
+.native-shop-window .shop-slot img{
+  max-width:30px;
+  max-height:calc(var(--size) * 32px);
+}
+
+/* Final native-window polish. */
+.native-shop-total{
+  justify-content:flex-start;
+  padding-left:8px;
+}
+.native-value.stat-str{top:177px}
+.native-value.stat-dex{top:201px}
+.native-character-page{
+  border-radius:7px;
+  background-clip:border-box;
+}
+
+/* Native storage-guard window: supplied 334 x 821 artwork and exact 5 x 9 grid. */
+.native-safebox-window{
+  position:relative;
+  width:334px;
+  height:821px;
+  max-width:100%;
+  padding:0;
+  isolation:isolate;
+  background:transparent url('/static/safebox-native-ui.png') 0 0/334px 821px no-repeat;
+}
+.native-safebox-title{
+  position:absolute;
+  z-index:4;
+  left:34px;
+  right:52px;
+  top:8px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  color:#eee;
+  font:14px Tahoma,Arial,sans-serif;
+  text-shadow:1px 1px #000;
+  white-space:nowrap;
+}
+.native-safebox-window .alternate-storage-close{
+  right:5px;
+  top:4px;
+  width:43px;
+  height:42px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:transparent;
+}
+.native-safebox-window .safebox-inventory{
+  position:absolute;
+  left:7px;
+  top:61px;
+  width:320px;
+  height:576px;
+  max-width:none;
+  aspect-ratio:auto;
+  margin:0;
+  border:0!important;
+  background:transparent!important;
+}
+.native-safebox-window .safebox-layer{position:absolute;inset:0}
+.native-safebox-window .safebox-slot{
+  left:calc(var(--col) * 64px);
+  top:calc(var(--row) * 64px);
+  width:64px;
+  height:calc(var(--size) * 64px);
+}
+.native-safebox-window .safebox-slot>img{
+  width:auto!important;
+  height:auto!important;
+  max-width:60px!important;
+  max-height:calc(var(--size) * 64px)!important;
+  object-fit:contain;
+}
+.native-safebox-window .safebox-slot>b{
+  right:5px;
+  bottom:3px;
+  font-size:12px;
+}
+.native-safebox-window .safebox-tabs{
+  position:absolute;
+  z-index:4;
+  left:27px;
+  top:755px;
+  width:280px;
+  height:34px;
+  display:flex;
+  gap:5px;
+  margin:0;
+}
+.native-safebox-window .safebox-tabs button{
+  flex:1;
+  min-width:0;
+  padding:0;
+  border:1px solid #786344!important;
+  border-radius:2px;
+  background:linear-gradient(#49341f,#1d140d)!important;
+  color:#d7c7a2!important;
+  font:700 12px Georgia,serif;
+  text-shadow:1px 1px #000;
+  box-shadow:inset 0 0 0 1px #17100a;
+}
+.native-safebox-window .safebox-tabs button.active{
+  border-color:#bd9656!important;
+  background:linear-gradient(#76451f,#321b0c)!important;
+  color:#fff3c2!important;
+}
+.native-safebox-window #safebox-empty{
+  position:absolute;
+  z-index:3;
+  left:20px;
+  right:20px;
+  top:690px;
+  margin:0;
+  text-align:center;
+}
+@media(max-width:650px){
+  .native-safebox-window{
+    transform:scale(.82);
+    transform-origin:top left;
+    margin-right:-60px;
+    margin-bottom:-148px;
+  }
+}
+.native-safebox-window{max-width:none}
+
+/* Match the native storage window to the 176 px width of the equipment UI. */
+.native-safebox-window{
+  transform:scale(.527)!important;
+  transform-origin:top left;
+  margin-right:-158px;
+  margin-bottom:-388px;
+}
+
+/* Readable centered storage size: scale geometry, keep text and tooltips crisp. */
+.native-safebox-window{
+  width:210px;
+  height:517px;
+  transform:none!important;
+  margin:0 auto!important;
+  background-size:210px 517px;
+}
+.native-safebox-title{
+  left:21px;
+  right:33px;
+  top:5px;
+  height:22px;
+  font-size:11px;
+}
+.native-safebox-window .alternate-storage-close{
+  right:3px;
+  top:3px;
+  width:27px;
+  height:27px;
+}
+.native-safebox-window .safebox-inventory{
+  left:4px;
+  top:38px;
+  width:202px;
+  height:363px;
+}
+.native-safebox-window .safebox-slot{
+  left:calc(var(--col) * 40.4px);
+  top:calc(var(--row) * 40.333px);
+  width:40.4px;
+  height:calc(var(--size) * 40.333px);
+}
+.native-safebox-window .safebox-slot>img{
+  max-width:38px!important;
+  max-height:calc(var(--size) * 40.333px)!important;
+}
+.native-safebox-window .safebox-slot>b{
+  right:3px;
+  bottom:1px;
+  font-size:10px;
+}
+.native-safebox-window .safebox-tabs{
+  left:17px;
+  top:475px;
+  width:176px;
+  height:22px;
+  gap:3px;
+}
+.native-safebox-window .safebox-tabs button{font-size:10px}
+.native-safebox-window #safebox-empty{top:435px;font-size:11px}
+
+/* Game-client page selectors in the storage window. */
+.native-safebox-window .safebox-tabs{
+  left:49px;
+  width:112px;
+  height:19px;
+  gap:8px;
+}
+.native-safebox-window .safebox-tabs button{
+  flex:0 0 32px;
+  width:32px;
+  height:19px;
+  padding:0;
+  border:0!important;
+  border-radius:0;
+  background:url('/static/inventory-native/tab-normal.png') 0 0/32px 19px no-repeat!important;
+  color:#ddd!important;
+  font:10px Tahoma,Arial,sans-serif;
+  box-shadow:none;
+}
+.native-safebox-window .safebox-tabs button.active{
+  color:#fff6cc!important;
+  background:url('/static/inventory-native/tab-normal.png') 0 0/32px 19px no-repeat!important;
+  filter:brightness(1.28);
+}
+
+/* Supplied Metin-style wide button for teleporting to the shop coordinates. */
+.native-shop-teleport{
+  position:absolute;
+  z-index:20;
+  right:8px;
+  top:279px;
+  width:161px;
+  height:29px;
+  padding:0 8px 2px;
+  border:0;
+  border-radius:0;
+  background:transparent url('/static/metin-button-wide.png') center/161px 45px no-repeat;
+  color:#f1e7cf;
+  font:700 10px Tahoma,Arial,sans-serif;
+  text-shadow:1px 1px #000;
+  cursor:pointer;
+}
+.native-shop-teleport:hover{color:#fff6c7;filter:brightness(1.18)}
+.native-shop-teleport:active{transform:translateY(1px);filter:brightness(.9)}
+.native-shop-teleport:disabled{opacity:.65;cursor:wait}
+.native-shop-teleport-status{
+  position:absolute;
+  z-index:120;
+  right:8px;
+  top:311px;
+  max-width:260px;
+  color:#f2df9a;
+  font:10px Tahoma,Arial,sans-serif;
+  text-align:right;
+  text-shadow:1px 1px #000;
+}
+
+/* Compact client-style footer button, matching Reset / Save / Cancel proportions. */
+.native-shop-teleport{
+  right:9px;
+  top:285px;
+  width:118px;
+  height:20px;
+  padding:0 5px 1px;
+  background-size:118px 33px;
+  font-size:8px;
+}
+
+
+/* Native live character map: supplied game frames, dashboard map art and exact map bounds. */
+.native-player-map{position:relative;flex:0 0 407px;width:407px;height:427px;margin:0;background:url('/static/player-map-frame-square.png') 0 0/407px 427px no-repeat;filter:drop-shadow(0 5px 8px #0008);isolation:isolate;overflow:visible}
+.native-player-map.is-portrait{flex-basis:320px;width:320px;background-image:url('/static/player-map-frame-portrait.png');background-size:320px 427px}
+.native-player-map-title{position:absolute;z-index:4;left:24px;right:24px;top:5px;height:17px;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#eee;font:11px Tahoma,Arial,sans-serif;text-shadow:1px 1px #000;white-space:nowrap}
+.native-player-map-stage{position:absolute;left:3px;top:23px;width:400px;height:400px;background:#000;overflow:hidden}
+.native-player-map.is-portrait .native-player-map-stage{left:3px;top:29px;width:314px;height:396px}
+.native-player-map-image{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
+.native-player-map-marker{position:absolute;z-index:3;width:14px;height:14px;transform:translate(-50%,-50%) rotate(var(--marker-angle,0deg));transition:left .35s linear,top .35s linear,transform .2s ease-out;transform-origin:center;object-fit:contain;filter:drop-shadow(0 1px 2px #000) drop-shadow(0 0 2px #fff)}
+.native-player-map-unavailable{position:absolute;inset:0;display:grid;place-items:center;color:#b9aa91;font:11px Tahoma,Arial,sans-serif}
+.native-player-map-unavailable[hidden],.native-player-map-marker[hidden]{display:none!important}
+@media(max-width:1000px){.native-player-map{order:-1;flex-basis:407px}.native-player-map.is-portrait{flex-basis:320px}}
+@media(max-width:540px){.native-player-map{transform:scale(.78);transform-origin:top center;margin:0 -45px -94px}.native-player-map.is-portrait{margin-left:-35px;margin-right:-35px}}
