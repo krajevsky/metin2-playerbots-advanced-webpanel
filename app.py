@@ -4582,7 +4582,36 @@ def bot_offline_shop(pid):
         CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED) AS price
       FROM player.item i LEFT JOIN player.item_proto p ON p.vnum=i.vnum
       WHERE i.owner_id=%s AND i.window='IKASHOP_OFFLINESHOP' AND i.ikashop_data IS NOT NULL AND i.ikashop_data<>'' ORDER BY i.pos""", (pid,))
-    _enrich_items(offers)
+    # A few older IkarusShop rows found in imported databases contain a
+    # malformed amount, price or prototype reference.  A shop is optional
+    # profile data, so one such offer must never make /player/<pid> return a
+    # 500.  Keep the valid offers and leave a precise trace in the panel log.
+    valid_offers = []
+    for offer in offers:
+        try:
+            offer["vnum"] = int(offer.get("vnum") or 0)
+            offer["count"] = max(1, int(offer.get("count") or 1))
+            offer["price"] = max(0, int(offer.get("price") or 0))
+            offer["pos"] = int(offer.get("pos") or 0)
+            valid_offers.append(offer)
+        except (TypeError, ValueError, KeyError):
+            app.logger.warning("Skipping malformed offline-shop offer for player %s: %r", pid, offer)
+    offers = valid_offers
+    try:
+        _enrich_items(offers)
+    except Exception:
+        # Enrichment contains lookups for stones, bonuses and client-only
+        # item variants.  Retry each entry independently so one legacy item
+        # cannot hide the rest of a player's shop.
+        app.logger.exception("Offline-shop enrichment failed for player %s; isolating offers", pid)
+        enriched_offers = []
+        for offer in offers:
+            try:
+                _enrich_items([offer])
+                enriched_offers.append(offer)
+            except Exception:
+                app.logger.exception("Skipping invalid offline-shop offer id=%s for player %s", offer.get("id"), pid)
+        offers = enriched_offers
     occupied = set()
     for offer in offers:
         height = max(1, min(3, int(offer.get("item_size") or 1)))
@@ -4604,7 +4633,7 @@ def bot_offline_shop(pid):
         # price is already the whole-stack listing price (confirmed live:
         # e.g. 40x Peleryna Meestwa for 3 250 000, not 3 250 000 each) --
         # multiplying by count again inflated the total for any stack >1.
-        "total_value": sum(o["price"] for o in offers),
+        "total_value": sum(int(o.get("price") or 0) for o in offers),
     }
 
 
@@ -4986,6 +5015,29 @@ def full_plus9_equipment_ids(player_ids):
     return {pid for pid, positions in slots.items() if positions == required}
 
 
+PLAYER_PROFILE_STAT_KEYS = (
+    "monsters", "bosses", "minibosses", "metins", "pvp_kills", "duel_wins",
+    "mining", "fishing", "deaths_total", "deaths_by_mob", "pvp_deaths",
+    "damage_max", "damage_max_horse", "damage_max_skill", "gold_earned",
+    "gold_from_shop_sale", "refine_success", "refine_burned",
+)
+
+
+def player_profile_component(pid, component, fallback, loader):
+    """Load optional /player data without sacrificing the entire profile.
+
+    Imported Playerbots databases can carry legacy rows that no longer fit a
+    newer schema or item definition.  The base character is still usable, so
+    the view intentionally degrades just that optional panel and records the
+    full traceback for an administrator to inspect.
+    """
+    try:
+        return loader()
+    except Exception:
+        app.logger.exception("Player profile component failed; pid=%s component=%s", pid, component)
+        return fallback() if callable(fallback) else fallback
+
+
 @app.route("/player/<int:pid>")
 @login_required
 def player(pid):
@@ -5065,9 +5117,11 @@ def player(pid):
     character["hp_percent"] = min(100, round(int(character.get("hp") or 0) * 100 / character["max_hp"], 1))
     character["mp_percent"] = min(100, round(int(character.get("mp") or 0) * 100 / character["max_mp"], 1))
     skill_raw = character.pop("skill_level", b"")
-    character["skills"] = parse_skills(skill_raw, character.get("job"), character.get("skill_group"))
-    character["horse_skills"] = parse_horse_skills(skill_raw)
-    character["passive_skills"] = parse_passive_skills(skill_raw)
+    character["skills"], character["horse_skills"], character["passive_skills"] = player_profile_component(
+        pid, "skills", lambda: ([], [], []),
+        lambda: (parse_skills(skill_raw, character.get("job"), character.get("skill_group")),
+                 parse_horse_skills(skill_raw), parse_passive_skills(skill_raw)),
+    )
     own_language = {1: 126, 2: 127, 3: 128}.get(int(character.get("empire") or 0))
     character["passive_skills"] = [skill for skill in character["passive_skills"]
                                    if skill["vnum"] != own_language]
@@ -5079,13 +5133,25 @@ def player(pid):
         "attack_speed": character.get("attack_speed", "—"), "move_speed": character.get("move_speed", "—"),
         "casting_speed": character.get("casting_speed", "—"), "evade": character.get("evade", "—"),
     }
-    equipment, inventory, safebox, horse_bag = load_character_items(pid, character["account_id"])
-    dragon_soul_inventory, dragon_soul_decks = load_dragon_soul_items(pid)
-    character["full_plus9_equipment"] = full_plus9_badges_enabled() and is_full_plus9_equipment(equipment)
-    gear_history = bot_gear_history(pid)
-    offline_shop = bot_offline_shop(pid)
-    character_stats = character_stat_summary(pid)
-    mission_progress = character_mission_progress(pid)
+    equipment, inventory, safebox, horse_bag = player_profile_component(
+        pid, "inventory", lambda: ({}, [], [], []),
+        lambda: load_character_items(pid, character["account_id"]),
+    )
+    dragon_soul_inventory, dragon_soul_decks = player_profile_component(
+        pid, "dragon_soul", lambda: ([], {0: {}, 1: {}}),
+        lambda: load_dragon_soul_items(pid),
+    )
+    character["full_plus9_equipment"] = player_profile_component(
+        pid, "plus9_badge", False,
+        lambda: full_plus9_badges_enabled() and is_full_plus9_equipment(equipment),
+    )
+    gear_history = player_profile_component(pid, "gear_history", list, lambda: bot_gear_history(pid))
+    offline_shop = player_profile_component(pid, "offline_shop", None, lambda: bot_offline_shop(pid))
+    character_stats = player_profile_component(
+        pid, "statistics", lambda: {key: 0 for key in PLAYER_PROFILE_STAT_KEYS},
+        lambda: character_stat_summary(pid),
+    )
+    mission_progress = player_profile_component(pid, "missions", list, lambda: character_mission_progress(pid))
     gm_row = one("SELECT mAuthority FROM common.gmlist WHERE mName=%s LIMIT 1", (character["name"],))
     character["gm_rank"] = gm_row["mAuthority"] if gm_row else ""
     return render_template("player.html", character=character, equipment=equipment, inventory=inventory, safebox=safebox,
