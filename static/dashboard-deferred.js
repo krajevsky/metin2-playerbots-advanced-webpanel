@@ -34,6 +34,7 @@
   function updateWorld(summary) {
     const values = {
       'overview-bots': summary.bots,
+      'overview-resting': summary.life_resting ?? '—',
       'overview-avg': summary.average_level,
       'overview-party': summary.party_bots,
       'overview-max': summary.max_level,

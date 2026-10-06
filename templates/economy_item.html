@@ -1,1 +1,159 @@
-{% extends 'base.html' %}{% block title %}{{item.item_name}} · Gospodarka{% endblock %}{% block content %}<a class="back" href="{{url_for('economy')}}">← Wróć do gospodarki</a><p class="eyebrow">HISTORIA PRZEDMIOTU</p><h1>{{item.item_name}} <span class="muted">· VNUM {{item.vnum}}</span></h1><section class="panel"><h2>Stan w gospodarce · ostatnie 14 dni</h2><canvas id="item-history"></canvas></section><script>new Chart(document.getElementById('item-history'),{type:'line',data:{labels:{{history|map(attribute='captured_at')|list|tojson}},datasets:[{label:'Sztuki na serwerze',data:{{history|map(attribute='amount')|list|tojson}},borderColor:'#f2c34d',backgroundColor:'#f2c34d22',fill:true,tension:.25,pointRadius:0}]},options:{plugins:{legend:{labels:{color:'#cfe0f7'}}},scales:{x:{ticks:{color:'#8fa5c1',maxTicksLimit:12}},y:{ticks:{color:'#8fa5c1'}}}}});</script>{% endblock %}
+{% extends 'base.html' %}{% block title %}{{item.item_name}} · Gospodarka{% endblock %}{% block content %}{% set en = ui_language == 'en' %}{% set L = {
+  'back': 'Back to economy' if en else 'Wróć do gospodarki',
+  'eyebrow': 'ITEM HISTORY' if en else 'HISTORIA PRZEDMIOTU',
+  'socket': 'socket0' ,
+  'circulation': 'In circulation' if en else 'W obiegu',
+  'pcs': 'pcs' if en else 'szt.',
+  'read_at': 'read' if en else 'odczyt',
+  'no_read': 'No reading in the last 24 h.' if en else 'Brak odczytu w ostatnich 24 h.',
+  'history_title': 'Stock on the server · last 14 days' if en else 'Stan w gospodarce · ostatnie 14 dni',
+  'history_label': 'Pieces on the server' if en else 'Sztuki na serwerze',
+  'holders_title': 'Who holds the most' if en else 'Kto ma najwięcej',
+  'holders_desc': 'Scans the whole server, takes a few seconds. Runs only when you click.' if en else 'Przeszukuje cały serwer, trwa kilka sekund. Uruchamia się tylko po kliknięciu.',
+  'go': '🔍 Show the players holding the most' if en else '🔍 Wyświetl graczy z największą ilością',
+  'rank': '#' ,
+  'player': 'Player' if en else 'Gracz',
+  'level': 'Lv' ,
+  'where': 'Where' if en else 'Gdzie',
+  'count': 'Count' if en else 'Ilość',
+  'bot': 'bot',
+  'inv': 'Inventory' if en else 'Ekwipunek',
+  'safebox': 'Storage' if en else 'Magazyn',
+  'shop': 'Offline shop' if en else 'Sklep offline',
+  'done_in': 'done in' if en else 'gotowe w',
+  'seconds': 's',
+  'stage': {'start': 'Starting…' if en else 'Start…', 'scan': 'Scanning inventories, storage and shops' if en else 'Przeszukiwanie ekwipunków, magazynów i sklepów', 'assemble': 'Assembling results' if en else 'Zestawianie wyników', 'done': 'Done' if en else 'Gotowe'},
+  'err_none': 'Nobody has this item in circulation.' if en else 'Nikt nie ma tego przedmiotu w obiegu.',
+  'err_expired': 'The result expired, run the search again.' if en else 'Wynik wygasł, uruchom wyszukiwanie ponownie.',
+  'err_start': 'Could not start the search.' if en else 'Nie udało się uruchomić wyszukiwania.',
+  'err_conn': 'No connection to the panel.' if en else 'Brak połączenia z panelem.',
+  'err_query': 'Database query failed.' if en else 'Błąd zapytania w bazie.'
+} %}<a class="back" href="{{url_for('economy')}}">← {{ L.back }}</a><p class="eyebrow">{{ L.eyebrow }}</p><h1>{{item.item_name}} <span class="muted">· VNUM {{item.vnum}}{% if item.socket0 is not none %} · {{ L.socket }} {{item.socket0}}{% endif %}</span></h1>{% if item.in_circulation is not none %}<p><b>{{ L.circulation }}: {{ '{:,}'.format(item.in_circulation).replace(',', ' ') }} {{ L.pcs }}</b> <span class="muted">· {{ L.read_at }} {{ item.captured_at }}</span></p>{% else %}<p class="muted">{{ L.no_read }}</p>{% endif %}<section class="panel"><h2>{{ L.history_title }}</h2><canvas id="item-history"></canvas></section>
+<section class="panel holders-box" id="holders-box" data-vnum="{{item.vnum}}" data-socket0="{{ '' if item.socket0 is none else item.socket0 }}" data-labels='{{ L|tojson }}' data-portrait-base="{{ url_for('static', filename='class-portraits/') }}" data-flag-base="{{ url_for('static', filename='empires/') }}">
+  <style>
+    .holders-box{position:relative}
+    .holders-go{background:linear-gradient(135deg,var(--gold),#c98a1c);color:#1a1307;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px -10px var(--gold)}
+    .holders-go:disabled{opacity:.65;cursor:wait}
+    .holders-bar{height:12px;border-radius:99px;background:var(--panel);border:1px solid var(--edge);overflow:hidden;margin-top:12px}
+    .holders-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),#fff3c4,var(--gold));background-size:200% 100%;transition:width .5s ease;animation:holders-shine 1.6s linear infinite}
+    @keyframes holders-shine{from{background-position:0 0}to{background-position:-200% 0}}
+    @media (prefers-reduced-motion:reduce){.holders-bar i{animation:none}}
+    .holders-meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-top:6px}
+    .holders-table{width:100%;margin-top:12px;border-collapse:collapse}
+    .holders-table th,.holders-table td{padding:8px 10px;border-bottom:1px solid var(--edge);text-align:left;vertical-align:middle}
+    .holders-table th{font-size:12px;color:var(--muted);font-weight:600}
+    .holders-table tr:first-child td{color:var(--gold);font-weight:700}
+    .holders-table tr.holders-row{transition:background .15s ease}
+    .holders-table tr.holders-row:hover{background:color-mix(in srgb,var(--gold) 10%,transparent)}
+    .holders-table a.holders-name{display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none;font-weight:600}
+    .holders-table a.holders-name:hover{text-decoration:underline}
+    .holders-portrait{width:34px;height:34px;object-fit:contain;border-radius:8px;border:1px solid var(--edge);background:var(--panel)}
+    .holders-flag{width:20px;height:14px;object-fit:contain}
+    .holders-level{font-size:12px;color:var(--muted)}
+    .holders-chips{display:flex;flex-wrap:wrap;gap:4px}
+    .holders-chip{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--edge);color:var(--muted);white-space:nowrap}
+    .holders-chip b{color:var(--text);font-weight:700}
+    .holders-chip.is-shop{border-color:var(--gold)}
+    .holders-table .count{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+    .holders-badge{font-size:10px;padding:2px 6px;border-radius:99px;border:1px solid var(--edge);color:var(--muted)}
+    .holders-error{color:var(--muted);margin-top:10px}
+    @media (max-width:640px){.holders-table .hide-sm{display:none}}
+  </style>
+  <h2>{{ L.holders_title }}</h2>
+  <p class="muted">{{ L.holders_desc }}</p>
+  <button type="button" class="holders-go" id="holders-go">{{ L.go }}</button>
+  <div id="holders-progress" hidden>
+    <div class="holders-bar"><i id="holders-fill"></i></div>
+    <div class="holders-meta"><span id="holders-stage"></span><span id="holders-time"></span></div>
+  </div>
+  <p class="holders-error" id="holders-error" hidden></p>
+  <div style="overflow-x:auto">
+  <table class="holders-table" id="holders-table" hidden>
+    <thead><tr><th>{{ L.rank }}</th><th>{{ L.player }}</th><th class="hide-sm">{{ L.where }}</th><th style="text-align:right">{{ L.count }}</th></tr></thead>
+    <tbody id="holders-rows"></tbody>
+  </table>
+  </div>
+</section>
+<script>
+(function(){
+  const box = document.getElementById('holders-box');
+  if (!box) return;
+  const T = JSON.parse(box.dataset.labels);
+  const vnum = box.dataset.vnum, socket0 = box.dataset.socket0;
+  const portraitBase = box.dataset.portraitBase, flagBase = box.dataset.flagBase;
+  const btn = document.getElementById('holders-go'), progress = document.getElementById('holders-progress');
+  const fill = document.getElementById('holders-fill'), stage = document.getElementById('holders-stage');
+  const timeEl = document.getElementById('holders-time'), err = document.getElementById('holders-error');
+  const table = document.getElementById('holders-table'), tbody = document.getElementById('holders-rows');
+  const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  let timer = null, started = 0;
+  btn.textContent = T.go;
+  function stop() { clearInterval(timer); timer = null; btn.disabled = false; }
+  function fail(msg) { stop(); progress.hidden = true; err.textContent = msg; err.hidden = false; }
+  function chip(label, value, shop) {
+    const s = document.createElement('span');
+    s.className = 'holders-chip' + (shop ? ' is-shop' : '');
+    const b = document.createElement('b'); b.textContent = fmt(value);
+    s.append(label + ' ', b);
+    return s;
+  }
+  function render(rows, took) {
+    stop(); progress.hidden = true;
+    if (!rows.length) return fail(T.err_none);
+    tbody.textContent = '';
+    rows.forEach((r, i) => {
+      const tr = document.createElement('tr'); tr.className = 'holders-row';
+      const rank = document.createElement('td'); rank.textContent = i + 1;
+      const who = document.createElement('td');
+      const link = document.createElement('a'); link.className = 'holders-name';
+      link.href = '/player/' + r.pid;
+      if (r.exists) {
+        const img = document.createElement('img'); img.className = 'holders-portrait'; img.alt = ''; img.loading = 'lazy';
+        img.src = portraitBase + r.portrait; link.appendChild(img);
+      }
+      const name = document.createElement('span'); name.textContent = r.name; link.appendChild(name);
+      if (r.exists && r.level) { const lv = document.createElement('span'); lv.className = 'holders-level'; lv.textContent = T.level + ' ' + r.level; link.appendChild(lv); }
+      if (r.is_bot) { const b = document.createElement('span'); b.className = 'holders-badge'; b.textContent = T.bot; link.appendChild(b); }
+      if (r.flag) { const f = document.createElement('img'); f.className = 'holders-flag'; f.alt = ''; f.src = flagBase + r.flag; link.appendChild(f); }
+      who.appendChild(link);
+      const where = document.createElement('td'); where.className = 'hide-sm';
+      const chips = document.createElement('div'); chips.className = 'holders-chips';
+      if (r.places.inventory) chips.appendChild(chip(T.inv, r.places.inventory, false));
+      if (r.places.safebox) chips.appendChild(chip(T.safebox, r.places.safebox, false));
+      if (r.places.shop) chips.appendChild(chip(T.shop, r.places.shop, true));
+      where.appendChild(chips);
+      const count = document.createElement('td'); count.className = 'count'; count.textContent = fmt(r.count);
+      tr.append(rank, who, where, count); tbody.appendChild(tr);
+    });
+    table.hidden = false;
+    timeEl.textContent = T.done_in + ' ' + took + ' ' + T.seconds;
+    progress.hidden = false; fill.style.width = '100%';
+  }
+  function poll(jobId) {
+    timer = setInterval(async () => {
+      try {
+        const r = await fetch('/economy/holders/' + jobId, {cache: 'no-store'});
+        if (!r.ok) return fail(T.err_expired);
+        const d = await r.json();
+        fill.style.width = (d.progress || 0) + '%';
+        stage.textContent = T.stage[d.stage] || '';
+        timeEl.textContent = ((Date.now() - started) / 1000).toFixed(1) + ' ' + T.seconds;
+        if (d.state === 'done') render(d.rows || [], d.took);
+        else if (d.state === 'error') fail(T.err_query);
+      } catch (e) { fail(T.err_conn); }
+    }, 600);
+  }
+  btn.addEventListener('click', async () => {
+    btn.disabled = true; err.hidden = true; table.hidden = true;
+    progress.hidden = false; fill.style.width = '3%'; stage.textContent = T.stage.start;
+    started = Date.now();
+    const qs = socket0 !== '' ? '?socket0=' + encodeURIComponent(socket0) : '';
+    try {
+      const r = await fetch('/economy/item/' + vnum + '/holders' + qs, {method: 'POST', cache: 'no-store'});
+      if (!r.ok) return fail(T.err_start);
+      poll((await r.json()).job_id);
+    } catch (e) { fail(T.err_conn); }
+  });
+})();
+</script>
+<script>new Chart(document.getElementById('item-history'),{type:'line',data:{labels:{{history|map(attribute='captured_at')|list|tojson}},datasets:[{label:{{ L.history_label|tojson }},data:{{history|map(attribute='amount')|list|tojson}},borderColor:'#f2c34d',backgroundColor:'#f2c34d22',fill:true,tension:.25,pointRadius:0}]},options:{plugins:{legend:{labels:{color:'#cfe0f7'}}},scales:{x:{ticks:{color:'#8fa5c1',maxTicksLimit:12}},y:{ticks:{color:'#8fa5c1'}}}}});</script>{% endblock %}

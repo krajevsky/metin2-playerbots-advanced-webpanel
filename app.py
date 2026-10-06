@@ -417,6 +417,7 @@ PANEL_FEATURES = {
     "student_chest": {"title": "Skrzynia startowa na żywo", "icon": "🎒", "scope": "Zarządzanie grą · skrzynia ucznia", "requirement": "Zmodyfikowany starter_chest.quest i tabela common.m2_switches.", "setup": "Zastosuj patch questa skrzyni startowej, skompiluj questy i ustaw M2_PLAYERBOT_DISABLE_STUDENT_CHEST zgodnie z wyborem dla botów."},
     "plus9_announcements": {"title": "Ogłoszenia ulepszeń +9", "icon": "📢", "scope": "Zarządzanie grą · rankingi", "requirement": "Komenda NOTICE w web_admin.quest oraz działający seban-collector.", "setup": "Wdróż do web_admin.quest obsługę NOTICE, skompiluj quest i uruchom usługę seban-collector."},
     "seban_updater": {"title": "Aktualizator Seban", "icon": "⬆", "scope": "Zarządzanie grą · aktualizacje", "requirement": "Usługa systemowa seban-updater i wspólny wolumen update-spool.", "setup": "Uruchom: sudo updater/install-seban-updater.sh /pełna/ścieżka/do/serwera [projekt-compose]. Następnie włącz funkcję tutaj."},
+    "bot_timeline": {"title": "Wykres sesji bota", "icon": "📈", "scope": "Zarządzanie panelem · wykres na /player/", "requirement": "Brak dodatkowych zależności: korzysta z migawek pozycji botów (co 5 minut).", "setup": "Włącz tutaj, aby na karcie bota w /player/ pojawił się wykres online/offline z ostatnich 24 godzin."},
 }
 ATTR_SKILL_DAMAGE = 121 if ENGINE_MT2009 else 71
 ATTR_AVG_DAMAGE = 122 if ENGINE_MT2009 else 72
@@ -801,6 +802,45 @@ def panel_feature_enabled(name, current=None):
     current = current or settings()
     value = current.get(f"feature_{name}")
     return CUSTOM_PATCHES_ENABLED if value is None else value == "1"
+
+
+def bot_presence_timeline(pid, hours=24):
+    """Oś online/offline bota z migawek pozycji (zapis co 5 minut).
+
+    Bot jest online w danym 5-minutowym kwadransie, gdy jego pid ma migawkę
+    w tym kwadransie. Brak migawki = offline (odpoczywa albo nie zalogowany).
+    Zegar bierzemy z bazy, żeby nie rozjechać się z czasem zapisu migawek.
+    Zwraca None, gdy w oknie nie ma żadnej migawki (gracz albo bot bez danych).
+    """
+    try:
+        latest = one("SELECT MAX(captured_at) AS last FROM player.web_seban_bot_position_snapshot WHERE captured_at > NOW() - INTERVAL %s HOUR", (hours,)).get("last")
+        if not latest:
+            return None
+        seen = {row["captured_at"] for row in rows("SELECT captured_at FROM player.web_seban_bot_position_snapshot WHERE pid=%s AND captured_at > %s", (pid, latest - timedelta(hours=hours)))}
+    except pymysql.MySQLError:
+        return None
+    if not seen:
+        return None
+    step = timedelta(minutes=5)
+    start = latest - timedelta(hours=hours)
+    bits = []
+    ticks = []
+    cursor = start + step
+    while cursor <= latest:
+        # Znacznik co 3 pełne godziny zegara: ułatwia odczyt, o której był online.
+        if cursor.minute == 0 and cursor.hour % 3 == 0:
+            ticks.append({"pos": len(bits), "label": cursor.strftime("%H:%M")})
+        bits.append(cursor in seen)
+        cursor += step
+    # Sąsiednie kwadranse online łączymy w jeden odcinek: czytelniej niż setki słupków.
+    runs = []
+    for index, on in enumerate(bits):
+        if on and (runs and runs[-1][0] + runs[-1][1] == index):
+            runs[-1][1] += 1
+        elif on:
+            runs.append([index, 1])
+    return {"runs": runs, "ticks": ticks, "slots": len(bits), "start": start.strftime("%d.%m %H:%M"), "end": latest.strftime("%d.%m %H:%M"),
+            "online_minutes": sum(bits) * 5, "total_minutes": len(bits) * 5}
 
 
 def panel_feature_states(current=None):
@@ -1435,6 +1475,29 @@ _LIVE_STATUS_INT_FIELDS = ("personality", "ambition", "role", "goal", "action", 
                             "st", "ht", "dx", "iq", "attack", "magic_attack", "defense",
                             "magic_defense", "attack_speed", "move_speed", "casting_speed", "evade",
                             "persona", "mood", "mood_lock", "lock_level")
+
+
+def life_schedule_census():
+    """Odpoczywające i wracające boty z pliku playerbot_life.tsv każdego rdzenia.
+
+    Rdzeń nadpisuje plik co 10 minut (harmonogram 'boty grają jak ludzie').
+    Zwraca None, gdy żaden rdzeń nie ma świeżego pliku (harmonogram wyłączony
+    albo rdzeń jeszcze nie ma tej wersji).
+    """
+    totals = {"resting": 0, "returning": 0, "online": 0, "cores": 0}
+    for _channel, path in channel_paths("playerbot_life.tsv"):
+        try:
+            if datetime.now().timestamp() - path.stat().st_mtime > 1500:
+                continue
+            lines = path.read_text(encoding="cp1250", errors="replace").splitlines()
+            online, resting, returning = (int(value) for value in lines[1].split("\t")[:3])
+        except (OSError, ValueError, IndexError):
+            continue
+        totals["online"] += online
+        totals["resting"] += resting
+        totals["returning"] += returning
+        totals["cores"] += 1
+    return totals if totals["cores"] else None
 
 
 def live_statuses():
@@ -4072,6 +4135,7 @@ def _dashboard_deferred_context():
     panel_release = panel_release_status()
     world_summary = {
         "bots": len(live_roster),
+        "life_resting": (life_schedule_census() or {}).get("resting"),
         "average_level": round(sum(int(bot.get("level") or 0) for bot in live_roster) / len(live_roster), 1) if live_roster else 0,
         "party_bots": sum(1 for bot in live_roster if bot.get("in_party")),
         "max_level": max((int(bot.get("level") or 0) for bot in live_roster), default=0),
@@ -5154,7 +5218,8 @@ def player(pid):
     mission_progress = player_profile_component(pid, "missions", list, lambda: character_mission_progress(pid))
     gm_row = one("SELECT mAuthority FROM common.gmlist WHERE mName=%s LIMIT 1", (character["name"],))
     character["gm_rank"] = gm_row["mAuthority"] if gm_row else ""
-    return render_template("player.html", character=character, equipment=equipment, inventory=inventory, safebox=safebox,
+    presence = bot_presence_timeline(pid) if panel_feature_enabled("bot_timeline") else None
+    return render_template("player.html", presence=presence, character=character, equipment=equipment, inventory=inventory, safebox=safebox,
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
                             dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks,
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
@@ -5561,11 +5626,108 @@ def economy():
 @app.route("/economy/item/<int:vnum>")
 @login_required
 def economy_item(vnum):
+    # socket0 wybiera konkretną księgę umiejętności (np. Aura) spośród wszystkich
+    # z vnum 50300. Bez parametru pokazujemy sumę po wszystkich, jak dotąd.
+    socket0 = request.args.get("socket0", type=int)
     item = one("SELECT vnum,COALESCE(locale_name,CONCAT('VNUM ',vnum)) AS item_name FROM player.item_proto WHERE vnum=%s", (vnum,)) or {"vnum": vnum, "item_name": f"VNUM {vnum}"}
-    item["item_name"] = game_text(item["item_name"])
-    history = rows("""SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:%%i') AS captured_at,amount
-      FROM player.web_seban_item_snapshot WHERE vnum=%s AND captured_at >= NOW() - INTERVAL 14 DAY ORDER BY captured_at""", (vnum,))
+    item["item_name"] = resolve_item_display_name(vnum, socket0 or 0, game_text(item["item_name"]))
+    item["socket0"] = socket0
+    where = "vnum=%s" + (" AND socket0=%s" if socket0 is not None else "")
+    params = (vnum, socket0) if socket0 is not None else (vnum,)
+    latest = one("SELECT MAX(captured_at) AS at FROM player.web_seban_item_snapshot WHERE " + where + " AND captured_at >= NOW() - INTERVAL 1 DAY", params).get("at")
+    in_circulation = None
+    if latest:
+        in_circulation = one("SELECT COALESCE(SUM(amount),0) AS total FROM player.web_seban_item_snapshot WHERE " + where + " AND captured_at=%s", params + (latest,)).get("total")
+    item["in_circulation"] = int(in_circulation) if in_circulation is not None else None
+    item["captured_at"] = latest.strftime("%m-%d %H:%M") if latest else None
+    history = rows("""SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:%%i') AS captured_at,SUM(amount) AS amount
+      FROM player.web_seban_item_snapshot WHERE """ + where + """ AND captured_at >= NOW() - INTERVAL 14 DAY GROUP BY captured_at ORDER BY captured_at""", params)
     return render_template("economy_item.html", item=item, history=history)
+
+
+# "Kto ma najwięcej" -- przeszukiwanie na żądanie operatora. Zapytanie po
+# całym player.item jest drogie, więc nic nie liczy się w tle: dopiero POST
+# z przycisku startuje zadanie w wątku, a przeglądarka odpytuje o postęp.
+# Wyniki trzymamy w pamięci przez 10 minut, potem znikają.
+HOLDER_JOBS = {}
+HOLDER_JOBS_LOCK = threading.Lock()
+HOLDER_JOB_TTL = 600
+
+
+def _holder_update(job_id, **fields):
+    with HOLDER_JOBS_LOCK:
+        if job_id in HOLDER_JOBS:
+            HOLDER_JOBS[job_id].update(fields)
+
+
+def _run_holder_job(job_id, vnum, socket0):
+    started = time.time()
+    socket_clause = " AND i.socket0=%s" if socket0 is not None else ""
+    socket_params = (socket0,) if socket0 is not None else ()
+    try:
+        # Każdy właściciel dzieli sztuki na trzy miejsca: ekwipunek (INVENTORY,
+        # EQUIPMENT, pas smoków), magazyn (SAFEBOX) i sklep offline (sprzedający).
+        _holder_update(job_id, stage="scan", progress=5)
+        places = {}
+        for row in rows("""SELECT i.owner_id, CASE WHEN i.window='IKASHOP_OFFLINESHOP' THEN 'shop'
+                WHEN i.window='SAFEBOX' THEN 'safebox' ELSE 'inventory' END AS place, SUM(i.count) AS total
+            FROM player.item i WHERE i.vnum=%s""" + socket_clause + " GROUP BY i.owner_id, place", (vnum,) + socket_params):
+            entry = places.setdefault(row["owner_id"], {"inventory": 0, "safebox": 0, "shop": 0})
+            entry[row["place"]] += int(row["total"] or 0)
+        _holder_update(job_id, progress=80, stage="assemble")
+        totals = {pid: sum(parts.values()) for pid, parts in places.items()}
+        top = sorted(((pid, total) for pid, total in totals.items() if total > 0), key=lambda entry: -entry[1])[:10]
+        info_by_pid = {}
+        if top:
+            placeholders = ",".join(["%s"] * len(top))
+            for row in rows(f"""SELECT p.id, p.name, p.level, p.job, {EMPIRE_EXPR} AS empire, a.login
+                FROM player.player p LEFT JOIN account.account a ON a.id=p.account_id
+                LEFT JOIN player.player_index pi ON pi.id=p.account_id WHERE p.id IN ({placeholders})""", [pid for pid, _ in top]):
+                info_by_pid[row["id"]] = row
+        result = []
+        for pid, total in top:
+            info = info_by_pid.get(pid, {})
+            empire = int(info.get("empire") or 0)
+            job = int(info.get("job") or 0)
+            result.append({"pid": pid, "name": game_text(info.get("name")) or f"pid {pid}",
+                           "level": int(info.get("level") or 0), "portrait": class_profile(job)["portrait"],
+                           "flag": empire_info(empire)["flag"], "empire": empire,
+                           "is_bot": str(info.get("login") or "").lower().startswith("playerbot_"),
+                           "count": total, "places": places[pid], "exists": bool(info)})
+        _holder_update(job_id, state="done", progress=100, stage="done", rows=result,
+                       took=round(time.time() - started, 1))
+    except pymysql.MySQLError as exc:
+        _holder_update(job_id, state="error", stage="Błąd zapytania", error=str(exc)[:200])
+
+
+@app.post("/economy/item/<int:vnum>/holders")
+@login_required
+def economy_item_holders(vnum):
+    socket0 = request.values.get("socket0", type=int)
+    key = (vnum, socket0)
+    now = time.time()
+    with HOLDER_JOBS_LOCK:
+        for job_id, job in list(HOLDER_JOBS.items()):
+            if now - job["created"] > HOLDER_JOB_TTL:
+                del HOLDER_JOBS[job_id]
+        running = next((job_id for job_id, job in HOLDER_JOBS.items()
+                        if job["key"] == key and job["state"] == "running"), None)
+        if running:
+            return jsonify({"job_id": running})
+        job_id = uuid.uuid4().hex
+        HOLDER_JOBS[job_id] = {"key": key, "created": now, "state": "running", "stage": "start", "progress": 0, "rows": [], "error": None}
+    threading.Thread(target=_run_holder_job, args=(job_id, vnum, socket0), daemon=True).start()
+    return jsonify({"job_id": job_id})
+
+
+@app.get("/economy/holders/<job_id>")
+@login_required
+def economy_holders_status(job_id):
+    with HOLDER_JOBS_LOCK:
+        job = HOLDER_JOBS.get(job_id)
+        if not job:
+            return jsonify({"state": "expired"}), 404
+        return jsonify({key: job[key] for key in ("state", "stage", "progress", "rows", "error", "took") if key in job})
 
 
 def _shop_trend(current, previous):
