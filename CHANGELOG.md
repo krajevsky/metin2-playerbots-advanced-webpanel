@@ -1,3 +1,13 @@
+## 2026-10-07 · 1.111.2 · Ekran diagnostyczny błędów
+
+- Każdy błąd HTTP panelu — w tym 400, 403, 404, 405 i 500 — korzysta teraz ze spójnego, metinowego ekranu zamiast domyślnej jasnej strony Flask.
+- Nieobsłużony wyjątek otrzymuje identyfikator zdarzenia, pełny traceback na ekranie oraz trwały wpis `PANEL_INCIDENT` w logu panelu.
+- Widok diagnostyczny nie zależy od zwykłego layoutu ani od odczytu ustawień z MariaDB, dlatego pozostaje dostępny również przy awarii bazy danych.
+- Uszkodzona tabela MyISAM nadal pokazuje właściwą instrukcję `mysqlcheck`, lecz w nowym ekranie błędu.
+- Endpointy `/api/` zwracają ustrukturyzowany JSON z kodem, identyfikatorem zdarzenia i logiem, aby odświeżanie interfejsu nie próbowało parsować strony HTML.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-04 · 1.111.1 · UI z gry przejmuje webpanel!
 
 To największa dotychczasowa przebudowa karty postaci oraz kolejny duży etap rozwoju dashboardu, sezonów i rankingów. Webpanel korzysta teraz z języka wizualnego klienta Metin2, zachowując dane na żywo, responsywność i obsługę języka polskiego oraz angielskiego.

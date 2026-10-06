@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ status }} · {{ title }} · {{ panel_brand }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=style_revision) }}">
+</head>
+<body class="login login--seban error-page">
+  <section class="login-card error-card" role="alert" aria-labelledby="error-title">
+    <img class="login-project-logo" src="{{ url_for('static', filename='branding/seban-webpanel-banner.png') }}" alt="Seban WEBPANEL · Playerbots Control Center">
+    <div class="brand">{{ panel_brand }}<span>Seban Control Center · Diagnostics</span></div>
+    <div class="error-status">HTTP {{ status }}</div>
+    <h1 id="error-title">{{ title }}</h1>
+    <p class="error-message">{{ message }}</p>
+    {% if hint %}<p class="error-hint"><b>Co zrobić:</b> <code>{{ hint }}</code></p>{% endif %}
+    <div class="error-reference"><span>Identyfikator zdarzenia</span><b>{{ incident_id }}</b></div>
+    <details class="error-log" open>
+      <summary>Log panelu dla tego błędu</summary>
+      <pre>{{ incident_log }}</pre>
+    </details>
+    <a class="error-login-link" href="{{ url_for('login') }}">Wróć do ekranu logowania</a>
+  </section>
+</body>
+</html>
