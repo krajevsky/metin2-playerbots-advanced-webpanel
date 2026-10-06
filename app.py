@@ -5668,32 +5668,60 @@ def _run_holder_job(job_id, vnum, socket0):
         # Każdy właściciel dzieli sztuki na trzy miejsca: ekwipunek (INVENTORY,
         # EQUIPMENT, pas smoków), magazyn (SAFEBOX) i sklep offline (sprzedający).
         _holder_update(job_id, stage="scan", progress=5)
-        places = {}
+        # Uwaga: w SAFEBOX owner_id to ID KONTA, nie postaci. Skrytkę przypisujemy
+        # postaci o najwyższym poziomie na tym koncie; konto bez postaci zostaje
+        # pokazane po loginie, bez linku do profilu (klucz ujemny = ID konta).
+        char_places, safebox_accounts = {}, {}
         for row in rows("""SELECT i.owner_id, CASE WHEN i.window='IKASHOP_OFFLINESHOP' THEN 'shop'
                 WHEN i.window='SAFEBOX' THEN 'safebox' ELSE 'inventory' END AS place, SUM(i.count) AS total
             FROM player.item i WHERE i.vnum=%s""" + socket_clause + " GROUP BY i.owner_id, place", (vnum,) + socket_params):
-            entry = places.setdefault(row["owner_id"], {"inventory": 0, "safebox": 0, "shop": 0})
-            entry[row["place"]] += int(row["total"] or 0)
-        _holder_update(job_id, progress=80, stage="assemble")
-        totals = {pid: sum(parts.values()) for pid, parts in places.items()}
-        top = sorted(((pid, total) for pid, total in totals.items() if total > 0), key=lambda entry: -entry[1])[:10]
-        info_by_pid = {}
-        if top:
-            placeholders = ",".join(["%s"] * len(top))
+            if row["place"] == "safebox":
+                safebox_accounts[row["owner_id"]] = int(row["total"] or 0)
+            else:
+                entry = char_places.setdefault(row["owner_id"], {"inventory": 0, "safebox": 0, "shop": 0})
+                entry[row["place"]] += int(row["total"] or 0)
+        _holder_update(job_id, progress=70, stage="assemble")
+        rep_of = {}
+        if safebox_accounts:
+            placeholders = ",".join(["%s"] * len(safebox_accounts))
+            for row in rows(f"SELECT id, account_id FROM player.player WHERE account_id IN ({placeholders}) ORDER BY level DESC, id", list(safebox_accounts)):
+                rep_of.setdefault(row["account_id"], row["id"])
+        places = {pid: dict(parts) for pid, parts in char_places.items()}
+        for account_id, total in safebox_accounts.items():
+            key = rep_of.get(account_id, -account_id)
+            places.setdefault(key, {"inventory": 0, "safebox": 0, "shop": 0})["safebox"] += total
+        totals = {key: sum(parts.values()) for key, parts in places.items()}
+        top = sorted(((key, total) for key, total in totals.items() if total > 0), key=lambda entry: -entry[1])[:10]
+        char_ids = [key for key, _ in top if key > 0]
+        account_ids = [-key for key, _ in top if key < 0]
+        info_by_pid, login_by_account = {}, {}
+        if char_ids:
+            placeholders = ",".join(["%s"] * len(char_ids))
             for row in rows(f"""SELECT p.id, p.name, p.level, p.job, {EMPIRE_EXPR} AS empire, a.login
                 FROM player.player p LEFT JOIN account.account a ON a.id=p.account_id
-                LEFT JOIN player.player_index pi ON pi.id=p.account_id WHERE p.id IN ({placeholders})""", [pid for pid, _ in top]):
+                LEFT JOIN player.player_index pi ON pi.id=p.account_id WHERE p.id IN ({placeholders})""", char_ids):
                 info_by_pid[row["id"]] = row
+        if account_ids:
+            placeholders = ",".join(["%s"] * len(account_ids))
+            for row in rows(f"SELECT id, login FROM account.account WHERE id IN ({placeholders})", account_ids):
+                login_by_account[row["id"]] = row["login"]
         result = []
-        for pid, total in top:
-            info = info_by_pid.get(pid, {})
-            empire = int(info.get("empire") or 0)
-            job = int(info.get("job") or 0)
-            result.append({"pid": pid, "name": game_text(info.get("name")) or f"pid {pid}",
-                           "level": int(info.get("level") or 0), "portrait": class_profile(job)["portrait"],
-                           "flag": empire_info(empire)["flag"], "empire": empire,
-                           "is_bot": str(info.get("login") or "").lower().startswith("playerbot_"),
-                           "count": total, "places": places[pid], "exists": bool(info)})
+        for key, total in top:
+            if key > 0:
+                info = info_by_pid.get(key, {})
+                empire = int(info.get("empire") or 0)
+                job = int(info.get("job") or 0)
+                login = str(info.get("login") or "")
+                result.append({"pid": key, "name": game_text(info.get("name")) or f"pid {key}",
+                               "level": int(info.get("level") or 0), "portrait": class_profile(job)["portrait"],
+                               "flag": empire_info(empire)["flag"], "empire": empire,
+                               "is_bot": login.lower().startswith("playerbot_"),
+                               "count": total, "places": places[key], "exists": bool(info)})
+            else:
+                login = str(login_by_account.get(-key) or "")
+                result.append({"pid": 0, "name": login or f"konto {-key}", "level": 0, "portrait": "",
+                               "flag": "", "empire": 0, "is_bot": login.lower().startswith("playerbot_"),
+                               "count": total, "places": places[key], "exists": False})
         _holder_update(job_id, state="done", progress=100, stage="done", rows=result,
                        took=round(time.time() - started, 1))
     except pymysql.MySQLError as exc:
