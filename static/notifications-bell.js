@@ -73,13 +73,7 @@
       updateBadge(data.unread_count);
       renderList(data.items);
       const toPop = data.items.filter(n => !n.popped);
-      toPop.forEach(n => {
-        if (n.kind === 'refine_failed' && typeof window.showRefineFailure === 'function') {
-          window.showRefineFailure(n);
-        } else {
-          showToast(n);
-        }
-      });
+      toPop.forEach(showToast);
       if (toPop.length) {
         fetch('/api/notifications/pop', {
           method: 'POST', headers: {'Content-Type': 'application/json'},
