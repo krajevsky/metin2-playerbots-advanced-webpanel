@@ -1,3 +1,36 @@
+## 2026-10-07 · 1.112.0 · Gospodarka sięga do graczy, sesje botów na wykresie
+
+Ta wersja łączy trzy rzeczy: operator może zobaczyć, kto trzyma dany przedmiot, karta gracza pokazuje, kiedy bot grał, a dashboard zaczyna liczyć boty odpoczywające w ramach harmonogramu „boty grają jak ludzie”.
+
+### /economy/item — kto ma najwięcej przedmiotu
+
+- Przycisk „Wyświetl graczy z największą ilością” uruchamia wyszukiwanie tylko na żądanie. Nic nie liczy się w tle. Wynik to top 10 graczy z ilością sztuk.
+- Pasek postępu pokazuje etapy: przeszukiwanie ekwipunków, magazynów i sklepów, a potem zestawianie wyników. Każdy wiersz ma czas wykonania.
+- Dla każdego gracza widać poziom, portret klasy, flagę królestwa i znacznik „bot”. Nick prowadzi do karty `/player/`.
+- Ilość rozbija się na trzy miejsca: ekwipunek (także pas smoków), magazyn i sklep offline. Pokazują się tylko miejsca, w których przedmiot faktycznie leży.
+- Wyniki wygasają po 10 minutach. Ponowne kliknięcie w trakcie trwającego wyszukiwania dołącza do niego zamiast uruchamiać drugie.
+- Interfejs działa w polskim i angielskim, zgodnie z językiem panelu. Kolory pochodzą z motywu.
+
+### /economy/item — księgi umiejętności
+
+- Księgi (vnum 50300) rozróżniane są po `socket0`, czyli po konkretnej umiejętności. Wynik wyszukiwania prowadzi do statystyk tej jednej księgi, np. „Aura Miecza”, a nie do sumy wszystkich ksiąg.
+- Strona przedmiotu pokazuje ilość w obiegu z godziną odczytu oraz historię z ostatnich 14 dni dla tej księgi.
+
+### /player — wykres sesji bota
+
+- Obok pasków PŻ, PM i EXP pojawił się wykres online/offline z ostatnich 24 godzin, w kwadransach co 5 minut.
+- Znaczniki co 3 godziny i legenda ułatwiają odczyt. Kolor pochodzi z motywu.
+- Wykres pokazuje się tylko przy botach z zapisanymi migawkami. Włącznik „Wykres sesji bota” jest w zarządzaniu panelem funkcjami.
+
+### /dashboard — odpoczywające boty
+
+- Karta „Botów w grze” ma nową komórkę „Odpoczywa (offline)”. Liczba pochodzi z pliku `playerbot_life.tsv`, który zapisuje rdzeń co 10 minut.
+- Dopóki rdzeń nie zapisuje pliku, komórka pokazuje „—”. Wartość nie jest odświeżana w tle, więc po zmianie trzeba przeładować stronę.
+
+### Wersja Playerbots
+
+- Konfiguracja Compose (`M2_PLAYERBOTS_VERSION`) została ustawiona na 2.2.74, zgodnie z zainstalowanym serwerem. Dashboard pokazuje tę samą wersję, którą działa gra.
+
 ## 2026-10-04 · 1.111.1 · UI z gry przejmuje webpanel!
 
 To największa dotychczasowa przebudowa karty postaci oraz kolejny duży etap rozwoju dashboardu, sezonów i rankingów. Webpanel korzysta teraz z języka wizualnego klienta Metin2, zachowując dane na żywo, responsywność i obsługę języka polskiego oraz angielskiego.
