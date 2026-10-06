@@ -1,3 +1,8 @@
+## 2026-10-07 · 1.112.1 · Poprawka skrytek w wyszukiwaniu „kto ma najwięcej”
+
+- Skrytki (`SAFEBOX`) w `player.item` mają ID konta w kolumnie właściciela, a nie ID postaci. Wyszukiwanie przypisywało je więc błędnym graczom (np. pid bez postaci). Teraz skrytka trafia do postaci o najwyższym poziomie na tym koncie.
+- Konto bez postaci pokazuje się po loginie, bez linku do profilu.
+
 ## 2026-10-07 · 1.112.0 · Gospodarka sięga do graczy, sesje botów na wykresie
 
 Ta wersja łączy trzy rzeczy: operator może zobaczyć, kto trzyma dany przedmiot, karta gracza pokazuje, kiedy bot grał, a dashboard zaczyna liczyć boty odpoczywające w ramach harmonogramu „boty grają jak ludzie”.
