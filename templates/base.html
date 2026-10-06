@@ -26,6 +26,7 @@
 <script>(function(){const toggle=document.getElementById('nav-toggle'),backdrop=document.getElementById('nav-backdrop');function closeNav(){document.body.classList.remove('nav-open');toggle.setAttribute('aria-expanded','false')}toggle.addEventListener('click',()=>{const open=document.body.classList.toggle('nav-open');toggle.setAttribute('aria-expanded',open?'true':'false')});backdrop.addEventListener('click',closeNav);document.querySelectorAll('aside nav a').forEach(a=>a.addEventListener('click',closeNav))})();</script>
 <script defer src="{{ static_asset_url('action-toast.js') }}"></script>
 <script defer src="{{ static_asset_url('ajax-forms.js') }}"></script>
+<script defer src="{{ static_asset_url('refine-failure.js') }}"></script>
 <script defer src="{{ static_asset_url('notifications-bell.js') }}"></script>
 <script defer src="{{ static_asset_url('dashboard-deferred.js') }}"></script>
 {% if ui_language == 'en' and i18n_payload %}<script id="i18n-data" type="application/json">{{ i18n_payload|safe }}</script><script defer src="{{ static_asset_url('i18n-watch.js') }}"></script>{% endif %}

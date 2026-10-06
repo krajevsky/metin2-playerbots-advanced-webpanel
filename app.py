@@ -2662,10 +2662,34 @@ def check_daily_summary():
         pass
 
 
+def check_refine_fail_notifications():
+    """Surface fresh burned-refine records as a one-shot panel notification.
+
+    The core writes a failed blacksmith refine as ``REMOVE (REFINE FAIL)``.
+    Looking back two minutes covers the bell's 30-second poll while the
+    unique ``kind/ref_id`` index keeps the same burn from notifying twice.
+    """
+    try:
+        failed = rows("""SELECT l.time,l.who,l.what,l.hint,p.name FROM log.log l
+          LEFT JOIN player.player p ON p.id=l.who
+          WHERE l.how='REMOVE (REFINE FAIL)' AND l.time>=NOW()-INTERVAL 2 MINUTE
+          ORDER BY l.time DESC LIMIT 30""")
+        for row in failed:
+            when = row.get("time")
+            ref_id = f"{row.get('who')}:{row.get('what')}:{when}"
+            owner = game_text(row.get("name")) or f"Postać #{row.get('who')}"
+            item = game_text(row.get("hint")).strip() or "przedmiot"
+            create_notification("refine_failed", "Ulepszanie nie powiodło się", f"{owner}: {item}",
+                                f"/player/{int(row.get('who') or 0)}", ref_id)
+    except pymysql.MySQLError:
+        pass
+
+
 def check_all_notifications():
     check_finished_events()
     check_version_notification()
     check_daily_summary()
+    check_refine_fail_notifications()
 
 
 def read_ai_weights():
