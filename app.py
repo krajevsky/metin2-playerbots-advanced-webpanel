@@ -8,6 +8,7 @@ import time
 import threading
 import re
 import uuid
+import traceback
 import zlib
 import gzip
 from logging.handlers import RotatingFileHandler
@@ -22,6 +23,7 @@ import pymysql
 import markdown
 from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
 from markupsafe import Markup, escape
+from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import translations
@@ -506,50 +508,93 @@ except OSError:
 CRASHED_TABLE_ERRNOS = (144, 145, 1194, 1195)
 
 
+HTTP_ERROR_TITLES = {
+    400: "Nieprawidłowe żądanie",
+    401: "Wymagane logowanie",
+    403: "Brak dostępu",
+    404: "Nie znaleziono strony",
+    405: "Niedozwolona metoda",
+    500: "Błąd panelu",
+    502: "Usługa chwilowo niedostępna",
+    503: "Usługa chwilowo niedostępna",
+}
+
+
+def render_panel_error(status, title=None, message=None, error=None, hint=None):
+    """Render a diagnostic page which is safe even when the database is down.
+
+    Error pages cannot use ``base.html``: its context processor reads panel
+    settings from MariaDB and would turn a database outage into a second
+    exception.  This standalone login-style template receives the incident
+    traceback directly, while the same trace is persisted in panel.log.
+    """
+    status = int(status or 500)
+    incident_id = uuid.uuid4().hex[:12].upper()
+    path = request.path if request else "unknown"
+    title = title or HTTP_ERROR_TITLES.get(status, "Błąd panelu")
+    message = message or ("Panel nie mógł wykonać tego żądania."
+                          if status >= 500 else "To żądanie nie może zostać wykonane.")
+    if error is not None:
+        trace = "".join(traceback.format_exception(type(error), error, error.__traceback__)).strip()
+        app.logger.error("PANEL_INCIDENT id=%s status=%s path=%s\n%s", incident_id, status, path, trace)
+    else:
+        trace = "[%s] HTTP %s · %s" % (incident_id, status, path)
+        app.logger.warning("PANEL_INCIDENT id=%s status=%s path=%s", incident_id, status, path)
+    if request.path.startswith("/api/"):
+        return jsonify(ok=False, error="panel_error", status=status, incident_id=incident_id,
+                       message=message, log=trace), status
+    try:
+        style_revision = hashlib.sha256((Path(app.static_folder) / "style.css").read_bytes()).hexdigest()[:12]
+    except OSError:
+        style_revision = "0"
+    return render_template(
+        "error.html", status=status, title=title, message=message, hint=hint,
+        incident_id=incident_id, incident_log=trace,
+        panel_brand=os.environ.get("SEBAN_PANEL_BRAND", "Metin2 Singleplayer"), style_revision=style_revision,
+    ), status
+
+
 @app.errorhandler(pymysql.err.OperationalError)
 def handle_crashed_table(error):
     errno = error.args[0] if error.args else 0
     message = str(error.args[1]) if len(error.args) > 1 else str(error)
     if errno not in CRASHED_TABLE_ERRNOS:
-        # Nie nasza sprawa - niech Flask pokaze swoje 500 i zapisze slad.
-        raise error
+        return render_panel_error(500, error=error)
     table = ""
     match = re.search(r"Table '([^']+)'", message)
     if match:
         table = match.group(1).replace("./", "").replace("/", ".")
-    named = ("Tabela <code>%s</code>" % escape(table)) if table else "Jedna z tabel bazy"
-    body = """<!doctype html><html lang="pl"><head><meta charset="utf-8">
-<title>Uszkodzona tabela bazy</title>
-<style>body{font-family:system-ui,Segoe UI,Arial,sans-serif;max-width:52em;margin:3em auto;padding:0 1.5em;line-height:1.6;color:#222}
-h1{font-size:1.5em}code{background:#f2f2f2;padding:.15em .35em;border-radius:3px}
-pre{background:#f2f2f2;padding:1em;border-radius:5px;overflow-x:auto}
-.note{background:#fff8e1;border-left:4px solid #e0a800;padding:.8em 1em;margin:1.5em 0}</style>
-</head><body>
-<h1>Uszkodzona tabela bazy danych</h1>
-<p>%s jest oznaczona jako uszkodzona, wiec panel nie moze jej odczytac.
-Silnik gry uzywa tabel MyISAM, a te nie przezywaja nagłego zatrzymania -
-wystarczy zamkniecie Dockera w trakcie zapisu albo zanik zasilania.</p>
-<div class="note"><strong>Aktualizacja serwera tego nie naprawi.</strong>
-Uszkodzenie jest w danych na dysku, a nie w programie - nowa wersja czyta te
-same pliki.</div>
-<h2>Jak naprawic</h2>
-<p>Otworz PowerShell w folderze serwera, w podkatalogu <code>linux-port\\docker</code>
-(w launcherze przycisk FOLDER SERWERA), i uruchom:</p>
-<pre>docker compose exec mariadb mysqlcheck -uroot -p --auto-repair --databases log player account common</pre>
-<p>Zapyta o haslo - to <code>M2_DB_ROOT_PASSWORD</code> z pliku <code>.env</code>
-w tym samym folderze. Naprawa duzej tabeli logow potrafi potrwac kilka minut.</p>
-<h2>Jesli naprawa sie nie uda</h2>
-<p>Baza <code>log</code> to wylacznie historia: co kto podniosl, ulepszyl i
-powiedzial. Gra jej nie czyta i zadna postac, przedmiot ani bot od niej nie
-zaleza. Jesli <code>mysqlcheck</code> zglosi, ze nie da rady, mozna te tabele
-oproznic bez straty dla swiata:</p>
-<pre>docker compose exec mariadb mariadb -uroot -p -e "TRUNCATE log.log; TRUNCATE log.levellog; TRUNCATE log.shout_log;"</pre>
-<div class="note">Nie rob tego dla baz <code>player</code>, <code>account</code>
-ani <code>common</code> - tam sa postacie, konta i boty.</div>
-<p style="margin-top:2em;color:#666;font-size:.9em">Blad bazy: %s (%s)</p>
-</body></html>""" % (named, errno, escape(message))
-    return body, 500
+    named = f"Tabela {table}" if table else "Jedna z tabel bazy danych"
+    return render_panel_error(
+        500,
+        title="Uszkodzona tabela bazy danych",
+        message=f"{named} jest oznaczona jako uszkodzona, więc panel nie może jej odczytać.",
+        error=error,
+        hint=("W katalogu linux-port\\docker uruchom: "
+              "docker compose exec mariadb mysqlcheck -uroot -p --auto-repair "
+              "--databases log player account common"),
+    )
 
+
+@app.errorhandler(HTTPException)
+def handle_http_error(error):
+    """Give every HTTP failure the same branded diagnostic treatment."""
+    original = getattr(error, "original_exception", None)
+    if original is not None:
+        return render_panel_error(500, error=original)
+    return render_panel_error(
+        error.code or 500,
+        title=HTTP_ERROR_TITLES.get(error.code, error.name),
+        message=error.description,
+    )
+
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(error):
+    """Last-resort protection against Flask's plain white 500 page."""
+    if isinstance(error, HTTPException):
+        return handle_http_error(error)
+    return render_panel_error(500, error=error)
 
 
 def db():
@@ -3953,7 +3998,13 @@ def translate_response(response):
     # when English is selected, so a Polish response is exactly what Jinja
     # produced, byte for byte.
     if response.content_type and response.content_type.startswith("text/html"):
-        current_settings = settings()
+        try:
+            current_settings = settings()
+        except pymysql.MySQLError:
+            # An error page may be the only page that can still render while
+            # MariaDB is unavailable.  Do not turn that diagnostic response
+            # into another 500 merely to discover its display language.
+            return response
         if current_settings.get("ui_language", "pl") == "en":
             response.set_data(translations.translate_html(response.get_data(as_text=True), "en"))
     return response
