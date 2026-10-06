@@ -1,3 +1,10 @@
+## 2026-10-07 · 1.111.4 · Wycofanie powiadomienia o nieudanym ulepszeniu
+
+- Usunięto eksperymentalne okno porażki ulepszania wraz z losowymi komunikatami i dźwiękiem z klienta gry.
+- Zdarzenia `REMOVE (REFINE FAIL)` nie tworzą już globalnych powiadomień panelu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-07 · 1.111.3 · Porażka ulepszania jak w kliencie gry
 
 - Nieudane ulepszenie zapisane przez silnik jako `REMOVE (REFINE FAIL)` tworzy globalne powiadomienie panelu.
