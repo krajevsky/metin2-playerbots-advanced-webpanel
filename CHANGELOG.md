@@ -1,3 +1,11 @@
+## 2026-10-07 · 1.111.3 · Porażka ulepszania jak w kliencie gry
+
+- Nieudane ulepszenie zapisane przez silnik jako `REMOVE (REFINE FAIL)` tworzy globalne powiadomienie panelu.
+- Otwarta karta panelu pokazuje metinowe okno porażki, losuje jeden z komunikatów i odtwarza dźwięk nieudanego ulepszenia.
+- Powiadomienie jest identyfikowane po zdarzeniu z logu silnika, dlatego ten sam nieudany refine nie wyświetli się drugi raz.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-07 · 1.111.2 · Ekran diagnostyczny błędów
 
 - Każdy błąd HTTP panelu — w tym 400, 403, 404, 405 i 500 — korzysta teraz ze spójnego, metinowego ekranu zamiast domyślnej jasnej strony Flask.
