@@ -59,3 +59,8 @@
 .playerbot-count-value input[type="number"]{width:82px;flex:none}
 .playerbot-count-value small{color:var(--muted);font-size:.85rem}
 @media(max-width:650px){.playerbot-count-row{grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important}.playerbot-count-controls{grid-column:1/-1;grid-row:2}.playerbot-count-value{justify-self:end}}
+
+.behavior-life-control{display:grid;gap:8px;padding:10px;border:1px solid var(--edge);border-radius:8px;background:color-mix(in srgb,var(--panel) 78%,transparent)}
+.behavior-life-control .behavior-weight{grid-template-columns:minmax(0,1fr) minmax(120px,2fr) auto auto}
+.behavior-life-help{color:var(--muted);line-height:1.35}
+@media(max-width:680px){.behavior-life-control .behavior-weight{grid-template-columns:1fr}}

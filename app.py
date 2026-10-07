@@ -172,6 +172,10 @@ except OSError:
 UPDATE_WATCHER_MAX_AGE_SECONDS = 90
 PLAYERBOTS_RELEASE_URL = "https://api.github.com/repos/TieruYT/metin2-playerbots/releases/latest"
 PLAYERBOTS_RELEASE_CACHE_SECONDS = 900
+# The launcher updates the stack's .env without necessarily recreating this
+# panel container. When its directory is mounted read-only, this path makes
+# the displayed Playerbots version follow that live file.
+PLAYERBOTS_VERSION_FILE = os.environ.get("PLAYERBOTS_VERSION_FILE", "").strip()
 _playerbots_release_cache = {"checked_at": 0.0, "latest": None, "error": None}
 PANEL_VERSION_URL = "https://raw.githubusercontent.com/krajevsky/metin2-playerbots-advanced-webpanel/main/VERSION"
 SERVER_SETTINGS_READY_MAX_AGE_SECONDS = 20
@@ -230,7 +234,7 @@ AI_WEIGHT_HINTS = {
 # These values share the live weight file with goal weights, but the core treats
 # them as switches or direct settings rather than 25–250% goal weights.
 AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1,
-                     "SHOP_M2": 0, "PERSONA": 1, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
+                     "SHOP_M2": 0, "PERSONA": 1, "LIFE_HOURS": 0, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
                      "WAR_MINUTES": 30, "WAR_HOURS": 2, "CHEST": None, "CHEST_STONE": None}
 AI_SPECIAL_WEIGHT_KEYS = frozenset(AI_LIVE_DEFAULTS)
 BIOLOGIST_COMPLETE_STATE = 557528158
@@ -1909,11 +1913,25 @@ def update_status():
     return result
 
 
+def playerbots_version_from_file():
+    """Read the launcher-maintained version from an optional mounted .env file."""
+    if not PLAYERBOTS_VERSION_FILE:
+        return ""
+    try:
+        for line in Path(PLAYERBOTS_VERSION_FILE).read_text(encoding="utf-8", errors="replace").splitlines():
+            key, separator, value = line.partition("=")
+            if separator and key.strip() in ("M2_PLAYERBOTS_VERSION", "PLAYERBOTS_VERSION"):
+                return value.strip().strip("'\"")
+    except OSError:
+        pass
+    return ""
+
+
 def installed_playerbots_version():
-    """Return the newest valid version reported by compose or the updater."""
+    """Return the newest valid version reported by launcher, compose or updater."""
     current = update_status()
     candidates = []
-    for value in (os.environ.get("PLAYERBOTS_VERSION"), current.get("version")):
+    for value in (playerbots_version_from_file(), os.environ.get("PLAYERBOTS_VERSION"), current.get("version")):
         value = str(value or "").strip()
         key = version_key(value)
         if key:
@@ -2694,6 +2712,8 @@ def read_ai_weights():
                         values[key] = 0 if raw_value.lower() in ("0", "off", "no") else 1
                     elif key in ("SCRAP", "REST", "KINGDOMPVP"):
                         values[key] = max(0, min(100, int(raw_value)))
+                    elif key == "LIFE_HOURS":
+                        values[key] = max(0, min(24, int(raw_value)))
                     elif key == "SCROLL_FROM":
                         values[key] = max(1, min(9, int(raw_value)))
                     elif key == "WAR_MINUTES":
@@ -2740,8 +2760,11 @@ def write_ai_weights(values):
     content.append(f"CHAT\t{1 if values.get('CHAT', 1) else 0}")
     content.append(f"BOOKS\t{1 if values.get('BOOKS', 1) else 0}")
     content.append(f"NIGHT\t{1 if values.get('NIGHT', 1) else 0}")
-    content.append(f"LIFE\t{1 if values.get('LIFE', 0) else 0}")
-    content.append(f"WARS\t{1 if values.get('WARS', 1) else 0}")
+    content.append(f"LIFE	{1 if values.get('LIFE', 0) else 0}")
+    # Zero removes the key and leaves the core's standard session rhythm.
+    if values.get("LIFE_HOURS"):
+        content.append(f"LIFE_HOURS	{max(1, min(24, int(values['LIFE_HOURS'])))}")
+    content.append(f"WARS	{1 if values.get('WARS', 1) else 0}")
     content.append(f"TOWER\t{1 if values.get('TOWER', 1) else 0}")
     content.append(f"CATACOMB\t{1 if values.get('CATACOMB', 1) else 0}")
     content.append(f"ISHOP\t{1 if values.get('ISHOP', 1) else 0}")
@@ -8282,6 +8305,10 @@ def manage_behavior():
     values["BOOKS"] = values.get("BOOKS", 1) if "BOOKS" not in request.form else (1 if "1" in request.form.getlist("BOOKS") else 0)
     for key, default in (("NIGHT", 1), ("LIFE", 0), ("WARS", 1), ("TOWER", 1), ("ISHOP", 1), ("SHOP_M2", 0), ("PERSONA", 1)):
         values[key] = values.get(key, default) if key not in request.form else (1 if "1" in request.form.getlist(key) else 0)
+    try:
+        values["LIFE_HOURS"] = max(0, min(24, int(request.form.get("LIFE_HOURS", values.get("LIFE_HOURS", 0)))))
+    except (TypeError, ValueError):
+        values["LIFE_HOURS"] = values.get("LIFE_HOURS", 0)
     try:
         values["SCRAP"] = max(0, min(100, int(request.form.get("SCRAP", values.get("SCRAP", 0)))))
     except (TypeError, ValueError):

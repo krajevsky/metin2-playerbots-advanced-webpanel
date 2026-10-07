@@ -1,3 +1,11 @@
+## 2026-10-07 · 1.112.6 · Synchronizacja Playerbots i regulator sesji
+
+- Dashboard odczytuje wersję Playerbots także bezpośrednio z pliku .env aktualizowanego przez launcher. Numer przestaje zależeć od zmiennej środowiskowej zapamiętanej podczas tworzenia kontenera.
+- Zarządzanie botami otrzymało regulator **Godziny gry na dobę** dla eksperymentalnego trybu „Boty grają jak żywi ludzie”. Wartość 0 zachowuje standardowe sesje 3–6 godzin i odpoczynek 3–9 godzin; zakres 1–24 ustawia docelowy czas gry na dobę.
+- Nawigacja Seban Panelu zawiera odnośnik **Edytor bazy danych**, prowadzący do zabezpieczonego edytora /editsql panelu Tieru.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-07 · 1.112.5 · Synchronizacja aktualizacji operatora
 
 - Zsynchronizowano najnowsze aktualizacje z gałęzi głównej panelu: boty na piętrach instancji Wieży Demonów są widoczne na mapie świata, a karta gracza otrzymała akcje operatora do odblokowania i przywrócenia blokady EXP.
