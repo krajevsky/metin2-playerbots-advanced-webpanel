@@ -1,3 +1,13 @@
+## 2026-10-07 · 1.111.5 · Odblokowanie expa bota przez operatora
+
+- Strona bota na Playerbots 2.x (mt2009) ma w akcjach administracyjnych kartę „⚡ Doświadczenie (EXP)”: pokazuje, czy exp bota jest teraz zablokowany, na którym poziomie trzyma go osobowość, czy operator go odblokował i czy zlecenie wciąż czeka na bota (prośba Iwakury).
+- Jeden przycisk: „Odblokuj exp” pozwala botowi zdobywać doświadczenie mimo blokady osobowości (Grinder na progu swojego tieru, dropper w swoim paśmie), a „Przywróć blokadę” oddaje decyzję osobowości. Zmianę wykonuje rdzeń, na którym bot gra; bot poza grą dostaje ją, gdy wejdzie. Panel niczego nie zapisuje sam: zleca `EXPUNLOCK`/`EXPLOCK` w `web_admin_queue` ze statusem `await` (starsze zlecenie tego samego bota anuluje) i do 8 sekund czeka na odpowiedź rdzenia — wykonano, czeka na bota, w trakcie albo odmowa.
+- Towarzysz gracza nie ma przycisku (jego exp zależy od Pierścienia Anty-Exp właściciela), a na r40250 karty nie ma wcale.
+- Kolumny `exp_block` i `exp_unlock` z `playerbot_status.tsv` są czytane po nagłówku, więc starszy plik statusu działa jak dotąd. W wierszu nastroju „blokada expa na N lvl” zmienia się w „exp odblokowany przez operatora”, gdy operator odblokował bota.
+- Kolejka poleceń rozpoznaje nowy stan końcowy `not_allowed`.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-07 · 1.111.4 · Wycofanie powiadomienia o nieudanym ulepszeniu
 
 - Usunięto eksperymentalne okno porażki ulepszania wraz z losowymi komunikatami i dźwiękiem z klienta gry.
