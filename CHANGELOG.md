@@ -33,6 +33,8 @@
 - Skrytki (`SAFEBOX`) w `player.item` mają ID konta w kolumnie właściciela, a nie ID postaci. Wyszukiwanie przypisywało je więc błędnym graczom (np. pid bez postaci). Teraz skrytka trafia do postaci o najwyższym poziomie na tym koncie.
 - Konto bez postaci pokazuje się po loginie, bez linku do profilu.
 
+![via Claude](https://img.shields.io/badge/via-Claude-D97757)
+
 ## 2026-10-07 · 1.112.0 · Gospodarka sięga do graczy, sesje botów na wykresie
 
 Ta wersja łączy trzy rzeczy: operator może zobaczyć, kto trzyma dany przedmiot, karta gracza pokazuje, kiedy bot grał, a dashboard zaczyna liczyć boty odpoczywające w ramach harmonogramu „boty grają jak ludzie”.
@@ -65,6 +67,8 @@ Ta wersja łączy trzy rzeczy: operator może zobaczyć, kto trzyma dany przedmi
 ### Wersja Playerbots
 
 - Konfiguracja Compose (`M2_PLAYERBOTS_VERSION`) została ustawiona na 2.2.74, zgodnie z zainstalowanym serwerem. Dashboard pokazuje tę samą wersję, którą działa gra.
+
+![via Claude](https://img.shields.io/badge/via-Claude-D97757)
 
 ## 2026-10-04 · 1.111.1 · UI z gry przejmuje webpanel!
 
@@ -129,6 +133,8 @@ To największa dotychczasowa przebudowa karty postaci oraz kolejny duży etap ro
 
 - Tooltip aktywnego przedmiotu z wyposażenia oraz dolnej siatki inventory jest renderowany ponad ikonami Alchemii, juków, depozytu i sklepu.
 - Podnoszony jest tylko aktywny slot z tooltipem, dzięki czemu tło equipmentu nie zasłania już przycisków interfejsu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 
 ## 2026-10-03 · 1.109.12 · Tooltipy nad przyciskami ekwipunku
 
