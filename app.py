@@ -1646,6 +1646,10 @@ def live_map_counts(channel=None):
         if channel is not None and entry.get("channel") != channel:
             continue
         index = entry["map_index"]
+        # A dungeon instance (the Demon Tower's floors are 660000, 660001...)
+        # is counted with its base map, which is the map a person picks.
+        if index >= 10000:
+            index //= 10000
         counts[index] = counts.get(index, 0) + 1
     return [{"map_index": index, "character_count": count} for index, count in sorted(counts.items(), key=lambda item: -item[1])]
 

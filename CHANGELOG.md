@@ -1,3 +1,9 @@
+## 2026-10-07 · 1.111.6 · Boty na piętrach Wieży Demonów na mapie świata
+
+- Piętra Wieży Demonów to instancje mapy 66 (numery 660000, 660001 i dalsze), więc mapa świata nie pokazywała botów, które były w środku rajdu: „Widocznych: 0 postaci”, choć w Wieży walczyło kilkanaście botów. Instancja lochu jest teraz liczona jako jej mapa bazowa: boty z pięter stoją na obrazku Wieży (piętra dzielą współrzędne z mapą 66), liczą się w natężeniu map i w mapie cieplnej.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-07 · 1.111.5 · Odblokowanie expa bota przez operatora
 
 - Strona bota na Playerbots 2.x (mt2009) ma w akcjach administracyjnych kartę „⚡ Doświadczenie (EXP)”: pokazuje, czy exp bota jest teraz zablokowany, na którym poziomie trzyma go osobowość, czy operator go odblokował i czy zlecenie wciąż czeka na bota (prośba Iwakury).

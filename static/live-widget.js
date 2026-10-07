@@ -264,7 +264,7 @@
     try {
       const response = await fetch('/api/live-bots', {cache:'no-store'}), data = await response.json();
       if (!data.ok) return;
-      globalTopId = data.global_top_id; topLevelRanks = data.top_level_ranks || {}; snapshot = data.bots.map(bot => { const b = data.bounds[String(bot.map_index)] || data.bounds[bot.map_index]; return b ? {...bot, px:(bot.x-b[0])/b[2]*100, py:(bot.y-b[1])/b[3]*100} : bot; });
+      globalTopId = data.global_top_id; topLevelRanks = data.top_level_ranks || {}; snapshot = data.bots.map(raw => { /* A dungeon instance (the Demon Tower's floors: 660000, 660001...) is its base map times ten thousand plus a number, and it shares the base map's coordinates, so a bot on a floor belongs on the base map's picture. */ const bot = raw.map_index >= 10000 ? {...raw, map_index: Math.floor(raw.map_index / 10000), instance_index: raw.map_index} : raw; const b = data.bounds[String(bot.map_index)] || data.bounds[bot.map_index]; return b ? {...bot, px:(bot.x-b[0])/b[2]*100, py:(bot.y-b[1])/b[3]*100} : bot; });
       ensureChannelUI(data.channels || [1]);
       const globalAverage = snapshot.length ? (snapshot.reduce((sum,bot)=>sum+bot.level,0)/snapshot.length).toFixed(1) : '0';
       if ($('overview-bots')) $('overview-bots').textContent = snapshot.length;
