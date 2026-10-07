@@ -2225,6 +2225,51 @@ EXACT.update({
     "Kliknij, żeby zobaczyć.": "Click to see.",
 })
 
+# --- player.html: a bot's EXP lock card and its flash messages
+# (bot_exp_lock_view / player_action_exp_lock in app.py, Playerbots 2.x) ---
+EXACT.update({
+    "⚡ Doświadczenie (EXP)": "⚡ Experience (EXP)",
+    "Towarzysz gracza: jego exp zależy od Pierścienia Anty-Exp właściciela i jego własnego limitu, nie od panelu.":
+        "A player's companion: its EXP follows its owner's Anti-Exp Ring and its own cap, not the panel.",
+    "🔒 Exp zablokowany: bot nie zdobywa doświadczenia": "🔒 EXP blocked: the bot gains no experience",
+    "✅ Exp leci: bot zdobywa doświadczenie": "✅ EXP flows: the bot gains experience",
+    "Bota nie ma w grze, stan z ostatniego zapisu postaci.": "The bot is not in the game; as its character was last saved.",
+    "🔓 Operator odblokował exp: osobowość nie blokuje tego bota.":
+        "🔓 Unlocked by the operator: its personality does not block this bot.",
+    "Bez zmiany operatora: o blokadzie decyduje osobowość.": "No operator override: its personality decides the lock.",
+    "Przywróć blokadę": "Restore the lock",
+    "🔓 Odblokuj exp": "🔓 Unlock EXP",
+    "„Odblokuj exp” pozwala botowi zdobywać doświadczenie, choć jego osobowość by go zatrzymała (Grinder na progu swojego tieru, dropper w swoim paśmie). „Przywróć blokadę” oddaje decyzję osobowości. Zmianę wykonuje rdzeń, na którym bot gra; bot poza grą dostanie ją, gdy wejdzie.":
+        "\"Unlock EXP\" lets the bot gain experience although its personality would hold it (a Grinder at its tier's lock, "
+        "a dropper in its band). \"Restore the lock\" hands the decision back to its personality. The core the bot plays on "
+        "makes the change; a bot out of the game gets it when it comes in.",
+    "Blokadę exp botów ma tylko linia Playerbots 2.x (mt2009).": "Only the Playerbots 2.x line (mt2009) has the bots' EXP lock.",
+    "Nieobsługiwana akcja.": "Unsupported action.",
+    "Panel nie zmienia blokady exp tej postaci: to nie jest bot z rejestru albo to towarzysz gracza.":
+        "The panel does not change this character's EXP lock: it is not a registered bot, or it is a player's companion.",
+})
+PATTERNS_RAW += [
+    (r'^Osobowość trzyma go na poziomie (\d+)\.$', 'Its personality holds it at level $1.'),
+    (r'^⏳ Odblokowanie czeka na wejście bota do gry \(zlecone (.+)\)\.$',
+     '⏳ The unlock waits for the bot to come into the game (asked $1).'),
+    (r'^⏳ Przywrócenie blokady czeka na wejście bota do gry \(zlecone (.+)\)\.$',
+     '⏳ Restoring the lock waits for the bot to come into the game (asked $1).'),
+    (r'^⏳ Rdzeń bota właśnie wykonuje zmianę \(zlecone (.+)\)\.$',
+     "⏳ The bot's core is making the change right now (asked $1)."),
+    (r'^(.+): exp odblokowany, bot zdobywa doświadczenie\.$', '$1: EXP unlocked, the bot gains experience.'),
+    (r'^(.+): blokada przywrócona, o blokadzie decyduje osobowość\.$', '$1: the lock is restored, its personality decides.'),
+    (r'^(.+) nie jest teraz w grze albo jego rdzeń jeszcze nie odpowiedział\. Zmiana czeka i wykona ją rdzeń bota, '
+     r'gdy bot będzie w grze\.$',
+     "$1 is not in the game now, or its core has not answered yet. The change waits, and the bot's core makes it "
+     "once the bot is in the game."),
+    (r'^Rdzeń bota (.+) właśnie wykonuje zmianę\. Odśwież stronę za chwilę\.$',
+     'The core of $1 is making the change right now. Reload the page in a moment.'),
+    (r'^Nie udało się zmienić blokady exp \((.+)\)\.$', 'Could not change the EXP lock ($1).'),
+    # The mood line's tail ("Normalny · blokada expa na 30 lvl").
+    (r'blokada expa na (\d+) lvl', 'EXP locked at level $1'),
+    (r'exp odblokowany przez operatora', 'EXP unlocked by the operator'),
+]
+
 
 def _compile_pattern(entry):
     """A PATTERNS_RAW entry, (source, replacement[, names]), as re.subn wants

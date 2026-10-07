@@ -88,6 +88,24 @@
         <tr><td>Yang ze sprzedaży u NPC</td><td>{{'{:,}'.format(character_stats.gold_from_shop_sale).replace(',', ' ')}}</td></tr>
     </tbody></table><p class="muted">Źródło: tabela silnika <code>player_special_flag</code> (system PLAYER_STATS_*), zapisywana po stronie serwera przy każdej zmianie — dokładnie ten sam licznik, który wypełnia okno "Statystyki" pod klawiszem Y w grze. Cztery pola z panelu Y — ukończone lochy, zebrane kwiaty, otwarte skrzynie, ukończone księgi misji — są zdefiniowane w silniku, ale nigdy nie są zwiększane przez żaden kod gry na tej wersji serwera, więc nie mają tu żadnej wartości do pokazania.</p></section>
     <section class="panel"><h2>⚙ Akcje administracyjne</h2><div class="grid two">
+      {# A bot's EXP lock and the operator's override of it (bot_exp_lock_view in
+         app.py; Playerbots 2.x only, bots only). The core makes the change; the
+         panel only queues it. #}
+      {% if exp_lock %}
+      <form class="manage-form game-admin-card" id="exp-lock" method="post" action="{{url_for('player_action_exp_lock', pid=character.id)}}"><h3>⚡ Doświadczenie (EXP)</h3>
+        {% if exp_lock.companion %}<small class="muted">Towarzysz gracza: jego exp zależy od Pierścienia Anty-Exp właściciela i jego własnego limitu, nie od panelu.</small>
+        {% else %}
+        <b>{% if exp_lock.blocked %}🔒 Exp zablokowany: bot nie zdobywa doświadczenia{% else %}✅ Exp leci: bot zdobywa doświadczenie{% endif %}</b>
+        {% if not exp_lock.online %}<small class="muted">Bota nie ma w grze, stan z ostatniego zapisu postaci.</small>{% endif %}
+        {% if exp_lock.lock_level %}<small class="muted">Osobowość trzyma go na poziomie {{exp_lock.lock_level}}.</small>{% endif %}
+        <small>{% if exp_lock.unlocked %}🔓 Operator odblokował exp: osobowość nie blokuje tego bota.{% else %}Bez zmiany operatora: o blokadzie decyduje osobowość.{% endif %}</small>
+        {% if exp_lock.pending %}<small class="muted">⏳ {% if exp_lock.pending.applying %}Rdzeń bota właśnie wykonuje zmianę{% elif exp_lock.pending.kind == 'EXPUNLOCK' %}Odblokowanie czeka na wejście bota do gry{% else %}Przywrócenie blokady czeka na wejście bota do gry{% endif %} (zlecone {{exp_lock.pending.since}}).</small>{% endif %}
+        {% if exp_lock.wants_unlocked %}<input type="hidden" name="mode" value="restore"><button class="secondary">Przywróć blokadę</button>
+        {% else %}<input type="hidden" name="mode" value="unlock"><button>🔓 Odblokuj exp</button>{% endif %}
+        <small class="muted">„Odblokuj exp” pozwala botowi zdobywać doświadczenie, choć jego osobowość by go zatrzymała (Grinder na progu swojego tieru, dropper w swoim paśmie). „Przywróć blokadę” oddaje decyzję osobowości. Zmianę wykonuje rdzeń, na którym bot gra; bot poza grą dostanie ją, gdy wejdzie.</small>
+        {% endif %}
+      </form>
+      {% endif %}
       <form class="manage-form game-admin-card" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>🎁 Daj przedmiot</h3><input type="hidden" name="command" value="ITEM"><label>Kategoria<select id="admin-item-category"><option value="all">Wszystkie</option><option value="weapons">Bronie</option><option value="armor">Zbroje</option><option value="use">Mikstury / użytkowe</option><option value="dragon">Smocze Kamienie</option><option value="metin">Kamienie Metin</option><option value="special">Specjalne</option><option value="other">Inne</option></select></label><label>Szukaj<input id="admin-item-search" type="search" placeholder="Nazwa albo VNUM"></label><label>Przedmiot<select id="admin-item-results" name="vnum" required><option value="">Wyszukaj przedmiot…</option></select></label><label>Ilość<input name="count" type="number" min="1" max="200" value="1" required></label><button>🎁 Wyślij przedmiot</button></form>
       <form class="manage-form game-admin-card" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>💰 Daj Yang</h3><input type="hidden" name="command" value="GOLD"><div class="admin-presets"><button type="button" data-yang="1000000">1 Million</button><button type="button" data-yang="10000000">10 Million</button><button type="button" data-yang="100000000">100 Million</button><button type="button" data-yang="1000000000">1 Billion</button></div><label>Kwota<input id="admin-yang" name="amount" type="number" min="1" max="2000000000" value="1000000" required></label><button>💰 Wyślij Yang</button></form>
       <form class="manage-form game-admin-card" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>⭐ Ustaw poziom</h3><input type="hidden" name="command" value="LEVEL"><label>Poziom<input name="level" type="number" min="1" max="120" value="{{character.level}}" required></label><button>⭐ Zmień poziom</button></form>

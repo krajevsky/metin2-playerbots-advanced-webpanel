@@ -399,7 +399,13 @@ def live_positions():
             if time.time() - path.stat().st_mtime > 25:
                 continue
             for n, _status in parse_status_rows(path.read_text(encoding="cp1250", errors="replace")):
-                result[n["pid"]] = (n.get("map", 0), n.get("x", 0), n.get("y", 0), channel)
+                # A dungeon instance (the Demon Tower's floors are 660000,
+                # 660001...) shares its base map's coordinates, so its
+                # positions count and heat on the base map.
+                index = n.get("map", 0)
+                if index >= 10000:
+                    index //= 10000
+                result[n["pid"]] = (index, n.get("x", 0), n.get("y", 0), channel)
         except (OSError, ValueError):
             continue
     return result

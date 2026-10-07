@@ -1,10 +1,27 @@
+## 2026-10-07 · 1.112.5 · Synchronizacja aktualizacji operatora
+
+- Zsynchronizowano najnowsze aktualizacje z gałęzi głównej panelu: boty na piętrach instancji Wieży Demonów są widoczne na mapie świata, a karta gracza otrzymała akcje operatora do odblokowania i przywrócenia blokady EXP.
+- Zlecenia EXPUNLOCK i EXPLOCK działają przez kolejkę silnika, uwzględniają stan not_allowed oraz nie zmieniają danych postaci bez odpowiedzi rdzenia.
+- Zachowano nowsze funkcje wdrożonej gałęzi: wyszukiwanie posiadaczy przedmiotów, wykres sesji botów i statystyki odpoczynku.
+- Poprawiono format wcześniejszego wpisu changelogu, w którym znaki nowej linii były zapisane dosłownie.
+
+![via Codex, Claude & Tieru](https://img.shields.io/badge/via-Codex%2C%20Claude%20%26%20Tieru-8B5CF6)
+
 ## 2026-10-07 · 1.112.4 · Wycofanie powiadomienia o nieudanym ulepszeniu
 
 - Usunięto eksperymentalne okno porażki ulepszania wraz z losowymi komunikatami i dźwiękiem z klienta gry.
 - Zdarzenia `REMOVE (REFINE FAIL)` nie tworzą już globalnych powiadomień panelu.
 
 ![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
-## 2026-10-07 · 1.112.2 · Ekran diagnostyczny błędów\n\n- Każdy błąd HTTP panelu korzysta teraz ze spójnego ekranu diagnostycznego zamiast domyślnej strony Flask.\n- Nieobsłużony wyjątek otrzymuje identyfikator zdarzenia, traceback na ekranie i wpis PANEL_INCIDENT w logu panelu.\n- Widok błędu działa bez normalnego layoutu oraz bez odczytu ustawień z MariaDB.\n\n![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)\n\n## 2026-10-07 · 1.112.1 · Poprawka skrytek w wyszukiwaniu „kto ma najwięcej”
+## 2026-10-07 · 1.112.2 · Ekran diagnostyczny błędów
+
+- Każdy błąd HTTP panelu korzysta teraz ze spójnego ekranu diagnostycznego zamiast domyślnej strony Flask.
+- Nieobsłużony wyjątek otrzymuje identyfikator zdarzenia, traceback na ekranie i wpis PANEL_INCIDENT w logu panelu.
+- Widok błędu działa bez normalnego layoutu oraz bez odczytu ustawień z MariaDB.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
+## 2026-10-07 · 1.112.1 · Poprawka skrytek w wyszukiwaniu „kto ma najwięcej”
 
 - Skrytki (`SAFEBOX`) w `player.item` mają ID konta w kolumnie właściciela, a nie ID postaci. Wyszukiwanie przypisywało je więc błędnym graczom (np. pid bez postaci). Teraz skrytka trafia do postaci o najwyższym poziomie na tym koncie.
 - Konto bez postaci pokazuje się po loginie, bez linku do profilu.
