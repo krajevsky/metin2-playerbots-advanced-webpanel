@@ -5,6 +5,13 @@
 - Zachowano nowsze funkcje wdrożonej gałęzi: wyszukiwanie posiadaczy przedmiotów, wykres sesji botów i statystyki odpoczynku.
 - Poprawiono format wcześniejszego wpisu changelogu, w którym znaki nowej linii były zapisane dosłownie.
 
+### Zmiany Tieru włączone do 1.112.5
+
+- **Boty na piętrach Wieży Demonów:** instancje 660000, 660001 i kolejne są teraz liczone jako mapa bazowa 66. Boty w środku lochu są widoczne na obrazku Wieży, uwzględniane w natężeniu map i mapie cieplnej, przy zachowaniu współrzędnych mapy bazowej.
+- **Sterowanie EXP przez operatora:** karta bota na Playerbots 2.x ma akcję odblokowania EXP oraz przywrócenia blokady osobowości. Polecenia EXPUNLOCK i EXPLOCK trafiają do web_admin_queue, zastępują starsze zlecenie tego samego bota i czekają do ośmiu sekund na odpowiedź silnika.
+- Akcja nie jest dostępna dla towarzyszy gracza oraz nie pojawia się na r40250. Status botów nadal działa ze starszym plikiem playerbot_status.tsv, w którym nie ma jeszcze kolumn exp_block i exp_unlock.
+- Kolejka rozpoznaje dodatkowy końcowy stan **not_allowed**, a stan nastroju rozróżnia zwykłą blokadę poziomu od odblokowania wymuszonego przez operatora.
+
 ![via Codex, Claude & Tieru](https://img.shields.io/badge/via-Codex%2C%20Claude%20%26%20Tieru-8B5CF6)
 
 ## 2026-10-07 · 1.112.4 · Wycofanie powiadomienia o nieudanym ulepszeniu
