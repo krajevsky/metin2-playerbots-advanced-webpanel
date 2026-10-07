@@ -1928,10 +1928,13 @@ def playerbots_version_from_file():
 
 
 def installed_playerbots_version():
-    """Return the newest valid version reported by launcher, compose or updater."""
+    """Read the launcher's live .env first, then fall back to compose/updater."""
+    launcher_version = playerbots_version_from_file()
+    if version_key(launcher_version):
+        return launcher_version.lstrip("vV")
     current = update_status()
     candidates = []
-    for value in (playerbots_version_from_file(), os.environ.get("PLAYERBOTS_VERSION"), current.get("version")):
+    for value in (os.environ.get("PLAYERBOTS_VERSION"), current.get("version")):
         value = str(value or "").strip()
         key = version_key(value)
         if key:

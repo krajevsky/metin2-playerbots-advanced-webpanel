@@ -1,3 +1,9 @@
+## 2026-10-07 · 1.112.7 · Wersja Playerbots z launchera
+
+- Plik .env aktualizowany przez launcher jest nadrzędnym źródłem wersji Playerbots. Dashboard nie może już wybrać starszej lub wyższej wartości zapamiętanej w środowisku kontenera.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-07 · 1.112.6 · Synchronizacja Playerbots i regulator sesji
 
 - Dashboard odczytuje wersję Playerbots także bezpośrednio z pliku .env aktualizowanego przez launcher. Numer przestaje zależeć od zmiennej środowiskowej zapamiętanej podczas tworzenia kontenera.
