@@ -4366,13 +4366,18 @@ def api_dashboard_deferred():
         # Serve stale data immediately while it is refreshed in the background.
         # These widgets are historical/server summaries; the live map retains
         # its separate 1.5-second endpoint and is never served from this cache.
-        return jsonify(ok=True, **cached["data"])
-    data = _dashboard_deferred_context()
-    try:
-        _write_dashboard_deferred_cache(data)
-    except pymysql.MySQLError:
-        app.logger.exception("Initial dashboard deferred cache write failed")
-    return jsonify(ok=True, **data)
+        response = jsonify(ok=True, **cached["data"])
+    else:
+        data = _dashboard_deferred_context()
+        try:
+            _write_dashboard_deferred_cache(data)
+        except pymysql.MySQLError:
+            app.logger.exception("Initial dashboard deferred cache write failed")
+        response = jsonify(ok=True, **data)
+    # A browser must not keep an old release number after the launcher updates
+    # the server. The server-side cache above is deliberate and short-lived.
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
 @app.route("/players")
 @login_required
 def players():
