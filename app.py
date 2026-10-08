@@ -7344,6 +7344,19 @@ def api_system_current():
     return {"ok": True, "system": one("SELECT * FROM player.web_seban_system_snapshot ORDER BY captured_at DESC LIMIT 1")}
 
 
+@app.route("/api/system-history")
+@login_required
+def api_system_history():
+    """Last 24h of the collector's VPS snapshots (the same rows /system charts), thinned to at most
+    ~120 points for the dashboard sparkline of the laka theme."""
+    samples = rows("""
+      SELECT DATE_FORMAT(captured_at, '%%H:%%i') AS label, cpu_percent, ram_percent, disk_percent
+      FROM player.web_seban_system_snapshot WHERE captured_at >= NOW() - INTERVAL 24 HOUR ORDER BY captured_at
+    """)
+    step = max(1, len(samples) // 120)
+    return {"ok": True, "samples": samples[::step]}
+
+
 @app.route("/rankings")
 @login_required
 def rankings():

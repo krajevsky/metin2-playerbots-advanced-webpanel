@@ -32,7 +32,8 @@
       const row = byMap[m] = byMap[m] || [0, 0, 0, 0];
       row[0]++; row[Number(b.empire) || 0]++;
     });
-    const top = Object.entries(byMap).sort((a, b) => b[1][0] - a[1][0]).slice(0, 7);
+    // wszystkie mapy z botami; lista wypełnia pudełko i przewija się
+    const top = Object.entries(byMap).sort((a, b) => b[1][0] - a[1][0]);
     const max = top.length ? top[0][1][0] : 1;
     const names = data.maps || {};
     $('lw-maps').innerHTML = top.map(([m, r]) => `<div class="laka-hbar"><span title="${esc(names[m] || 'Mapa ' + m)}">${esc(names[m] || 'Mapa ' + m)}</span><div class="laka-track"><i style="width:${r[0] / max * 100}%">${[1, 2, 3].map(e => `<b class="e${e}" style="width:${r[e] / r[0] * 100}%" title="${['', 'Shinsoo', 'Chunjo', 'Jinno'][e]}: ${r[e]}"></b>`).join('')}</i></div><em>${r[0]}</em></div>`).join('');
@@ -93,6 +94,35 @@
   bus.on('/api/system-current', data => drawSystem(data.system));
   const pollSystem = () => { if (!document.hidden) fetch('/api/system-current', { cache: 'no-store' }).catch(() => {}); };
   setInterval(pollSystem, 15000);
+
+  // ── wykres VPS z ostatnich 24 h (/api/system-history: te same próbki co strona Wydajność)
+  async function loadHistory() {
+    try {
+      const data = await fetch('/api/system-history', { cache: 'no-store' }).then(r => r.json());
+      const s = (data.samples || []).filter(p => p.cpu_percent !== null);
+      const box = $('lw-history');
+      if (!box) return;
+      if (s.length < 2) { box.innerHTML = '<p class="muted">Za mało próbek z ostatniej doby.</p>'; return; }
+      const W = 300, H = 92, pad = 4, x = i => pad + i / (s.length - 1) * (W - 2 * pad), y = v => H - 14 - Math.min(100, Math.max(0, Number(v) || 0)) / 100 * (H - 22);
+      const line = key => s.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p[key]).toFixed(1)}`).join(' ');
+      const cpu = line('cpu_percent'), ram = line('ram_percent');
+      const mid = Math.floor(s.length / 2);
+      box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="CPU i RAM w ostatnich 24 godzinach">
+        <defs><linearGradient id="lw-cpu-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b93f" stop-opacity=".35"/><stop offset="1" stop-color="#e8b93f" stop-opacity="0"/></linearGradient></defs>
+        ${[0, 50, 100].map(v => `<line x1="${pad}" x2="${W - pad}" y1="${y(v)}" y2="${y(v)}" class="grid"/>`).join('')}
+        <path d="${cpu} L${x(s.length - 1)} ${y(0)} L${x(0)} ${y(0)} Z" fill="url(#lw-cpu-fill)"/>
+        <path d="${ram}" class="ram"/><path d="${cpu}" class="cpu"/>
+        <circle cx="${x(s.length - 1)}" cy="${y(s[s.length - 1].cpu_percent)}" r="2.6" class="dot"/>
+      </svg><div class="laka-spark-axis"><span>${esc(s[0].label)}</span><span>${esc(s[mid].label)}</span><span>${esc(s[s.length - 1].label)}</span></div>`;
+      const peak = s.reduce((a, b) => (Number(b.cpu_percent) > Number(a.cpu_percent) ? b : a));
+      const avgRam = s.reduce((t, p) => t + Number(p.ram_percent || 0), 0) / s.length;
+      const sys = bus.last['/api/system-current']?.system || bus.last['/api/dashboard-deferred']?.system || {};
+      const freeDisk = sys.disk_total_mb ? `${((sys.disk_total_mb - sys.disk_used_mb) / 1024).toFixed(1).replace('.', ',')} GB` : '—';
+      $('lw-history-stats').innerHTML = `<div><span>Szczyt CPU</span><b>${Math.round(peak.cpu_percent)}%</b><small>o ${esc(peak.label)}</small></div><div><span>Średni RAM</span><b>${Math.round(avgRam)}%</b><small>z ${s.length} próbek</small></div><div><span>Wolny dysk</span><b>${freeDisk}</b><small>teraz</small></div>`;
+    } catch (_) { /* wykres zostaje z poprzednim stanem */ }
+  }
+  loadHistory();
+  setInterval(() => { if (!document.hidden) loadHistory(); }, 300000);
 
   // ── Kronika świata (te same wydarzenia, co pasek wiadomości)
   const KIND = { refine: 'icons/71085.png', hammer: 'icons/25040.png', bought: 'icons/money.png', weapon: 'icons/00010.png', armor: 'icons/11290.png', announcement: 'icons/71027.png' };

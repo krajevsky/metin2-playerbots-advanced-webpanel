@@ -1,22 +1,34 @@
 {#- Motyw "Laka i Złoto": nawigacja sekcjami. Każda strona z dotychczasowego menu ma tu swoje miejsce;
     'extra' to podstrony szczegółów (karta postaci, gildia, przedmiot…), które podświetlają swoją sekcję. -#}
 {% set LAKA_SECTIONS = [
-  {'name': 'Świat', 'icon': '71027.png', 'pages': [('dashboard', 'Przegląd świata'), ('maps', 'Aktywność map'), ('respawns', 'Respawny'), ('season', 'Sezon i rekordy')], 'extra': ['daily_summary']},
-  {'name': 'Postacie', 'icon': '00010.png', 'pages': [('players', 'Gracze i boty'), ('rankings', 'Rankingi'), ('guilds', 'Gildie'), ('bot_personalities', 'Osobowości botów'), ('character_creator', 'Kreator postaci')], 'extra': ['player', 'guild']},
-  {'name': 'Gospodarka', 'icon': 'money.png', 'pages': [('economy', 'Przedmioty i drop'), ('economy_shops', 'Sklepy offline'), ('economy_itemshop', 'ItemShop'), ('items_database', 'Baza przedmiotów')], 'extra': ['economy_item', 'economy_holders_status']},
-  {'name': 'Kronika', 'icon': '25040.png', 'pages': [('events', 'Planer eventów'), ('world_feed', 'Wiadomości ze świata'), ('live_chat', 'Czat na żywo')], 'extra': []},
-  {'name': 'Serwer', 'icon': '50513.png', 'pages': [('manage', 'Gra i serwer'), ('system', 'Wydajność'), ('diagnostics', 'Diagnostyka'), ('decisions_page', 'Decyzje botów'), ('panel_logs', 'Logi panelu')], 'extra': []},
-  {'name': 'Administracja', 'icon': 'book_01.png', 'pages': [('accounts', 'Konta'), ('bot_names', 'Nazwy botów'), ('gm_commands', 'Komendy GM'), ('manage_panel', 'Ustawienia panelu'), ('changelog', 'Changelog')], 'extra': ['account_detail', 'account_characters']},
+  {'name': 'Świat', 'icon': 'world', 'pages': [('dashboard', 'Przegląd świata'), ('maps', 'Aktywność map'), ('respawns', 'Respawny'), ('season', 'Sezon i rekordy')], 'extra': ['daily_summary']},
+  {'name': 'Postacie', 'icon': 'chars', 'pages': [('players', 'Gracze i boty'), ('rankings', 'Rankingi'), ('guilds', 'Gildie'), ('bot_personalities', 'Osobowości botów'), ('character_creator', 'Kreator postaci')], 'extra': ['player', 'guild']},
+  {'name': 'Gospodarka', 'icon': 'economy', 'pages': [('economy', 'Przedmioty i drop'), ('economy_shops', 'Sklepy offline'), ('economy_itemshop', 'ItemShop'), ('items_database', 'Baza przedmiotów')], 'extra': ['economy_item', 'economy_holders_status']},
+  {'name': 'Kronika', 'icon': 'chronicle', 'pages': [('events', 'Planer eventów'), ('world_feed', 'Wiadomości ze świata'), ('live_chat', 'Czat na żywo')], 'extra': []},
+  {'name': 'Serwer', 'icon': 'server', 'pages': [('manage', 'Gra i serwer'), ('system', 'Wydajność'), ('diagnostics', 'Diagnostyka'), ('decisions_page', 'Decyzje botów'), ('panel_logs', 'Logi panelu')], 'extra': []},
+  {'name': 'Administracja', 'icon': 'admin', 'pages': [('accounts', 'Konta'), ('bot_names', 'Nazwy botów'), ('gm_commands', 'Komendy GM'), ('manage_panel', 'Ustawienia panelu'), ('changelog', 'Changelog')], 'extra': ['account_detail', 'account_characters']},
 ] %}
 {% set LAKA_EXTRA_LABELS = {'player': 'Karta postaci', 'guild': 'Gildia', 'economy_item': 'Przedmiot', 'economy_holders_status': 'Posiadacze przedmiotu', 'daily_summary': 'Podsumowanie dnia', 'account_detail': 'Konto', 'account_characters': 'Postacie konta'} %}
 {% set laka_ns = namespace(sec=LAKA_SECTIONS[0], page=None) %}
 {% for s in LAKA_SECTIONS %}{% for ep, label in s.pages %}{% if ep == request.endpoint %}{% set laka_ns.sec = s %}{% set laka_ns.page = label %}{% endif %}{% endfor %}{% if request.endpoint in s.extra %}{% set laka_ns.sec = s %}{% set laka_ns.page = LAKA_EXTRA_LABELS.get(request.endpoint) %}{% endif %}{% endfor %}
 
+{#- Ikony motywu: jeden zestaw konturowych SVG (24×24, kolor z CSS przez currentColor). -#}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="li-world" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18M5 7.5h14M5 16.5h14"/></symbol>
+    <symbol id="li-chars" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.6-4.2 3.9-7 8-7s7.4 2.8 8 7"/></symbol>
+    <symbol id="li-economy" viewBox="0 0 24 24"><ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v4c0 1.7 2.7 3 6 3s6-1.3 6-3V7M9 14v3c0 1.7 2.7 3 6 3s6-1.3 6-3v-4c0-1.7-2.7-3-6-3"/></symbol>
+    <symbol id="li-chronicle" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h3M14 14h3M7 17.5h3"/></symbol>
+    <symbol id="li-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></symbol>
+    <symbol id="li-admin" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><circle cx="12" cy="10.5" r="2.2"/><path d="M12 12.7V16.5"/></symbol>
+    <symbol id="li-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2"/></symbol>
+  </defs>
+</svg>
 <aside class="laka-rail" aria-label="Nawigacja główna">
   <a class="laka-brand" href="{{ url_for('dashboard') }}"><b>{{ panel_brand }}</b><span>Playerbots Control Center</span></a>
   <nav class="laka-nav">
     {% for s in LAKA_SECTIONS %}{% set active = s is sameas laka_ns.sec %}
-    <a class="laka-sec" href="{{ url_for(s.pages[0][0]) }}"{% if active %} aria-current="true"{% endif %}><span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ s.icon) }}" alt=""></span><span class="laka-lbl">{{ s.name }}</span></a>
+    <a class="laka-sec" href="{{ url_for(s.pages[0][0]) }}"{% if active %} aria-current="true"{% endif %}><span class="laka-slot"><svg aria-hidden="true"><use href="#li-{{ s.icon }}"/></svg></span><span class="laka-lbl">{{ s.name }}</span></a>
     {% if active %}<div class="laka-sub">{% for ep, label in s.pages %}<a href="{{ url_for(ep) }}"{% if ep == request.endpoint %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</div>{% endif %}
     {% endfor %}
   </nav>
@@ -39,14 +51,14 @@
 </header>
 
 <nav class="laka-bottombar" aria-label="Sekcje">
-  {% for s in LAKA_SECTIONS[:4] %}<a href="{{ url_for(s.pages[0][0]) }}"{% if s is sameas laka_ns.sec %} aria-current="true"{% endif %}><span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ s.icon) }}" alt=""></span>{{ s.name }}</a>{% endfor %}
-  <button type="button" id="laka-more"{% if laka_ns.sec in LAKA_SECTIONS[4:] %} aria-current="true"{% endif %}><span class="laka-slot"><img src="{{ url_for('static', filename='icons/book_01.png') }}" alt=""></span>Więcej</button>
+  {% for s in LAKA_SECTIONS[:4] %}<a href="{{ url_for(s.pages[0][0]) }}"{% if s is sameas laka_ns.sec %} aria-current="true"{% endif %}><span class="laka-slot"><svg aria-hidden="true"><use href="#li-{{ s.icon }}"/></svg></span>{{ s.name }}</a>{% endfor %}
+  <button type="button" id="laka-more"{% if laka_ns.sec in LAKA_SECTIONS[4:] %} aria-current="true"{% endif %}><span class="laka-slot"><svg aria-hidden="true"><use href="#li-more"/></svg></span>Więcej</button>
 </nav>
 
 {#- Arkusz "Więcej" na telefonie; laka-shell.js czyta z niego też listę stron dla Ctrl+K. -#}
 <template id="laka-sheet-tpl" data-players-url="{{ url_for('players') }}">
   <div class="laka-overlay" data-laka-close><div class="laka-sheet" role="dialog" aria-label="Wszystkie sekcje"><div class="laka-grab"></div>
-  {% for s in LAKA_SECTIONS %}<h3><img src="{{ url_for('static', filename='icons/' ~ s.icon) }}" alt="">{{ s.name }}</h3><div class="laka-sheet-links">{% for ep, label in s.pages %}<a href="{{ url_for(ep) }}" data-laka-section="{{ s.name }}" data-laka-icon="{{ url_for('static', filename='icons/' ~ s.icon) }}"{% if ep == request.endpoint %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</div>{% endfor %}
+  {% for s in LAKA_SECTIONS %}<h3><svg aria-hidden="true"><use href="#li-{{ s.icon }}"/></svg>{{ s.name }}</h3><div class="laka-sheet-links">{% for ep, label in s.pages %}<a href="{{ url_for(ep) }}" data-laka-section="{{ s.name }}" data-laka-icon="{{ s.icon }}"{% if ep == request.endpoint %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</div>{% endfor %}
   <div class="laka-sheet-foot"><a href="{{ tieru_url }}" target="_blank" rel="noopener">Panel Tieru ↗</a><form action="{{ url_for('logout') }}" method="post"><button class="laka-quiet">Wyloguj</button></form></div>
   </div></div>
 </template>

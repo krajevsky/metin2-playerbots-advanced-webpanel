@@ -25,6 +25,18 @@
     }
   }
 
+  // Karty akcji na karcie postaci mają w motywie własne ikony, więc emoji z początku nagłówka znika.
+  // Robione w JS, bo tekst nagłówka jest kluczem tłumaczenia EN (i18n-watch.js) i testów.
+  const stripEmoji = () => document.querySelectorAll('.admin-card h3').forEach(h => {
+    const t = h.firstChild;
+    if (!t || t.nodeType !== 3) return;
+    const clean = t.textContent.replace(/^[\p{Extended_Pictographic}☀-➿️‍\s]+/u, '');
+    if (clean !== t.textContent) t.textContent = clean; // tylko przy zmianie, inaczej obserwator kręciłby się w kółko
+  });
+  stripEmoji();
+  if (document.querySelector('.admin-card h3') && 'MutationObserver' in window)
+    new MutationObserver(stripEmoji).observe(document.querySelector('.admin-actions') || document.body, { childList: true, subtree: true, characterData: true });
+
   // Wejście strony: bloki pojawiają się po kolei.
   if (main) [...main.children].forEach((el, i) => el.style.setProperty('--laka-i', Math.min(i, 8)));
 
@@ -63,9 +75,9 @@
     const draw = () => {
       const v = q.value.trim().toLowerCase();
       cur = all.filter(p => !v || (p.label + ' ' + p.section).toLowerCase().includes(v)).slice(0, 10);
-      if (v) cur.push({ label: `Szukaj gracza „${q.value.trim()}”`, section: 'Gracze i boty', icon: all.find(p => p.section === 'Postacie')?.icon || '', href: `${playersUrl}?q=${encodeURIComponent(q.value.trim())}` });
+      if (v) cur.push({ label: `Szukaj gracza „${q.value.trim()}”`, section: 'Gracze i boty', icon: 'chars', href: `${playersUrl}?q=${encodeURIComponent(q.value.trim())}` });
       sel = Math.min(sel, Math.max(cur.length - 1, 0));
-      list.innerHTML = cur.length ? cur.map((p, k) => `<li><a href="${esc(p.href)}" class="${k === sel ? 'sel' : ''}"><img src="${esc(p.icon)}" alt=""><span>${esc(p.label)}</span><small>${esc(p.section)}</small></a></li>`).join('')
+      list.innerHTML = cur.length ? cur.map((p, k) => `<li><a href="${esc(p.href)}" class="${k === sel ? 'sel' : ''}"><svg aria-hidden="true"><use href="#li-${esc(p.icon)}"/></svg><span>${esc(p.label)}</span><small>${esc(p.section)}</small></a></li>`).join('')
         : '<li class="laka-empty">Wpisz nazwę strony albo nick.</li>';
     };
     q.addEventListener('input', () => { sel = 0; draw(); });

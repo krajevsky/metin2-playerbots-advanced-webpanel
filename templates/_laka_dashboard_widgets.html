@@ -4,6 +4,7 @@
   <article class="panel laka-widget">
     <header><h2>{{ 'Obciążenie Docker' if settings.monitor_mode == 'docker' else 'Obciążenie VPS' }}</h2><a href="{{ url_for('system') }}">Szczegóły</a></header>
     <div id="lw-system" class="laka-meters"><p class="muted">Ładowanie odczytu…</p></div>
+    <div class="laka-history"><div class="laka-history-head"><span>Ostatnie 24 godziny</span><span class="laka-history-key"><i class="cpu"></i>CPU <i class="ram"></i>RAM</span></div><div id="lw-history" class="laka-spark"></div><div id="lw-history-stats" class="laka-history-stats"></div></div>
   </article>
   <article class="panel laka-widget">
     <header><h2>Boty według map</h2><span class="laka-legend"><i class="e1"></i>Shinsoo <i class="e2"></i>Chunjo <i class="e3"></i>Jinno</span></header>
