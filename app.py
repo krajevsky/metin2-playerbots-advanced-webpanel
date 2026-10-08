@@ -172,9 +172,8 @@ except OSError:
 UPDATE_WATCHER_MAX_AGE_SECONDS = 90
 PLAYERBOTS_RELEASE_URL = "https://api.github.com/repos/TieruYT/metin2-playerbots/releases/latest"
 PLAYERBOTS_RELEASE_CACHE_SECONDS = 900
-# The launcher updates the stack's .env without necessarily recreating this
-# panel container. When its directory is mounted read-only, this path makes
-# the displayed Playerbots version follow that live file.
+# Optional local version file for custom deployments. Standard deployments
+# receive the launcher-maintained package version through the collector.
 PLAYERBOTS_VERSION_FILE = os.environ.get("PLAYERBOTS_VERSION_FILE", "").strip()
 _playerbots_release_cache = {"checked_at": 0.0, "latest": None, "error": None}
 PANEL_VERSION_URL = "https://raw.githubusercontent.com/krajevsky/metin2-playerbots-advanced-webpanel/main/VERSION"
@@ -1918,7 +1917,12 @@ def playerbots_version_from_file():
     if not PLAYERBOTS_VERSION_FILE:
         return ""
     try:
-        for line in Path(PLAYERBOTS_VERSION_FILE).read_text(encoding="utf-8", errors="replace").splitlines():
+        raw = Path(PLAYERBOTS_VERSION_FILE).read_text(encoding="utf-8", errors="replace").strip()
+        # The official launcher writes a bare semantic version to the package's
+        # root VERSION file. Older/custom stacks may expose a dotenv file.
+        if version_key(raw):
+            return raw
+        for line in raw.splitlines():
             key, separator, value = line.partition("=")
             if separator and key.strip() in ("M2_PLAYERBOTS_VERSION", "PLAYERBOTS_VERSION"):
                 return value.strip().strip("'\"")
@@ -1927,11 +1931,20 @@ def playerbots_version_from_file():
     return ""
 
 
+def collected_playerbots_version():
+    """Read the package VERSION published by the host-side collector."""
+    try:
+        value = str(one("SELECT value FROM player.web_seban_settings WHERE name=%s", ("playerbots_version",)).get("value", "")).strip()
+    except pymysql.MySQLError:
+        return ""
+    return value if version_key(value) else ""
+
+
 def installed_playerbots_version():
-    """Read the launcher's live .env first, then fall back to compose/updater."""
-    launcher_version = playerbots_version_from_file()
-    if version_key(launcher_version):
-        return launcher_version.lstrip("vV")
+    """Prefer the launcher's package VERSION, then custom/update fallbacks."""
+    for launcher_version in (collected_playerbots_version(), playerbots_version_from_file()):
+        if version_key(launcher_version):
+            return launcher_version.lstrip("vV")
     current = update_status()
     candidates = []
     for value in (os.environ.get("PLAYERBOTS_VERSION"), current.get("version")):

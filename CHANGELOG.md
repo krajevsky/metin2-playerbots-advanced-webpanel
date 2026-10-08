@@ -1,3 +1,9 @@
+## 2026-10-08 · 1.112.8 · Rzeczywista wersja paczki Playerbots
+
+- Dashboard dostaje numer z głównego pliku VERSION paczki Playerbots — dokładnie tego samego źródła, którego używa panel Tieru. Kolektor publikuje go do statusu panelu, więc aktualizacja przez GUI launcher odświeża numer niezależnie od nadpisywanego pliku Compose.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-07 · 1.112.7 · Wersja Playerbots z launchera
 
 - Plik .env aktualizowany przez launcher jest nadrzędnym źródłem wersji Playerbots. Dashboard nie może już wybrać starszej lub wyższej wartości zapamiętanej w środowisku kontenera.
