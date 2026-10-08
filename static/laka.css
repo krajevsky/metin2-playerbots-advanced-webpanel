@@ -96,6 +96,45 @@ html body[data-skin="laka"] nav.laka-bottombar [aria-current="true"]{color:var(-
 body[data-skin="laka"] .laka-sec,body[data-skin="laka"] .laka-sheet a{color:var(--laka-parchment)}
 body[data-skin="laka"] :focus-visible{outline:2px solid var(--laka-gold);outline-offset:2px}
 
+/* ───── shared page components (every page) ─────
+   Element rules use :where() so they carry only the element's own weight: they act as base styles
+   and never beat the specific rules of the original game windows (player card, Dragon Soul, shop). */
+body[data-skin="laka"] main h1{font:700 clamp(24px,1.6vw + 14px,34px)/1.1 var(--laka-display);color:var(--laka-parchment)}
+body[data-skin="laka"] main .panel>h2:first-child,body[data-skin="laka"] main .panel>header h2{padding-bottom:12px;border-bottom:1px solid var(--laka-bronze-dim);margin-bottom:16px}
+body[data-skin="laka"] main h3{font-family:var(--laka-display);color:var(--laka-gold);letter-spacing:.02em}
+body[data-skin="laka"] .eyebrow{color:var(--laka-gold);letter-spacing:.16em;font-weight:700;font-size:12px}
+body[data-skin="laka"] .muted{color:var(--laka-dust)}
+body[data-skin="laka"] main .panel{border-color:var(--laka-bronze-dim)!important;border-radius:6px}
+/* tables */
+body[data-skin="laka"] main table:not(.tip-explain-t){font-variant-numeric:lining-nums tabular-nums}
+body[data-skin="laka"] main table:not(.tip-explain-t) th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--laka-dust);font-weight:700;border-bottom:1px solid var(--laka-bronze-dim)}
+body[data-skin="laka"] main table:not(.tip-explain-t) td{border-bottom:1px solid #3a281555}
+body[data-skin="laka"] main table:not(.tip-explain-t) tbody tr:hover td{background:var(--laka-lacquer-2)}
+body[data-skin="laka"] main td a,body[data-skin="laka"] .back{color:var(--laka-gold-hi)}
+/* form fields */
+body[data-skin="laka"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),body[data-skin="laka"] select,body[data-skin="laka"] textarea{background:#0b0704;border:1px solid var(--laka-bronze-dim);color:var(--laka-parchment);border-radius:6px;font-family:var(--laka-body)}
+body[data-skin="laka"] input:not([type=checkbox]):not([type=radio]):not([type=range]):focus,body[data-skin="laka"] select:focus,body[data-skin="laka"] textarea:focus{border-color:var(--laka-gold);outline:none;box-shadow:0 0 0 3px #e8b93f22}
+body[data-skin="laka"] input[type=checkbox],body[data-skin="laka"] input[type=radio],body[data-skin="laka"] input[type=range]{accent-color:var(--laka-gold)}
+body[data-skin="laka"] main label{color:var(--laka-dust)}
+/* buttons: ghost by default, gold for form submits, ember for destructive */
+:where(body[data-skin="laka"] main) button,:where(body[data-skin="laka"] main) .button{background:var(--laka-lacquer-2);color:var(--laka-parchment);border:1px solid var(--laka-bronze);border-radius:6px;font-weight:700;transition:filter .15s,border-color .15s}
+:where(body[data-skin="laka"] main form) button:where(:not([type=button])),:where(body[data-skin="laka"] main) .button{background:linear-gradient(180deg,#f3c955,#c99227);color:#1d1404;border-color:var(--laka-gold-deep);font-weight:800;box-shadow:inset 0 1px 0 #fff5,0 2px 0 #00000080}
+:where(body[data-skin="laka"] main) button:hover,:where(body[data-skin="laka"] main) .button:hover{filter:brightness(1.08);border-color:var(--laka-gold)}
+body[data-skin="laka"] main .secondary{background:var(--laka-lacquer-2);color:var(--laka-parchment);border:1px solid var(--laka-bronze);box-shadow:none}
+body[data-skin="laka"] main .danger,body[data-skin="laka"] main button.danger{background:var(--laka-ember-bg,#3a130c);color:#ffc4b6;border:1px solid #e5573b;box-shadow:none}
+body[data-skin="laka"] main button:disabled{opacity:.5;cursor:not-allowed;filter:none}
+/* tab strips used by rankings, messages and management sections */
+body[data-skin="laka"] .rank-tabs,body[data-skin="laka"] .msg-tabs,body[data-skin="laka"] .manage-section-tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--laka-bronze-dim)}
+html body[data-skin="laka"] .rank-tabs a,html body[data-skin="laka"] .msg-tabs :is(a,button),html body[data-skin="laka"] .manage-section-tabs :is(a,button){background:none!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;box-shadow:none!important;color:var(--laka-dust)!important;font-weight:600;padding:8px 12px}
+html body[data-skin="laka"] .rank-tabs a:hover,html body[data-skin="laka"] .msg-tabs :is(a,button):hover,html body[data-skin="laka"] .manage-section-tabs :is(a,button):hover{color:var(--laka-parchment)!important;filter:none}
+html body[data-skin="laka"] .rank-tabs a.active,html body[data-skin="laka"] .msg-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs [aria-selected="true"]{color:var(--laka-gold-hi)!important;border-bottom-color:var(--laka-gold)!important}
+/* misc */
+body[data-skin="laka"] main details>summary{cursor:pointer;color:var(--laka-parchment);font-weight:600}
+body[data-skin="laka"] main details>summary::marker{color:var(--laka-gold)}
+body[data-skin="laka"] .log-lines,body[data-skin="laka"] .live-log-box{background:#080503!important;border:1px solid var(--laka-bronze-dim)!important;border-radius:4px;color:#cdbb9c!important;font-family:ui-monospace,Consolas,monospace}
+body[data-skin="laka"] .table-wrap{overflow-x:auto}
+body[data-skin="laka"] main hr{border:0;border-top:1px solid var(--laka-bronze-dim)}
+
 /* ───── Przegląd świata (dashboard.html) ─────
    Only colours and chrome. .world-map keeps every size/aspect rule from live-overrides.css
    (M1 4:5 up to 416px, other maps 1:1 up to 520px), live-widget.js keeps its DOM. */
