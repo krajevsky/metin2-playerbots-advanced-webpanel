@@ -762,3 +762,8 @@ html[lang="en"] .native-character-quests{background-image:url('/static/character
 .native-player-map-unavailable[hidden],.native-player-map-marker[hidden]{display:none!important}
 @media(max-width:1000px){.native-player-map{order:-1;flex-basis:407px}.native-player-map.is-portrait{flex-basis:320px}}
 @media(max-width:540px){.native-player-map{transform:scale(.78);transform-origin:top center;margin:0 -45px -94px}.native-player-map.is-portrait{margin-left:-35px;margin-right:-35px}}
+
+/* Measured cursor-anchored item tooltips. */
+.item-tip{width:220px;max-width:calc(100vw - 20px);box-sizing:border-box}
+.item-tip .tip-bonus{white-space:nowrap;font-size:11px}
+.item-tip.is-floating{position:fixed!important;right:auto!important;bottom:auto!important;transform:none!important;z-index:2147483000!important}

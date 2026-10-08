@@ -152,6 +152,7 @@ function bindInventoryFragment(){
   if (dragonStorage) dragonStorage.hidden=activeStorage!=='dragon';
   document.querySelectorAll('[data-storage]').forEach(b=>b.onclick=()=>{activeStorage=b.dataset.storage;bindInventoryFragment()});
   bindDragonSoul();
+  bindFloatingItemTips();
 }
 function bindDragonSoul(){
   const win=document.querySelector('.dragon-soul-window'); if(!win)return;
@@ -192,6 +193,24 @@ function bindNativeCharacterWindow(){
   if(bonus&&popover)bonus.onclick=()=>{popover.hidden=!popover.hidden;bonus.setAttribute('aria-expanded',String(!popover.hidden))};
 }
 bindNativeCharacterWindow();
+// A tooltip follows the cursor. Its measured height decides whether it opens below it.
+function bindFloatingItemTips(root=document){
+  root.querySelectorAll('.equip-slot,.inv-slot,.safebox-slot,.ds-equip-slot,.ds-bag-slot,.skill-slot,.shop-slot').forEach(host=>{
+    if(host.dataset.floatingTipBound)return; host.dataset.floatingTipBound='1';
+    const place=event=>{
+      const tip=host.querySelector('.item-tip'); if(!tip)return;
+      tip.classList.add('is-floating');
+      const gap=14, edge=10, rect=tip.getBoundingClientRect();
+      const left=Math.max(edge,Math.min(event.clientX-rect.width/2,window.innerWidth-rect.width-edge));
+      const top=event.clientY-rect.height-gap<edge ? event.clientY+gap : event.clientY-rect.height-gap;
+      tip.style.setProperty('left',String(left)+'px','important');
+      tip.style.setProperty('top',String(top)+'px','important');
+    };
+    host.addEventListener('pointerenter',place); host.addEventListener('pointermove',place);
+    host.addEventListener('pointerleave',()=>host.querySelector('.item-tip')?.classList.remove('is-floating'));
+  });
+}
+bindFloatingItemTips();
 bindInventoryFragment();
 // Wired straight to the same always-live SQL the full page render uses (see
 // load_character_items in app.py) -- no separate cache, no waiting for a

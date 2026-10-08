@@ -1,3 +1,10 @@
+## 2026-10-08 · 1.113.2 · Tooltipy i obecność 24/7
+
+- Tooltip przedmiotu mierzy teraz własną wysokość przy kursorem: gdy nie mieści się nad nim, otwiera się pod nim i pozostaje w granicach ekranu. Standardowe bonusy są szersze oraz nie łamią się bez potrzeby na dwie linie.
+- Po wyłączeniu opcji „Boty grają jak żywi ludzie” wykres obecności na `/player/` pokazuje ciągłe 24/7. Historyczne przerwy z czasu, gdy sesje były włączone, nie zaniżają już bieżącego wskazania.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-08 · 1.113.1 · English: ranking +9
 
 - Filtry kategorii oraz sortowanie rankingu **Przedmiot +9** są przetłumaczone w angielskim interfejsie.

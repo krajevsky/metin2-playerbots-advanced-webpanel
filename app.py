@@ -874,6 +874,8 @@ def bot_presence_timeline(pid, hours=24):
         return None
     step = timedelta(minutes=5)
     start = latest - timedelta(hours=hours)
+    # LIFE=0 keeps bots in the world. Old snapshots still include earlier rest breaks.
+    continuous = not bool(read_ai_weights().get("LIFE"))
     bits = []
     ticks = []
     cursor = start + step
@@ -881,7 +883,7 @@ def bot_presence_timeline(pid, hours=24):
         # Znacznik co 3 pełne godziny zegara: ułatwia odczyt, o której był online.
         if cursor.minute == 0 and cursor.hour % 3 == 0:
             ticks.append({"pos": len(bits), "label": cursor.strftime("%H:%M")})
-        bits.append(cursor in seen)
+        bits.append(True if continuous else cursor in seen)
         cursor += step
     # Sąsiednie kwadranse online łączymy w jeden odcinek: czytelniej niż setki słupków.
     runs = []
@@ -891,7 +893,7 @@ def bot_presence_timeline(pid, hours=24):
         elif on:
             runs.append([index, 1])
     return {"runs": runs, "ticks": ticks, "slots": len(bits), "start": start.strftime("%d.%m %H:%M"), "end": latest.strftime("%d.%m %H:%M"),
-            "online_minutes": sum(bits) * 5, "total_minutes": len(bits) * 5}
+            "online_minutes": sum(bits) * 5, "total_minutes": len(bits) * 5, "continuous": continuous}
 
 
 def panel_feature_states(current=None):
