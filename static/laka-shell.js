@@ -8,6 +8,23 @@
   const main = document.querySelector('main');
   const tpl = document.getElementById('laka-sheet-tpl');
 
+  // Nagłówek strony a tytuł w górnej belce: na stronach szczegółów (gildia, konto, przedmiot…)
+  // nazwa z <h1> trafia do belki; gdzie indziej <h1> znika tylko, jeśli powtarza tytuł belki.
+  const topTitle = document.querySelector('.laka-crumbs h1');
+  const detail = document.querySelector('.laka-top')?.dataset.lakaDetail === '1';
+  const pageH1 = main && main.querySelector(detail ? 'h1' : ':scope > h1');
+  if (topTitle && pageH1) {
+    const norm = s => s.toLowerCase().replace(/[^a-ząćęłńóśźż0-9]+/g, '');
+    const a = norm(pageH1.textContent), b = norm(topTitle.textContent);
+    if (detail) topTitle.textContent = pageH1.textContent.replace(/\s+/g, ' ').trim();
+    // Nagłówek zagnieżdżony we własnym bloku strony (np. karta postaci) zostaje na miejscu.
+    if (pageH1.parentElement === main && (detail || (a && b && (a.includes(b) || b.includes(a))))) {
+      pageH1.hidden = true;
+      const prev = pageH1.previousElementSibling;
+      if (prev && prev.classList.contains('eyebrow')) prev.hidden = true;
+    }
+  }
+
   // Wejście strony: bloki pojawiają się po kolei.
   if (main) [...main.children].forEach((el, i) => el.style.setProperty('--laka-i', Math.min(i, 8)));
 

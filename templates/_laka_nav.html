@@ -27,7 +27,7 @@
   </div>
 </aside>
 
-<header class="laka-top">
+<header class="laka-top"{% if request.endpoint in LAKA_EXTRA_LABELS %} data-laka-detail="1"{% endif %}>
   <div class="laka-top-row">
     <div class="laka-crumbs"><h1>{{ laka_ns.page or laka_ns.sec.name }}</h1><small>{{ laka_ns.sec.name }}</small></div>
     <div class="laka-tools">

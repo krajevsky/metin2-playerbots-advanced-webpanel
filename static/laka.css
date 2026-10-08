@@ -19,8 +19,9 @@ body[data-skin="laka"] h1,body[data-skin="laka"] h2{font-family:var(--laka-displ
 
 /* ───── layout ───── */
 body[data-skin="laka"] main{margin:0 0 0 var(--laka-rail);max-width:none;padding:calc(var(--laka-top) + var(--laka-gut)) var(--laka-gut) 72px}
-/* the page title now lives in the top bar */
-body[data-skin="laka"] main>.eyebrow:first-child,body[data-skin="laka"] main>.eyebrow:first-child+h1{display:none}
+/* duplicated page headings are hidden by laka-shell.js (it compares them with the top bar title);
+   the management pages' own Gra i serwer | Panel webowy switch repeats the top bar tabs */
+body[data-skin="laka"] .manage-section-tabs{display:none}
 
 .laka-rail{position:fixed;inset:0 auto 0 0;width:var(--laka-rail);z-index:150;display:flex;flex-direction:column;background:linear-gradient(180deg,#140d07,#0f0a05);border-right:1px solid var(--laka-bronze-dim);box-shadow:inset -1px 0 0 #e8b93f10;overflow-y:auto;scrollbar-width:thin}
 .laka-brand{display:grid;gap:4px;padding:22px 20px 18px;border-bottom:1px solid var(--laka-bronze-dim);text-decoration:none}
@@ -128,6 +129,8 @@ body[data-skin="laka"] .rank-tabs,body[data-skin="laka"] .msg-tabs,body[data-ski
 html body[data-skin="laka"] .rank-tabs a,html body[data-skin="laka"] .msg-tabs :is(a,button),html body[data-skin="laka"] .manage-section-tabs :is(a,button){background:none!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;box-shadow:none!important;color:var(--laka-dust)!important;font-weight:600;padding:8px 12px}
 html body[data-skin="laka"] .rank-tabs a:hover,html body[data-skin="laka"] .msg-tabs :is(a,button):hover,html body[data-skin="laka"] .manage-section-tabs :is(a,button):hover{color:var(--laka-parchment)!important;filter:none}
 html body[data-skin="laka"] .rank-tabs a.active,html body[data-skin="laka"] .msg-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs [aria-selected="true"]{color:var(--laka-gold-hi)!important;border-bottom-color:var(--laka-gold)!important}
+/* channel filter on Aktywność map: wrap instead of pushing "Kanał 4" off a phone screen */
+body[data-skin="laka"] .channel-tabs{flex-wrap:wrap}
 /* misc */
 body[data-skin="laka"] main details>summary{cursor:pointer;color:var(--laka-parchment);font-weight:600}
 body[data-skin="laka"] main details>summary::marker{color:var(--laka-gold)}
