@@ -130,10 +130,10 @@ body[data-skin="laka"] main .secondary{background:var(--laka-lacquer-2);color:va
 body[data-skin="laka"] main .danger,body[data-skin="laka"] main button.danger{background:var(--laka-ember-bg,#3a130c);color:#ffc4b6;border:1px solid #e5573b;box-shadow:none}
 body[data-skin="laka"] main button:disabled{opacity:.5;cursor:not-allowed;filter:none}
 /* tab strips used by rankings, messages and management sections */
-body[data-skin="laka"] .rank-tabs,body[data-skin="laka"] .msg-tabs,body[data-skin="laka"] .manage-section-tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--laka-bronze-dim)}
-html body[data-skin="laka"] .rank-tabs a,html body[data-skin="laka"] .msg-tabs :is(a,button),html body[data-skin="laka"] .manage-section-tabs :is(a,button){background:none!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;box-shadow:none!important;color:var(--laka-dust)!important;font-weight:600;padding:8px 12px}
-html body[data-skin="laka"] .rank-tabs a:hover,html body[data-skin="laka"] .msg-tabs :is(a,button):hover,html body[data-skin="laka"] .manage-section-tabs :is(a,button):hover{color:var(--laka-parchment)!important;filter:none}
-html body[data-skin="laka"] .rank-tabs a.active,html body[data-skin="laka"] .msg-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs [aria-selected="true"]{color:var(--laka-gold-hi)!important;border-bottom-color:var(--laka-gold)!important}
+body[data-skin="laka"] .msg-tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--laka-bronze-dim)}
+html body[data-skin="laka"] .msg-tabs :is(a,button),html body[data-skin="laka"] .manage-section-tabs :is(a,button){background:none!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;box-shadow:none!important;color:var(--laka-dust)!important;font-weight:600;padding:8px 12px}
+html body[data-skin="laka"] .msg-tabs :is(a,button):hover,html body[data-skin="laka"] .manage-section-tabs :is(a,button):hover{color:var(--laka-parchment)!important;filter:none}
+html body[data-skin="laka"] .msg-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs :is(a,button).active,html body[data-skin="laka"] .manage-section-tabs [aria-selected="true"]{color:var(--laka-gold-hi)!important;border-bottom-color:var(--laka-gold)!important}
 /* channel filter on Aktywność map: wrap instead of pushing "Kanał 4" off a phone screen */
 body[data-skin="laka"] .channel-tabs{flex-wrap:wrap}
 /* misc */
@@ -396,6 +396,71 @@ html body[data-skin="laka"] .lev-dialog::backdrop{background:#000a}
 @media (max-width:1180px){.lev-top{grid-template-columns:minmax(0,1fr)}.lev-status{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){.lev-status{grid-template-columns:minmax(0,1fr)}.lev-past li{grid-template-columns:auto minmax(0,1fr)}.lev-past time{grid-column:2}}
 
+/* ───── audit pass: one look for every control family ───── */
+/* in-page filters, sort switches, pagers and presets → gold chips */
+html body[data-skin="laka"] main :is(.rank-tabs,.item-types,.channel-tabs,.rank-per-page,.rank-pages,.pagination,.rate-presets,.gear-history-filters,.heat-controls,.map-history-actions){display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0;padding:0;border:0;background:none}
+html body[data-skin="laka"] main :is(.rank-tabs,.item-types,.channel-tabs,.rank-per-page,.rank-pages,.pagination,.rate-presets,.gear-history-filters,.heat-controls,.map-history-actions)>:is(a,button){display:inline-flex;align-items:center;gap:6px;margin:0;padding:6px 13px!important;border:1px solid var(--laka-bronze-dim)!important;border-radius:999px!important;background:var(--laka-lacquer-2)!important;color:var(--laka-parchment)!important;font:600 13px/1.2 var(--laka-body)!important;text-decoration:none;box-shadow:none!important;filter:none;transition:border-color .15s,color .15s}
+html body[data-skin="laka"] main :is(.rank-tabs,.item-types,.channel-tabs,.rank-per-page,.rank-pages,.pagination,.rate-presets,.gear-history-filters,.heat-controls,.map-history-actions)>:is(a,button):hover{border-color:var(--laka-gold)!important;color:var(--laka-gold-hi)!important}
+html body[data-skin="laka"] main :is(.rank-tabs,.item-types,.channel-tabs,.rank-per-page,.rank-pages,.pagination,.rate-presets,.gear-history-filters,.heat-controls,.map-history-actions)>:is(a,button):is(.active,[aria-current="page"],[aria-pressed="true"]){background:linear-gradient(180deg,#f3c955,#c99227)!important;border-color:var(--laka-gold-deep)!important;color:#1d1404!important;font-weight:800!important}
+html body[data-skin="laka"] main .rank-sort{padding-top:10px!important;border-top:1px dashed var(--laka-bronze-dim)!important}
+/* checkboxes in forms → switches (knob drawn with a gradient, works in every browser) */
+html body[data-skin="laka"] main :is(form,.checkbox-row,.behavior-live-options) input[type=checkbox]:not(.calendar-editor-days input):not(.rank-autoplay-toggle input){-webkit-appearance:none;appearance:none;flex:none;width:40px;height:22px;margin:0;border-radius:11px;border:1px solid var(--laka-bronze);background:radial-gradient(circle at 11px 50%,#a8957a 0 6.5px,transparent 7px),#0b0704;cursor:pointer;vertical-align:middle;transition:background .2s,border-color .2s}
+html body[data-skin="laka"] main :is(form,.checkbox-row,.behavior-live-options) input[type=checkbox]:not(.calendar-editor-days input):not(.rank-autoplay-toggle input):checked{border-color:var(--laka-gold);background:radial-gradient(circle at 28px 50%,#ffe08a 0 6.5px,transparent 7px),linear-gradient(180deg,#a8771c,#6e4c25)}
+html body[data-skin="laka"] main input[type=checkbox]:focus-visible{outline:2px solid var(--laka-gold);outline-offset:2px}
+html body[data-skin="laka"] main input[type=checkbox]:disabled{opacity:.45;cursor:not-allowed}
+/* range sliders */
+html body[data-skin="laka"] main input[type=range]{-webkit-appearance:none;appearance:none;height:22px;background:transparent;cursor:pointer}
+html body[data-skin="laka"] main input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#a8771c,#3a2815);border:1px solid #0008}
+html body[data-skin="laka"] main input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:#3a2815;border:1px solid #0008}
+html body[data-skin="laka"] main input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:#a8771c}
+html body[data-skin="laka"] main input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;border-radius:50%;border:2px solid #1d1404;background:radial-gradient(circle at 35% 30%,#fff3c4,#e8b93f 60%,#a8771c);box-shadow:0 0 8px #e8b93f88}
+html body[data-skin="laka"] main input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;border:2px solid #1d1404;background:radial-gradient(circle at 35% 30%,#fff3c4,#e8b93f 60%,#a8771c);box-shadow:0 0 8px #e8b93f88}
+/* selects with a gold chevron */
+html body[data-skin="laka"] main select:not([multiple]){-webkit-appearance:none;appearance:none;padding-right:32px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8b93f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 10px center!important;background-size:14px!important;cursor:pointer}
+html body[data-skin="laka"] main select option{background:#17100a;color:var(--laka-parchment)}
+/* search forms → one search bar with a magnifier */
+html body[data-skin="laka"] main form.search{display:flex;gap:8px;max-width:640px;margin:4px 0 18px}
+html body[data-skin="laka"] main form.search input:not([type=hidden]){flex:1;min-width:0;padding:11px 14px 11px 40px!important;border-radius:8px!important;background:#0b0704 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8957a' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 13px center/17px!important}
+html body[data-skin="laka"] main form.search :is(select){width:auto;border-radius:8px}
+html body[data-skin="laka"] main form.search button{border-radius:8px;padding:10px 18px}
+/* panel headings: a gold rhombus instead of emoji (emoji removed by laka-shell.js on the Polish panel) */
+html body[data-skin="laka"] main .panel>h2:first-child::before,html body[data-skin="laka"] main .panel>header h2::before{content:"";display:inline-block;width:8px;height:8px;margin:0 10px 3px 0;background:var(--laka-gold);transform:rotate(45deg);box-shadow:0 0 8px #e8b93f88;vertical-align:middle}
+html body[data-skin="laka"] main .laka-widget>header h2::before,html body[data-skin="laka"] main .lev-head h2::before{display:none}
+html body[data-skin="laka"] main details{border:1px solid var(--laka-bronze-dim);border-radius:8px;background:var(--laka-lacquer-2);padding:10px 14px;margin:10px 0}
+html body[data-skin="laka"] main details[open]>summary{margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--laka-bronze-dim)}
+html body[data-skin="laka"] main details>summary{list-style:none}
+html body[data-skin="laka"] main details>summary::-webkit-details-marker{display:none}
+html body[data-skin="laka"] main details>summary::before{content:"›";display:inline-block;width:14px;color:var(--laka-gold);font-weight:800;transition:transform .2s}
+html body[data-skin="laka"] main details[open]>summary::before{transform:rotate(90deg)}
+/* level / count badges in tables */
+html body[data-skin="laka"] main td .top-level-badge{border-radius:5px}
+html body[data-skin="laka"] main .muted a{color:var(--laka-gold)}
+/* notifications bell dropdown and toasts */
+html body[data-skin="laka"] .notif-dropdown{background:var(--laka-lacquer)!important;border:1px solid var(--laka-bronze)!important;border-radius:10px!important;box-shadow:0 24px 60px #000c!important;overflow:hidden}
+html body[data-skin="laka"] .notif-dropdown-head{background:linear-gradient(180deg,#21170e,#17100a)!important;border-bottom:1px solid var(--laka-bronze-dim)!important;color:var(--laka-parchment)!important;font-family:var(--laka-display)}
+html body[data-skin="laka"] .notif-dropdown-head button{background:none!important;border:0!important;color:var(--laka-gold-hi)!important;font:600 12.5px var(--laka-body)!important;box-shadow:none!important}
+html body[data-skin="laka"] .notif-item{border-bottom:1px solid #3a281555!important;background:transparent!important}
+html body[data-skin="laka"] .notif-item:hover{background:var(--laka-lacquer-2)!important}
+html body[data-skin="laka"] .notif-item.is-unread{background:#e8b93f0d!important}
+html body[data-skin="laka"] .notif-item-title{color:var(--laka-parchment)!important}
+html body[data-skin="laka"] .notif-item.is-unread .notif-item-title::before{background:var(--laka-gold)!important}
+html body[data-skin="laka"] .notif-item-body{color:var(--laka-dust)!important}
+html body[data-skin="laka"] .notif-item-time{color:var(--laka-dust-2)!important}
+html body[data-skin="laka"] .notif-badge{background:#e5573b!important;color:#fff!important;border:2px solid var(--laka-ink)!important}
+html body[data-skin="laka"] .bell,html body[data-skin="laka"] .bell::before,html body[data-skin="laka"] .bell::after{border-color:var(--laka-gold-hi)!important}
+html body[data-skin="laka"] .bell::before,html body[data-skin="laka"] .bell::after{background:var(--laka-gold-hi)!important}
+html body[data-skin="laka"] :is(.notif-toast,.action-toast){background:var(--laka-lacquer-2)!important;border:1px solid var(--laka-bronze)!important;border-radius:10px!important;color:var(--laka-parchment)!important;box-shadow:0 14px 40px #000c!important;font-family:var(--laka-body)}
+html body[data-skin="laka"] .action-toast.success{border-color:var(--laka-jade)!important}
+html body[data-skin="laka"] .action-toast.error{border-color:#e5573b!important}
+html body[data-skin="laka"] .action-toast-close{background:none!important;border:0!important;color:var(--laka-dust)!important;box-shadow:none!important}
+/* flash dialog after form posts */
+html body[data-skin="laka"] .flash-modal::backdrop{background:#000b}
+html body[data-skin="laka"] .flash-modal .flash-card{background:var(--laka-lacquer)!important;border:1px solid var(--laka-bronze-dim);border-left:4px solid var(--laka-jade);border-radius:10px;color:var(--laka-parchment)!important;font-family:var(--laka-body)}
+html body[data-skin="laka"] .flash-modal .flash-card.error{border-left-color:#e5573b}
+html body[data-skin="laka"] .flash-modal .flash-card svg{fill:var(--laka-jade)}
+html body[data-skin="laka"] .flash-modal .flash-card.error svg{fill:#e5573b}
+html body[data-skin="laka"] .flash-modal-ok{background:linear-gradient(180deg,#f3c955,#c99227)!important;color:#1d1404!important;border:1px solid var(--laka-gold-deep)!important;border-radius:6px!important;font-weight:800}
+
 /* ───── scrollbars: thin bronze everywhere in the theme ───── */
 body[data-skin="laka"] *{scrollbar-width:thin;scrollbar-color:#6e4c25 #0d0906}
 body[data-skin="laka"] ::-webkit-scrollbar{width:9px;height:9px}
@@ -536,7 +601,9 @@ body[data-skin="laka"] .laka-flash{animation:laka-flash .9s ease-out}
   body[data-skin="laka"] .empire-hero{height:auto!important;min-height:164px}
   body[data-skin="laka"] .empire-hero-title{font-size:clamp(26px,8vw,40px)!important;line-height:1.05}
 }
-@media (max-width:400px){.laka-search{display:none}}
+/* phones and touch screens have no Ctrl K: the search stays as a magnifier button */
+@media (max-width:760px),(hover:none){.laka-search kbd{display:none}}
+@media (max-width:760px){.laka-search{padding:7px 9px}}
 @media (prefers-reduced-motion:reduce){
   body[data-skin="laka"] *,body[data-skin="laka"] *::before,body[data-skin="laka"] *::after{animation:none!important;transition:none!important}
 }

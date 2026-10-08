@@ -34,6 +34,16 @@
     if (clean !== t.textContent) t.textContent = clean; // tylko przy zmianie, inaczej obserwator kręciłby się w kółko
   });
   stripEmoji();
+  // Nagłówki paneli w całym panelu: emoji z początku zastępuje złoty romb z CSS.
+  // Tylko na panelu po polsku, bo w EN tekst z emoji jest kluczem tłumaczenia (i18n-watch.js).
+  if (document.documentElement.lang !== 'en') {
+    document.querySelectorAll('main h1, main h2, main h3, main summary').forEach(h => {
+      const t = [...h.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+      if (!t) return;
+      const clean = t.textContent.replace(/^\s*[\p{Extended_Pictographic}☀-➿←-⇿⌀-⏿⬀-⯿️‍]+\s*/u, '');
+      if (clean !== t.textContent) t.textContent = clean;
+    });
+  }
   if (document.querySelector('.admin-card h3') && 'MutationObserver' in window)
     new MutationObserver(stripEmoji).observe(document.querySelector('.admin-actions') || document.body, { childList: true, subtree: true, characterData: true });
 
