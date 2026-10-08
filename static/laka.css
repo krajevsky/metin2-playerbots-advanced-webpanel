@@ -120,6 +120,8 @@ html body[data-skin="laka"] .live-shell header .eyebrow{color:var(--laka-gold);l
 html body[data-skin="laka"] .live-badge{background:var(--laka-jade-bg)!important;color:var(--laka-jade)!important;border-color:transparent!important;border-radius:999px}
 html body[data-skin="laka"] .live-filters{background:#110b06!important;border:1px solid var(--laka-bronze-dim)!important;border-radius:6px}
 html body[data-skin="laka"] .level-filter button{background:var(--laka-lacquer-2)!important;color:var(--laka-parchment)!important;border:1px solid var(--laka-bronze-dim)!important;border-radius:999px!important}
+html body[data-skin="laka"] .level-filter{display:flex;flex-wrap:wrap;gap:6px}
+html body[data-skin="laka"] .level-filter button{white-space:nowrap;padding:5px 11px!important;min-width:0}
 html body[data-skin="laka"] .level-filter button:hover{border-color:var(--laka-bronze)!important}
 html body[data-skin="laka"] .level-filter button.active{background:var(--laka-gold)!important;border-color:var(--laka-gold)!important;color:#1d1404!important;font-weight:700}
 html body[data-skin="laka"] .live-filters select,html body[data-skin="laka"] .live-filters input{background:#0b0704!important;border:1px solid var(--laka-bronze-dim)!important;color:var(--laka-parchment)!important;border-radius:6px}
