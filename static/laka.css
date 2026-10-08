@@ -140,7 +140,8 @@ html body[data-skin="laka"] .world-map::before{display:block!important;content:"
 html body[data-skin="laka"] .map-caption{z-index:3;background:#000b!important;border-color:var(--laka-bronze-dim)!important;color:var(--laka-gold-hi)!important}
 /* map sidebar */
 html body[data-skin="laka"] .live-sidebar{background:var(--laka-lacquer)!important;border-color:var(--laka-bronze-dim)!important}
-html body[data-skin="laka"] .mini-stats{gap:0!important;border:1px solid var(--laka-bronze-dim);border-radius:6px;overflow:hidden}
+/* the sidebar is height-locked to the map (live-widget.js), so the stat block must not shrink */
+html body[data-skin="laka"] .mini-stats{flex:none;gap:0!important;border:1px solid var(--laka-bronze-dim);border-radius:6px}
 html body[data-skin="laka"] .mini-stats div{background:transparent!important;border:0!important;border-radius:0!important;text-align:center}
 html body[data-skin="laka"] .mini-stats div:nth-child(even){border-left:1px solid var(--laka-bronze-dim)!important}
 html body[data-skin="laka"] .mini-stats div:nth-child(n+3){border-top:1px solid var(--laka-bronze-dim)!important}
