@@ -69,7 +69,7 @@ body[data-skin="laka"] .notification{border:1px solid var(--laka-bronze-dim);bac
 body[data-skin="laka"] .news-ticker{left:var(--laka-rail)}
 
 /* ───── surfaces: HUD corners on panels ───── */
-body[data-skin="laka"] .panel,body[data-skin="laka"] .live-shell,body[data-skin="laka"] .world-overview,body[data-skin="laka"] .cards article{
+body[data-skin="laka"] .panel,body[data-skin="laka"] .live-shell,body[data-skin="laka"] .world-overview,body[data-skin="laka"] .cards{
   --c:#e8b93f8c;
   background-image:
    linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),
@@ -79,7 +79,7 @@ body[data-skin="laka"] .panel,body[data-skin="laka"] .live-shell,body[data-skin=
   background-position:0 0,0 0,100% 0,100% 0,0 100%,0 100%,100% 100%,100% 100%,0 0!important;
   background-repeat:no-repeat!important;
   transition:border-color .3s,box-shadow .3s}
-body[data-skin="laka"] .panel:hover,body[data-skin="laka"] .live-shell:hover,body[data-skin="laka"] .cards article:hover{--c:#ffe08a}
+body[data-skin="laka"] .panel:hover,body[data-skin="laka"] .live-shell:hover,body[data-skin="laka"] .cards:hover{--c:#ffe08a}
 body[data-skin="laka"] a{color:var(--laka-gold-hi)}
 /* empire styles "nav a" / "nav a[aria-current]" as gold pills; the laka navs draw their own state */
 /* "html body…nav.laka-x a[aria-current]" outranks empire's "body[data-theme] nav a[aria-current]" */
@@ -95,6 +95,72 @@ html body[data-skin="laka"] nav.laka-bottombar a{color:var(--laka-dust)!importan
 html body[data-skin="laka"] nav.laka-bottombar [aria-current="true"]{color:var(--laka-gold-hi)!important}
 body[data-skin="laka"] .laka-sec,body[data-skin="laka"] .laka-sheet a{color:var(--laka-parchment)}
 body[data-skin="laka"] :focus-visible{outline:2px solid var(--laka-gold);outline-offset:2px}
+
+/* ───── Przegląd świata (dashboard.html) ─────
+   Only colours and chrome. .world-map keeps every size/aspect rule from live-overrides.css
+   (M1 4:5 up to 416px, other maps 1:1 up to 520px), live-widget.js keeps its DOM. */
+html body[data-skin="laka"]{--live-surface:#17100a;--live-surface-strong:#110b06;--live-border:#3a2815;--live-line:#2c1f12;--live-accent:#e8b93f;--live-accent-text:#f1e6cf;--live-number:#ffe08a;--live-filter:#21170e}
+/* KPI cards → one ledger strip */
+html body[data-skin="laka"] .cards{gap:0;margin:0 0 var(--laka-gut);border:1px solid var(--laka-bronze-dim);border-radius:6px;background-color:var(--laka-lacquer)}
+html body[data-skin="laka"] .cards article{background:transparent!important;border:0!important;border-left:1px solid var(--laka-bronze-dim)!important;border-radius:0!important;box-shadow:none!important;padding:14px 18px;display:grid;gap:4px;align-content:start}
+html body[data-skin="laka"] .cards article:first-child{border-left:0!important}
+html body[data-skin="laka"] .cards article::after{display:none}
+html body[data-skin="laka"] .cards article>span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--laka-dust)}
+html body[data-skin="laka"] .cards strong{font:800 clamp(20px,1.2vw + 12px,26px)/1.1 var(--laka-body);color:var(--laka-gold-hi);text-shadow:none;font-variant-numeric:lining-nums tabular-nums}
+html body[data-skin="laka"] .cards small{color:var(--laka-dust);font-size:13px}
+/* live map frame */
+html body[data-skin="laka"] .live-shell{border:1px solid var(--laka-bronze)!important;box-shadow:inset 0 0 0 3px var(--laka-lacquer),inset 0 0 0 4px #6e4c2555,0 18px 40px -20px #000}
+/* .live-shell is only position:relative from 1351px (live-overrides.css), so the corner gems live there too */
+@media (min-width:1351px){
+  html body[data-skin="laka"] .live-shell::before,html body[data-skin="laka"] .live-shell::after{content:"";position:absolute;top:-5px;left:18px;width:9px;height:9px;background:var(--laka-gold);transform:rotate(45deg);box-shadow:0 0 8px #e8b93f88;pointer-events:none}
+  html body[data-skin="laka"] .live-shell::after{left:auto;right:18px}
+}
+html body[data-skin="laka"] .live-shell header h2{font:700 20px/1.2 var(--laka-display);color:var(--laka-parchment)!important}
+html body[data-skin="laka"] .live-shell header .eyebrow{color:var(--laka-gold);letter-spacing:.16em}
+html body[data-skin="laka"] .live-badge{background:var(--laka-jade-bg)!important;color:var(--laka-jade)!important;border-color:transparent!important;border-radius:999px}
+html body[data-skin="laka"] .live-filters{background:#110b06!important;border:1px solid var(--laka-bronze-dim)!important;border-radius:6px}
+html body[data-skin="laka"] .level-filter button{background:var(--laka-lacquer-2)!important;color:var(--laka-parchment)!important;border:1px solid var(--laka-bronze-dim)!important;border-radius:999px!important}
+html body[data-skin="laka"] .level-filter button:hover{border-color:var(--laka-bronze)!important}
+html body[data-skin="laka"] .level-filter button.active{background:var(--laka-gold)!important;border-color:var(--laka-gold)!important;color:#1d1404!important;font-weight:700}
+html body[data-skin="laka"] .live-filters select,html body[data-skin="laka"] .live-filters input{background:#0b0704!important;border:1px solid var(--laka-bronze-dim)!important;color:var(--laka-parchment)!important;border-radius:6px}
+html body[data-skin="laka"] .live-insights-toggle{background:var(--laka-lacquer-2)!important;border-color:var(--laka-bronze-dim)!important;color:var(--laka-parchment)!important}
+/* HUD over the map: corner brackets, scanlines and a slow radar sweep. Overlays only — no size change. */
+html body[data-skin="laka"] .world-map{border:1px solid var(--laka-bronze)!important;box-shadow:0 0 0 1px #000,0 0 40px -10px #e8b93f44}
+html body[data-skin="laka"] .world-map::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:
+   linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px top 6px/18px 2px no-repeat,linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px top 6px/2px 18px no-repeat,
+   linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px top 6px/18px 2px no-repeat,linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px top 6px/2px 18px no-repeat,
+   linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px bottom 6px/18px 2px no-repeat,linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px bottom 6px/2px 18px no-repeat,
+   linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px bottom 6px/18px 2px no-repeat,linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px bottom 6px/2px 18px no-repeat,
+   repeating-linear-gradient(0deg,#0000 0 2px,#00000014 2px 3px);
+  box-shadow:inset 0 0 60px #000a;opacity:.9}
+html body[data-skin="laka"] .world-map::before{display:block!important;content:"";position:absolute;inset:-30%;opacity:1;pointer-events:none;z-index:1;
+  background:conic-gradient(from 0deg,#e8b93f00 0deg,#e8b93f00 300deg,#e8b93f1c 350deg,#ffe08a38 360deg)!important;mix-blend-mode:screen;animation:laka-sweep 6s linear infinite}
+@keyframes laka-sweep{to{transform:rotate(1turn)}}
+html body[data-skin="laka"] .map-caption{z-index:3;background:#000b!important;border-color:var(--laka-bronze-dim)!important;color:var(--laka-gold-hi)!important}
+/* map sidebar */
+html body[data-skin="laka"] .live-sidebar{background:var(--laka-lacquer)!important;border-color:var(--laka-bronze-dim)!important}
+html body[data-skin="laka"] .mini-stats{gap:0!important;border:1px solid var(--laka-bronze-dim);border-radius:6px;overflow:hidden}
+html body[data-skin="laka"] .mini-stats div{background:transparent!important;border:0!important;border-radius:0!important;text-align:center}
+html body[data-skin="laka"] .mini-stats div:nth-child(even){border-left:1px solid var(--laka-bronze-dim)!important}
+html body[data-skin="laka"] .mini-stats div:nth-child(n+3){border-top:1px solid var(--laka-bronze-dim)!important}
+html body[data-skin="laka"] .mini-stats b{color:var(--laka-gold-hi)!important;font-weight:800}
+html body[data-skin="laka"] .mini-stats span{color:var(--laka-dust)}
+html body[data-skin="laka"] .live-sidebar-tabs{gap:2px!important}
+html body[data-skin="laka"] .live-sidebar-tabs button{background:none!important;border:0!important;border-bottom:2px solid var(--laka-bronze-dim)!important;border-radius:0!important;color:var(--laka-dust)!important;font-weight:700}
+html body[data-skin="laka"] .live-sidebar-tabs button.active{color:var(--laka-gold-hi)!important;border-bottom-color:var(--laka-gold)!important}
+html body[data-skin="laka"] .live-ranking a{background:transparent!important;border:0!important;border-bottom:1px solid #3a281566!important;border-radius:4px}
+html body[data-skin="laka"] .live-ranking a:hover{background:var(--laka-lacquer-2)!important}
+/* server state column */
+html body[data-skin="laka"] .world-overview h3{font:700 16px/1.2 var(--laka-display);color:var(--laka-gold)}
+html body[data-skin="laka"] .world-summary-grid>div{background:transparent!important;border:0!important;border-bottom:1px solid #3a281566!important;border-radius:0!important}
+html body[data-skin="laka"] .world-summary-grid b{color:var(--laka-gold-hi)!important;font-variant-numeric:lining-nums tabular-nums}
+html body[data-skin="laka"] .dashboard-widgets .panel h2{font:700 18px/1.2 var(--laka-display)}
+@media (max-width:1180px){
+  html body[data-skin="laka"] .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body[data-skin="laka"] .cards article:nth-child(odd){border-left:0!important}
+  html body[data-skin="laka"] .cards article:nth-child(n+3){border-top:1px solid var(--laka-bronze-dim)!important}
+}
 
 /* ───── page transitions ───── */
 body[data-skin="laka"] main>*{animation:laka-rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--laka-i,0) * 60ms)}
