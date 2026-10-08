@@ -65,6 +65,8 @@ body[data-skin="laka"] main>.eyebrow:first-child,body[data-skin="laka"] main>.ey
 body[data-skin="laka"] .notif-bell-wrap{top:max(10px,env(safe-area-inset-top,0px));right:max(14px,var(--laka-gut))}
 body[data-skin="laka"] .notification{border:1px solid var(--laka-bronze-dim);background:var(--laka-lacquer);border-radius:6px;padding:9px 11px}
 .laka-bottombar{display:none}
+/* dashboard ticker is fixed to the old 220px sidebar edge */
+body[data-skin="laka"] .news-ticker{left:var(--laka-rail)}
 
 /* ───── surfaces: HUD corners on panels ───── */
 body[data-skin="laka"] .panel,body[data-skin="laka"] .live-shell,body[data-skin="laka"] .world-overview,body[data-skin="laka"] .cards article{
@@ -153,6 +155,12 @@ body[data-skin="laka"] .laka-flash{animation:laka-flash .9s ease-out}
   .laka-bottombar .laka-slot{width:34px;height:34px}
   .laka-bottombar [aria-current="true"]{color:var(--laka-gold-hi)}
   body[data-skin="laka"] .action-toast-stack,body[data-skin="laka"] .notif-toast-stack{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+  /* ticker sits above the bottom bar instead of under it */
+  body[data-skin="laka"] .news-ticker{left:7px;right:7px;bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  body[data-skin="laka"] .news-ticker.is-hidden{left:auto}
+  /* hero: let the title wrap instead of being cut by the fixed 164px height */
+  body[data-skin="laka"] .empire-hero{height:auto!important;min-height:164px}
+  body[data-skin="laka"] .empire-hero-title{font-size:clamp(26px,8vw,40px)!important;line-height:1.05}
 }
 @media (max-width:400px){.laka-search{display:none}}
 @media (prefers-reduced-motion:reduce){

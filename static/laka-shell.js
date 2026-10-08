@@ -71,8 +71,9 @@
 
   // Licznik botów online: /api/manage-status zwraca "bots": len(live_bots()).
   const count = document.getElementById('laka-live-count');
-  async function refresh() {
-    if (!count || document.hidden) return;
+  async function refresh(force) {
+    // Pierwszy odczyt zawsze; potem tylko gdy karta jest widoczna (karta otwarta w tle też ma dostać liczbę).
+    if (!count || (document.hidden && force !== true)) return;
     try {
       const data = await fetch('/api/manage-status', { cache: 'no-store' }).then(r => r.json());
       if (!data.ok) return;
@@ -83,7 +84,7 @@
       }
     } catch (_) { /* belka zostaje z ostatnią wartością */ }
   }
-  refresh();
+  refresh(true);
   setInterval(refresh, 30000);
   document.addEventListener('visibilitychange', refresh);
 })();
