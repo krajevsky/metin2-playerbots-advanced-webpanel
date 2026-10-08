@@ -1,3 +1,14 @@
+## 2026-10-09 · 1.114.0 · Laka i Złoto: nowy panel
+
+- Nowy motyw jest domyślny. Nowe instalacje startują w „Laka i Złoto”, a istniejące przełączają się na niego jeden raz, przy pierwszym starcie tej wersji. Kto potem wybierze w Ustawieniach panelu dawną kolorystykę (Cesarstwo, Ocean, Ember, Forest), ten ją zachowa przy kolejnych aktualizacjach.
+- Nawigacja. Własne konturowe ikony sekcji zamiast przedmiotów z gry. Nowy podział: Świat (Przegląd, Planer eventów, Sezon), Postacie, Gospodarka, Kronika, Serwer (m.in. Aktywność map, Respawny), Administracja (m.in. Baza przedmiotów). Wyszukiwarka Ctrl+K, a na telefonie lupa.
+- Przegląd świata. Tabela najważniejszych liczb (boty, konta, yang, poziomy, raty z eventem lub najbliższym planowanym eventem, wersje). Obciążenie VPS z wykresem CPU/RAM z 24 godzin, szczytem CPU, średnim RAM i wolnym dyskiem. Boty według map dla wszystkich map z podziałem na królestwa. Lista rankingów, Kronika świata i pasek „Źródła danych” z czasami odpowiedzi endpointów.
+- Kronika świata. Ikona przedmiotu, którego dotyczy wpis (ulepszony, znaleziony lub sprzedany), księga dla umiejętności M1–M10, Kamień Duchowy dla G1–P, własne ikony dla bossów. Nowe wpisy: awans lidera rankingu poziomu oraz rekordowa sprzedaż na straganie (najwyższa cena za sztukę danego przedmiotu, od 1 mln Yang).
+- Planer eventów. Tygodniowy kalendarz z dzisiejszym dniem, linią „teraz” i kolorowymi blokami eventów (trwające świecą, wyłączone są kreskowane). Do tego statusy z ikonami, karty szybkiego startu i historia jako lista. Formularze i zapis harmonogramu bez zmian.
+- Karta postaci. Akcje administracyjne jako równe karty z ikonami i przyciskami na jednej wysokości, usuwanie postaci jako osobny czerwony pasek. Tooltipy ekwipunku znów pojawiają się przy kursorze. Oryginalne okna gry bez zmian.
+- Cały panel. Jeden wygląd filtrów i paginacji (złote chipsy), przełączników, suwaków, list rozwijanych, pól wyszukiwania, nagłówków paneli, powiadomień, komunikatów i wykresów. Nowe ekrany logowania i błędu. Animacje przejść między stronami.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
 ## 2026-10-08 · 1.113.6 · Motyw „Laka i Złoto”
 
 - Nowa opcja w Ustawieniach panelu → Kolorystyka: „Laka i Złoto (nowy układ)”. Pozostałe motywy wyglądają bez zmian, a powrót to jedno kliknięcie.

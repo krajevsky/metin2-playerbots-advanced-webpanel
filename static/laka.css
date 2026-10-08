@@ -387,7 +387,8 @@ html body[data-skin="laka"] .lev-run button{padding:5px 10px;font-size:12.5px}
 html body[data-skin="laka"] .lev-past{list-style:none;margin:0;padding:0}
 .lev-past li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 4px;border-top:1px solid #3a281555}
 .lev-past li:first-child{border-top:0}
-.lev-past b{display:block;color:var(--laka-parchment)}
+.lev-past b{display:inline;color:var(--laka-parchment)}
+.lev-past .lev-amount{margin-left:8px;font-style:normal;font-weight:800;color:var(--laka-gold-hi)}
 .lev-past small{display:block;color:var(--laka-dust);font-size:12.5px}
 .lev-past time{color:var(--laka-dust-2);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* editor dialog */

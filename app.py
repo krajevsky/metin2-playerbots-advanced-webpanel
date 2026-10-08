@@ -324,7 +324,7 @@ try:
 except OSError:
     PANEL_VERSION = os.environ.get("SEBAN_PANEL_VERSION", "dev")
 DEFAULT_SETTINGS = {
-    "panel_name": "Metin2 Singleplayer", "stuck_minutes": "5", "theme": "empire", "monitor_mode": "vps", "cursor": "custom",
+    "panel_name": "Metin2 Singleplayer", "stuck_minutes": "5", "theme": "laka", "monitor_mode": "vps", "cursor": "custom",
     # Existing installations without this key stay usable. Fresh installations
     # receive setup_complete=0 from the collector and enter the setup wizard.
     "setup_complete": "1", "auth_enabled": "0", "auth_password_hash": "", "allow_student_chest": "0", "allow_moonlight_chest": "0", "keep_demo_characters": "0", "update_seban_panel": "0",

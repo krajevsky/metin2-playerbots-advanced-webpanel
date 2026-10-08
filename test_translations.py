@@ -117,7 +117,7 @@ def test_an_events_name_and_its_map_in_the_history_and_the_running_lines():
         assert label in translations.EXACT or label.isascii(), label
 
 
-def test_the_events_page_history_in_english():
+def _events_page_in_english(theme):
     finished = datetime(2026, 10, 2, 10, 30)
     runs = [{"id": 1, "kind": "zuo@64", "value": 8, "started_at": finished, "ended_at": finished,
              "chest_count": None, "yang_extra": None},
@@ -126,14 +126,26 @@ def test_the_events_page_history_in_english():
             {"id": 3, "kind": "chest", "value": 0, "started_at": finished, "ended_at": finished,
              "chest_count": 12, "yang_extra": None}]
     panel.app.config["TESTING"] = True
-    with patch.object(panel, "settings", return_value=english_settings()), \
+    with patch.object(panel, "settings", return_value={**english_settings(), "theme": theme}), \
             patch.object(panel, "rows", side_effect=lambda sql, params=(): runs if "web_seban_event_runs" in sql else []), \
             patch.object(panel, "check_all_notifications"), \
             patch.object(panel, "read_events", return_value=([], {})), \
             patch.object(panel, "read_events_status", return_value={}), \
             patch.object(panel, "read_world_events_status", return_value={}), \
             patch.object(panel, "read_event_settings", return_value={"bots": 50}):
-        body = panel.app.test_client().get("/events").get_data(as_text=True)
+        return panel.app.test_client().get("/events").get_data(as_text=True)
+
+
+def test_the_events_page_history_in_english_in_the_laka_theme():
+    body = _events_page_in_english("laka")
+    assert "<b>Zuo: Metin rain · Orc Valley</b>" in body
+    assert "<b>Pirate Tanaka · Event&#x27;s choice</b>" in body
+    assert "<small>no statistics</small>" in body and "<small>12 chests</small>" in body
+    assert "<option value=\"67\">Ghost Wood</option>" in body
+
+
+def test_the_events_page_history_in_english():
+    body = _events_page_in_english("empire")
     assert "<td>Zuo: Metin rain · Orc Valley</td>" in body
     assert "<td>Pirate Tanaka · Event&#x27;s choice</td>" in body
     assert "<td>no statistics</td>" in body and "<td>12 chests</td>" in body

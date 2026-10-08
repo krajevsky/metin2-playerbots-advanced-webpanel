@@ -72,7 +72,7 @@
 
 <section class="panel lev-history">
   <header class="lev-head"><div><span class="eyebrow">Historia</span><h2>Ostatnio zakończone</h2></div><p class="muted">Liczone ze zdarzeń w logu gry, więc dokładne niezależnie od tego, co boty zrobiły z łupem.</p></header>
-  {% if event_history %}<ul class="lev-past">{% for run in event_history %}<li id="run-{{ run.id }}"><span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ LEV_ICONS.get(run.base_kind, '25040.png')) }}" alt=""></span><div><b>{{ run.label }}{% if run.base_kind == 'chest' %}{% elif run.base_kind in world_kinds %} · {{ run.value }} szt.{% else %} · +{{ run.value }}%{% endif %}</b><small>{{ run.summary }}</small></div><time>{{ run.started_at.strftime('%d.%m %H:%M') }} – {{ run.ended_at.strftime('%H:%M') }}</time></li>{% endfor %}</ul>
+  {% if event_history %}<ul class="lev-past">{% for run in event_history %}<li id="run-{{ run.id }}"><span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ LEV_ICONS.get(run.base_kind, '25040.png')) }}" alt=""></span><div>{# label, amount and summary are separate text nodes: the EN translation matches whole nodes #}<b>{{ run.label }}</b>{% if run.base_kind == 'chest' %}{% elif run.base_kind in world_kinds %}<em class="lev-amount">{{ run.value }} szt.</em>{% else %}<em class="lev-amount">+{{ run.value }}%</em>{% endif %}<small>{{ run.summary }}</small></div><time>{{ run.started_at.strftime('%d.%m %H:%M') }} – {{ run.ended_at.strftime('%H:%M') }}</time></li>{% endfor %}</ul>
   {% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}
 </section>
 

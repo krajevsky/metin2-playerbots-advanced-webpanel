@@ -258,8 +258,15 @@ def init(cur):
       updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB""")
     cur.execute("""INSERT IGNORE INTO player.web_seban_settings (name,value) VALUES
-      ('panel_name','Metin2 Singleplayer'),('stuck_minutes','5'),('theme','empire'),('monitor_mode','vps'),
+      ('panel_name','Metin2 Singleplayer'),('stuck_minutes','5'),('theme','laka'),('monitor_mode','vps'),
       ('setup_complete','1'),('auth_enabled','0'),('auth_password_hash','')""")
+    # One-time switch to the Laka i Złoto theme (panel 1.114.0): every install that updates to
+    # this version starts in the new theme once; the marker keeps a later manual choice of an
+    # older theme (empire/ocean/ember/forest) untouched by every update after that.
+    cur.execute("SELECT value FROM player.web_seban_settings WHERE name='theme_laka_default'")
+    if cur.fetchone() is None:
+        cur.execute("UPDATE player.web_seban_settings SET value='laka' WHERE name='theme'")
+        cur.execute("INSERT IGNORE INTO player.web_seban_settings (name,value) VALUES ('theme_laka_default','1')")
     # One-time branding migration for deployments created before the public-ready build.
     cur.execute("UPDATE player.web_seban_settings SET value='Metin2 Singleplayer' WHERE name='panel_name' AND value='Mt2009'")
     # Single-player suite: no setup wizard, no passphrase - one player at their
