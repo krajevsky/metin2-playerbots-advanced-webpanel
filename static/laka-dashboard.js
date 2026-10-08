@@ -43,10 +43,19 @@
     const r = data.rates || {};
     if ('exp' in r) set('lg-rates', `${r.exp} · ${r.drop} · ${r.yang}%`);
     const names = { exp: 'EXP', drop: 'Drop', yang: 'Yang' };
-    const active = Object.entries(data.events || {}).filter(([k, ev]) => names[k] && ev && ev.active && Number(ev.value) > 0);
-    set('lg-event', active.length ? active.map(([k, ev]) => `<span class="laka-event">${names[k]} +${ev.value}% do ${esc(ev.until_text || '—')}</span>`).join(' ') : 'bez eventu');
-    const up = data.updater || {};
-    if (up.installed) set('lg-playerbots', up.behind && up.latest ? `Playerbots ${esc(up.installed)} · <span class="laka-warn">dostępna ${esc(up.latest)}</span>` : `Playerbots ${esc(up.installed)}`);
+    const events = Object.entries(data.events || {}).filter(([k, ev]) => names[k] && ev);
+    const active = events.filter(([, ev]) => ev.active && Number(ev.value) > 0);
+    if (active.length) {
+      set('lg-event', active.map(([k, ev]) => `<span class="laka-event">${names[k]} +${ev.value}% do ${esc(ev.until_text || '—')}</span>`).join(' '));
+    } else {
+      // nic nie trwa: najbliższy zaplanowany event z rdzenia (next_start / next_value)
+      const next = events.filter(([, ev]) => ev.scheduled && Number(ev.next_start) > 0 && Number(ev.next_value) > 0)
+        .sort((a, b) => a[1].next_start - b[1].next_start);
+      if (next.length) {
+        const at = next[0][1].next_start;
+        set('lg-event', 'następny: ' + next.filter(([, ev]) => ev.next_start === at).map(([k, ev]) => `${names[k]} +${ev.next_value}%`).join(', ') + ` · ${esc(next[0][1].next_start_text || '')}`);
+      } else set('lg-event', 'bez eventu');
+    }
   });
 
   // ── dane historyczne: wersja panelu i rankingi (te same, co stara karuzela)
@@ -65,6 +74,9 @@
   bus.on('/api/dashboard-deferred', data => {
     const w = data.world_summary || {};
     if (w.panel_release && w.panel_release.installed) set('lg-panel', esc(w.panel_release.installed));
+    const rel = w.release || {};
+    const pb = rel.installed || w.version;
+    if (pb) set('lg-playerbots', rel.behind && rel.latest ? `Playerbots ${esc(pb)} · <span class="laka-warn">dostępna ${esc(rel.latest)}</span>` : `Playerbots ${esc(pb)}`);
     if (w.rates && !$('lg-rates').textContent.includes('%')) set('lg-rates', `${w.rates.exp} · ${w.rates.drop} · ${w.rates.yang}%`);
     ranks = data.quick_rankings || []; topId = data.global_top_id; rankI = 0; drawRank();
     if (data.system) drawSystem(data.system);
