@@ -1403,6 +1403,91 @@ def _classify_refine_events(raw):
 NEWS_SYNC_INTERVAL = 300  # seconds -- see sync_news_events() docstring
 
 
+# World feed: record stall sales. Only a sale whose price per piece beats every earlier sale of the
+# same item, and is worth at least this much, makes the feed (operator's ask, 2026-10-08).
+SALE_RECORD_MIN_UNIT = 1_000_000
+_SALE_UNIT_SQL = ("CAST(SUBSTRING_INDEX(l.hint,' za ',-1) AS UNSIGNED) DIV "
+                  "GREATEST(1, CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(l.hint,' x',-1),' ',1) AS UNSIGNED))")
+
+
+def _record_sale_events(since):
+    """Stall sales after `since` that set a new per-item price record (player.web_seban_sale_record
+    keeps the best price per piece; seeded once from the whole PLAYERBOT_STALL_SOLD history)."""
+    rows("""CREATE TABLE IF NOT EXISTS player.web_seban_sale_record (
+      vnum INT UNSIGNED NOT NULL PRIMARY KEY, unit_price BIGINT UNSIGNED NOT NULL, sold_at DATETIME NOT NULL)""")
+    # never look further back than a day: a fresh install's cursor starts in 2020, and every
+    # sale before the window is history that only seeds the records
+    since = max(str(since), (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"))
+    if not one("SELECT vnum FROM player.web_seban_sale_record LIMIT 1"):
+        rows(f"""INSERT IGNORE INTO player.web_seban_sale_record (vnum, unit_price, sold_at)
+          SELECT l.vnum, MAX({_SALE_UNIT_SQL}), MAX(l.time) FROM log.log l
+          WHERE l.how='PLAYERBOT_STALL_SOLD' AND l.time < %s GROUP BY l.vnum""", (since,))
+    sales = rows(f"""SELECT l.time, l.who, l.what, l.vnum, l.hint, {_SALE_UNIT_SQL} AS unit, p.name, p.job,
+        {EMPIRE_EXPR} AS empire
+      FROM log.log l JOIN player.player p ON p.id=l.who
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      LEFT JOIN account.account a ON a.id=p.account_id
+      WHERE l.how='PLAYERBOT_STALL_SOLD' AND l.time >= %s ORDER BY l.time LIMIT 20000""", (since,))
+    if not sales:
+        return []
+    vnums = sorted({int(s["vnum"]) for s in sales})
+    marks = ",".join(["%s"] * len(vnums))
+    best = {int(r["vnum"]): int(r["unit_price"]) for r in
+            rows(f"SELECT vnum, unit_price FROM player.web_seban_sale_record WHERE vnum IN ({marks})", vnums)}
+    events, changed = [], {}
+    for sale in sales:
+        vnum, unit = int(sale["vnum"]), int(sale["unit"] or 0)
+        previous = best.get(vnum)
+        if previous is not None and unit <= previous:
+            continue
+        best[vnum] = unit
+        changed[vnum] = (unit, sale["time"])
+        # the first sale ever of an item is not a record; cheap items never are
+        if previous is None or unit < SALE_RECORD_MIN_UNIT:
+            continue
+        match = SALE_HINT_RE.match(game_text(sale["hint"]))
+        qty, price = (int(match.group(2)), int(match.group(3))) if match else (1, unit)
+        item = _item_display_name(vnum, 0)
+        name = game_text(sale.get("name")) or f"pid {sale['who']}"
+        amount = f"{qty}× {item}" if qty > 1 else item
+        events.append({
+            "key": f"SALE:{sale['who']}:{sale['what']}:{sale['time']}", "time": sale["time"],
+            "message": f"Stragan {name} sprzedał {amount} za {price:,} Yang".replace(",", " "),
+            "kind": "sale", "actor": name, "method": f"rekord ceny (wcześniej {previous:,} za sztukę)".replace(",", " "),
+            "refine_tier": 0, "player_id": int(sale["who"] or 0), "job": int(sale.get("job") or 0),
+            "empire": int(sale.get("empire") or 0), "vnum": vnum, "socket0": 0,
+        })
+    if changed:
+        rows("""INSERT INTO player.web_seban_sale_record (vnum, unit_price, sold_at) VALUES """ +
+             ",".join(["(%s,%s,%s)"] * len(changed)) +
+             " ON DUPLICATE KEY UPDATE sold_at=IF(VALUES(unit_price)>unit_price,VALUES(sold_at),sold_at),"
+             " unit_price=GREATEST(unit_price,VALUES(unit_price))",
+             [v for vnum, (unit, at) in changed.items() for v in (vnum, unit, at)])
+    return events
+
+
+def _leader_level_events(since):
+    """Level-ups of the current #1 of the level ranking (operator's ask: only the top player).
+    log.levellog keeps one row per level (empty name, so the latest pid to reach it wins),
+    which is enough here: the leader is usually the only one at the top levels."""
+    leader = one("SELECT id, name, job FROM player.player WHERE " + ranking_scope_sql("") +
+                 " ORDER BY level DESC, exp DESC LIMIT 1")
+    if not leader:
+        return []
+    found = rows("""SELECT lv.level, lv.time, lv.pid, {empire} AS empire FROM log.levellog lv
+      JOIN player.player p ON p.id=lv.pid
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      LEFT JOIN account.account a ON a.id=p.account_id
+      WHERE lv.pid=%s AND lv.time >= %s ORDER BY lv.time""".format(empire=EMPIRE_EXPR), (leader["id"], since))
+    name = game_text(leader.get("name"))
+    return [{
+        "key": f"LEVEL:{row['pid']}:{row['level']}", "time": row["time"],
+        "message": f"{name} osiągnął poziom {row['level']}", "kind": "level", "actor": name,
+        "method": "lider rankingu poziomu", "refine_tier": 0, "player_id": int(row["pid"]),
+        "job": int(leader.get("job") or 0), "empire": int(row.get("empire") or 0), "vnum": 0, "socket0": 0,
+    } for row in found]
+
+
 def sync_news_events():
     """Keep web_seban_news_event (a small, time-indexed local cache) caught
     up with log.log, throttled to run the expensive underlying scan at most
@@ -1441,6 +1526,11 @@ def sync_news_events():
             events = _classify_news_events(_news_event_source_rows(since=since, scan_limit=2_000_000))
             events += _classify_refine_events(_refine_event_rows(since=since))
             events += _classify_refine9_events(_refine9_event_rows(since=since))
+            for source in (_record_sale_events, _leader_level_events):
+                try:
+                    events += source(since)
+                except pymysql.MySQLError:
+                    app.logger.exception("Feed wydarzeń: źródło %s nie zadziałało", source.__name__)
             if events:
                 cur.executemany("""INSERT IGNORE INTO player.web_seban_news_event
                   (event_key,time,kind,message,actor,player_id,job,empire,vnum,socket0,refine_tier,method)
@@ -1497,7 +1587,7 @@ def news_event_icon(kind, message, vnum):
         found = re.search(r" znalazł (.+?) podczas", message)
         target = item_vnum_by_polish_name(found.group(1)) if found else None
         return item_icon_url(target) if target else None
-    if kind == "chest" and vnum:
+    if kind in ("chest", "sale") and vnum:
         return item_icon_url(vnum)
     return None
 

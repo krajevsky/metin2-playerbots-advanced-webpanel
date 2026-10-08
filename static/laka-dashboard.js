@@ -127,13 +127,22 @@
   // ── Kronika świata (te same wydarzenia, co pasek wiadomości)
   // ikona wpisu: przedmiot / księga / Kamień Duchowy z serwera (news_event_icon w app.py),
   // a dla bossów i reszty własne ikony motywu (symbole z _laka_nav.html)
-  const KIND_SVG = { announcement: 'boss', refine: 'anvil' };
+  const KIND_SVG = { announcement: 'boss', refine: 'anvil', level: 'crown' };
   const chronicleIcon = e => e.icon
     ? `<span class="laka-slot"><img src="${esc(e.icon)}" alt=""></span>`
     : `<span class="laka-slot${e.kind === 'announcement' ? ' is-boss' : ''}"><svg aria-hidden="true"><use href="#li-${KIND_SVG[e.kind] || 'spark'}"/></svg></span>`;
+  // tekst wpisu jak w prototypie: imię pogrubione, +N złotem, dopisek po „—” drobnym drukiem pod spodem
+  const chronicleText = e => {
+    const [main, ...rest] = String(e.message).split(' — ');
+    let html = esc(main);
+    if (['refine', 'skill', 'find', 'level'].includes(e.kind)) html = html.replace(/^(\S+)/, '<b>$1</b>');
+    if (e.kind === 'sale') html = html.replace(/^Stragan (\S+)/, 'Stragan <b>$1</b>').replace(/za ([\d ]+ Yang)$/, 'za <em>$1</em>');
+    html = html.replace(/(\+\d+)$/, '<em>$1</em>');
+    return `<span>${html}${rest.length ? `<small>${esc(rest.join(' — '))}</small>` : ''}</span>`;
+  };
   bus.on('/api/news-feed', data => {
     const events = (data.events || []).slice(-10).reverse();
-    $('lw-chronicle').innerHTML = events.length ? events.map(e => `<li class="${Number(e.refine_tier) >= 8 ? 'is-rare' : ''}${e.kind === 'announcement' ? ' is-boss' : ''}">${chronicleIcon(e)}<span>${esc(e.message)}</span><time>${esc(e.time)}</time></li>`).join('')
+    $('lw-chronicle').innerHTML = events.length ? events.map(e => `<li class="${Number(e.refine_tier) >= 8 ? 'is-rare' : ''}${e.kind === 'announcement' ? ' is-boss' : ''}">${chronicleIcon(e)}${chronicleText(e)}<time>${esc(e.time)}</time></li>`).join('')
       : '<li class="muted">Oczekiwanie na nowe ważne wydarzenia ze świata…</li>';
   });
 })();
