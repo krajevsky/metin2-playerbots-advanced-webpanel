@@ -200,14 +200,20 @@ function bindFloatingItemTips(root=document){
     const place=event=>{
       const tip=host.querySelector('.item-tip'); if(!tip)return;
       tip.classList.add('is-floating');
+      // :hover is not guaranteed to have painted yet on pointerenter. Force a
+      // hidden layout first; otherwise rect.height is zero and tall tooltips
+      // incorrectly choose the space above the pointer.
+      tip.style.setProperty('display','block','important');
+      tip.style.setProperty('visibility','hidden','important');
       const gap=14, edge=10, rect=tip.getBoundingClientRect();
       const left=Math.max(edge,Math.min(event.clientX-rect.width/2,window.innerWidth-rect.width-edge));
       const top=event.clientY-rect.height-gap<edge ? event.clientY+gap : event.clientY-rect.height-gap;
       tip.style.setProperty('left',String(left)+'px','important');
       tip.style.setProperty('top',String(top)+'px','important');
+      tip.style.setProperty('visibility','visible','important');
     };
     host.addEventListener('pointerenter',place); host.addEventListener('pointermove',place);
-    host.addEventListener('pointerleave',()=>host.querySelector('.item-tip')?.classList.remove('is-floating'));
+    host.addEventListener('pointerleave',()=>{const tip=host.querySelector('.item-tip');if(!tip)return;tip.classList.remove('is-floating');tip.style.removeProperty('display');tip.style.removeProperty('visibility');});
   });
 }
 bindFloatingItemTips();

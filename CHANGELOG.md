@@ -1,3 +1,9 @@
+## 2026-10-08 · 1.113.3 · Pewny pomiar tooltipu
+
+- Tooltip ekwipunku jest najpierw niewidocznie renderowany i mierzony, zanim wybierze stronę kursora. Wysokie opisy nie są już błędnie pozycjonowane nad kursorem przy górnej krawędzi ekranu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-08 · 1.113.2 · Tooltipy i obecność 24/7
 
 - Tooltip przedmiotu mierzy teraz własną wysokość przy kursorem: gdy nie mieści się nad nim, otwiera się pod nim i pozostaje w granicach ekranu. Standardowe bonusy są szersze oraz nie łamią się bez potrzeby na dwie linie.
