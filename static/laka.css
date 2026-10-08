@@ -298,6 +298,87 @@ html body[data-skin="laka"] .laka-chronicle ol{list-style:none;margin:0;padding:
   html body[data-skin="laka"] .cards article:nth-child(n+3){border-top:1px solid var(--laka-bronze-dim)!important}
 }
 
+/* ───── Planer eventów (templates/_laka_events.html) ───── */
+body[data-skin="laka"]{--k-chest:#c98e3a;--k-exp:#e8b93f;--k-drop:#74cf8e;--k-yang:#f0a030;--k-tanaka:#5d9cf5;--k-zuo:#e5573b}
+html body[data-skin="laka"] main .lev-head h2{margin:2px 0 0;padding:0;border:0;font:700 19px/1.2 var(--laka-display)}
+.lev-head{display:flex;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--laka-bronze-dim)}
+.lev-head>p{margin:0;max-width:60ch;font-size:13.5px}
+.lev-top{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(260px,1fr);gap:var(--laka-gut)}
+html body[data-skin="laka"] .lev-top>.panel{margin:0}
+.lev-core{padding:4px 12px;border-radius:999px;background:var(--laka-lacquer-3);color:var(--laka-dust);font-weight:700;font-size:13px}
+.lev-core.is-on{background:var(--laka-jade-bg);color:var(--laka-jade)}
+.lev-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lev-card{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:12px;border:1px solid var(--laka-bronze-dim);border-radius:6px;background:var(--laka-lacquer-2)}
+.lev-card b{display:block;font-weight:700;color:var(--laka-parchment)}
+.lev-card small{display:block;font-size:12.5px;color:var(--laka-dust)}
+.lev-card.is-active{border-color:var(--laka-jade);background:linear-gradient(90deg,#16301f,var(--laka-lacquer-2))}
+.lev-card.is-scheduled{border-color:var(--laka-bronze)}
+.lev-live{color:var(--laka-jade)!important;font-weight:700}
+.lev-share{display:grid;align-content:start;gap:14px}
+.lev-share p{margin:0}
+.lev-range{display:flex;align-items:center;gap:12px}
+.lev-range input{flex:1}
+.lev-range output{font:800 22px var(--laka-body);color:var(--laka-gold-hi);min-width:4ch;text-align:right}
+html body[data-skin="laka"] .lev-share button{justify-self:start}
+/* week calendar */
+.lev-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--laka-dust)}
+.lev-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.lev-legend .k-chest,.lev-ev.k-chest{--k:var(--k-chest)}.lev-legend .k-exp,.lev-ev.k-exp{--k:var(--k-exp)}.lev-legend .k-drop,.lev-ev.k-drop{--k:var(--k-drop)}
+.lev-legend .k-yang,.lev-ev.k-yang{--k:var(--k-yang)}.lev-legend .k-tanaka,.lev-ev.k-tanaka{--k:var(--k-tanaka)}.lev-legend .k-zuo,.lev-ev.k-zuo{--k:var(--k-zuo)}
+.lev-legend i{background:var(--k)}
+.lev-actions{display:flex;gap:6px;flex-wrap:wrap}
+html body[data-skin="laka"] .lev-actions button{padding:7px 12px;font-size:13px}
+html body[data-skin="laka"] .lev-actions .lev-primary{background:linear-gradient(180deg,#f3c955,#c99227);color:#1d1404;border-color:var(--laka-gold-deep)}
+.lev-week-scroll{overflow:auto;max-height:min(68vh,640px);border:1px solid var(--laka-bronze-dim);border-radius:6px;background:#0d0906}
+.lev-week{display:grid;grid-template-columns:56px repeat(7,minmax(112px,1fr));min-width:850px;position:relative}
+.lev-corner,.lev-dayhead{position:sticky;top:0;z-index:4;background:#140d07;border-bottom:1px solid var(--laka-bronze-dim)}
+.lev-dayhead{display:grid;justify-items:center;padding:9px 4px;border-left:1px solid var(--laka-bronze-dim)}
+.lev-dayhead b{font:700 14px var(--laka-display);color:var(--laka-gold)}
+.lev-dayhead span{font-size:11.5px;color:var(--laka-dust-2)}
+.lev-dayhead.is-today{background:#2a1c0c;box-shadow:inset 0 -2px 0 var(--laka-gold)}
+.lev-dayhead.is-today b{color:var(--laka-gold-hi)}
+.lev-hours{grid-column:1}
+.lev-hours div{box-sizing:border-box;padding:3px 8px 0 0;text-align:right;font-size:11.5px;color:var(--laka-dust-2);border-top:1px solid #3a281533;font-variant-numeric:tabular-nums}
+.lev-col{position:relative;border-left:1px solid var(--laka-bronze-dim);background:repeating-linear-gradient(180deg,transparent 0 39px,#3a281544 39px 40px)}
+.lev-col.is-today{background-color:#e8b93f0a}
+html body[data-skin="laka"] main .lev-slot{position:absolute;left:0;right:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;cursor:copy}
+html body[data-skin="laka"] main .lev-slot:hover{background:#e8b93f14;filter:none}
+html body[data-skin="laka"] main .lev-ev{position:absolute;z-index:2;display:grid;align-content:start;gap:1px;padding:4px 7px;overflow:hidden;text-align:left;border:0;border-left:3px solid var(--k);border-radius:4px;background:color-mix(in srgb,var(--k) 22%,#140d07);color:var(--laka-parchment);font:inherit;box-shadow:0 2px 6px #0008;cursor:pointer}
+html body[data-skin="laka"] main .lev-ev:hover{filter:brightness(1.15);border-color:var(--k)}
+.lev-ev b{font-size:12px;font-weight:700;line-height:1.2;color:color-mix(in srgb,var(--k) 55%,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lev-ev small{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body[data-skin="laka"] main .lev-ev.is-off{opacity:.45;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--k) 14%,#140d07) 0 6px,#140d07 6px 12px)}
+html body[data-skin="laka"] main .lev-ev.is-live{box-shadow:0 0 0 1px var(--k),0 0 16px color-mix(in srgb,var(--k) 55%,transparent);animation:lev-pulse 2.4s ease-in-out infinite}
+@keyframes lev-pulse{50%{box-shadow:0 0 0 1px var(--k),0 0 4px color-mix(in srgb,var(--k) 30%,transparent)}}
+.lev-nowline{position:absolute;left:0;right:0;height:2px;z-index:3;background:#e5573b;box-shadow:0 0 6px #e5573b;pointer-events:none}
+.lev-nowline::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#e5573b}
+.lev-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:12px}
+.lev-foot p{margin:0;max-width:75ch;font-size:13px}
+/* quick start */
+.lev-quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.lev-qcard{display:grid;gap:10px;align-content:start;padding:12px;border:1px solid var(--laka-bronze-dim);border-radius:6px;background:var(--laka-lacquer-2)}
+.lev-qcard.is-running{border-color:var(--laka-jade);background:linear-gradient(180deg,#16301f,var(--laka-lacquer-2) 60%)}
+.lev-qhead{display:flex;align-items:center;gap:10px}
+.lev-qhead b{color:var(--laka-parchment)}
+.lev-qform{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end}
+.lev-qform label{display:grid;gap:4px;font-size:12.5px}
+.lev-qform .lev-wide,.lev-qform button{grid-column:1/-1}
+.lev-qform select,.lev-qform input{width:100%;box-sizing:border-box;padding:7px 9px}
+.lev-run{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--laka-jade)}
+html body[data-skin="laka"] .lev-run button{padding:5px 10px;font-size:12.5px}
+/* history */
+html body[data-skin="laka"] .lev-past{list-style:none;margin:0;padding:0}
+.lev-past li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 4px;border-top:1px solid #3a281555}
+.lev-past li:first-child{border-top:0}
+.lev-past b{display:block;color:var(--laka-parchment)}
+.lev-past small{display:block;color:var(--laka-dust);font-size:12.5px}
+.lev-past time{color:var(--laka-dust-2);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* editor dialog */
+html body[data-skin="laka"] .lev-dialog{background:var(--laka-lacquer);color:var(--laka-parchment);border:1px solid var(--laka-bronze);border-radius:8px;box-shadow:0 30px 80px #000}
+html body[data-skin="laka"] .lev-dialog::backdrop{background:#000a}
+@media (max-width:1180px){.lev-top{grid-template-columns:minmax(0,1fr)}.lev-status{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.lev-status{grid-template-columns:minmax(0,1fr)}.lev-past li{grid-template-columns:auto minmax(0,1fr)}.lev-past time{grid-column:2}}
+
 /* ───── page transitions ───── */
 /* fill-mode "backwards", never "both": a transform kept after the animation turns main>* into the
    containing block of position:fixed children, which threw the inventory tooltips (.item-tip.is-floating)

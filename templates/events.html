@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Eventy · {{ panel_brand }}{% endblock %}
 {% block content %}
+{% if settings.theme == 'laka' %}{% include '_laka_events.html' %}{% else %}
 <p class="eyebrow">PLAYERBOTS · NA ŻYWO</p>
 <div class="events-heading"><div><h1>🎉 Planer eventów</h1><p class="muted">Uruchamiaj eventy od razu albo ustawiaj ich tygodniowy harmonogram. Rdzeń Playerbots odczytuje zmianę w ciągu pięciu sekund — restart nie jest potrzebny.</p></div><div class="events-core"><span>RDZEŃ</span><b>{{ 'połączony' if status else 'czeka na status' }}</b></div></div>
 
@@ -104,5 +105,6 @@ $('calendar-now').addEventListener('click',()=>scrollCalendar(new Date().getHour
 })();
 </script>
 <section class="panel event-history-panel"><p class="eyebrow">HISTORIA</p><h2>📜 Ostatnie zakończone eventy</h2><p class="muted">Statystyki liczone ze zdarzeń w logu (zdobycie szkatułki / realnie zdobyty yang), nie ze stanu ekwipunku — dokładne niezależnie od tego co boty zrobiły z łupem.</p>{% if event_history %}<table class="event-history-table"><thead><tr><th>Event</th><th>Bonus</th><th>Od</th><th>Do</th><th>Wynik</th></tr></thead><tbody>{% for run in event_history %}<tr id="run-{{run.id}}"><td>{{run.label}}</td><td>{% if run.base_kind == 'chest' %}—{% elif run.base_kind in world_kinds %}{{ run.value }} szt.{% else %}+{{ run.value }}%{% endif %}</td><td>{{run.started_at.strftime('%d.%m %H:%M')}}</td><td>{{run.ended_at.strftime('%d.%m %H:%M')}}</td><td>{{run.summary}}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}</section>
+{% endif %}
 {% endblock %}
 
