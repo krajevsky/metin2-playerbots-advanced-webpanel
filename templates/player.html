@@ -195,7 +195,7 @@ function bindNativeCharacterWindow(){
 bindNativeCharacterWindow();
 // A tooltip follows the cursor. Its measured height decides whether it opens below it.
 function bindFloatingItemTips(root=document){
-  root.querySelectorAll('.equip-slot,.inv-slot,.safebox-slot,.ds-equip-slot,.ds-bag-slot,.skill-slot,.shop-slot').forEach(host=>{
+  root.querySelectorAll('.equip-slot,.inv-slot,.safebox-slot,.ds-equip-slot,.ds-bag-slot,.skill-slot').forEach(host=>{
     if(host.dataset.floatingTipBound)return; host.dataset.floatingTipBound='1';
     const place=event=>{
       const tip=host.querySelector('.item-tip'); if(!tip)return;
