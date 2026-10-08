@@ -345,6 +345,11 @@ html body[data-skin="laka"] main .lev-slot{position:absolute;left:0;right:0;padd
 html body[data-skin="laka"] main .lev-slot:hover{background:#e8b93f14;filter:none}
 html body[data-skin="laka"] main .lev-ev{position:absolute;z-index:2;display:grid;align-content:start;gap:1px;padding:4px 7px;overflow:hidden;text-align:left;border:0;border-left:3px solid var(--k);border-radius:4px;background:color-mix(in srgb,var(--k) 22%,#140d07);color:var(--laka-parchment);font:inherit;box-shadow:0 2px 6px #0008;cursor:pointer}
 html body[data-skin="laka"] main .lev-ev:hover{filter:brightness(1.15);border-color:var(--k)}
+.lev-ev img{display:none;width:22px;height:22px;object-fit:contain;image-rendering:pixelated}
+html body[data-skin="laka"] main .lev-ev.is-narrow{padding:4px 0;justify-items:center;border-left-width:0;border-top:3px solid var(--k)}
+.lev-ev.is-narrow img{display:block}
+.lev-ev.is-narrow b,.lev-ev.is-narrow small{display:none}
+.lev-ev.is-half small{display:none}
 .lev-ev b{font-size:12px;font-weight:700;line-height:1.2;color:color-mix(in srgb,var(--k) 55%,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lev-ev small{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html body[data-skin="laka"] main .lev-ev.is-off{opacity:.45;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--k) 14%,#140d07) 0 6px,#140d07 6px 12px)}

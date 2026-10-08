@@ -94,6 +94,7 @@ document.body.dataset.ajaxForms='1';
 const dayNames=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
 const shortDays=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
 const labels={{ event_labels|tojson }};
+const icons={ {% for kind, file in LEV_ICONS.items() %}{{ kind|tojson }}: {{ url_for('static', filename='icons/' ~ file)|tojson }}{% if not loop.last %}, {% endif %}{% endfor %} };
 const worldKinds={{ world_kinds|list|tojson }},worldDefaults={{ world_defaults|tojson }},worldMax={{ world_max|tojson }};
 // eventy, które trwają teraz: ich bloki z bieżącego okna dostają poświatę
 const statusByKind={{ (status or {})|tojson }},worldRuns={{ (world_runs or {})|tojson }};
@@ -121,8 +122,10 @@ function addBlock(day,row,index,start,end,lane,count){
   block.style.top=(start/60*H+1)+'px';block.style.height=Math.max(22,(end-start)/60*H-3)+'px';
   block.style.left=`calc(${lane/count*100}% + 3px)`;block.style.right=`calc(${(count-lane-1)/count*100}% + 3px)`;
   const amount=worldKinds.includes(row.kind)?`${row.value} szt.`:(row.kind!=='chest'?`+${row.value}%`:'');
-  block.innerHTML=`<b>${labels[row.kind]}</b><small>${row.start}–${row.end}${amount?' · '+amount:''}${row.on?'':' · wyłączony'}</small>`;
-  block.title=`Edytuj: ${labels[row.kind]} (${row.start}–${row.end})`;
+  // kilka eventów naraz dzieli kolumnę dnia na wąskie pasy: wtedy ikona przedmiotu zamiast nazwy
+  if(count>=3)block.classList.add('is-narrow');else if(count===2)block.classList.add('is-half');
+  block.innerHTML=`<img src="${icons[row.kind]}" alt=""><b>${labels[row.kind]}</b><small>${row.start}–${row.end}${amount?' · '+amount:''}${row.on?'':' · wyłączony'}</small>`;
+  block.title=`${labels[row.kind]} · ${row.start}–${row.end}${amount?' · '+amount:''}${row.on?'':' · wyłączony'} — kliknij, aby edytować`;
   block.addEventListener('click',event=>{event.stopPropagation();openDialog(index)});
   calendar.querySelector(`.lev-col[data-day="${day}"]`).append(block);
 }
