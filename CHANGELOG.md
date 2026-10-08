@@ -1,3 +1,9 @@
+## 2026-10-08 · 1.113.1 · English: ranking +9
+
+- Filtry kategorii oraz sortowanie rankingu **Przedmiot +9** są przetłumaczone w angielskim interfejsie.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-08 · 1.113.0 · Kategorie rankingu +9
 
 - Ranking **Przedmiot +9** otrzymał filtry: broń, zbroje, hełmy, tarcze, bransolety, buty, naszyjniki i kolczyki.
