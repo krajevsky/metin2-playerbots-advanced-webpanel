@@ -86,6 +86,24 @@
     layer.appendChild(tpl.content.cloneNode(true));
   });
 
+  // Pasek "Źródła danych": każdy endpoint /api/*, z którego strona korzysta, z czasem ostatniej odpowiedzi
+  // (mierzy go podsłuch fetch w base.html). Kropka mignie przy każdej nowej odpowiedzi.
+  const bus = window.lakaBus;
+  if (bus && main) {
+    const bar = document.createElement('footer');
+    bar.className = 'laka-telemetry';
+    bar.setAttribute('aria-label', 'Źródła danych');
+    main.after(bar);
+    const ago = t => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? `${s} s temu` : `${Math.round(s / 60)} min temu`; };
+    const draw = hit => {
+      const rows = Object.entries(bus.stats).sort((a, b) => b[1].n - a[1].n);
+      bar.hidden = !rows.length;
+      bar.innerHTML = '<b>Źródła danych</b>' + rows.map(([path, s]) => `<span class="laka-ep${path === hit ? ' is-hit' : ''}${s.status >= 400 ? ' is-bad' : ''}" title="${s.n}× · ostatnio ${ago(s.at)} · HTTP ${s.status}"><i></i>${path} · ${s.ms} ms</span>`).join('');
+    };
+    document.addEventListener('laka:api', e => draw(e.detail.path));
+    draw();
+  }
+
   // Licznik botów online: /api/manage-status zwraca "bots": len(live_bots()).
   const count = document.getElementById('laka-live-count');
   async function refresh(force) {

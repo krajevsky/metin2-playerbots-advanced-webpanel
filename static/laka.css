@@ -201,6 +201,97 @@ html body[data-skin="laka"] .world-overview h3{font:700 16px/1.2 var(--laka-disp
 html body[data-skin="laka"] .world-summary-grid>div{background:transparent!important;border:0!important;border-bottom:1px solid #3a281566!important;border-radius:0!important}
 html body[data-skin="laka"] .world-summary-grid b{color:var(--laka-gold-hi)!important;font-variant-numeric:lining-nums tabular-nums}
 html body[data-skin="laka"] .dashboard-widgets .panel h2{font:700 18px/1.2 var(--laka-display)}
+/* laka-only dashboard blocks (templates/_laka_dashboard_*.html, static/laka-dashboard.js).
+   The old widgets and ticker stay in the DOM for dashboard-deferred.js / news-feed.js, just hidden. */
+html body[data-skin="laka"] .dashboard-widgets,html body[data-skin="laka"] .news-ticker,html body[data-skin="laka"] .panel-version{display:none!important}
+.laka-ledger{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:0 0 10px;border:1px solid var(--laka-bronze-dim);border-radius:6px;background:var(--laka-lacquer);position:relative;
+  --c:#e8b93f8c;background-image:linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(180deg,#1b130b,transparent);
+  background-size:14px 1px,1px 14px,14px 1px,1px 14px,100% 100%;background-position:0 0,0 0,100% 100%,100% 100%,0 0;background-repeat:no-repeat}
+.laka-ledger>div{display:grid;gap:4px;align-content:start;padding:14px 16px;border-left:1px solid var(--laka-bronze-dim);min-width:0}
+.laka-ledger>div:first-child{border-left:0}
+.laka-ledger span{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--laka-dust)}
+.laka-ledger b{font:800 clamp(18px,1vw + 11px,24px)/1.15 var(--laka-body);color:var(--laka-gold-hi);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.laka-ledger small{color:var(--laka-dust);font-size:12.5px}
+.laka-ledger small span{font-size:inherit;letter-spacing:0;text-transform:none}
+.laka-ledger .laka-src{font:600 11px ui-monospace,Consolas,monospace;color:var(--laka-dust-2)}
+.laka-event{color:#f0a030;font-weight:700}
+.laka-warn{color:#f0a030}
+.laka-latest{margin:0 0 var(--laka-gut);font-size:13.5px;color:var(--laka-dust)}
+.laka-latest .eyebrow{margin-right:6px}
+.laka-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--laka-gut);margin:var(--laka-gut) 0}
+html body[data-skin="laka"] .laka-widget{margin:0;padding:0;overflow:hidden}
+.laka-widget>header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--laka-bronze-dim)}
+html body[data-skin="laka"] .laka-widget>header h2{margin:0;padding:0;border:0;font:700 17px/1.2 var(--laka-display)}
+.laka-widget>header small{display:block;font-size:12.5px}
+.laka-widget>:not(header){padding:16px 18px}
+.laka-meters{display:grid;gap:14px}
+.laka-meter>div:first-child{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px}
+.laka-meter b{color:var(--laka-gold-hi);font-variant-numeric:tabular-nums}
+.laka-meter small{display:block;margin-top:4px;color:var(--laka-dust-2);font-size:12px}
+.laka-bar{height:10px;border-radius:2px;background:#0b0704;border:1px solid var(--laka-bronze-dim);overflow:hidden}
+.laka-bar i{display:block;height:100%;transition:width .8s;background:repeating-linear-gradient(90deg,transparent 0 9px,#0006 9px 10px),linear-gradient(180deg,var(--laka-gold-hi),var(--laka-gold-deep))}
+.laka-bar.is-warm i{background:repeating-linear-gradient(90deg,transparent 0 9px,#0006 9px 10px),linear-gradient(180deg,#ffc56b,#b8650c)}
+.laka-bar.is-hot i{background:repeating-linear-gradient(90deg,transparent 0 9px,#0006 9px 10px),linear-gradient(180deg,#ff8a6a,#a3260f)}
+.laka-legend{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--laka-dust)}
+.laka-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.laka-legend .e1,.laka-track .e1{background:#d9493a}.laka-legend .e2,.laka-track .e2{background:#e8c43f}.laka-legend .e3,.laka-track .e3{background:#4d8ff0}
+.laka-hbars{display:grid;gap:9px}
+.laka-hbar{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 3.5ch;gap:10px;align-items:center;font-size:13px}
+.laka-hbar>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.laka-track{height:14px;border-radius:2px;background:#0b0704;overflow:hidden}
+.laka-track i{display:flex;height:100%;transition:width .8s}
+.laka-track b{display:block;height:100%}
+.laka-hbar em{font-style:normal;font-weight:800;text-align:right;color:var(--laka-gold-hi);font-variant-numeric:tabular-nums}
+.laka-carousel{display:flex;gap:6px}
+html body[data-skin="laka"] .laka-carousel button{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid var(--laka-bronze);background:var(--laka-lacquer-2);color:var(--laka-gold-hi);font-weight:800;box-shadow:none}
+html body[data-skin="laka"] ol.laka-rank{list-style:none;margin:0;padding:8px 14px 12px;display:grid;gap:2px;counter-reset:r}
+.laka-rank li{display:grid;grid-template-columns:22px 28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:5px 4px;border-bottom:1px solid #3a281555;counter-increment:r;font-size:13.5px}
+.laka-rank li.muted{display:block;border:0}
+.laka-rank li:not(.muted)::before{content:counter(r);font-weight:800;color:var(--laka-dust);text-align:right}
+.laka-rank li:first-child::before{color:var(--laka-gold)}
+.laka-rank img{width:28px;height:28px;border:1px solid var(--laka-bronze);border-radius:3px;image-rendering:pixelated}
+.laka-rank a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--laka-parchment)}
+.laka-rank li.is-leader a,.laka-rank li:first-child a{color:var(--laka-gold-hi)}
+.laka-rank b{color:var(--laka-gold-hi);font-variant-numeric:tabular-nums;white-space:nowrap}
+.laka-person{color:#5d9cf5}
+html body[data-skin="laka"] .laka-chronicle{display:grid;grid-template-columns:auto minmax(0,1fr);padding:0;margin:0 0 var(--laka-gut)}
+.laka-chronicle-label{display:grid;align-content:center;gap:6px;padding:16px 20px;border-right:1px solid var(--laka-bronze-dim)}
+html body[data-skin="laka"] .laka-chronicle-label h2{margin:0;padding:0;border:0;font:700 18px/1.1 var(--laka-display)}
+.laka-chronicle-label a{font-size:13px}
+html body[data-skin="laka"] .laka-chronicle ol{list-style:none;margin:0;padding:6px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.laka-chronicle li{display:flex;gap:12px;align-items:center;padding:8px 18px;font-size:13.5px;min-width:0}
+.laka-chronicle li.muted{grid-column:1/-1}
+.laka-chronicle li img{width:28px;height:28px;object-fit:contain;image-rendering:pixelated;flex:none}
+.laka-chronicle li span{min-width:0}
+.laka-chronicle li time{margin-left:auto;color:var(--laka-dust-2);font-weight:700;flex:none;font-variant-numeric:tabular-nums}
+.laka-chronicle li.is-rare span{color:var(--laka-gold-hi)}
+/* data sources strip (laka-shell.js), every page */
+.laka-telemetry{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin-left:var(--laka-rail);padding:10px var(--laka-gut) 14px;border-top:1px solid var(--laka-bronze-dim);background:#0b0805;font:600 11.5px/1.4 ui-monospace,Consolas,monospace;color:var(--laka-dust-2)}
+.laka-telemetry b{color:var(--laka-dust);font-weight:600;font-family:var(--laka-body);letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+.laka-ep{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.laka-ep i{width:6px;height:6px;border-radius:50%;background:#74cf8e88}
+.laka-ep.is-hit i{background:#74cf8e;box-shadow:0 0 6px #74cf8e}
+.laka-ep.is-bad i{background:#e5573b}
+@media (max-width:1380px){
+  .laka-ledger{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .laka-ledger>div:nth-child(4){border-left:0}
+  .laka-ledger>div:nth-child(n+4){border-top:1px solid var(--laka-bronze-dim)}
+}
+@media (max-width:1180px){
+  .laka-trio{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .laka-trio>:last-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .laka-ledger{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .laka-ledger>div:nth-child(n){border-left:1px solid var(--laka-bronze-dim);border-top:1px solid var(--laka-bronze-dim)}
+  .laka-ledger>div:nth-child(odd){border-left:0}
+  .laka-ledger>div:nth-child(-n+2){border-top:0}
+  .laka-trio{grid-template-columns:minmax(0,1fr)}
+  html body[data-skin="laka"] .laka-chronicle{grid-template-columns:minmax(0,1fr)}
+  .laka-chronicle-label{border-right:0;border-bottom:1px solid var(--laka-bronze-dim)}
+  html body[data-skin="laka"] .laka-chronicle ol{grid-template-columns:minmax(0,1fr)}
+  .laka-telemetry{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+}
 @media (max-width:1180px){
   html body[data-skin="laka"] .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   html body[data-skin="laka"] .cards article:nth-child(odd){border-left:0!important}
@@ -208,7 +299,10 @@ html body[data-skin="laka"] .dashboard-widgets .panel h2{font:700 18px/1.2 var(-
 }
 
 /* ───── page transitions ───── */
-body[data-skin="laka"] main>*{animation:laka-rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--laka-i,0) * 60ms)}
+/* fill-mode "backwards", never "both": a transform kept after the animation turns main>* into the
+   containing block of position:fixed children, which threw the inventory tooltips (.item-tip.is-floating)
+   away from the cursor on /player/ */
+body[data-skin="laka"] main>*{animation:laka-rise .55s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--laka-i,0) * 60ms)}
 @keyframes laka-rise{from{opacity:0;transform:translateY(14px);filter:blur(3px)}}
 body[data-skin="laka"].laka-leaving main>*{animation:laka-fall .16s ease-in both}
 @keyframes laka-fall{to{opacity:0;transform:translateY(-8px)}}

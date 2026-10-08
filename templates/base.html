@@ -5,7 +5,36 @@
 <link rel="stylesheet" href="{{ static_asset_url('manage.css') }}"><link rel="stylesheet" href="{{ static_asset_url('enhancements.css') }}"><link rel="stylesheet" href="{{ static_asset_url('events.css') }}"><link rel="stylesheet" href="{{ static_asset_url('respawns.css') }}"><link rel="stylesheet" href="{{ static_asset_url('live-chat.css') }}"><link rel="stylesheet" href="{{ static_asset_url('world-feed.css') }}"><link rel="stylesheet" href="{{ static_asset_url('notifications-bell.css') }}"><link rel="stylesheet" href="{{ static_asset_url('action-toast.css') }}"><link rel="stylesheet" href="{{ static_asset_url('live-overrides.css') }}">
 {#- Motyw "laka" dziedziczy złote style motywu empire dla treści stron i nakłada na nie własną otoczkę (laka.css). -#}
 {% set laka = settings.theme == 'laka' %}
-{% if laka %}<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Cinzel:wght@600;700;900&display=swap"><link rel="stylesheet" href="{{ static_asset_url('laka.css') }}">{% endif %}
+{% if laka %}<script>
+/* laka: podsłuch /api/* — mierzy czas odpowiedzi (pasek „Źródła danych”) i udostępnia odpowiedzi
+   widżetom motywu, żeby nie pobierały tych samych danych drugi raz. Musi działać przed skryptami stron. */
+(() => {
+  const WANT = { '/api/live-bots': 4000, '/api/dashboard-deferred': 0, '/api/manage-status': 0, '/api/news-feed': 0, '/api/system-current': 0 };
+  const bus = window.lakaBus = { last: {}, stats: {}, handlers: {}, parsedAt: {},
+    on(path, fn) { (this.handlers[path] = this.handlers[path] || []).push(fn); if (this.last[path]) fn(this.last[path]); } };
+  const original = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    let url;
+    try { url = new URL(typeof input === 'string' ? input : input.url, location.href); } catch (_) { return original(input, init); }
+    const path = url.pathname;
+    if (url.origin !== location.origin || !path.startsWith('/api/')) return original(input, init);
+    const started = performance.now();
+    const res = await original(input, init);
+    const prev = bus.stats[path];
+    bus.stats[path] = { ms: Math.round(performance.now() - started), status: res.status, at: Date.now(), n: (prev ? prev.n : 0) + 1 };
+    document.dispatchEvent(new CustomEvent('laka:api', { detail: { path } }));
+    const method = ((init && init.method) || 'GET').toUpperCase();
+    if (method === 'GET' && res.ok && path in WANT && Date.now() - (bus.parsedAt[path] || 0) >= WANT[path]) {
+      bus.parsedAt[path] = Date.now();
+      res.clone().json().then(data => {
+        bus.last[path] = data;
+        (bus.handlers[path] || []).forEach(fn => { try { fn(data); } catch (e) { console.error(e); } });
+      }).catch(() => {});
+    }
+    return res;
+  };
+})();
+</script><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Cinzel:wght@600;700;900&display=swap"><link rel="stylesheet" href="{{ static_asset_url('laka.css') }}">{% endif %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script></head><body data-theme="{{ 'empire' if laka else settings.theme }}"{% if laka %} data-skin="laka"{% endif %} data-cursor="{{settings.get('cursor', 'custom')}}">
 {% if settings.theme=='empire' %}<div class="empire-embers" aria-hidden="true"><span style="left:4%;--dur:6s;--delay:0s;--drift:14px"></span><span style="left:11%;--dur:7.4s;--delay:1.2s;--drift:-22px"></span><span style="left:19%;--dur:5.6s;--delay:2.4s;--drift:18px"></span><span style="left:27%;--dur:8.1s;--delay:.6s;--drift:-14px"></span><span style="left:36%;--dur:6.8s;--delay:3.1s;--drift:10px"></span><span style="left:44%;--dur:7.2s;--delay:1.8s;--drift:-20px"></span><span style="left:53%;--dur:5.9s;--delay:2.9s;--drift:16px"></span><span style="left:61%;--dur:7.7s;--delay:.3s;--drift:-12px"></span><span style="left:69%;--dur:6.3s;--delay:2.1s;--drift:22px"></span><span style="left:77%;--dur:8.4s;--delay:1.5s;--drift:-18px"></span><span style="left:85%;--dur:6.6s;--delay:3.4s;--drift:14px"></span><span style="left:93%;--dur:7.1s;--delay:.9s;--drift:-10px"></span></div>{% endif %}
 {% if not laka %}<button type="button" id="nav-toggle" class="nav-toggle" aria-label="Otwórz menu" aria-expanded="false">☰</button>

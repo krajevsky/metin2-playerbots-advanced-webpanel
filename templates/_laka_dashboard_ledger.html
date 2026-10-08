@@ -1,0 +1,12 @@
+{#- Motyw "laka": tabela najważniejszych liczb na górze Przeglądu świata.
+    Wartości na żywo uzupełnia static/laka-dashboard.js z odpowiedzi /api/live-bots,
+    /api/manage-status i /api/dashboard-deferred, które dashboard i tak pobiera. -#}
+<section class="laka-ledger" aria-label="Najważniejsze liczby">
+  <div><span>Boty w grze</span><b id="lg-bots">—</b><small>w grupach <span id="lg-party">—</span> · <span class="laka-src">live-bots</span></small></div>
+  <div><span>Postacie / konta</span><b>{{ '{:,}'.format(totals.characters or 0).replace(',', ' ') }} / {{ '{:,}'.format(totals.accounts or 0).replace(',', ' ') }}</b><small>w bazie player</small></div>
+  <div><span>Yang w obiegu</span><b>{{ '{:,}'.format(totals.yang or 0).replace(',', ' ') }}</b><small>suma przy postaciach</small></div>
+  <div><span>Śr. / maks. poziom</span><b id="lg-levels">—</b><small>zalogowane boty</small></div>
+  <div><span>Raty EXP · Drop · Yang</span><b id="lg-rates">—</b><small id="lg-event">bez eventu</small></div>
+  <div><span>Wersje</span><b id="lg-panel">—</b><small><span id="lg-playerbots">Playerbots —</span> · <a href="{{ url_for('changelog') }}">changelog</a></small></div>
+</section>
+{% if latest_changelog %}<p class="laka-latest"><span class="eyebrow">Najnowsza zmiana</span> <a href="{{ url_for('changelog') }}">{{ latest_changelog[0].version }}</a> · {{ latest_changelog[0].changes[0] if latest_changelog[0].changes else 'Szczegóły w changelogu.' }}</p>{% endif %}
