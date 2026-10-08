@@ -925,7 +925,7 @@ def validate_display_settings(form):
     language = form.get("language", "pl")
     if not name:
         return None, "Nazwa panelu nie może być pusta."
-    if theme not in ("ocean", "ember", "forest", "empire") or monitor_mode not in ("vps", "docker"):
+    if theme not in ("ocean", "ember", "forest", "empire", "laka") or monitor_mode not in ("vps", "docker"):
         return None, "Nieprawidłowe ustawienia wyglądu lub monitoringu."
     if cursor_choice not in ("custom", "system"):
         return None, "Nieprawidłowy wybór kursora."
