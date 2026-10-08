@@ -1,3 +1,12 @@
+## 2026-10-08 · 1.113.6 · Motyw „Laka i Złoto”
+
+- Nowa opcja w Ustawieniach panelu → Kolorystyka: „Laka i Złoto (nowy układ)”. Pozostałe motywy wyglądają bez zmian, a powrót to jedno kliknięcie.
+- Nowa nawigacja: 6 sekcji z ikonami przedmiotów z gry (Świat, Postacie, Gospodarka, Kronika, Serwer, Administracja), zakładki podstron w górnej belce, wyszukiwarka stron i graczy pod Ctrl+K, licznik botów online, a na telefonie dolny pasek z arkuszem „Więcej”.
+- Przegląd świata: liczby w jednym pasku, mapa na żywo w ozdobnej ramce z nakładką HUD (celowniki, linie skanowania, radar). Rozmiary i proporcje map są takie same jak dotąd.
+- Wszystkie strony dostały wspólny wygląd tabel, formularzy, przycisków i zakładek. Strony szczegółów pokazują swoją nazwę w górnej belce. Oryginalne okna gry na karcie postaci są nietknięte.
+- Animacje wejścia i wyjścia przy przechodzeniu między stronami (wyłączone przy systemowym „ogranicz ruch”).
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
 ## 2026-10-08 · 1.113.5 · Tooltipy podglądu sklepu
 
 - Podgląd sklepu wrócił do własnej obsługi tooltipów. Wspólny skrypt ekwipunku nie przechwytuje już slotów sklepu.

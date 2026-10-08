@@ -21,7 +21,7 @@ body[data-skin="laka"] h1,body[data-skin="laka"] h2{font-family:var(--laka-displ
 body[data-skin="laka"] main{margin:0 0 0 var(--laka-rail);max-width:none;padding:calc(var(--laka-top) + var(--laka-gut)) var(--laka-gut) 72px}
 /* duplicated page headings are hidden by laka-shell.js (it compares them with the top bar title);
    the management pages' own Gra i serwer | Panel webowy switch repeats the top bar tabs */
-body[data-skin="laka"] .manage-section-tabs{display:none}
+html body[data-skin="laka"] .manage-section-tabs{display:none!important}
 
 .laka-rail{position:fixed;inset:0 auto 0 0;width:var(--laka-rail);z-index:150;display:flex;flex-direction:column;background:linear-gradient(180deg,#140d07,#0f0a05);border-right:1px solid var(--laka-bronze-dim);box-shadow:inset -1px 0 0 #e8b93f10;overflow-y:auto;scrollbar-width:thin}
 .laka-brand{display:grid;gap:4px;padding:22px 20px 18px;border-bottom:1px solid var(--laka-bronze-dim);text-decoration:none}
