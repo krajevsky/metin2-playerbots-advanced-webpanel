@@ -1462,19 +1462,61 @@ def legendary_notice_enabled(destination, current=None):
     return current.get(f"legendary_notice_{destination}", "1") == "1"
 
 
+_ITEM_VNUM_BY_POLISH = None
+
+
+def item_vnum_by_polish_name(name):
+    """The item a Polish client name belongs to ("Ostrze Z Czerw. Stali+8"), from the same
+    item_names_en.json the translations use; the lowest vnum wins when several share a name."""
+    global _ITEM_VNUM_BY_POLISH
+    if _ITEM_VNUM_BY_POLISH is None:
+        table = {}
+        for vnum, names in translations._ITEM_NAMES_BY_VNUM.items():
+            try:
+                key, value = str(names[0]).strip().casefold(), int(vnum)
+            except (TypeError, ValueError, IndexError):
+                continue
+            if key and (key not in table or value < table[key]):
+                table[key] = value
+        _ITEM_VNUM_BY_POLISH = table
+    return _ITEM_VNUM_BY_POLISH.get((name or "").strip().casefold())
+
+
+def news_event_icon(kind, message, vnum):
+    """Icon for a world feed entry (laka dashboard chronicle): the upgraded / found / won item,
+    a skill book for M-levels and a Soul Stone for G1-P. None = the theme draws its own icon."""
+    message = message or ""
+    if kind == "skill":
+        rank = re.search(r" na (\S+)$", message)
+        grand = bool(rank and re.fullmatch(r"G\d+|P", rank.group(1)))
+        return url_for("static", filename="icons/50513.png" if grand else "icons/book_01.png")
+    if kind == "refine" and " ulepszył " in message:
+        target = item_vnum_by_polish_name(message.split(" ulepszył ", 1)[1])
+        return item_icon_url(target) if target else None
+    if kind == "find":
+        found = re.search(r" znalazł (.+?) podczas", message)
+        target = item_vnum_by_polish_name(found.group(1)) if found else None
+        return item_icon_url(target) if target else None
+    if kind == "chest" and vnum:
+        return item_icon_url(vnum)
+    return None
+
+
 def news_feed_events():
     """Curate rare achievements for the dashboard's live ticker -- last 12h,
     newest 30, read from the fast local cache (see sync_news_events()).
-    Shape (string HH:MM `time`) matches what static/news-feed.js expects."""
+    Shape (string HH:MM `time`) matches what static/news-feed.js expects;
+    `icon` is extra, for the laka theme's chronicle."""
     sync_news_events()
     clauses = ["time >= NOW() - INTERVAL 12 HOUR", "kind <> 'chest'"]
     if not legendary_notice_enabled("ticker"):
         clauses.append("kind <> 'announcement'")
-    raw = rows(f"""SELECT event_key,time,kind,message,refine_tier,method FROM player.web_seban_news_event
+    raw = rows(f"""SELECT event_key,time,kind,message,refine_tier,method,vnum FROM player.web_seban_news_event
       WHERE {' AND '.join(clauses)} ORDER BY time DESC LIMIT 30""")
     return [{"key": r["event_key"], "time": r["time"].strftime("%H:%M"),
              "message": f"{r['message']} — {r['method']}" if r.get("method") else r["message"],
-             "kind": r["kind"], "refine_tier": r["refine_tier"]} for r in reversed(raw)]
+             "kind": r["kind"], "refine_tier": r["refine_tier"],
+             "icon": news_event_icon(r["kind"], r["message"], r.get("vnum"))} for r in reversed(raw)]
 
 
 def news_feed_day_label(when):

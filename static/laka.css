@@ -266,7 +266,10 @@ html body[data-skin="laka"] .laka-chronicle-label h2{margin:0;padding:0;border:0
 html body[data-skin="laka"] .laka-chronicle ol{list-style:none;margin:0;padding:6px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 .laka-chronicle li{display:flex;gap:12px;align-items:center;padding:8px 18px;font-size:13.5px;min-width:0}
 .laka-chronicle li.muted{grid-column:1/-1}
-.laka-chronicle li img{width:28px;height:28px;object-fit:contain;image-rendering:pixelated;flex:none}
+.laka-chronicle li .laka-slot{width:38px;height:38px}
+.laka-chronicle li .laka-slot img{max-width:32px;max-height:32px}
+.laka-chronicle li .laka-slot.is-boss{color:#ff8a6a;border-color:#e5573b66;background:linear-gradient(160deg,#3a130c,#140806 70%)}
+.laka-chronicle li.is-boss span{color:#ffc4b6}
 .laka-chronicle li span{min-width:0}
 .laka-chronicle li time{margin-left:auto;color:var(--laka-dust-2);font-weight:700;flex:none;font-variant-numeric:tabular-nums}
 .laka-chronicle li.is-rare span{color:var(--laka-gold-hi)}

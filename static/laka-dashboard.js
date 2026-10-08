@@ -125,10 +125,15 @@
   setInterval(() => { if (!document.hidden) loadHistory(); }, 300000);
 
   // ── Kronika świata (te same wydarzenia, co pasek wiadomości)
-  const KIND = { refine: 'icons/71085.png', hammer: 'icons/25040.png', bought: 'icons/money.png', weapon: 'icons/00010.png', armor: 'icons/11290.png', announcement: 'icons/71027.png' };
+  // ikona wpisu: przedmiot / księga / Kamień Duchowy z serwera (news_event_icon w app.py),
+  // a dla bossów i reszty własne ikony motywu (symbole z _laka_nav.html)
+  const KIND_SVG = { announcement: 'boss', refine: 'anvil' };
+  const chronicleIcon = e => e.icon
+    ? `<span class="laka-slot"><img src="${esc(e.icon)}" alt=""></span>`
+    : `<span class="laka-slot${e.kind === 'announcement' ? ' is-boss' : ''}"><svg aria-hidden="true"><use href="#li-${KIND_SVG[e.kind] || 'spark'}"/></svg></span>`;
   bus.on('/api/news-feed', data => {
     const events = (data.events || []).slice(-10).reverse();
-    $('lw-chronicle').innerHTML = events.length ? events.map(e => `<li class="${Number(e.refine_tier) >= 8 ? 'is-rare' : ''}"><img src="/static/${KIND[e.kind] || 'icons/25040.png'}" alt=""><span>${esc(e.message)}</span><time>${esc(e.time)}</time></li>`).join('')
+    $('lw-chronicle').innerHTML = events.length ? events.map(e => `<li class="${Number(e.refine_tier) >= 8 ? 'is-rare' : ''}${e.kind === 'announcement' ? ' is-boss' : ''}">${chronicleIcon(e)}<span>${esc(e.message)}</span><time>${esc(e.time)}</time></li>`).join('')
       : '<li class="muted">Oczekiwanie na nowe ważne wydarzenia ze świata…</li>';
   });
 })();
