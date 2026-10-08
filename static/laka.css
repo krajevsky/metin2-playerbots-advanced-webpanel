@@ -430,8 +430,9 @@ html body[data-skin="laka"] .admin-card h3::after{content:"";position:absolute;l
 html body[data-skin="laka"] .admin-card .admin-emoji{display:none}
 html body[data-skin="laka"] .admin-card>b{font-size:13.5px;color:var(--laka-parchment)}
 html body[data-skin="laka"] .admin-card small{display:block;font-size:12.5px;line-height:1.45;color:var(--laka-dust)}
-html body[data-skin="laka"] .admin-card label{display:grid;gap:5px;margin:0;font-size:12.5px;color:var(--laka-dust)}
-html body[data-skin="laka"] .admin-card :is(input:not([type=hidden]),select){width:100%;box-sizing:border-box;padding:9px 11px}
+/* .manage-form lays labels out as two columns; in the cards the field sits under its label at full width */
+html body[data-skin="laka"] .admin-card label{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:5px;margin:0;font-size:12.5px;color:var(--laka-dust)}
+html body[data-skin="laka"] .admin-card :is(input:not([type=hidden]),select){width:100%!important;max-width:none!important;box-sizing:border-box;padding:9px 11px}
 html body[data-skin="laka"] .admin-card>button:not([type=button]){order:99;margin-top:auto;width:100%;padding:10px 14px}
 html body[data-skin="laka"] .admin-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 html body[data-skin="laka"] .admin-presets button{margin:0;padding:6px 8px;font-size:12.5px;font-weight:700;background:var(--laka-lacquer-2);color:var(--laka-gold-hi);border:1px solid var(--laka-bronze-dim);border-radius:6px;box-shadow:none}

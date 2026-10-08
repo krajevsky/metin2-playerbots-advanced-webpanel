@@ -27,7 +27,7 @@
 
   // Karty akcji na karcie postaci mają w motywie własne ikony, więc emoji z początku nagłówka znika.
   // Robione w JS, bo tekst nagłówka jest kluczem tłumaczenia EN (i18n-watch.js) i testów.
-  const stripEmoji = () => document.querySelectorAll('.admin-card h3').forEach(h => {
+  const stripEmoji = () => document.querySelectorAll('.admin-card h3, .admin-card > button').forEach(h => {
     const t = h.firstChild;
     if (!t || t.nodeType !== 3) return;
     const clean = t.textContent.replace(/^[\p{Extended_Pictographic}☀-➿️‍\s]+/u, '');
