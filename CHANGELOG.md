@@ -1,3 +1,10 @@
+## 2026-10-08 · 1.113.0 · Kategorie rankingu +9
+
+- Ranking **Przedmiot +9** otrzymał filtry: broń, zbroje, hełmy, tarcze, bransolety, buty, naszyjniki i kolczyki.
+- Wyniki można sortować według poziomu przedmiotu albo poziomu postaci. Wybrany filtr pozostaje przy przechodzeniu między stronami oraz przy widoku samych graczy.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-08 · 1.112.9 · Świeży stan dashboardu
 
 - Odpowiedź z danymi dashboardu nie jest już zapisywana przez przeglądarkę. Po aktualizacji przez GUI launcher kafelek Playerbots od razu dostaje numer z bieżącego statusu serwera.

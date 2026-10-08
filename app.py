@@ -3601,7 +3601,7 @@ def cached_dashboard_ranking(kind, limit=10, ttl=300):
     return data
 
 
-def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None):
+def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None, plus9_category="all"):
     base = ranking_scope_sql("p", people_only)
     # Fetches every matching row (up to a generous safety cap, not a
     # per-page one) -- /rankings paginates in Python instead of pushing
@@ -3837,10 +3837,12 @@ def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None):
         # IKASHOP_OFFLINESHOP joins the same way -- its owner_id is the
         # listing character's own id (unlike SAFEBOX above), so a +9 an
         # operator put up for sale still counts for them.
+        category_sql = PLUS9_CATEGORIES.get(plus9_category, PLUS9_CATEGORIES["all"])[1]
+        plus9_order = "p.level DESC,i.vnum DESC,p.name" if sort_by == "level" else "i.vnum DESC,p.level DESC,p.name"
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,i.vnum,COALESCE(ip.locale_name,CONCAT('VNUM ',i.vnum)) AS detail,
             CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop
             FROM player.item i JOIN player.player p ON p.id=i.owner_id LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
-            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY','IKASHOP_OFFLINESHOP') AND ip.type IN (1,2) AND MOD(i.vnum,10)=9 ORDER BY i.vnum DESC,p.level DESC {limit_clause}""")
+            WHERE {base} AND i.window IN ('EQUIPMENT','INVENTORY','IKASHOP_OFFLINESHOP') AND {category_sql} AND MOD(i.vnum,10)=9 ORDER BY {plus9_order} {limit_clause}""")
     return rows(f"SELECT p.id,p.name,p.level,p.gold,p.level AS score,'Poziom' AS detail FROM player.player p WHERE {base} ORDER BY p.level DESC,p.exp DESC {limit_clause}")
 
 
@@ -4505,6 +4507,20 @@ SPECIAL_FLAG_RANKINGS = {
 # deliberately not offered as filter choices.
 WEAPON_SUBTYPES = {"sword": (0, "Miecz"), "dagger": (1, "Sztylet"), "bow": (2, "Łuk"),
                     "twohand": (3, "Broń dwuręczna"), "bell": (4, "Dzwon"), "fan": (5, "Wachlarz")}
+# /rankings?type=plus9&category=<key>. ITEM_ARMOR's subtypes are defined by
+# the game client: body, head, shield, wrist, feet, neck and ear respectively.
+# Keep SQL fragments here, rather than accepting a value from a request.
+PLUS9_CATEGORIES = {
+    "all": ("Wszystkie", "ip.type IN (1,2)"),
+    "weapon": ("Broń", "ip.type=1"),
+    "armor": ("Zbroje", "ip.type=2 AND ip.subtype=0"),
+    "helmet": ("Hełmy", "ip.type=2 AND ip.subtype=1"),
+    "shield": ("Tarcze", "ip.type=2 AND ip.subtype=2"),
+    "bracelet": ("Bransolety", "ip.type=2 AND ip.subtype=3"),
+    "shoes": ("Buty", "ip.type=2 AND ip.subtype=4"),
+    "necklace": ("Naszyjniki", "ip.type=2 AND ip.subtype=5"),
+    "earrings": ("Kolczyki", "ip.type=2 AND ip.subtype=6"),
+}
 
 
 def character_stat_summary(pid):
@@ -7347,6 +7363,12 @@ def rankings():
     weapon30_sort = request.args.get("sort", "avg") if kind == "weapon30" else "avg"
     if weapon30_sort not in ("avg", "skill", "upgrade"):
         weapon30_sort = "avg"
+    plus9_category = request.args.get("category", "all") if kind == "plus9" else "all"
+    if plus9_category not in PLUS9_CATEGORIES:
+        plus9_category = "all"
+    plus9_sort = request.args.get("sort", "item") if kind == "plus9" else "item"
+    if plus9_sort not in ("item", "level"):
+        plus9_sort = "item"
     weapon_type = request.args.get("weapon_type") if kind == "weapon" else None
     if weapon_type not in WEAPON_SUBTYPES:
         weapon_type = None
@@ -7360,7 +7382,7 @@ def rankings():
     # so a person far down a ranking of bots is still found (blipu, 28.09).
     people_ranked = include_real_players_in_rankings()
     people_only = people_ranked and request.args.get("people") == "1"
-    all_ranking = bot_ranking(kind, weapon30_sort, people_only, weapon_type)
+    all_ranking = bot_ranking(kind, plus9_sort if kind == "plus9" else weapon30_sort, people_only, weapon_type, plus9_category)
     total = len(all_ranking)
     total_pages = max(1, -(-total // per_page))  # ceil division
     # "goto_page" (the jump-to-page box, 1-based, what the operator actually
@@ -7426,6 +7448,7 @@ def rankings():
             row["detail"] = game_text(row.get("detail"))
     return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
                            weapon_type=weapon_type, weapon_subtypes=WEAPON_SUBTYPES,
+                           plus9_category=plus9_category, plus9_categories=PLUS9_CATEGORIES, plus9_sort=plus9_sort,
                            per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers,
                            people_ranked=people_ranked, people_only=people_only)
 
