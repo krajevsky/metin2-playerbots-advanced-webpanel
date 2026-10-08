@@ -461,6 +461,34 @@ html body[data-skin="laka"] .flash-modal .flash-card svg{fill:var(--laka-jade)}
 html body[data-skin="laka"] .flash-modal .flash-card.error svg{fill:#e5573b}
 html body[data-skin="laka"] .flash-modal-ok{background:linear-gradient(180deg,#f3c955,#c99227)!important;color:#1d1404!important;border:1px solid var(--laka-gold-deep)!important;border-radius:6px!important;font-weight:800}
 
+/* ───── login (templates/login.html, body.laka-login) ───── */
+body.laka-login{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px 16px;box-sizing:border-box;position:relative;overflow-x:hidden}
+body.laka-login::before{content:"";position:fixed;inset:-20px;z-index:0;background:url("branding/seban-webpanel-banner.png") 62% 50%/cover no-repeat;filter:blur(10px) brightness(.35) saturate(1.1)}
+body.laka-login::after{content:"";position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 50% 40%,transparent 0,#0d0906cc 70%)}
+html body.laka-login .login-card{position:relative;z-index:1;width:min(420px,100%);margin:0;padding:0 0 26px;display:grid;gap:0;border:1px solid var(--laka-bronze);border-radius:12px;background:linear-gradient(180deg,#1d140b,#120b06);box-shadow:inset 0 0 0 3px #120b06,inset 0 0 0 4px #6e4c2555,0 30px 80px #000;overflow:visible}
+html body.laka-login .login-card::before,html body.laka-login .login-card::after{content:"";position:absolute;top:-5px;left:22px;width:9px;height:9px;background:var(--laka-gold);transform:rotate(45deg);box-shadow:0 0 10px #e8b93f}
+html body.laka-login .login-card::after{left:auto;right:22px}
+html body.laka-login .login-project-logo{display:block;width:100%;height:150px;object-fit:cover;object-position:62% 50%;border-radius:11px 11px 0 0;border-bottom:1px solid var(--laka-bronze-dim);margin:0}
+html body.laka-login .brand{margin:20px 26px 0;font:900 22px/1.1 var(--laka-display);color:var(--laka-gold-hi);text-align:center}
+html body.laka-login .brand span{display:block;margin-top:6px;font:700 11px var(--laka-body);letter-spacing:.2em;text-transform:uppercase;color:var(--laka-dust)}
+html body.laka-login h1{margin:14px 26px 4px;font:700 15px var(--laka-body);letter-spacing:.08em;text-transform:uppercase;text-align:center;color:var(--laka-dust)}
+html body.laka-login label{margin:14px 26px 0;display:grid;gap:7px;color:var(--laka-dust);font:600 13px var(--laka-body)}
+html body.laka-login input{padding:12px 14px;border-radius:8px;border:1px solid var(--laka-bronze-dim);background:#0b0704;color:var(--laka-parchment);font:500 15px var(--laka-body)}
+html body.laka-login input:focus{outline:none;border-color:var(--laka-gold);box-shadow:0 0 0 3px #e8b93f22}
+html body.laka-login button{margin:18px 26px 0;width:auto;padding:12px;border-radius:8px;border:1px solid var(--laka-gold-deep);background:linear-gradient(180deg,#f3c955,#c99227);color:#1d1404;font:800 15px var(--laka-body);cursor:pointer;box-shadow:inset 0 1px 0 #fff5,0 2px 0 #00000080}
+html body.laka-login button:hover{filter:brightness(1.08)}
+html body.laka-login.error-page .login-card{width:min(640px,100%)}
+html body.laka-login .error-status{margin:16px 26px 0;justify-self:center;padding:4px 12px;border-radius:999px;background:#3a130c;color:#ffb4a3;font:800 12px var(--laka-body);letter-spacing:.12em}
+html body.laka-login .error-message{margin:8px 26px 0;color:var(--laka-parchment);text-align:center;font:500 15px/1.5 var(--laka-body)}
+html body.laka-login .error-hint{margin:10px 26px 0;color:var(--laka-dust);font:14px var(--laka-body)}
+html body.laka-login .error-hint code,html body.laka-login .error-log pre{font-family:ui-monospace,Consolas,monospace;background:#080503;border:1px solid var(--laka-bronze-dim);border-radius:6px;color:#cdbb9c}
+html body.laka-login .error-reference{margin:14px 26px 0;display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--laka-bronze-dim);border-radius:8px;color:var(--laka-dust);font:13px var(--laka-body)}
+html body.laka-login .error-reference b{color:var(--laka-gold-hi);font-family:ui-monospace,Consolas,monospace}
+html body.laka-login .error-log{margin:12px 26px 0;color:var(--laka-dust);font:13px var(--laka-body)}
+html body.laka-login .error-log pre{max-height:240px;overflow:auto;padding:10px;font-size:12px;white-space:pre-wrap}
+html body.laka-login .error-login-link{margin:16px 26px 0;justify-self:center;color:var(--laka-gold-hi);font:700 14px var(--laka-body)}
+html body.laka-login .flash.error{margin:14px 26px 0;padding:10px 12px;border-radius:8px;border:1px solid #e5573b88;background:#3a130c;color:#ffc4b6;font:600 13.5px var(--laka-body)}
+
 /* ───── scrollbars: thin bronze everywhere in the theme ───── */
 body[data-skin="laka"] *{scrollbar-width:thin;scrollbar-color:#6e4c25 #0d0906}
 body[data-skin="laka"] ::-webkit-scrollbar{width:9px;height:9px}

@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{{ status }} · {{ title }} · {{ panel_brand }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=style_revision) }}">
+  {% set laka = (settings or {}).get('theme') == 'laka' %}{% if laka %}<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Cinzel:wght@600;700;900&display=swap"><link rel="stylesheet" href="{{ url_for('static', filename='laka.css') }}">{% endif %}
 </head>
-<body class="login login--seban error-page">
+<body class="login login--seban error-page{% if laka %} laka-login{% endif %}"{% if laka %} data-skin="laka"{% endif %}>
   <section class="login-card error-card" role="alert" aria-labelledby="error-title">
     <img class="login-project-logo" src="{{ url_for('static', filename='branding/seban-webpanel-banner.png') }}" alt="Seban WEBPANEL · Playerbots Control Center">
     <div class="brand">{{ panel_brand }}<span>Seban Control Center · Diagnostics</span></div>
