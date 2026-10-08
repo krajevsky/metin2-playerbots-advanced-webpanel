@@ -767,3 +767,6 @@ html[lang="en"] .native-character-quests{background-image:url('/static/character
 .item-tip{width:220px;max-width:calc(100vw - 20px);box-sizing:border-box}
 .item-tip .tip-bonus{white-space:nowrap;font-size:11px}
 .item-tip.is-floating{position:fixed!important;right:auto!important;bottom:auto!important;transform:none!important;z-index:2147483000!important}
+
+/* Reserve room inside the inventory card for upward item tooltips. */
+.inventory-panel #inventory-live-region{padding-top:96px}

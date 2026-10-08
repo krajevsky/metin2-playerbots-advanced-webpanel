@@ -1,3 +1,9 @@
+## 2026-10-08 · 1.113.4 · Przestrzeń na tooltip ekwipunku
+
+- Metinowa siatka ekwipunku w `/player/` została obniżona wewnątrz panelu. Nad nią jest stałe miejsce na tooltipy, więc nie zachodzą już na nagłówek „Zawartość ekwipunku”.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-08 · 1.113.3 · Pewny pomiar tooltipu
 
 - Tooltip ekwipunku jest najpierw niewidocznie renderowany i mierzony, zanim wybierze stronę kursora. Wysokie opisy nie są już błędnie pozycjonowane nad kursorem przy górnej krawędzi ekranu.
