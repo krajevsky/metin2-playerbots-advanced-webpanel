@@ -29,10 +29,12 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import translations
 import decisions
 from market_categories import (CATEGORIES as MARKET_CATEGORIES,
+                               CLASS_FILTERS as MARKET_CLASS_FILTERS,
                                SUBCATEGORIES as MARKET_SUBCATEGORIES,
                                category_sql as market_category_sql,
                                subcategory_sql as market_subcategory_sql,
-                               refine_sql as market_refine_sql)
+                               refine_sql as market_refine_sql,
+                               class_mask_sql as market_class_mask_sql)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SEBAN_SESSION_SECRET", "change-this-before-public-use")
@@ -6697,6 +6699,9 @@ def economy_offers():
     subcategory = request.args.get("subcategory", 0, type=int)
     if subcategory not in (0, *(entry[0] for entry in MARKET_SUBCATEGORIES.get(category, ()))):
         subcategory = 0
+    class_bit = request.args.get("cls", 0, type=int)
+    if class_bit not in (0, *(entry[0] for entry in MARKET_CLASS_FILTERS)):
+        class_bit = 0
     refine_inputs = {key: request.args.get(key, "").strip() for key in ("rmin", "rmax")}
     refine_values = {}
     for key, value in refine_inputs.items():
@@ -6757,6 +6762,9 @@ def economy_offers():
     if subcategory:
         clauses.append("(" + market_subcategory_sql() + ")=%s")
         params.append(subcategory)
+    if class_bit:
+        clauses.append("((" + market_class_mask_sql() + ") & %s)<>0")
+        params.append(class_bit)
     for key, operator in (("rmin", ">="), ("rmax", "<=")):
         if refine_values[key] is not None:
             clauses.append("(" + market_refine_sql() + ")" + operator + "%s")
@@ -6812,6 +6820,7 @@ def economy_offers():
                            shop_name=shop_name, category=category,
                            subcategory=subcategory, market_categories=MARKET_CATEGORIES,
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
+                           class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,
                            refine_inputs=refine_inputs,
                            empire=empire, sort=sort,
                            page=page, page_size=page_size, has_next=has_next,

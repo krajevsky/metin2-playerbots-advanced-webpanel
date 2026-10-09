@@ -37,6 +37,9 @@ SUBCATEGORIES = {
          (3, "Zioła", "Herbs"), (4, "Ryby", "Fish")),
 }
 
+CLASS_FILTERS = ((1, "Wojownik", "Warrior"), (2, "Ninja", "Ninja"),
+                 (4, "Sura", "Sura"), (8, "Szaman", "Shaman"))
+
 # Tieru market_preview.sheet.REFINE_MATERIALS, including items whose proto
 # type is not ITEM_MATERIAL. Keep this explicit instead of assuming a VNUM
 # range (there are gaps and other item kinds inside those ranges).
@@ -120,3 +123,21 @@ def refine_sql():
     return """CASE WHEN ip.locale_name REGEXP '[+][[:space:]]*[0-9]{1,2}[[:space:]]*$'
       THEN CAST(TRIM(SUBSTRING_INDEX(ip.locale_name,'+',-1)) AS UNSIGNED)
       ELSE -1 END"""
+
+
+def class_mask_sql():
+    """Tieru rules.class_mask from proto antiflags and general-book skill."""
+    skill = "CASE WHEN i.vnum=50300 THEN i.socket0 WHEN i.vnum BETWEEN 50401 AND 50599 THEN i.vnum-50400 ELSE 0 END"
+    return f"""CASE
+      WHEN ip.type=17 THEN CASE
+        WHEN ({skill}) BETWEEN 1 AND 5 OR ({skill}) BETWEEN 16 AND 20 THEN 1
+        WHEN ({skill}) BETWEEN 31 AND 35 OR ({skill}) BETWEEN 46 AND 51 THEN 2
+        WHEN ({skill}) BETWEEN 61 AND 66 OR ({skill}) BETWEEN 76 AND 81 THEN 4
+        WHEN ({skill}) BETWEEN 91 AND 96 OR ({skill}) BETWEEN 106 AND 111 THEN 8
+        ELSE 15 END
+      WHEN ip.type IN (1,2) THEN
+        IF((COALESCE(ip.antiflag,0) & 4)=0,1,0)
+        + IF((COALESCE(ip.antiflag,0) & 8)=0,2,0)
+        + IF((COALESCE(ip.antiflag,0) & 16)=0,4,0)
+        + IF((COALESCE(ip.antiflag,0) & 32)=0,8,0)
+      ELSE 15 END"""

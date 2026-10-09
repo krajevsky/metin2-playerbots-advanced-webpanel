@@ -1,3 +1,9 @@
+## 2026-10-09 · 1.114.30 · Filtr klasy na rynku
+
+- Aktywne oferty można ograniczyć do przedmiotów używanych przez Wojownika, Ninjy, Surę albo Szamana. Zgodność sprzętu wynika z `item_proto.antiflag`, a ksiąg z numeru umiejętności, tak jak w klasyfikacji Tieru.
+- Filtr działa wraz z pozostałymi i pozostaje przy zmianie strony. Dodano etykiety PL/EN oraz test zapytania.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-09 · 1.114.29 · Zakres ulepszenia na rynku
 
 - Przeglądarka aktywnych ofert filtruje przedmioty po ulepszeniu od `+0` do `+19`, osobno z dolną i górną granicą. Wartość jest odczytywana z końcówki nazwy `item_proto` zgodnie z parserem Tieru, a nie zgadywana z VNUM.

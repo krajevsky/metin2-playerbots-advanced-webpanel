@@ -162,3 +162,16 @@ def test_market_offers_rejects_reversed_refine_range():
         panel.app.test_client().get("/economy/offers?rmin=9&rmax=7")
     assert count_rows.call_args.args[1] == ()
     assert render.call_args.kwargs["refine_inputs"] == {"rmin": "", "rmax": ""}
+
+
+def test_market_offers_class_filter_uses_proto_antiflags_and_book_skill():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?cls=4")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "ip.antiflag" in sql and "i.socket0" in sql
+    assert params == (4,)
+    assert render.call_args.kwargs["class_bit"] == 4

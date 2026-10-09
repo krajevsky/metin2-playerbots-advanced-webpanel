@@ -68,6 +68,7 @@ EXACT = {
     "Wszystkie kategorie": "All categories",
     "Podkategoria": "Subcategory",
     "Wszystkie podkategorie": "All subcategories",
+    "Wszystkie klasy": "All classes",
     "Ulepszenie od": "Refinement from",
     "Ulepszenie do": "Refinement to",
     "Dowolne": "Any",
