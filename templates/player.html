@@ -48,11 +48,11 @@
       </section>
       {% include '_character_native_window.html' %}
       {% if offline_shop %}
-      <section id="offline-shop" class="native-shop-window" aria-label="{{ 'Offline shop' if ui_language == 'en' else 'Sklep offline' }}: {{offline_shop.name}}">
+      <section id="offline-shop" class="native-shop-window" data-explain="{{ '1' if offline_shop.explain_enabled else '0' }}" aria-label="{{ 'Offline shop' if ui_language == 'en' else 'Sklep offline' }}: {{offline_shop.name}}">
         <div class="native-shop-name">{{offline_shop.name}}</div>
         <div class="native-shop-layer">
           {% for o in offline_shop.offers %}
-          <div class="shop-slot{% if o.row < 4 %} tip-below{% endif %}{% if o.col <= 2 %} tip-left{% elif o.col >= 13 %} tip-right{% endif %}" style="--col:{{o.col}};--row:{{o.row}};--size:{{o.item_size}}">
+          <div class="shop-slot{% if o.row < 4 %} tip-below{% endif %}{% if o.col <= 2 %} tip-left{% elif o.col >= 13 %} tip-right{% endif %}" data-item-id="{{o.id}}" data-price="{{o.price}}" style="--col:{{o.col}};--row:{{o.row}};--size:{{o.item_size}}">
             {% if o.icon_url %}<img src="{{o.icon_url}}" loading="lazy" alt="{{o.item_name}}">{% else %}<span>{{o.vnum}}</span>{% endif %}
             {% if o.count > 1 %}<b class="shop-count">{{o.count}}</b>{% endif %}
             {{ tooltip(o, o.price) }}
@@ -245,7 +245,7 @@ function bindShopTips(){
     const src=slot.querySelector('.item-tip'); if(!src)return;
     hideTip();
     const tip=src.cloneNode(true); tip.querySelector('.tip-explain')?.remove();
-    if(src.querySelector('.tip-explain')){
+    if(shop.dataset.explain==='1'&&slot.dataset.itemId){
       const hint=document.createElement('span'); hint.className='dx-tip-hint';
       hint.textContent=touchUi()?(en?'Tap again to see where this price comes from':'Stuknij ponownie, aby zobaczyć, skąd ta cena'):(en?'Click to see where this price comes from':'Kliknij, aby zobaczyć, skąd ta cena');
       tip.append(hint);
@@ -253,8 +253,23 @@ function bindShopTips(){
     tip.classList.add('shop-floating-tip'); tip.style.visibility='hidden';
     layer.append(tip); place(tip,x,y,below); tipSlot=slot;
   };
+  // The explanation is asked for only on click (/api/shop-explain/<id>); the panel opens at once
+  // with a loading animation and keeps each answer for this page.
+  const explained=new Map();
+  const explainBody=(slot,done)=>{
+    const id=slot.dataset.itemId, box=document.createElement('div');
+    box.className='dx-body';
+    const fill=html=>{box.innerHTML=html||('<p class="dx-empty">'+(en?'The bot recorded no explanation for this line.':'Bot nie zapisał wyjaśnienia tej oferty.')+'</p>');if(done)done();};
+    if(explained.has(id)){fill(explained.get(id));return box}
+    box.innerHTML='<div class="dx-loading" role="status"><span></span><span></span><span></span><b>'+(en?'Loading the explanation…':'Wczytuję wyjaśnienie…')+'</b></div>';
+    fetch('/api/shop-explain/'+encodeURIComponent(id)+'?price='+encodeURIComponent(slot.dataset.price||''),{cache:'no-store'})
+      .then(r=>r.ok?r.json():Promise.reject(r.status))
+      .then(data=>{explained.set(id,data.html||'');fill(data.html)})
+      .catch(()=>{box.innerHTML='<p class="dx-empty">'+(en?'The explanation could not be loaded. Try again.':'Nie udało się wczytać wyjaśnienia. Spróbuj ponownie.')+'</p>';if(done)done();});
+    return box;
+  };
   const openPanel=slot=>{
-    const src=slot.querySelector('.tip-explain'); if(!src)return false;
+    if(shop.dataset.explain!=='1'||!slot.dataset.itemId)return false;
     hideTip(); closePanel();
     const sheet=touchUi()||innerWidth<760;
     const tip=slot.querySelector('.item-tip'), icon=slot.querySelector('img');
@@ -271,13 +286,14 @@ function bindShopTips(){
     const close=document.createElement('button'); close.type='button'; close.className='dx-close';
     close.setAttribute('aria-label',en?'Close':'Zamknij'); close.textContent='×'; close.onclick=closePanel;
     head.append(close);
-    panel.append(head, src.cloneNode(true));
+    // desktop: beside the item, measured again once the answer has filled the panel
+    const position=()=>{if(sheet||!panel.isConnected)return;const r=slot.getBoundingClientRect(),p=panel.getBoundingClientRect(),edge=12;
+      let left=r.right+12; if(left+p.width>innerWidth-edge)left=r.left-p.width-12; left=Math.max(edge,Math.min(left,innerWidth-p.width-edge));
+      panel.style.left=left+'px'; panel.style.top=Math.max(edge,Math.min(r.top-20,innerHeight-p.height-edge))+'px';};
+    panel.append(head, explainBody(slot,position));
     if(sheet){const back=document.createElement('div');back.className='dx-backdrop';back.onclick=closePanel;layer.append(back)}
     layer.append(panel);
-    if(!sheet){const r=slot.getBoundingClientRect(),p=panel.getBoundingClientRect(),edge=12;
-      let left=r.right+12; if(left+p.width>innerWidth-edge)left=r.left-p.width-12; left=Math.max(edge,Math.min(left,innerWidth-p.width-edge));
-      const top=Math.max(edge,Math.min(r.top-20,innerHeight-p.height-edge));
-      panel.style.left=left+'px'; panel.style.top=top+'px';}
+    position();
     close.focus({preventScroll:true});
     return true;
   };

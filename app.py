@@ -21,7 +21,7 @@ from functools import wraps
 
 import pymysql
 import markdown
-from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, render_template_string, request, send_file, session, url_for
 from markupsafe import Markup, escape
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -4906,6 +4906,23 @@ def explain_shop_offer(item_id, counter_price):
     return decisions.explain_listing(row, lang, _decision_item_name, apply_text, counter_price=counter_price)
 
 
+@app.get("/api/shop-explain/<int:item_id>")
+@login_required
+def api_shop_explain(item_id):
+    """One counter line's explanation as HTML, asked for only when the operator clicks the item
+    in the shop on /player/ (the page itself carries none). Empty html: the bot recorded none."""
+    price = request.args.get("price", type=int)
+    try:
+        explained = explain_shop_offer(item_id, price)
+    except Exception:
+        app.logger.exception("Nie można wyjaśnić oferty id=%s", item_id)
+        return {"ok": False}, 500
+    if not explained:
+        return {"ok": True, "html": ""}
+    return {"ok": True, "html": render_template_string(
+        "{% from '_macros.html' import explain %}{{ explain(dx) }}", dx=explained)}
+
+
 def bot_offline_shop(pid):
     """Data straight from IkarusShop's own tables -- there is no separate
     price/listing table for offline shops on this engine (confirmed against
@@ -4983,6 +5000,7 @@ def bot_offline_shop(pid):
         "name": game_text(shop["name"]) or "Bez nazwy", "map_index": int(shop["map"]), "map_name": map_name(shop["map"]),
         "x": int(shop["x"]), "y": int(shop["y"]), "is_premium": bool(shop["is_premium"]),
         "expired": int(shop.get("duration") or 0) == 0, "offers": [o for o in offers if "row" in o],
+        "explain_enabled": shop_explain_enabled(),
         # price is already the whole-stack listing price (confirmed live:
         # e.g. 40x Peleryna Meestwa for 3 250 000, not 3 250 000 each) --
         # multiplying by count again inflated the total for any stack >1.

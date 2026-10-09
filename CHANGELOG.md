@@ -1,3 +1,11 @@
+## 2026-10-09 · 1.114.3 · Wyjaśnienie ceny wczytywane po kliknięciu
+
+- Wyjaśnienie ceny w sklepie na karcie postaci znów działa. Od przebudowy okna sklepu (natywne UI) żadna oferta go nie dostawała, także w 1.114.2.
+- Wyjaśnienie wczytuje się dopiero po kliknięciu w przedmiot (na telefonie po drugim stuknięciu). Panel otwiera się od razu z animacją ładowania, a ponowne otwarcie tego samego przedmiotu nie pyta serwera drugi raz. Strona gracza nie ładuje wyjaśnień, których nikt nie otworzy.
+- Gdy bot nie zapisał wyjaśnienia danej oferty, panel mówi to wprost.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-09 · 1.114.2 · Sklep na karcie postaci: tooltipy na telefonie i wyjaśnienie ceny
 
 - Tooltipy przedmiotów w sklepie offline działają na telefonie w każdej kolumnie. Wcześniej okno sklepu, szersze od ekranu, ucinało je od mniej więcej szóstej kolumny.
