@@ -6735,6 +6735,14 @@ def economy_offers():
         if price_values.get(key) is not None:
             clauses.append(price_expr + operator + "%s")
             params.append(price_values[key])
+    where_sql = " AND ".join(clauses)
+    total = int(one("""SELECT COUNT(*) AS total
+      FROM player.item i JOIN player.ikashop_offlineshop s ON s.owner=i.owner_id
+      LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
+      LEFT JOIN player.player p ON p.id=i.owner_id
+      LEFT JOIN account.account a ON a.id=p.account_id
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      WHERE """ + where_sql, tuple(params)).get("total") or 0)
     params.extend([page_size + 1, (page - 1) * page_size])
     raw = rows("""SELECT i.id, i.owner_id, i.vnum, i.`count` AS quantity,
         CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED) AS price,
@@ -6746,7 +6754,7 @@ def economy_offers():
       LEFT JOIN player.player p ON p.id=i.owner_id
       LEFT JOIN account.account a ON a.id=p.account_id
       LEFT JOIN player.player_index pi ON pi.id=p.account_id
-      WHERE """ + " AND ".join(clauses) + " ORDER BY " + order + " LIMIT %s OFFSET %s", params)
+      WHERE """ + where_sql + " ORDER BY " + order + " LIMIT %s OFFSET %s", params)
     has_next = len(raw) > page_size
     offers = []
     for offer in raw[:page_size]:
@@ -6770,6 +6778,7 @@ def economy_offers():
                            seller_type=seller_type, seller_name=seller_name,
                            shop_name=shop_name, empire=empire, sort=sort,
                            page=page, page_size=page_size, has_next=has_next,
+                           total=total,
                            price_inputs=price_inputs,
                            price_errors=price_errors, unit_price_filter=unit_price_filter)
 

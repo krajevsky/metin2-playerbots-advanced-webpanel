@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.26 · Liczba ofert dla filtrów rynku
+
+- Przeglądarka rynku pokazuje łączną liczbę aktywnych ofert odpowiadających bieżącym filtrom, niezależnie od rozmiaru strony. Liczy ją z tego samego źródła IkarusShop co listę pozycji.
+- Dodano tłumaczenie PL/EN i test zgodności parametrów zapytań listy oraz licznika.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.25 · Liczba ofert na stronie rynku
 
 - Przeglądarka aktywnych ofert pozwala wybrać 25, 50 albo 100 pozycji na stronę. Wybór pozostaje aktywny przy przechodzeniu między stronami i działa razem z filtrami.
