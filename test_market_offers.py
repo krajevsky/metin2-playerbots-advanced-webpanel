@@ -266,3 +266,29 @@ def test_market_bonus_line_count_rejects_out_of_range():
         panel.app.test_client().get("/economy/offers?nbmin=99")
     assert count_rows.call_args.args[1] == ()
     assert render.call_args.kwargs["bonus_min"] == 0
+
+
+def test_market_damage_ranges_use_tieru_points_and_last_nonzero_line():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get(
+            "/economy/offers?avgmin=30&avgmax=55&sklmin=10&sklmax=20")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "NULLIF(IF(i.attrtype6=122,i.attrvalue6,0),0)" in sql
+    assert "NULLIF(IF(i.attrtype0=121,i.attrvalue0,0),0)" in sql
+    assert params == (30, 55, 10, 20)
+    assert render.call_args.kwargs["damage_inputs"]["avgmin"] == "30"
+
+
+def test_market_damage_ranges_reject_reversed_and_out_of_range():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers?avgmin=90&avgmax=20&sklmin=201")
+    assert count_rows.call_args.args[1] == ()
+    assert render.call_args.kwargs["damage_inputs"] == {
+        "avgmin": "", "avgmax": "", "sklmin": "", "sklmax": ""}

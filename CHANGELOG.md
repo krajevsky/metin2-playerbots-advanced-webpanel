@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.36 · Filtry obrażeń na rynku
+
+- Dodano osobne zakresy średnich obrażeń i obrażeń umiejętności (0–200) przy przeglądaniu ofert. Odczyt siedmiu atrybutów korzysta z punktów 122 i 121 silnika MT2009, zgodnie z kodem Tieru, i wybiera ostatnią niezerową linię danego typu.
+- Zakresy pozostają przy zmianie strony i pojawiają się w aktywnych filtrach. Dodano etykiety PL/EN oraz testy granic.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.35 · Liczba bonusów w filtrze rynku
 
 - Przeglądarka ofert potrafi ograniczyć wyniki do przedmiotów mających co najmniej 1–5 zwykłych linii bonusów. Zliczanie siedmiu atrybutów odpowiada regule Tieru: puste linie oraz średnie obrażenia i obrażenia umiejętności nie podnoszą licznika.

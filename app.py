@@ -6736,6 +6736,17 @@ def economy_offers():
     bonus_min = request.args.get("nbmin", 0, type=int)
     if bonus_min not in range(6):
         bonus_min = 0
+    damage_inputs = {key: request.args.get(key, "").strip() for key in
+                     ("avgmin", "avgmax", "sklmin", "sklmax")}
+    damage_values = {}
+    for key, value in damage_inputs.items():
+        damage_values[key] = int(value) if value.isdigit() and len(value) <= 3 and int(value) <= 200 else None
+        damage_inputs[key] = str(damage_values[key]) if damage_values[key] is not None else ""
+    for low, high in (("avgmin", "avgmax"), ("sklmin", "sklmax")):
+        if (damage_values[low] is not None and damage_values[high] is not None
+                and damage_values[low] > damage_values[high]):
+            damage_values[low] = damage_values[high] = None
+            damage_inputs[low] = damage_inputs[high] = ""
     refine_inputs = {key: request.args.get(key, "").strip() for key in ("rmin", "rmax")}
     refine_values = {}
     for key, value in refine_inputs.items():
@@ -6792,6 +6803,7 @@ def economy_offers():
                      "subcategory": subcategory if subcategory else "",
                      "cls": class_bit if class_bit else "",
                      "nbmin": bonus_min if bonus_min else "",
+                     **damage_inputs,
                      "rmin": refine_inputs["rmin"], "rmax": refine_inputs["rmax"],
                      "lmin": level_inputs["lmin"], "lmax": level_inputs["lmax"],
                      "empire": empire if empire else "",
@@ -6806,6 +6818,10 @@ def economy_offers():
         "subcategory": ("Podkategoria", "Subcategory"),
         "cls": ("Klasa postaci", "Character class"),
         "nbmin": ("Liczba bonusów od", "Minimum bonus lines"),
+        "avgmin": ("Średnie obrażenia od", "Average damage from"),
+        "avgmax": ("Średnie obrażenia do", "Average damage to"),
+        "sklmin": ("Obrażenia umiejętności od", "Skill damage from"),
+        "sklmax": ("Obrażenia umiejętności do", "Skill damage to"),
         "rmin": ("Ulepszenie od", "Refinement from"),
         "rmax": ("Ulepszenie do", "Refinement to"),
         "lmin": ("Poziom od", "Level from"), "lmax": ("Poziom do", "Level to"),
@@ -6857,6 +6873,15 @@ def economy_offers():
             for index in range(7))
         clauses.append("(" + bonus_count_sql + ")>=%s")
         params.append(bonus_min)
+    for prefix, point in (("avg", 122), ("skl", 121)):
+        damage_sql = "COALESCE(" + ",".join(
+            f"NULLIF(IF(i.attrtype{index}={point},i.attrvalue{index},0),0)"
+            for index in range(6, -1, -1)) + ",0)"
+        for suffix, operator in (("min", ">="), ("max", "<=")):
+            value = damage_values[prefix + suffix]
+            if value is not None:
+                clauses.append(damage_sql + operator + "%s")
+                params.append(value)
     for key, operator in (("rmin", ">="), ("rmax", "<=")):
         if refine_values[key] is not None:
             clauses.append("(" + market_refine_sql() + ")" + operator + "%s")
@@ -6918,6 +6943,7 @@ def economy_offers():
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
                            class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,
                            bonus_min=bonus_min,
+                           damage_inputs=damage_inputs,
                            refine_inputs=refine_inputs, level_inputs=level_inputs,
                            empire=empire, sort=sort,
                            page=page, page_size=page_size, has_next=has_next,

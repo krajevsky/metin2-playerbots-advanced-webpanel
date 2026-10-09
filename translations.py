@@ -63,6 +63,10 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Średnie obrażenia od": "Average damage from",
+    "Średnie obrażenia do": "Average damage to",
+    "Obrażenia umiejętności od": "Skill damage from",
+    "Obrażenia umiejętności do": "Skill damage to",
     "Liczba bonusów od": "Minimum bonus lines",
     "Dowolna": "Any",
     "Nick sprzedawcy": "Seller nickname",
