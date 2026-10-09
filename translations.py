@@ -63,6 +63,11 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Usuń przedmiot bota": "Delete bot item",
+    "Usuwanie wykonuje silnik gry. Gdy bot jest offline, żądanie czeka do jego wejścia.": "The game engine handles deletion. If the bot is offline, the request waits until it logs in.",
+    "Założony": "Equipped",
+    "Anuluj": "Cancel",
+    "Usuń": "Delete",
     # --- base.html: site chrome, present on every single page ---
     "Otwórz menu": "Open menu",
     "Powiadomienia": "Notifications",

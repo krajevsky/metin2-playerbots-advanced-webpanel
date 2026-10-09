@@ -5501,6 +5501,120 @@ def queue_bot_exp_override(name, command, wait=EXP_OVERRIDE_WAIT):
     return status, queue_id
 
 
+BOT_ITEM_DELETE_WAIT = 8.0
+
+
+def bot_item_delete_csrf_token():
+    token = session.get("seban_item_delete_csrf")
+    if not token:
+        token = uuid.uuid4().hex
+        session["seban_item_delete_csrf"] = token
+    return token
+
+
+def bot_item_delete_pending(name):
+    """Item IDs awaiting DELITEM; the core's w* state cannot be cancelled."""
+    return rows("SELECT arg1,status FROM player.web_admin_queue WHERE player_name=%s "
+                "AND cmd='DELITEM' AND (status IN ('await','pending') OR status LIKE 'w%%')",
+                (name,))
+
+
+def queue_bot_item_delete(name, item_id, vnum, count, wait=BOT_ITEM_DELETE_WAIT):
+    """Use Tieru's DELITEM queue contract; an offline bot applies it on login."""
+    with db() as con, con.cursor() as cur:
+        cur.execute("UPDATE player.web_admin_queue SET status='cancelled' WHERE player_name=%s "
+                    "AND cmd='DELITEM' AND arg1=%s AND status IN ('pending','await')",
+                    (name, str(item_id)))
+        cur.execute("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2,status) "
+                    "VALUES (%s,'DELITEM',%s,%s,'await')",
+                    (name, str(item_id), f"{vnum}:{count}"))
+        queue_id = cur.lastrowid
+    deadline = time.time() + wait
+    status = "await"
+    while time.time() < deadline:
+        time.sleep(0.6)
+        result = one("SELECT status FROM player.web_admin_queue WHERE id=%s", (queue_id,))
+        if not result:
+            return "gone", queue_id
+        status = str(result.get("status") or "")
+        if status in QUEUE_FINAL_STATUSES:
+            return status, queue_id
+    return status, queue_id
+
+
+@app.post("/api/bot-item-delete")
+def api_bot_item_delete():
+    """Admin-only, CSRF-protected removal of a bot's current bag/worn item."""
+    en = settings().get("ui_language") == "en"
+
+    def answer(status, pl, english, code=200):
+        return jsonify(ok=status in ("done", "await", "cancelled"), status=status,
+                       message=english if en else pl), code
+
+    current = settings()
+    if current.get("setup_complete") != "1" or (current.get("auth_enabled") == "1" and not session.get("seban_admin")):
+        return answer("login", "Zaloguj się jako administrator.", "Log in as administrator.", 403)
+    payload = request.get_json(silent=True) or {}
+    supplied = request.headers.get("X-CSRF-Token", "")
+    expected = session.get("seban_item_delete_csrf", "")
+    if not expected or not hmac.compare_digest(supplied, expected):
+        return answer("csrf", "Sesja wygasła. Odśwież kartę postaci.", "Session expired. Reload the player card.", 403)
+    if not ENGINE_MT2009:
+        return answer("not_here", "Ta funkcja wymaga silnika Playerbots 2.x.",
+                      "This feature requires the Playerbots 2.x engine.", 403)
+    try:
+        pid, item_id = int(payload["pid"]), int(payload["item_id"])
+        vnum, count = int(payload["vnum"]), int(payload["count"])
+    except (KeyError, TypeError, ValueError):
+        return answer("bad_args", "Nieprawidłowe dane przedmiotu.", "Invalid item data.", 400)
+    mode = payload.get("mode", "delete")
+    if mode not in ("delete", "cancel") or min(pid, item_id, vnum, count) <= 0 or max(item_id, vnum, count) > 0xFFFFFFFF:
+        return answer("bad_args", "Nieprawidłowe dane przedmiotu.", "Invalid item data.", 400)
+    player_row = one(f"SELECT p.name,{BOT_IS} AS is_bot FROM player.player p WHERE p.id=%s", (pid,))
+    if not player_row:
+        return answer("not_found", "Nie znaleziono postaci.", "Player not found.", 404)
+    if not player_row.get("is_bot"):
+        return answer("not_allowed", "Przedmioty można usuwać tylko botom.", "Only bot items can be deleted.", 403)
+    name = player_row["name"]
+    if mode == "cancel":
+        with db() as con, con.cursor() as cur:
+            cur.execute("UPDATE player.web_admin_queue SET status='cancelled' WHERE player_name=%s "
+                        "AND cmd='DELITEM' AND arg1=%s AND status IN ('pending','await')", (name, str(item_id)))
+            withdrawn = cur.rowcount
+        if withdrawn:
+            return answer("cancelled", "Anulowano oczekujące usunięcie.", "Pending deletion cancelled.")
+        pending = bot_item_delete_pending(name)
+        if any(str(row.get("arg1")) == str(item_id) and str(row.get("status") or "").startswith("w") for row in pending):
+            return answer("applying", "Silnik już usuwa ten przedmiot; nie można anulować.",
+                          "The engine is already deleting this item; it cannot be cancelled.")
+        return answer("none", "Nie ma oczekującego usunięcia.", "There is no pending deletion.")
+    item = one("SELECT id,`window`,pos,`count`,vnum FROM player.item WHERE id=%s AND owner_id=%s", (item_id, pid))
+    if not item or str(item.get("window")) not in ("INVENTORY", "EQUIPMENT"):
+        return answer("no_item", "Przedmiotu nie ma już w ekwipunku ani na postaci.",
+                      "The item is no longer in the bag or equipped.")
+    if int(item.get("vnum") or 0) != vnum or int(item.get("count") or 0) != count:
+        return answer("changed", "Przedmiot zmienił się od otwarcia karty. Odśwież stronę.",
+                      "The item has changed since you opened the card. Reload the page.")
+    status, queue_id = queue_bot_item_delete(name, item_id, vnum, count)
+    app.logger.info("bot item delete pid=%s item=%s queue_id=%s status=%s", pid, item_id, queue_id, status)
+    messages = {
+        "done": ("Przedmiot usunięty przez silnik gry.", "The game engine deleted the item."),
+        "await": ("Bot jest offline lub jeszcze nie odpowiedział. Usunięcie czeka; możesz je anulować.",
+                  "The bot is offline or has not answered yet. Deletion is pending; you can cancel it."),
+        "busy": ("Bot jest zajęty. Spróbuj ponownie później.", "The bot is busy. Try again later."),
+        "locked": ("Przedmiot jest zablokowany lub używany.", "The item is locked or in use."),
+        "changed": ("Silnik wykrył zmianę przedmiotu. Nic nie usunięto.", "The engine detected an item change. Nothing was deleted."),
+        "no_item": ("Silnik nie znalazł już przedmiotu.", "The engine could not find the item."),
+        "not_allowed": ("Silnik odmówił usunięcia.", "The engine refused the deletion."),
+    }
+    if status.startswith("w"):
+        return answer(status, "Silnik właśnie usuwa przedmiot. Odśwież kartę za chwilę.",
+                      "The engine is deleting the item. Reload the card shortly.")
+    pl, english = messages.get(status, (f"Nie udało się usunąć przedmiotu ({status}).",
+                                        f"Could not delete the item ({status})."))
+    return answer(status, pl, english)
+
+
 @app.route("/player/<int:pid>")
 @login_required
 def player(pid):
@@ -5621,6 +5735,13 @@ def player(pid):
     )
     mission_progress = player_profile_component(pid, "missions", list, lambda: character_mission_progress(pid))
     exp_lock = player_profile_component(pid, "exp_lock", None, lambda: bot_exp_lock_view(character, live))
+    can_delete_bot_items = ENGINE_MT2009 and player_profile_component(
+        pid, "item_delete_identity", False,
+        lambda: bool(one(f"SELECT {BOT_IS} AS is_bot FROM player.player p WHERE p.id=%s", (pid,)).get("is_bot")))
+    pending_item_deletions = (player_profile_component(
+        pid, "item_delete_pending", dict,
+        lambda: {int(row["arg1"]): str(row["status"]) for row in bot_item_delete_pending(character["name"])
+                 if str(row.get("arg1") or "").isdigit()}) if can_delete_bot_items else {})
     gm_row = one("SELECT mAuthority FROM common.gmlist WHERE mName=%s LIMIT 1", (character["name"],))
     character["gm_rank"] = gm_row["mAuthority"] if gm_row else ""
     presence = bot_presence_timeline(pid) if panel_feature_enabled("bot_timeline") else None
@@ -5629,7 +5750,9 @@ def player(pid):
                             dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks,
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
                             mission_progress=mission_progress, gm_ranks=GM_RANK_OPTIONS,
-                            admin_warps=PLAYER_ADMIN_WARPS, exp_lock=exp_lock)
+                            admin_warps=PLAYER_ADMIN_WARPS, exp_lock=exp_lock,
+                            can_delete_bot_items=can_delete_bot_items, pending_item_deletions=pending_item_deletions,
+                            item_delete_token=bot_item_delete_csrf_token() if can_delete_bot_items else None)
 
 
 

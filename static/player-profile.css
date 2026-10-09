@@ -822,3 +822,13 @@ html[lang="en"] .native-character-quests{background-image:url('/static/character
 #shop-tip-layer .item-tip.shop-floating-tip.is-touch{pointer-events:auto}
 #shop-tip-layer .dx-tip-btn{display:block;width:100%;margin-top:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--gold,#f2c34d);background:linear-gradient(180deg,#f3c955,#c99227);color:#1d1404;font:800 13px/1.2 inherit;cursor:pointer;touch-action:manipulation}
 #shop-tip-layer .dx-tip-btn:active{filter:brightness(.92)}
+.bot-item-manager{min-width:0;margin-top:16px;padding:12px;border:1px solid var(--line,#6b5134);border-radius:8px;background:var(--panel,#211a15)}
+.bot-item-manager summary{cursor:pointer;font-weight:700;min-height:32px}
+.bot-item-manager-list{display:grid;gap:5px;max-height:360px;overflow:auto;min-width:0}
+.bot-item-manager-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:8px;min-width:0;padding:5px;border-bottom:1px solid #6b513466}
+.bot-item-manager-row>img{width:30px;height:30px;object-fit:contain;image-rendering:pixelated}
+.bot-item-manager-row>span{min-width:0;overflow-wrap:anywhere}
+.bot-item-manager-row small{display:block;opacity:.75;font-size:11px}
+.bot-item-manager-row button{min-width:64px;min-height:32px;padding:5px 8px}
+.bot-item-manager-status{min-height:1.4em;margin:8px 0 0;overflow-wrap:anywhere}
+@media(max-width:420px){.bot-item-manager{padding:8px}.bot-item-manager-row{grid-template-columns:26px minmax(0,1fr) auto;gap:5px}.bot-item-manager-row>img{width:24px;height:24px}}

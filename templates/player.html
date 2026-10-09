@@ -123,6 +123,27 @@
   <aside class="inventory-panel">
     <h2>⚔ Zawartość ekwipunku</h2>
     <div id="inventory-live-region">{% set gold = character.gold %}{% include '_inventory_fragment.html' %}</div>
+    {% if can_delete_bot_items %}
+    <details class="bot-item-manager" id="bot-item-manager" data-pid="{{character.id}}" data-name="{{character.name}}" data-csrf="{{item_delete_token}}">
+      <summary>Usuń przedmiot bota</summary>
+      <p class="muted">Usuwanie wykonuje silnik gry. Gdy bot jest offline, żądanie czeka do jego wejścia.</p>
+      <div class="bot-item-manager-list">
+        {% for item in equipment.values() %}
+        <div class="bot-item-manager-row" data-id="{{item.id}}" data-vnum="{{item.vnum}}" data-count="{{item.count}}" data-worn="1">
+          {% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="">{% endif %}<span>{{item.item_name}}{% if item.count > 1 %} ×{{item.count}}{% endif %}<small>VNUM {{item.vnum}} · ID {{item.id}} · Założony</small></span>
+          <button type="button" class="secondary bot-item-delete-button" data-mode="{{'cancel' if item.id in pending_item_deletions else 'delete'}}" {% if item.id in pending_item_deletions and pending_item_deletions[item.id].startswith('w') %}disabled{% endif %}>{{'Anuluj' if item.id in pending_item_deletions else 'Usuń'}}</button>
+        </div>
+        {% endfor %}
+        {% for item in inventory %}
+        <div class="bot-item-manager-row" data-id="{{item.id}}" data-vnum="{{item.vnum}}" data-count="{{item.count}}" data-worn="0">
+          {% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="">{% endif %}<span>{{item.item_name}}{% if item.count > 1 %} ×{{item.count}}{% endif %}<small>VNUM {{item.vnum}} · ID {{item.id}}</small></span>
+          <button type="button" class="secondary bot-item-delete-button" data-mode="{{'cancel' if item.id in pending_item_deletions else 'delete'}}" {% if item.id in pending_item_deletions and pending_item_deletions[item.id].startswith('w') %}disabled{% endif %}>{{'Anuluj' if item.id in pending_item_deletions else 'Usuń'}}</button>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="bot-item-manager-status" id="bot-item-manager-status" role="status" aria-live="polite"></p>
+    </details>
+    {% endif %}
   </aside>
 </section>
 <script>
@@ -137,6 +158,28 @@ document.body.dataset.ajaxForms='1';
 if(window.__playerRefreshInterval)clearInterval(window.__playerRefreshInterval);
 if(window.__playerLiveLogTimer)clearInterval(window.__playerLiveLogTimer);
 let invPage=0, safeboxPage=0, activeStorage='inventory';
+const itemManager=document.getElementById('bot-item-manager');
+if(itemManager)itemManager.onclick=async event=>{
+  const button=event.target.closest('.bot-item-delete-button');if(!button)return;
+  const row=button.closest('.bot-item-manager-row'),mode=button.dataset.mode;
+  const label=row.querySelector('span')?.firstChild?.textContent?.trim()||row.dataset.vnum;
+  const en=document.documentElement.lang==='en';
+  const question=mode==='cancel'
+    ?(en?`Cancel pending deletion of ${label}?`:`Anulować oczekujące usunięcie ${label}?`)
+    :(en?`Destroy ${label} from bot ${itemManager.dataset.name}? This cannot be undone.`:`Zniszczyć ${label} z ekwipunku bota ${itemManager.dataset.name}? Tego nie da się cofnąć.`);
+  if(!confirm(question))return;
+  const status=document.getElementById('bot-item-manager-status');button.disabled=true;
+  status.textContent=en?'Sending request…':'Wysyłanie żądania…';
+  try{
+    const response=await fetch('/api/bot-item-delete',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':itemManager.dataset.csrf},body:JSON.stringify({pid:Number(itemManager.dataset.pid),item_id:Number(row.dataset.id),vnum:Number(row.dataset.vnum),count:Number(row.dataset.count),mode})});
+    const data=await response.json();status.textContent=data.message||'';
+    if(data.status==='done'){row.remove();refreshInventory()}
+    else if(data.status==='await'){button.dataset.mode='cancel';button.textContent=en?'Cancel':'Anuluj'}
+    else if(data.status==='cancelled'){button.dataset.mode='delete';button.textContent=en?'Delete':'Usuń'}
+    else if(data.status==='applying'||String(data.status).startsWith('w')){button.disabled=true;return}
+  }catch(_){status.textContent=en?'Network error.':'Błąd sieci.'}
+  button.disabled=false;
+};
 let dsKind=0, dsPage=0, dsDeck=0;
 function setPage(n){invPage=n;document.querySelectorAll('.inv-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.inv-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('inventory-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}
 function setSafeboxPage(n){safeboxPage=n;document.querySelectorAll('.safebox-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.safebox-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('safebox-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}

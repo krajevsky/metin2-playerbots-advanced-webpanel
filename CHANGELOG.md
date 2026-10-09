@@ -1,3 +1,11 @@
+## 2026-10-09 · 1.114.6 · Usuwanie przedmiotów bota przez silnik gry
+
+- Na karcie bota, pod ekwipunkiem, dodano zwijaną listę przedmiotów z torby i wyposażenia. Administrator może wskazać konkretny egzemplarz do usunięcia; panel potwierdza nazwę, a operację wykonuje silnik Playerbots przez kolejkę `DELITEM`.
+- Offline bot zastosuje żądanie po wejściu do gry. Do tego czasu można je anulować; gdy silnik już zaczął usuwać przedmiot, panel nie obiecuje anulowania. Stan po wykonaniu oraz odmowa silnika pojawiają się obok listy.
+- Serwer sprawdza sesję administratora, token żądania, tożsamość bota, właściciela, okno przedmiotu, VNUM i liczbę sztuk. Przedmioty graczy, magazynu i sklepu offline są poza tą akcją. Dodano teksty polskie i angielskie oraz testy endpointu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.5 · Tooltip przy powiększonym ekranie
 
 - Po mocnym przybliżeniu ekranu palcami na telefonie tooltip przedmiotu w sklepie i w ekwipunku na karcie postaci pojawiał się gdzieś wysoko, daleko od ikony. Teraz wyskakuje tuż przy stukniętym przedmiocie, w widocznej części ekranu, i ma czytelną wielkość zamiast rosnąć razem z przybliżeniem.

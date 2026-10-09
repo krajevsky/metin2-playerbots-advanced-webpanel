@@ -14,8 +14,8 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Ekwipunek bota i wyposażenie | `admin_panel.py:19159` `/api/bot_inventory/<pid>` | `app.py:5504,5764`, `_inventory_fragment.html` | u nas lepiej | wysoka | Zachować mapowanie slotów. |
 | Magazyn bota | `admin_panel.py:19328` `/api/bot_safebox/<pid>` | `app.py:5504`, `templates/player.html` | jest | wysoka | Bez zmian wizualnych. |
 | Sklep bota i oferty | `admin_panel.py:19378` `/api/bot_shop/<pid>` | `app.py:5504`, `templates/player.html` | u nas lepiej | wysoka | Zachować okno sklepu i warstwę tooltipów body. |
-| Usunięcie konkretnego przedmiotu z torby lub wyposażenia przez `DELITEM` | `admin_panel.py:22995–23131` `/api/bot_item_delete` | brak | brak | wysoka | Przenieść kolejkę, walidację właściciela/vnum/liczby/window, odpowiedzi silnika, potwierdzenie i testy. |
-| Anulowanie oczekującego `DELITEM` | `admin_panel.py:23069–23102` `/api/bot_item_delete` | brak | brak | wysoka | Ta sama funkcja; nie anulować gdy silnik już wykonuje. |
+| Usunięcie konkretnego przedmiotu z torby lub wyposażenia przez `DELITEM` | `admin_panel.py:22995–23131` `/api/bot_item_delete` | `app.py` `/api/bot-item-delete`, `templates/player.html` | jest | wysoka | Wdrożone w 1.114.6: kolejka, walidacja właściciela/vnum/liczby/window i testy. |
+| Anulowanie oczekującego `DELITEM` | `admin_panel.py:23069–23102` `/api/bot_item_delete` | `app.py` `/api/bot-item-delete` | jest | wysoka | Wdrożone w 1.114.6; bez anulowania stanu wykonywania `w*`. |
 | Usuwanie przedmiotu bezpośrednio ze sklepu offline | `admin_panel.py:23099–23107` (tylko INVENTORY/EQUIPMENT) | brak | brak u obu | wysoka | Najpierw sprawdzić komendę silnika i własność pozycji sklepu; nie pisać bezpośrednio do DB. |
 | Blokada/odblokowanie EXP bota | `admin_panel.py:22827` `/player/<pid>/exp_lock` | `app.py:5419–5503,5726` | jest | wysoka | Bez zmian. |
 | Teleport administratora do gracza/sklepu | `admin_panel.py:12634` `/api/admin/warp_me`; `market_preview/__init__.py:366` | `app.py:5040`, `templates/player.html` | jest | wysoka | Porównać statusy kolejki przy wdrożeniu rynku. |
