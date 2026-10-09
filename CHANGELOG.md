@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.5 · Tooltip przy powiększonym ekranie
+
+- Po mocnym przybliżeniu ekranu palcami na telefonie tooltip przedmiotu w sklepie i w ekwipunku na karcie postaci pojawiał się gdzieś wysoko, daleko od ikony. Teraz wyskakuje tuż przy stukniętym przedmiocie, w widocznej części ekranu, i ma czytelną wielkość zamiast rosnąć razem z przybliżeniem.
+- Arkusz z wyjaśnieniem ceny przy przybliżeniu też mieści się w tym, co widać, i trzyma się dołu ekranu. Przesunięcie lub zmiana przybliżenia chowa tooltip i dopasowuje otwarty arkusz.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-09 · 1.114.4 · Telefon: sklep da się klikać, przycisk „Dlaczego ta cena?”
 
 - Na telefonie dało się stuknąć tylko pierwsze kolumny sklepu na karcie postaci. Pusty pojemnik na wyskakujące powiadomienia rozciągał się w motywie Laka i Złoto na niemal cały ekran i przechwytywał dotknięcia. Teraz ma tylko wysokość powiadomień i nigdy nie zabiera dotknięć stronie pod spodem, także w pozostałych motywach.

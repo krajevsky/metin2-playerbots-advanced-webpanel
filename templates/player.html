@@ -193,6 +193,27 @@ function bindNativeCharacterWindow(){
   if(bonus&&popover)bonus.onclick=()=>{popover.hidden=!popover.hidden;bonus.setAttribute('aria-expanded',String(!popover.hidden))};
 }
 bindNativeCharacterWindow();
+// Pinch zoom on a phone: position:fixed is laid out against the whole page (the layout viewport),
+// but only the visualViewport is on screen. A floating tooltip is therefore kept inside that
+// visible part, and scaled by 1/zoom so it keeps its normal size on screen instead of ballooning
+// past it; without this the clamp pushed it far above the item.
+function visibleArea(){
+  const v=window.visualViewport;
+  return v?{x:v.offsetLeft,y:v.offsetTop,w:v.width,h:v.height,s:v.scale||1}:{x:0,y:0,w:innerWidth,h:innerHeight,s:1};
+}
+function placeFloating(el,x,y,below){
+  const v=visibleArea(), k=v.s>1.01?1/v.s:1;
+  // .item-tip's base rules pin left/top/transform with !important, so these must be too
+  el.style.setProperty('transform-origin','0 0','important');
+  el.style.setProperty('transform',k<1?'scale('+k+')':'none','important');
+  const r=el.getBoundingClientRect(), gap=14*k, edge=10*k;
+  const left=Math.max(v.x+edge,Math.min(x-r.width/2,v.x+v.w-r.width-edge));
+  let top=below||y-r.height-gap<v.y+edge?y+gap:y-r.height-gap;
+  top=Math.max(v.y+edge,Math.min(top,v.y+v.h-r.height-edge));
+  el.style.setProperty('left',left+'px','important');
+  el.style.setProperty('top',top+'px','important');
+  el.style.setProperty('visibility','visible','important');
+}
 // A tooltip follows the cursor. Its measured height decides whether it opens below it.
 function bindFloatingItemTips(root=document){
   root.querySelectorAll('.equip-slot,.inv-slot,.safebox-slot,.ds-equip-slot,.ds-bag-slot,.skill-slot').forEach(host=>{
@@ -205,15 +226,11 @@ function bindFloatingItemTips(root=document){
       // incorrectly choose the space above the pointer.
       tip.style.setProperty('display','block','important');
       tip.style.setProperty('visibility','hidden','important');
-      const gap=14, edge=10, rect=tip.getBoundingClientRect();
-      const left=Math.max(edge,Math.min(event.clientX-rect.width/2,window.innerWidth-rect.width-edge));
-      const top=event.clientY-rect.height-gap<edge ? event.clientY+gap : event.clientY-rect.height-gap;
-      tip.style.setProperty('left',String(left)+'px','important');
-      tip.style.setProperty('top',String(top)+'px','important');
+      placeFloating(tip,event.clientX,event.clientY);
       tip.style.setProperty('visibility','visible','important');
     };
     host.addEventListener('pointerenter',place); host.addEventListener('pointermove',place);
-    host.addEventListener('pointerleave',()=>{const tip=host.querySelector('.item-tip');if(!tip)return;tip.classList.remove('is-floating');tip.style.removeProperty('display');tip.style.removeProperty('visibility');});
+    host.addEventListener('pointerleave',()=>{const tip=host.querySelector('.item-tip');if(!tip)return;tip.classList.remove('is-floating');['display','visibility','transform','transform-origin'].forEach(k=>tip.style.removeProperty(k));});
   });
 }
 bindFloatingItemTips();
@@ -231,16 +248,8 @@ function bindShopTips(){
   const layer=document.getElementById('shop-tip-layer')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'shop-tip-layer'}));
   let tipSlot=null;
   const hideTip=()=>{layer.querySelector('.item-tip')?.remove();tipSlot=null};
-  const closePanel=()=>{layer.querySelectorAll('.dx-backdrop,.dx-panel').forEach(n=>n.remove())};
-  const place=(el,x,y,below)=>{
-    const gap=14,edge=10,r=el.getBoundingClientRect();
-    const left=Math.max(edge,Math.min(x-r.width/2,innerWidth-r.width-edge));
-    let top=below||y-r.height-gap<edge?y+gap:y-r.height-gap;
-    top=Math.max(edge,Math.min(top,innerHeight-r.height-edge));
-    // .item-tip's base rules pin left/transform with !important, so the position must be too
-    el.style.setProperty('left',left+'px','important');el.style.setProperty('top',top+'px','important');
-    el.style.setProperty('visibility','visible','important');
-  };
+  const closePanel=()=>{layer.querySelectorAll('.dx-backdrop,.dx-panel').forEach(n=>n.remove());refit=null};
+  const place=placeFloating;
   const showTip=(slot,x,y,below)=>{
     const src=slot.querySelector('.item-tip'); if(!src)return;
     hideTip();
@@ -264,6 +273,17 @@ function bindShopTips(){
   // The explanation is asked for only on click (/api/shop-explain/<id>); the panel opens at once
   // with a loading animation and keeps each answer for this page.
   const explained=new Map();
+  let refit=null;
+  // The bottom sheet under pinch zoom: as wide as the visible part, at its bottom, scaled by 1/zoom.
+  const fitSheet=el=>{
+    const v=visibleArea();
+    if(v.s<=1.01){['left','top','bottom','width','max-height','transform','transform-origin'].forEach(k=>el.style.removeProperty(k));return}
+    const k=1/v.s;
+    el.style.setProperty('transform-origin','0 0','important');el.style.setProperty('transform','scale('+k+')','important');
+    el.style.setProperty('width',(v.w*v.s)+'px','important');el.style.setProperty('max-height',(v.h*v.s*0.82)+'px','important');
+    el.style.setProperty('left',v.x+'px','important');el.style.setProperty('bottom','auto','important');
+    el.style.setProperty('top',(v.y+v.h-el.offsetHeight*k)+'px','important');
+  };
   const explainBody=(slot,done)=>{
     const id=slot.dataset.itemId, box=document.createElement('div');
     box.className='dx-body';
@@ -295,9 +315,11 @@ function bindShopTips(){
     close.setAttribute('aria-label',en?'Close':'Zamknij'); close.textContent='×'; close.onclick=closePanel;
     head.append(close);
     // desktop: beside the item, measured again once the answer has filled the panel
-    const position=()=>{if(sheet||!panel.isConnected)return;const r=slot.getBoundingClientRect(),p=panel.getBoundingClientRect(),edge=12;
-      let left=r.right+12; if(left+p.width>innerWidth-edge)left=r.left-p.width-12; left=Math.max(edge,Math.min(left,innerWidth-p.width-edge));
-      panel.style.left=left+'px'; panel.style.top=Math.max(edge,Math.min(r.top-20,innerHeight-p.height-edge))+'px';};
+    const position=()=>{if(!panel.isConnected)return;if(sheet){fitSheet(panel);return}
+      const v=visibleArea(),r=slot.getBoundingClientRect(),p=panel.getBoundingClientRect(),edge=12;
+      let left=r.right+12; if(left+p.width>v.x+v.w-edge)left=r.left-p.width-12; left=Math.max(v.x+edge,Math.min(left,v.x+v.w-p.width-edge));
+      panel.style.left=left+'px'; panel.style.top=Math.max(v.y+edge,Math.min(r.top-20,v.y+v.h-p.height-edge))+'px';};
+    refit=position;
     panel.append(head, explainBody(slot,position));
     if(sheet){const back=document.createElement('div');back.className='dx-backdrop';back.onclick=closePanel;layer.append(back)}
     layer.append(panel);
@@ -320,6 +342,8 @@ function bindShopTips(){
   document.addEventListener('click',e=>{if(!e.target.closest('#shop-tip-layer .dx-panel')){hideTip();if(!e.target.closest('.shop-slot'))closePanel()}});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){hideTip();closePanel()}});
   addEventListener('scroll',hideTip,{passive:true,capture:true});
+  // panning or zooming moves the visible part: drop the tooltip, keep an open panel in view
+  if(window.visualViewport){const moved=()=>{hideTip();if(refit)refit()};visualViewport.addEventListener('scroll',moved);visualViewport.addEventListener('resize',moved)}
 }
 bindShopTips();
 bindInventoryFragment();
