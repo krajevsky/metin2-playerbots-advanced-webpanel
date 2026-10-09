@@ -63,6 +63,9 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Minimalna wartość bonusu 1": "Minimum value of bonus 1",
+    "Minimalna wartość bonusu 2": "Minimum value of bonus 2",
+    "Minimalna wartość bonusu 3": "Minimum value of bonus 3",
     "ID właściciela sklepu": "Shop owner ID",
     "Kamień duszy": "Soul stone",
     "VNUM kamienia": "Stone VNUM",

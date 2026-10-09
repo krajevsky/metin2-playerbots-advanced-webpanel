@@ -148,3 +148,9 @@ def required_level_sql():
     return """CASE WHEN ip.limittype1=1 THEN COALESCE(ip.limitvalue1,0)
       WHEN ip.limittype0=1 THEN COALESCE(ip.limitvalue0,0)
       ELSE 0 END"""
+
+
+# Points from Tieru market_preview/sheet.py BONUS_TIERS (9 October 2026).
+BONUS_POINTS = (6, 8, 10, 12, 13, 14, 15, 17, 19, 21, 32, 33, 37, 38, 39,
+                40, 41, 43, 44, 45, 46, 47, 48, 63, 64, 65, 67, 68, 69, 70,
+                71, 72, 73, 74, 77, 79, 80, 81, 84, 88, 89, 95, 116, 139, 147)

@@ -29,6 +29,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import translations
 import decisions
 from market_categories import (CATEGORIES as MARKET_CATEGORIES,
+                               BONUS_POINTS as MARKET_BONUS_POINTS,
                                CLASS_FILTERS as MARKET_CLASS_FILTERS,
                                SUBCATEGORIES as MARKET_SUBCATEGORIES,
                                category_sql as market_category_sql,
@@ -6739,6 +6740,21 @@ def economy_offers():
     bonus_min = request.args.get("nbmin", 0, type=int)
     if bonus_min not in range(6):
         bonus_min = 0
+    market_bonus_options = tuple((point, APPLY_LABELS.get(
+        POINT_TO_APPLY.get(point, point), (f"Bonus #{point}", ""))[0])
+        for point in MARKET_BONUS_POINTS)
+    market_bonus_names = dict(market_bonus_options)
+    selected_bonuses, bonus_params = [], {}
+    for number in range(1, 4):
+        point = request.args.get(f"b{number}", 0, type=int)
+        if point not in MARKET_BONUS_POINTS:
+            continue
+        floor = request.args.get(f"b{number}v", 1, type=int)
+        if not -100000 <= floor <= 100000:
+            floor = 1
+        selected_bonuses.append((point, floor))
+        bonus_params[f"b{number}"] = point
+        bonus_params[f"b{number}v"] = floor
     stone_vnum = request.args.get("stone", 0, type=int)
     if not 28000 <= stone_vnum <= 28999:
         stone_vnum = 0
@@ -6811,6 +6827,7 @@ def economy_offers():
                      "subcategory": subcategory if subcategory else "",
                      "cls": class_bit if class_bit else "",
                      "nbmin": bonus_min if bonus_min else "",
+                     **bonus_params,
                      "ks": "has" if has_stone else "",
                      "stone": stone_vnum if stone_vnum else "",
                      **damage_inputs,
@@ -6844,16 +6861,25 @@ def economy_offers():
     english = settings().get("ui_language") == "en"
     active_filters = []
     for key, value in filter_values.items():
-        if not value:
+        if not value or (key.startswith("b") and key.endswith("v") and key[:-1] in bonus_params):
             continue
         remaining = {name: selected for name, selected in filter_values.items()
-                     if selected and name != key and not (key == "category" and name == "subcategory")}
+                     if (selected or (name.endswith("v") and name[:-1] in bonus_params))
+                     and name != key and not (key == "category" and name == "subcategory")
+                     and name != key + "v"}
         if sort != "price_asc":
             remaining["sort"] = sort
         if page_size != 50:
             remaining["size"] = page_size
-        active_filters.append({"label": filter_labels[key][1 if english else 0],
-                               "value": value, "url": url_for("economy_offers", **remaining)})
+        if key.startswith("b") and key[1:].isdigit():
+            label = market_bonus_names[int(value)]
+            if english:
+                label = translations.EXACT.get(label, label)
+            value = f"≥ {bonus_params[key + 'v']}"
+        else:
+            label = filter_labels[key][1 if english else 0]
+        active_filters.append({"label": label, "value": value,
+                               "url": url_for("economy_offers", **remaining)})
     clauses = ["i.`window`='IKASHOP_OFFLINESHOP'", "i.ikashop_data IS NOT NULL",
                "i.ikashop_data<>''", "s.duration>0"]
     params = []
@@ -6889,6 +6915,11 @@ def economy_offers():
             for index in range(7))
         clauses.append("(" + bonus_count_sql + ")>=%s")
         params.append(bonus_min)
+    for point, floor in selected_bonuses:
+        clauses.append("(" + " OR ".join(
+            f"(i.attrtype{index}=%s AND i.attrvalue{index}>=%s)"
+            for index in range(7)) + ")")
+        params.extend((point, floor) * 7)
     if has_stone or stone_vnum:
         clauses.append("ip.type IN (1,2)")
         if stone_vnum:
@@ -6967,6 +6998,8 @@ def economy_offers():
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
                            class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,
                            bonus_min=bonus_min,
+                           market_bonus_options=market_bonus_options,
+                           bonus_params=bonus_params,
                            has_stone=has_stone, stone_vnum=stone_vnum,
                            damage_inputs=damage_inputs,
                            refine_inputs=refine_inputs, level_inputs=level_inputs,

@@ -344,3 +344,32 @@ def test_market_shop_owner_filter_rejects_invalid_ids():
         panel.app.test_client().get("/economy/offers?shop=999999999999")
     assert count_rows.call_args.args[1] == ()
     assert render.call_args.kwargs["shop_owner"] == 0
+
+
+def test_market_three_bonus_filters_match_seven_attribute_slots():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get(
+            "/economy/offers?b1=44&b1v=10&b2=48&b2v=15&b3=43&b3v=0")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "i.attrtype0=%s AND i.attrvalue0>=%s" in sql
+    assert "i.attrtype6=%s AND i.attrvalue6>=%s" in sql
+    assert params == ((44, 10) * 7 + (48, 15) * 7 + (43, 0) * 7)
+    assert render.call_args.kwargs["bonus_params"]["b3v"] == 0
+    chips = render.call_args.kwargs["active_filters"]
+    assert len(chips) == 3
+    assert "b3v=0" in chips[0]["url"]
+    assert "b1=" not in chips[0]["url"]
+
+
+def test_market_bonus_points_use_tieru_whitelist_and_value_bounds():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers?b1=9999&b2=44&b2v=999999")
+    assert count_rows.call_args.args[1] == (44, 1) * 7
+    assert render.call_args.kwargs["bonus_params"] == {"b2": 44, "b2v": 1}

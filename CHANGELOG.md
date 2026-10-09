@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.39 · Konkretne bonusy na rynku
+
+- Wyszukiwarka ofert przyjmuje do trzech konkretnych bonusów wraz z minimalną wartością każdego. Numery bonusów pochodzą z tabeli cenowej Tieru; każdy warunek przeszukuje siedem linii atrybutów i działa łącznie z pozostałymi filtrami.
+- Wybrane bonusy zachowują się przy stronicowaniu, można je usuwać pojedynczymi chipami, a etykiety i komunikaty formularza są dostępne po polsku i angielsku. Dodano testy poprawności punktów, wartości i SQL.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.38 · Oferty jednego sklepu
 
 - Przeglądarka rynku pozwala ograniczyć oferty do sklepu jednego właściciela po ID postaci. Filtr odpowiada polu `owner` u Tieru, działa razem z pozostałymi warunkami i zachowuje się przy stronicowaniu.
