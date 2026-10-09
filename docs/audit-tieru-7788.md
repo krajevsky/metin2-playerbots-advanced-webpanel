@@ -48,7 +48,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Changelog/patchlog i sprawdzanie aktualizacji | `admin_panel.py:21540,21684,21712` | `app.py:7459`, `templates/changelog.html` | jest | średnia | Zachować wersjonowanie naszego panelu. |
 | Aktualizator Tieru i pliki Playerbots | `admin_panel.py:21611,21742–21779` | `app.py:8051`, `templates/manage.html` | częściowo | średnia | Zachować istniejący updater i bezpieczny tor wdrożenia. |
 | Pobieranie klienta, uruchamianie gry przez przeglądarkę | `admin_panel.py:21945,22049–22064` | brak | brak | niska | Osobna integracja; odłożyć do potwierdzenia dostępności klienta. |
-| Raport awarii klienta i lista awarii | `admin_panel.py:22115,22172` | `app.py:7835`, `templates/diagnostics.html` | częściowo | średnia | Dodać widok logów awarii, jeśli źródło jest dostępne. |
+| Raport awarii klienta i lista awarii | `admin_panel.py:22115,22172` `/crash-report`, `/admin/crashes` | diagnostyka serwera; brak klienta przeglądarkowego Tieru | brak | niska | Raporty pochodzą z klienta uruchamianego przez `/play`; bez takiego klienta nie powstają u nas. Nie wystawiać anonimowego zapisu plików bez źródła raportów. |
 | Rejestracja konta, logowanie konta gracza, zmiana hasła/reset | `admin_panel.py:21899–21943,22191–22296` | `app.py:6875,7340` | częściowo | niska | Administracja kont już istnieje; oddzielny portal gracza wymaga przeglądu uprawnień. |
 | Akcje GM i kody administracyjne | `admin_panel.py:23339,23442,23476,23559` | `app.py:6868,5681–6046` | częściowo | wysoka | Porównać każdą komendę i zachować kontrolę uprawnień. |
 | Eksport Iwakura | `admin_panel.py:25802` | brak | brak | niska | Przenieść tylko gdy jest odbiorca danych. |
@@ -56,7 +56,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Dane klienta i pobieranie | `admin_panel.py:27175,27214` `/client-data` | brak | brak | niska | Zostawić po funkcjach administracji botami. |
 | Podgląd rynku: oferty, szukanie i filtry | `market_preview/__init__.py:282,312,513–518` `/market`, `/market/api/offers` | `app.py` `/economy/offers`, `templates/economy_offers.html` | częściowo | wysoka | Filtry kategorii, sprzedawcy, ceny, bonusów liczbowych, kamieni i właściciela sklepu działają; pozostają wybór konkretnych bonusów oraz porównanie ofert. |
 | Podgląd rynku: teleport, status kolejki i historia | `market_preview/__init__.py:366–470` `/market/api/tp*` | `app.py:5040`, `templates/player.html` | częściowo | średnia | Porównać koszt i historię; zachować ochronę API. |
-| Ustawienia rynku | `market_preview/__init__.py:470` `/market/settings` | `app.py:8051` | brak | średnia | Dodać tylko ustawienia aktywne w naszym silniku. |
+| Ustawienia rynku: koszt teleportacji | `market_preview/__init__.py:470–494` `/market/settings` | brak opłaty w `/api/admin/teleport-me` | brak | średnia | Tieru zapisuje wyłącznie `tp_cost`; nie pobierać opłaty w panelu, dopóki własna ścieżka teleportacji nie ma atomowego rozliczenia w silniku. |
 | Edytor SQL: przegląd struktury i nazwy | `editsql/__init__.py:53–125,1264–1275` `/editsql`, `/editsql/structure`, `/editsql/api/name` | `templates/_laka_nav.html:40`, `base.html:59` (link do Tieru) | częściowo | średnia | Rozważyć natywny widok tylko z osobnym modelem uprawnień. |
 | Edytor SQL: historia, plan zmian, etykiety, formularze, dodanie i usunięcie wiersza | `editsql/__init__.py:69–110,269–1050,1264–1282` | tylko link do Tieru | częściowo | niska | Pozostawić po audycie bezpieczeństwa i uprawnień. |
 
@@ -119,6 +119,24 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Dropy: przegląd grup, edycja wierszy, podgląd zmiany, potwierdzenie | `admin_panel.py:26513–26878` `/drops/*` | brak | brak | średnia | Dopiero po sprawdzeniu fizycznych plików i atomowego zapisu. |
 | Edytor SQL: struktura, historia, etykiety, formularz, dodanie/usunięcie wiersza | `editsql/__init__.py:53–110,269–1050` `/editsql/*` | link do Tieru | częściowo | niska | Wymaga osobnego audytu autoryzacji; nie kopiować ogólnego zapisu SQL. |
 
+## Trasy pakietów poza głównym `admin_panel.py`
+
+Te trasy rejestrują się przez `add_url_rule`, więc nie pojawiają się w wyszukiwaniu dekoratorów `@app.route`. Poniższy spis uzupełnia tabelę funkcji; status dotyczy zachowania, nie identyczności adresu URL.
+
+| Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
+|---|---|---|---|---|---|
+| Strona rynku | `market_preview/__init__.py:513` `/market` | `/economy/offers`, `/economy/shops` | częściowo | wysoka | Dokończyć porównanie ofert i statystyk. |
+| API ofert rynku | `market_preview/__init__.py:514` `/market/api/offers` | serwerowo renderowane `/economy/offers` | częściowo | wysoka | Pozostały porównania i referencyjne okazje; nie dublować bez potrzeby API. |
+| Zlecenie teleportu | `market_preview/__init__.py:515` `/market/api/tp` | `/api/admin/teleport-me` | częściowo | średnia | Zweryfikować parametry, uprawnienia i wyniki kolejki. |
+| Stan teleportu | `market_preview/__init__.py:516` `/market/api/tp/<qid>` | stan komendy administracyjnej | częściowo | średnia | Powiązać z identyfikatorem zlecenia przed wdrożeniem. |
+| Historia teleportów | `market_preview/__init__.py:517` `/market/api/tp_history` | brak widoku historii | brak | średnia | Portować po weryfikacji źródła kolejki. |
+| Koszt teleportu | `market_preview/__init__.py:518` `/market/settings` | brak | brak | średnia | Zachować wyłączenie do atomowego pobrania Yang w silniku. |
+| Logowanie edytora SQL | `editsql/__init__.py:1264` `/editsql/login`, `/editsql/logout` | link do Tieru | częściowo | niska | Nie wprowadzać drugiego modelu sesji bez projektu uprawnień. |
+| Strona edytora SQL i nazwa | `editsql/__init__.py:1266–1269` `/editsql`, `/editsql/`, `/editsql/api/name` | link do Tieru | częściowo | niska | Pozostawić po przeglądzie uprawnień. |
+| Struktura baz i tabel | `editsql/__init__.py:1270–1272` `/editsql/structure[/<db>/<table>]` | brak natywnego widoku | brak | średnia | Rozważyć osobny, tylko odczytowy podgląd. |
+| Historia, plan, etykiety | `editsql/__init__.py:1273–1275` `/editsql/history`, `/editsql/apply`, `/editsql/labels` | brak | brak | niska | Wymaga audytu zapisów i uprawnień. |
+| Formularze rekordów | `editsql/__init__.py:1276–1282` `/editsql/<module_id>[/new|/delete|/<db>/<pk>]` | brak | brak | niska | Nie kopiować ogólnej mutacji SQL do panelu administracji botów. |
+
 ## Elementy świadomie nieprzenoszone
 
 - HTML, CSS i JS klasycznego panelu Tieru: przenosimy zachowanie do komponentów `laka` i drugiego motywu, aby zachować skalowanie na telefonach.
@@ -126,6 +144,8 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 - Bezpośrednie usuwanie danych SQL w celu skasowania przedmiotu bota: silnik musi wykonać `DELITEM` i ponownie sprawdzić przedmiot; modyfikacja DB pod aktywnym botem może rozjechać stan gry.
 - Przycisk usuwania przedmiotu już wystawionego w sklepie offline: `DELITEM` Tieru ogranicza się do `INVENTORY` i `EQUIPMENT`, a `RecvShopRemoveItemClientPacket` w silniku wymaga trybu edycji sklepu, bliskości właściciela i synchronizacji przez pakiet IkarusShop; bez osobnej komendy kolejki panel nie może bezpiecznie wykonać tej operacji.
 - Automatyczne kopiowanie updatera i binariów klienta Tieru: to oddzielny tor dystrybucji, który mógłby nadpisać lokalne poprawki i zasoby serwera.
+- Anonimowy `/crash-report` i JSON z `/admin/crashes` z klienta Tieru: nasz panel nie udostępnia jego `/play`, więc raporty nie miałyby źródła; publiczny zapis plików bez odbiorcy byłby zbędny.
+- Opłata `tp_cost` w `/market/settings`: nasza komenda teleportacji nie ma potwierdzonego, atomowego pobrania Yang w silniku, więc samo pole ustawienia obiecywałoby działanie, którego nie można zagwarantować.
 - Zastępowanie naszych map, natywnych okien `/player` i warstwy tooltipów wariantami Tieru: obecny układ spełnia wymagania proporcji, slotów i zoomu mobilnego.
 
 ## Kolejność dalszych prac
