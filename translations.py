@@ -63,6 +63,8 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "🧺 Miejsce w sklepie offline bota": "🧺 Space in a bot's offline shop",
+    "Przy pełnym sklepie bot może sprzedać u handlarki ćwierć najtańszego stosu materiałów lub ksiąg, aby zwolnić miejsce. Nie dotyka wyposażenia.": "When a shop is full, a bot may sell a quarter of its cheapest materials or books stack to the general merchant to free space. Equipment is untouched.",
     "🤝 Targowanie botów z graczami": "🤝 Bots haggle with players",
     "bot może szeptem zaproponować cenę za zbyt drogi przedmiot +6 lub wyższy na sklepie offline gracza": "A bot can whisper an offer for an overpriced +6 or higher item in a player's offline shop",
     "⚔️ Zabójstwa kończące wojnę": "⚔️ Kills to end a guild war",

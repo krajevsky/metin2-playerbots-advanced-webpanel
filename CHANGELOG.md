@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.17 · Miejsce w sklepach offline botów
+
+- Dodano przełącznik `SHOP_ROOM_SELL`, zgodny z panelem Tieru. Gdy sklep bota jest pełny, silnik może sprzedać u handlarki ćwierć najtańszego stosu materiałów lub ksiąg, aby zwolnić komórkę. Wyposażenie pozostaje poza tą regułą.
+- Opcja jest domyślnie włączona. Dodano teksty PL/EN i test odczytu/zapisu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.16 · Targowanie botów w sklepach graczy
 
 - W zachowaniu botów można włączyć lub wyłączyć targowanie o zbyt drogie przedmioty +6 i wyższe w sklepach offline graczy. Opcja jest domyślnie włączona i zapisuje klucz `HAGGLE` zgodny z panelem Tieru.
