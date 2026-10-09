@@ -770,3 +770,37 @@ html[lang="en"] .native-character-quests{background-image:url('/static/character
 
 /* Reserve room inside the inventory card for upward item tooltips. */
 .inventory-panel #inventory-live-region{padding-top:96px}
+
+/* Offline shop: tooltip and price explanation layer (#shop-tip-layer on <body>, see bindShopTips
+   in player.html). The in-window CSS tooltips are switched off once the script is running. */
+.native-shop-window.js-shop-tips .shop-slot .item-tip{display:none!important}
+.native-shop-window.js-shop-tips .shop-slot{cursor:pointer}
+#shop-tip-layer .item-tip.shop-floating-tip{display:block!important;position:fixed!important;right:auto!important;bottom:auto!important;transform:none!important;z-index:2147483000!important;pointer-events:none}
+#shop-tip-layer .dx-tip-hint{display:block;margin-top:7px;padding-top:6px;border-top:1px solid var(--edge);color:var(--gold,#f2c34d);font-size:11px;font-weight:700}
+#shop-tip-layer .dx-backdrop{position:fixed;inset:0;z-index:2147483001;background:#000a}
+#shop-tip-layer .dx-panel{position:fixed;z-index:2147483002;width:min(460px,calc(100vw - 24px));max-height:min(80vh,640px);overflow:auto;box-sizing:border-box;border:1px solid var(--edge);border-radius:10px;background:color-mix(in srgb,var(--panel) 96%,#000);color:var(--text);box-shadow:0 24px 60px #000c;font-size:13.5px;line-height:1.45;scrollbar-width:thin}
+#shop-tip-layer .dx-panel.is-sheet{left:0!important;right:0;bottom:0;top:auto!important;width:100%;max-height:82vh;border-radius:14px 14px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);animation:dx-sheet .22s ease-out}
+@keyframes dx-sheet{from{transform:translateY(30px);opacity:0}}
+#shop-tip-layer .dx-panel>header{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--edge);background:inherit}
+#shop-tip-layer .dx-panel>header img{width:32px;height:auto;max-height:64px;image-rendering:pixelated;flex:none}
+#shop-tip-layer .dx-panel>header div{display:grid;min-width:0;flex:1}
+#shop-tip-layer .dx-panel>header b{color:var(--gold,#f2c34d);font-size:15px}
+#shop-tip-layer .dx-panel>header span{color:var(--text);font-weight:700;font-size:13px}
+#shop-tip-layer .dx-close{flex:none;width:32px;height:32px;padding:0;border-radius:8px;border:1px solid var(--edge);background:transparent;color:var(--text);font-size:20px;line-height:1;cursor:pointer}
+#shop-tip-layer .dx-close:hover{border-color:var(--gold,#f2c34d);color:var(--gold,#f2c34d)}
+#shop-tip-layer .tip-explain{margin:0;padding:4px 14px 14px;border:0;font-size:13.5px}
+#shop-tip-layer .tip-explain section{padding-top:10px}
+#shop-tip-layer .tip-explain section+section{margin-top:8px;border-top:1px solid var(--edge)}
+#shop-tip-layer .dx-h{margin:0 0 6px;color:var(--gold,#f2c34d);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+#shop-tip-layer .dx-goods{margin:0 0 4px;font-weight:700;color:var(--text)}
+#shop-tip-layer .dx-line{margin:2px 0;color:var(--muted)}
+#shop-tip-layer .dx-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0 0;color:var(--muted);font-size:12.5px}
+#shop-tip-layer .dx-meta b{color:var(--gold,#f2c34d)}
+#shop-tip-layer .tip-explain-t{width:100%;border-collapse:collapse;margin:2px 0}
+#shop-tip-layer .tip-explain-t th{padding:5px 6px;text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--edge)}
+#shop-tip-layer .tip-explain-t td{padding:6px;font-size:13px;color:var(--text);vertical-align:top;border-bottom:1px solid color-mix(in srgb,var(--edge) 50%,transparent)}
+#shop-tip-layer .tip-explain-t td b{color:var(--text)}
+#shop-tip-layer .tip-explain-t td span{color:var(--muted)}
+#shop-tip-layer .tip-explain-t .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#shop-tip-layer .tip-explain-t td.n:last-child{color:var(--gold,#f2c34d);font-weight:700}
+#shop-tip-layer .tip-explain-warn{margin:10px 0 0;color:#fca5a5}

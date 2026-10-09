@@ -217,6 +217,87 @@ function bindFloatingItemTips(root=document){
   });
 }
 bindFloatingItemTips();
+// Offline shop: the item tooltip and the price explanation are drawn in a layer on <body>.
+// Inside the shop window they could not work: on a phone the 654px window sits in a scroll
+// container that clips everything past the first columns, and the window's drop-shadow filter
+// turns it into the containing block of any position:fixed child. Mouse: hover = tooltip,
+// click = explanation pinned until closed. Touch: first tap = tooltip, second tap on the same
+// item = explanation as a bottom sheet.
+function bindShopTips(){
+  const shop=document.getElementById('offline-shop');
+  if(!shop||shop.dataset.tipsBound)return; shop.dataset.tipsBound='1'; shop.classList.add('js-shop-tips');
+  const en=document.documentElement.lang==='en';
+  const touchUi=()=>matchMedia('(hover: none), (pointer: coarse)').matches;
+  const layer=document.getElementById('shop-tip-layer')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'shop-tip-layer'}));
+  let tipSlot=null;
+  const hideTip=()=>{layer.querySelector('.item-tip')?.remove();tipSlot=null};
+  const closePanel=()=>{layer.querySelectorAll('.dx-backdrop,.dx-panel').forEach(n=>n.remove())};
+  const place=(el,x,y,below)=>{
+    const gap=14,edge=10,r=el.getBoundingClientRect();
+    const left=Math.max(edge,Math.min(x-r.width/2,innerWidth-r.width-edge));
+    let top=below||y-r.height-gap<edge?y+gap:y-r.height-gap;
+    top=Math.max(edge,Math.min(top,innerHeight-r.height-edge));
+    // .item-tip's base rules pin left/transform with !important, so the position must be too
+    el.style.setProperty('left',left+'px','important');el.style.setProperty('top',top+'px','important');
+    el.style.setProperty('visibility','visible','important');
+  };
+  const showTip=(slot,x,y,below)=>{
+    const src=slot.querySelector('.item-tip'); if(!src)return;
+    hideTip();
+    const tip=src.cloneNode(true); tip.querySelector('.tip-explain')?.remove();
+    if(src.querySelector('.tip-explain')){
+      const hint=document.createElement('span'); hint.className='dx-tip-hint';
+      hint.textContent=touchUi()?(en?'Tap again to see where this price comes from':'Stuknij ponownie, aby zobaczyć, skąd ta cena'):(en?'Click to see where this price comes from':'Kliknij, aby zobaczyć, skąd ta cena');
+      tip.append(hint);
+    }
+    tip.classList.add('shop-floating-tip'); tip.style.visibility='hidden';
+    layer.append(tip); place(tip,x,y,below); tipSlot=slot;
+  };
+  const openPanel=slot=>{
+    const src=slot.querySelector('.tip-explain'); if(!src)return false;
+    hideTip(); closePanel();
+    const sheet=touchUi()||innerWidth<760;
+    const tip=slot.querySelector('.item-tip'), icon=slot.querySelector('img');
+    const panel=document.createElement('div');
+    panel.className='dx-panel'+(sheet?' is-sheet':''); panel.setAttribute('role','dialog');
+    panel.setAttribute('aria-label',en?'Price explanation':'Wyjaśnienie ceny');
+    const head=document.createElement('header');
+    if(icon){const img=icon.cloneNode();img.removeAttribute('loading');head.append(img)}
+    const title=document.createElement('div');
+    title.innerHTML='<b></b><span></span>';
+    title.querySelector('b').textContent=tip?.querySelector('b')?.textContent||'';
+    title.querySelector('span').textContent=tip?.querySelector('.tip-price')?.textContent||'';
+    head.append(title);
+    const close=document.createElement('button'); close.type='button'; close.className='dx-close';
+    close.setAttribute('aria-label',en?'Close':'Zamknij'); close.textContent='×'; close.onclick=closePanel;
+    head.append(close);
+    panel.append(head, src.cloneNode(true));
+    if(sheet){const back=document.createElement('div');back.className='dx-backdrop';back.onclick=closePanel;layer.append(back)}
+    layer.append(panel);
+    if(!sheet){const r=slot.getBoundingClientRect(),p=panel.getBoundingClientRect(),edge=12;
+      let left=r.right+12; if(left+p.width>innerWidth-edge)left=r.left-p.width-12; left=Math.max(edge,Math.min(left,innerWidth-p.width-edge));
+      const top=Math.max(edge,Math.min(r.top-20,innerHeight-p.height-edge));
+      panel.style.left=left+'px'; panel.style.top=top+'px';}
+    close.focus({preventScroll:true});
+    return true;
+  };
+  shop.querySelectorAll('.shop-slot').forEach(slot=>{
+    slot.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')showTip(slot,e.clientX,e.clientY)});
+    slot.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&tipSlot===slot){const t=layer.querySelector('.item-tip');if(t)place(t,e.clientX,e.clientY)}});
+    slot.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')hideTip()});
+    slot.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(touchUi()){
+        if(tipSlot===slot){ if(!openPanel(slot))hideTip(); return; }
+        const r=slot.getBoundingClientRect(); showTip(slot,r.left+r.width/2,r.top,false);
+      } else openPanel(slot);
+    });
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('#shop-tip-layer .dx-panel')){hideTip();if(!e.target.closest('.shop-slot'))closePanel()}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){hideTip();closePanel()}});
+  addEventListener('scroll',hideTip,{passive:true,capture:true});
+}
+bindShopTips();
 bindInventoryFragment();
 // Wired straight to the same always-live SQL the full page render uses (see
 // load_character_items in app.py) -- no separate cache, no waiting for a

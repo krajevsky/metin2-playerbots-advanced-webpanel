@@ -2537,3 +2537,10 @@ EXACT.update({
     "Ranking najszybciej sprzedających się przedmiotów pokazuje teraz 50 pozycji.": "The fastest-moving items ranking now displays 50 entries.",
     "Ranking najszybciej sprzedających się przedmiotów pokazuje teraz 100 pozycji.": "The fastest-moving items ranking now displays 100 entries.",
 })
+EXACT.update({
+    # templates/_macros.html: the offline shop's price explanation (panel on the player card)
+    "Dlaczego na ladzie": "Why it is on the counter",
+    "Jak powstała cena": "How the price was set",
+    "Krok": "Step",
+    "Zmiana": "Change",
+})
