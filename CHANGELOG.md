@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.19 · Skalowanie progów podaży
+
+- Dodano opcjonalne skalowanie progów podaży do liczby żywych botów oraz referencyjną liczbę 50–50 000 (domyślnie 1000). Przy wyłączonym przełączniku silnik zachowuje oryginalne progi Iwakury.
+- Panel zapisuje dokładnie `SUPPLY_SCALE` i `SUPPLY_REF_BOTS`, z tekstami PL/EN i testami granic.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.18 · Wycena opasek i Kamienia Duchowego według podaży
 
 - Dodano przełącznik `SUPPLY_BANDS`: Opaski Zapomnienia i Kamień Duchowy mogą korzystać z progów podaży ksiąg umiejętności. Stan domyślny jest zgodny z silnikiem Tieru: włączony.

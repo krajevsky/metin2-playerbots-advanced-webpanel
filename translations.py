@@ -63,6 +63,9 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "📊 Skaluj progi podaży do liczby botów": "📊 Scale supply thresholds to bot population",
+    "Referencyjna liczba botów": "Reference bot population",
+    "Domyślnie wyłączone. Po włączeniu progi podaży skalują się do liczby aktywnych botów względem wartości referencyjnej (domyślnie 1000).": "Disabled by default. When enabled, supply thresholds scale with active bots relative to the reference population (1000 by default).",
     "📈 Opaski i Kamień Duchowy wyceniane według podaży": "📈 Price Forgetting Bands and Spirit Stones by supply",
     "Silnik stosuje te same progi podaży co dla ksiąg umiejętności. Domyślnie włączone.": "The core uses the same supply thresholds as for skill books. Enabled by default.",
     "🧺 Miejsce w sklepie offline bota": "🧺 Space in a bot's offline shop",

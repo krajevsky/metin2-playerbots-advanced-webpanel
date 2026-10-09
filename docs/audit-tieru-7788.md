@@ -84,8 +84,8 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: przechowywanie wyjaśnień `EXPLAIN` | `admin_panel.py:8372–8386` | `app.py` ustawienie retencji decyzji | częściowo | średnia | Porównać zakres i lokalizację, nie utracić historii decyzji. |
 | Panel AI: zakupy także w M2 `SHOP_M2` | `admin_panel.py:8387–8390` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: pasma podaży `SUPPLY_BANDS` | `admin_panel.py:8391–8397` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.18, domyślnie włączone. |
-| Panel AI: skalowanie podaży `SUPPLY_SCALE` | `admin_panel.py:8397–8403` | brak | brak | średnia | Dodać przełącznik, domyślnie wyłączony. |
-| Panel AI: referencyjna liczba botów `SUPPLY_REF_BOTS` | `admin_panel.py:8400–8408` | brak | brak | średnia | Portować limit z kodu źródłowego. |
+| Panel AI: skalowanie podaży `SUPPLY_SCALE` | `admin_panel.py:8397–8403` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.19, domyślnie wyłączone. |
+| Panel AI: referencyjna liczba botów `SUPPLY_REF_BOTS` | `admin_panel.py:8400–8408` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.19, zakres 50–50 000, domyślnie 1000. |
 | Panel AI: złomiarze `SCRAP`, odpoczynek `REST`, PvP między królestwami `KINGDOMPVP` | `admin_panel.py:8410–8430` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: minimalny poziom zwoju `SCROLL_FROM` | `admin_panel.py:8431–8440` | `app.py` czyta/zapisuje, brak suwaka | częściowo | niska | Silnik 2.2.83 (Patch 14) usunął tę opcję; nie przywracać martwej kontrolki. |
 | Panel AI: Szkatułki Blasku `CHEST_OFF`, `CHEST`, `CHEST_STONE` | `admin_panel.py:8441–8460` | `templates/manage.html` | jest | średnia | Nie nadpisywać niestandardowych ustawień skrzynek. |
