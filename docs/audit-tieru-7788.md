@@ -79,7 +79,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: Wieża Demonów `TOWER` i przycisk „teraz” | `admin_panel.py:8354–8359` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: Katakumby `CATACOMB` i przycisk „teraz” | `admin_panel.py:8360–8363` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: zakupy ItemShop `ISHOP` | `admin_panel.py:8364–8366` | `templates/manage.html` | jest | średnia | Bez zmian. |
-| Panel AI: targowanie `HAGGLE` | `admin_panel.py:8362–8364` | brak | brak | średnia | Dodać przełącznik, domyślnie włączony. |
+| Panel AI: targowanie `HAGGLE` | `admin_panel.py:8362–8364` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.16, domyślnie włączone. |
 | Panel AI: sprzedaż w sklepiku w mieście `SHOP_ROOM_SELL` | `admin_panel.py:8366–8371` | brak | brak | średnia | Dodać przełącznik, domyślnie włączony. |
 | Panel AI: przechowywanie wyjaśnień `EXPLAIN` | `admin_panel.py:8372–8386` | `app.py` ustawienie retencji decyzji | częściowo | średnia | Porównać zakres i lokalizację, nie utracić historii decyzji. |
 | Panel AI: zakupy także w M2 `SHOP_M2` | `admin_panel.py:8387–8390` | `templates/manage.html` | jest | średnia | Bez zmian. |

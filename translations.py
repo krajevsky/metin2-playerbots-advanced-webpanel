@@ -63,6 +63,8 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "🤝 Targowanie botów z graczami": "🤝 Bots haggle with players",
+    "bot może szeptem zaproponować cenę za zbyt drogi przedmiot +6 lub wyższy na sklepie offline gracza": "A bot can whisper an offer for an overpriced +6 or higher item in a player's offline shop",
     "⚔️ Zabójstwa kończące wojnę": "⚔️ Kills to end a guild war",
     "0 = tylko czas wojny": "0 = war timer only",
     "⚒️ Rzemieślnicy (%)": "⚒️ Craftsmen (%)",

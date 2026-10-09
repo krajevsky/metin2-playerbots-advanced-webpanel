@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.16 · Targowanie botów w sklepach graczy
+
+- W zachowaniu botów można włączyć lub wyłączyć targowanie o zbyt drogie przedmioty +6 i wyższe w sklepach offline graczy. Opcja jest domyślnie włączona i zapisuje klucz `HAGGLE` zgodny z panelem Tieru.
+- Dodano teksty PL/EN i testy odczytu oraz zapisu. Zwykły zakup przedmiotów nie zależy od tej opcji.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.15 · Koniec wojny gildii po zabójstwach
 
 - Dodano limit 0–1000 zabójstw kończących wojnę gildii botów; 0 oznacza zakończenie wyłącznie po czasie. `WAR_KILLS` zapisuje się w pliku wag dokładnie jak u Tieru.
