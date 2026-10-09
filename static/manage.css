@@ -75,3 +75,10 @@
 .behavior-live-options:has(.supply-scale-option){grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%;box-sizing:border-box}
 .behavior-live-options .supply-ref-control{grid-template-columns:minmax(0,1fr) minmax(0,140px);min-width:0}
 @media(max-width:680px){.behavior-live-options .supply-ref-control{grid-template-columns:minmax(0,1fr)}}
+.behavior-live-options .pvp-set-controls{min-width:0;padding:12px;border:1px solid var(--edge);border-radius:8px}
+.behavior-live-options .pvp-set-controls summary{cursor:pointer;font-weight:700}
+.behavior-live-options .pvp-set-controls>label:not(.checkbox-row){display:grid;grid-template-columns:minmax(0,1fr);gap:5px;margin-top:10px;min-width:0}
+.behavior-live-options .pvp-set-controls>label:not(.checkbox-row) :is(input,select){width:100%;min-width:0;box-sizing:border-box}
+.behavior-live-options .pvp-set-controls>label:not(.checkbox-row) output{justify-self:end}
+.behavior-live-options .pvp-set-controls>.checkbox-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
+.behavior-live-options .pvp-set-controls>.checkbox-row span{flex:1 1 170px;min-width:0;white-space:normal}

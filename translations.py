@@ -63,6 +63,17 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "🧪 Zestawy PvP botów": "🧪 Bot PvP sets",
+    "Eksperymentalne. Część botów buduje osobny zestaw do walki z innymi botami; domyślnie wyłączone.": "Experimental. Some bots build a separate set for fighting other bots; disabled by default.",
+    "Włącz zestawy PvP": "Enable PvP sets",
+    "Udział botów (%)": "Share of bots (%)",
+    "Minimalny poziom": "Minimum level",
+    "Siła zestawu": "Set strength",
+    "Niska": "Low",
+    "Normalna": "Normal",
+    "Wysoka": "High",
+    "Budżet (%)": "Budget (%)",
+    "Używaj także przeciw graczom": "Use against players too",
     "📊 Skaluj progi podaży do liczby botów": "📊 Scale supply thresholds to bot population",
     "Referencyjna liczba botów": "Reference bot population",
     "Domyślnie wyłączone. Po włączeniu progi podaży skalują się do liczby aktywnych botów względem wartości referencyjnej (domyślnie 1000).": "Disabled by default. When enabled, supply thresholds scale with active bots relative to the reference population (1000 by default).",

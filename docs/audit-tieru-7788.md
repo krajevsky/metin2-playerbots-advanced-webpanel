@@ -89,12 +89,12 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: złomiarze `SCRAP`, odpoczynek `REST`, PvP między królestwami `KINGDOMPVP` | `admin_panel.py:8410–8430` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: minimalny poziom zwoju `SCROLL_FROM` | `admin_panel.py:8431–8440` | `app.py` czyta/zapisuje, brak suwaka | częściowo | niska | Silnik 2.2.83 (Patch 14) usunął tę opcję; nie przywracać martwej kontrolki. |
 | Panel AI: Szkatułki Blasku `CHEST_OFF`, `CHEST`, `CHEST_STONE` | `admin_panel.py:8441–8460` | `templates/manage.html` | jest | średnia | Nie nadpisywać niestandardowych ustawień skrzynek. |
-| Panel AI: zestawy PvP `PVP_SET` | `admin_panel.py:8461–8475` | brak | brak | średnia | Dodać po sprawdzeniu aktywności klucza w silniku. |
-| Panel AI: udział zestawów `PVP_SET_SHARE` | `admin_panel.py:8476–8478` | brak | brak | średnia | Portować 0–100%. |
-| Panel AI: minimalny poziom `PVP_SET_MIN_LEVEL` | `admin_panel.py:8479–8482` | brak | brak | średnia | Portować 1–120. |
-| Panel AI: siła `PVP_SET_STRENGTH` | `admin_panel.py:8483–8491` | brak | brak | średnia | Portować enum źródłowy, bez zgadywania znaczeń. |
-| Panel AI: budżet `PVP_SET_BUDGET` | `admin_panel.py:8492–8498` | brak | brak | średnia | Portować 0–100%. |
-| Panel AI: zestawy przeciw graczom `PVP_SET_VS_HUMAN` | `admin_panel.py:8499–8503` | brak | brak | średnia | Dodać przełącznik. |
+| Panel AI: zestawy PvP `PVP_SET` | `admin_panel.py:8461–8475` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.20, domyślnie wyłączone. |
+| Panel AI: udział zestawów `PVP_SET_SHARE` | `admin_panel.py:8476–8478` | `app.py`, `templates/manage.html` | jest | średnia | Zakres 0–100%, domyślnie 25. |
+| Panel AI: minimalny poziom `PVP_SET_MIN_LEVEL` | `admin_panel.py:8479–8482` | `app.py`, `templates/manage.html` | jest | średnia | Zakres 1–120, domyślnie 30. |
+| Panel AI: siła `PVP_SET_STRENGTH` | `admin_panel.py:8483–8491` | `app.py`, `templates/manage.html` | jest | średnia | Enum 0 niska, 1 normalna, 2 wysoka. |
+| Panel AI: budżet `PVP_SET_BUDGET` | `admin_panel.py:8492–8498` | `app.py`, `templates/manage.html` | jest | średnia | Zakres 0–100%, domyślnie 20. |
+| Panel AI: zestawy przeciw graczom `PVP_SET_VS_HUMAN` | `admin_panel.py:8499–8503` | `app.py`, `templates/manage.html` | jest | średnia | Domyślnie włączone tylko gdy zestawy PvP są aktywne. |
 | Panel AI: wagi celów, reset do 100%, podpowiedzi | `admin_panel.py:8503–8534` | `app.py` `AI_WEIGHT_KEYS`, `templates/manage.html` | jest | wysoka | Zachować limity poszczególnych wag. |
 | Panel AI: polityka przedmiotów TSV | `admin_panel.py:8535–8560` `/ai/items` | `templates/manage.html` | jest | wysoka | Zachować składnię i odczyt silnika. |
 | Rynek: szukanie po nazwie/VNUM i odświeżanie migawki | `market_preview/page.py:188–200,415–430`; `__init__.py:312` | `templates/economy_shops.html` | częściowo | wysoka | Rozszerzyć wyszukiwanie na pojedyncze oferty, zachować limit zapytań. |

@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.20 · Zestawy PvP botów
+
+- Dodano eksperymentalny przełącznik zestawów PvP botów wraz z udziałem, minimalnym poziomem, siłą zestawu, budżetem i użyciem przeciw graczom. Domyślnie funkcja jest wyłączona.
+- Wszystkie sześć kluczy `PVP_SET*` ma zakresy i wartości domyślne z reguł silnika Tieru. Formularz ma polskie i angielskie teksty; testy chronią odczyt, granice i zapis.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.19 · Skalowanie progów podaży
 
 - Dodano opcjonalne skalowanie progów podaży do liczby żywych botów oraz referencyjną liczbę 50–50 000 (domyślnie 1000). Przy wyłączonym przełączniku silnik zachowuje oryginalne progi Iwakury.

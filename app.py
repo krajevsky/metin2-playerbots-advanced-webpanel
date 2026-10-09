@@ -239,7 +239,7 @@ AI_WEIGHT_HINTS = {
 # These values share the live weight file with goal weights, but the core treats
 # them as switches or direct settings rather than 25–250% goal weights.
 AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1,
-                     "SHOP_M2": 0, "PERSONA": 1, "HAGGLE": 1, "SHOP_ROOM_SELL": 1, "SUPPLY_BANDS": 1, "SUPPLY_SCALE": 0, "SUPPLY_REF_BOTS": 1000, "LIFE_HOURS": 0, "SESSION_REALISM": 0, "LIVE_CHAT": 100, "CRAFTSMAN": 30, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
+                     "SHOP_M2": 0, "PERSONA": 1, "HAGGLE": 1, "SHOP_ROOM_SELL": 1, "SUPPLY_BANDS": 1, "SUPPLY_SCALE": 0, "SUPPLY_REF_BOTS": 1000, "PVP_SET": 0, "PVP_SET_SHARE": 25, "PVP_SET_MIN_LEVEL": 30, "PVP_SET_BUDGET": 20, "PVP_SET_STRENGTH": 1, "PVP_SET_VS_HUMAN": 1, "LIFE_HOURS": 0, "SESSION_REALISM": 0, "LIVE_CHAT": 100, "CRAFTSMAN": 30, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
                      "WAR_MINUTES": 30, "WAR_HOURS": 2, "WAR_KILLS": 100, "CHEST": None, "CHEST_STONE": None}
 AI_SPECIAL_WEIGHT_KEYS = frozenset(AI_LIVE_DEFAULTS)
 BIOLOGIST_COMPLETE_STATE = 557528158
@@ -2883,7 +2883,7 @@ def read_ai_weights():
             if len(fields) >= 2 and fields[0].upper() in values:
                 try:
                     key, raw_value = fields[0].upper(), fields[1]
-                    if key in ("CHAT", "BOOKS", "NIGHT", "LIFE", "WARS", "TOWER", "CATACOMB", "ISHOP", "SHOP_M2", "PERSONA", "HAGGLE", "SHOP_ROOM_SELL", "SUPPLY_BANDS", "SUPPLY_SCALE"):
+                    if key in ("CHAT", "BOOKS", "NIGHT", "LIFE", "WARS", "TOWER", "CATACOMB", "ISHOP", "SHOP_M2", "PERSONA", "HAGGLE", "SHOP_ROOM_SELL", "SUPPLY_BANDS", "SUPPLY_SCALE", "PVP_SET", "PVP_SET_VS_HUMAN"):
                         values[key] = 0 if raw_value.lower() in ("0", "off", "no") else 1
                     elif key in ("SCRAP", "REST", "KINGDOMPVP", "CRAFTSMAN"):
                         values[key] = max(0, min(100, int(raw_value)))
@@ -2903,6 +2903,12 @@ def read_ai_weights():
                         values[key] = max(0, min(1000, int(raw_value)))
                     elif key == "SUPPLY_REF_BOTS":
                         values[key] = max(50, min(50000, int(raw_value)))
+                    elif key in ("PVP_SET_SHARE", "PVP_SET_BUDGET"):
+                        values[key] = max(0, min(100, int(raw_value)))
+                    elif key == "PVP_SET_MIN_LEVEL":
+                        values[key] = max(1, min(120, int(raw_value)))
+                    elif key == "PVP_SET_STRENGTH":
+                        values[key] = max(0, min(2, int(raw_value)))
                     elif key in ("CHEST", "CHEST_STONE"):
                         values[key] = max(0, min(1000, int(raw_value)))
                     else:
@@ -2961,6 +2967,10 @@ def write_ai_weights(values):
     content.append(f"SUPPLY_BANDS\t{1 if values.get('SUPPLY_BANDS', 1) else 0}")
     content.append(f"SUPPLY_SCALE\t{1 if values.get('SUPPLY_SCALE', 0) else 0}")
     content.append(f"SUPPLY_REF_BOTS\t{max(50, min(50000, int(values.get('SUPPLY_REF_BOTS', 1000))))}")
+    content.append(f"PVP_SET\t{1 if values.get('PVP_SET', 0) else 0}")
+    for key, low, high, default in (("PVP_SET_SHARE", 0, 100, 25), ("PVP_SET_MIN_LEVEL", 1, 120, 30), ("PVP_SET_BUDGET", 0, 100, 20), ("PVP_SET_STRENGTH", 0, 2, 1)):
+        content.append(f"{key}\t{max(low, min(high, int(values.get(key, default))))}")
+    content.append(f"PVP_SET_VS_HUMAN\t{1 if values.get('PVP_SET_VS_HUMAN', 1) else 0}")
     content.append(f"CRAFTSMAN\t{max(0, min(100, int(values.get('CRAFTSMAN', 30))))}")
     content.append(f"SCRAP\t{max(0, min(100, int(values.get('SCRAP', 0))))}")
     content.append(f"REST\t{max(0, min(100, int(values.get('REST', 100))))}")
@@ -8802,8 +8812,13 @@ def manage_behavior():
     except (TypeError, ValueError):
         values["CRAFTSMAN"] = values.get("CRAFTSMAN", 30)
     values["BOOKS"] = values.get("BOOKS", 1) if "BOOKS" not in request.form else (1 if "1" in request.form.getlist("BOOKS") else 0)
-    for key, default in (("NIGHT", 1), ("LIFE", 0), ("WARS", 1), ("TOWER", 1), ("ISHOP", 1), ("SHOP_M2", 0), ("PERSONA", 1), ("HAGGLE", 1), ("SHOP_ROOM_SELL", 1), ("SUPPLY_BANDS", 1), ("SUPPLY_SCALE", 0)):
+    for key, default in (("NIGHT", 1), ("LIFE", 0), ("WARS", 1), ("TOWER", 1), ("ISHOP", 1), ("SHOP_M2", 0), ("PERSONA", 1), ("HAGGLE", 1), ("SHOP_ROOM_SELL", 1), ("SUPPLY_BANDS", 1), ("SUPPLY_SCALE", 0), ("PVP_SET", 0), ("PVP_SET_VS_HUMAN", 1)):
         values[key] = values.get(key, default) if key not in request.form else (1 if "1" in request.form.getlist(key) else 0)
+    for key, low, high, default in (("PVP_SET_SHARE", 0, 100, 25), ("PVP_SET_MIN_LEVEL", 1, 120, 30), ("PVP_SET_BUDGET", 0, 100, 20), ("PVP_SET_STRENGTH", 0, 2, 1)):
+        try:
+            values[key] = max(low, min(high, int(request.form.get(key, values.get(key, default)))))
+        except (TypeError, ValueError):
+            values[key] = values.get(key, default)
     try:
         values["SUPPLY_REF_BOTS"] = max(50, min(50000, int(request.form.get("SUPPLY_REF_BOTS", values.get("SUPPLY_REF_BOTS", 1000)))))
     except (TypeError, ValueError):
