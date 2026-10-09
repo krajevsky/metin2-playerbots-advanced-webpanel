@@ -8451,7 +8451,7 @@ def manage_spawn_plan():
 # and the same web_admin_queue commands as his panel, so the game's
 # web_admin.quest applies them live and a restart keeps them.
 def read_world_extras():
-    raw = read_global_quest_flags(("m2_ds_eyes_per_day", "m2_extra_ds_drop", "m2_extra_coupon_drop", "m2_dragon_soul_off", "m2_mob_hp", "m2_unique70_bonus_off", "m2_yang_ground", "m2_owner_defence_off"))
+    raw = read_global_quest_flags(("m2_ds_eyes_per_day", "m2_extra_ds_drop", "m2_extra_coupon_drop", "m2_dragon_soul_off", "m2_mob_hp", "m2_unique70_bonus_off", "m2_yang_ground", "m2_owner_defence_off", "m2_drop_bonus_pct"))
     eyes = int(raw.get("m2_ds_eyes_per_day") or 0)
     return {
         "eyes": eyes if 1 <= eyes <= 100 else 10,
@@ -8461,6 +8461,7 @@ def read_world_extras():
         "unique70_off": 1 if int(raw.get("m2_unique70_bonus_off") or 0) > 0 else 0,
         "yang_ground": 1 if int(raw.get("m2_yang_ground") or 0) > 0 else 0,
         "owner_defence_off": 1 if int(raw.get("m2_owner_defence_off") or 0) > 0 else 0,
+        "drop_bonus_pct": (lambda v: 100 if v <= 0 else max(10, min(1000, v)))(int(raw.get("m2_drop_bonus_pct") or 0)),
         "mob_hp": (lambda v: 100 if v <= 0 else max(10, min(300, v)))(int(raw.get("m2_mob_hp") or 0)),
     }
 
@@ -8575,6 +8576,27 @@ def manage_owner_defence():
         cancel_pending_admin_command(queue_id)
     flash("Obrona przed botami innych królestw zapisana" +
           (" — działa od razu." if status == "done" else " — zadziała po restarcie gry."))
+    return redirect(url_for("manage", _anchor="world-extras"))
+
+
+@app.post("/manage/drop-bonus")
+@login_required
+def manage_drop_bonus():
+    """Tieru's m2_drop_bonus_pct / DROP_BONUS live setting (10–1000%)."""
+    if not ENGINE_MT2009:
+        return redirect(url_for("manage"))
+    raw = (request.form.get("pct") or "").strip()
+    if not raw.isascii() or not raw.isdigit() or not 10 <= int(raw) <= 1000:
+        flash("Szansa bonusów w dropie musi wynosić od 10% do 1000%.", "error")
+        return redirect(url_for("manage"))
+    value = int(raw)
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) "
+         "VALUES (0,'m2_drop_bonus_pct','',%s)", (value,))
+    status, queue_id = queue_game_admin_command("DROP_BONUS", str(value))
+    if status == "timeout":
+        cancel_pending_admin_command(queue_id)
+    flash("Szansa bonusów w dropie zapisana" +
+          (" — działa od następnego dropu." if status == "done" else " — zadziała po restarcie gry."))
     return redirect(url_for("manage", _anchor="world-extras"))
 
 

@@ -63,6 +63,9 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Bonusy w przedmiotach z potworów (%)": "Bonuses on monster drops (%)",
+    "100% to szansa z gry. Zmienia tylko nowe bronie i zbroje wypadające z potworów, najwyżej do trzech bonusów; nagrody, skrzynie i sklepy pozostają bez zmian.": "100% is the game's normal chance. This changes only newly dropped weapons and armour, up to three bonuses; rewards, chests and shops are unchanged.",
+    "Zapisz bonusy w dropie": "Save drop bonus chance",
     "Obrona przed botami innych królestw": "Defence against foreign kingdom bots",
     "Towarzysz w trybie Atak lub Obrona oraz pomoc gildii i grupy odpowiadają na celowe ataki obcych botów na gracza. Pasywny Towarzysz nie atakuje.": "A Companion in Attack or Defend mode, and guild and party help, respond to deliberate attacks by foreign kingdom bots on a player. A passive Companion does not attack.",
     "Włączona": "Enabled",

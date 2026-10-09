@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.10 · Bonusy w przedmiotach wypadających z potworów
+
+- W dodatkach świata można ustawić 10–1000% szansy na bonusy nowych broni i zbroi z potworów; 100% oznacza normalną szansę gry. Dotyczy najwyżej trzech bonusów i nie zmienia nagród, skrzyń ani sklepów.
+- Panel zapisuje `m2_drop_bonus_pct` i wysyła komendę `DROP_BONUS` zgodnie z kodem Tieru. Po odpowiedzi silnika zmiana działa od następnego dropu i pozostaje po restarcie. Dodano PL/EN i testy zakresu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.9 · Obrona przed botami innych królestw
 
 - W dodatkach świata można teraz włączyć lub wyłączyć reakcję Towarzysza w trybie Atak/Obrona oraz pomocy gildii i grupy na celowe ataki obcych botów na gracza. Pasywny Towarzysz nie odpowiada atakiem.

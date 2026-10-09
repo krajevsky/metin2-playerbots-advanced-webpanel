@@ -32,7 +32,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Automatyczne polowanie | `admin_panel.py:20153` `/rates/autohunt` | `app.py:8099` | jest | średnia | Bez zmian. |
 | Skrzynia startowa | `admin_panel.py:20188` `/rates/starter_chest` | `app.py:8051` | jest | średnia | Nie nadpisywać Skrzyni Ucznia. |
 | HP mobów | `admin_panel.py:20224` `/rates/mob_hp` | `app.py` `/manage/mob-hp`, `templates/manage.html` | jest | średnia | Zakres 10–300% zgodny. |
-| Dodatkowy bonus dropu | `admin_panel.py:20263` `/rates/drop_bonus` | brak | brak | średnia | Przenieść dokładną flagę i komendę silnika. |
+| Dodatkowy bonus dropu | `admin_panel.py:20263` `/rates/drop_bonus` | `app.py` `/manage/drop-bonus`, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.10, zakres 10–1000%, flaga i komenda źródłowa. |
 | Szybkość ruchu postaci | `admin_panel.py:20302` `/rates/move_speed` | brak | brak | średnia | Przenieść dokładną flagę i komendę silnika. |
 | Dodatki świata | `admin_panel.py:20341` `/rates/world_extras` | `app.py` `/manage/world-extras`, `templates/manage.html` | jest | średnia | Cor Draconis, drop kamieni i szkatułek zgodny. |
 | Smocza Alchemia | `admin_panel.py:20383` `/rates/dragon_soul` | `app.py` `/manage/dragon-soul`, `/player` | jest | średnia | Nie naruszać okna alchemii. |
