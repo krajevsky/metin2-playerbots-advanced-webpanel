@@ -138,3 +138,27 @@ def test_market_offers_subcategory_is_scoped_to_category():
         panel.app.test_client().get("/economy/offers?category=2&subcategory=3")
     assert count_rows.call_args.args[1] == (2,)
     assert render.call_args.kwargs["subcategory"] == 0
+
+
+def test_market_offers_refine_range_matches_proto_name_suffix():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?rmin=7&rmax=9")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "ip.locale_name REGEXP" in sql
+    assert "SUBSTRING_INDEX(ip.locale_name,'+',-1)" in sql
+    assert params == (7, 9)
+    assert render.call_args.kwargs["refine_inputs"] == {"rmin": "7", "rmax": "9"}
+
+
+def test_market_offers_rejects_reversed_refine_range():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers?rmin=9&rmax=7")
+    assert count_rows.call_args.args[1] == ()
+    assert render.call_args.kwargs["refine_inputs"] == {"rmin": "", "rmax": ""}

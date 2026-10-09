@@ -31,7 +31,8 @@ import decisions
 from market_categories import (CATEGORIES as MARKET_CATEGORIES,
                                SUBCATEGORIES as MARKET_SUBCATEGORIES,
                                category_sql as market_category_sql,
-                               subcategory_sql as market_subcategory_sql)
+                               subcategory_sql as market_subcategory_sql,
+                               refine_sql as market_refine_sql)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SEBAN_SESSION_SECRET", "change-this-before-public-use")
@@ -6696,6 +6697,18 @@ def economy_offers():
     subcategory = request.args.get("subcategory", 0, type=int)
     if subcategory not in (0, *(entry[0] for entry in MARKET_SUBCATEGORIES.get(category, ()))):
         subcategory = 0
+    refine_inputs = {key: request.args.get(key, "").strip() for key in ("rmin", "rmax")}
+    refine_values = {}
+    for key, value in refine_inputs.items():
+        refine_values[key] = int(value) if value.isdigit() and len(value) <= 2 and int(value) <= 19 else None
+        if refine_values[key] is None:
+            refine_inputs[key] = ""
+        else:
+            refine_inputs[key] = str(refine_values[key])
+    if (refine_values["rmin"] is not None and refine_values["rmax"] is not None
+            and refine_values["rmin"] > refine_values["rmax"]):
+        refine_inputs = {"rmin": "", "rmax": ""}
+        refine_values = {"rmin": None, "rmax": None}
     empire = request.args.get("empire", type=int) or 0
     if empire not in (0, 1, 2, 3):
         empire = 0
@@ -6744,6 +6757,10 @@ def economy_offers():
     if subcategory:
         clauses.append("(" + market_subcategory_sql() + ")=%s")
         params.append(subcategory)
+    for key, operator in (("rmin", ">="), ("rmax", "<=")):
+        if refine_values[key] is not None:
+            clauses.append("(" + market_refine_sql() + ")" + operator + "%s")
+            params.append(refine_values[key])
     price_expr = "CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED)"
     if unit_price_filter:
         price_expr += " / GREATEST(i.`count`,1)"
@@ -6795,6 +6812,7 @@ def economy_offers():
                            shop_name=shop_name, category=category,
                            subcategory=subcategory, market_categories=MARKET_CATEGORIES,
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
+                           refine_inputs=refine_inputs,
                            empire=empire, sort=sort,
                            page=page, page_size=page_size, has_next=has_next,
                            total=total,

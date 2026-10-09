@@ -113,3 +113,10 @@ def subcategory_sql():
       WHEN ip.type=12 THEN 4
       WHEN ({category_sql()})=10 THEN 1
       ELSE 0 END"""
+
+
+def refine_sql():
+    """Tieru rules.split_plus on item_proto.locale_name, as MariaDB SQL."""
+    return """CASE WHEN ip.locale_name REGEXP '[+][[:space:]]*[0-9]{1,2}[[:space:]]*$'
+      THEN CAST(TRIM(SUBSTRING_INDEX(ip.locale_name,'+',-1)) AS UNSIGNED)
+      ELSE -1 END"""

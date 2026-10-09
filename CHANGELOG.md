@@ -1,3 +1,9 @@
+## 2026-10-09 · 1.114.29 · Zakres ulepszenia na rynku
+
+- Przeglądarka aktywnych ofert filtruje przedmioty po ulepszeniu od `+0` do `+19`, osobno z dolną i górną granicą. Wartość jest odczytywana z końcówki nazwy `item_proto` zgodnie z parserem Tieru, a nie zgadywana z VNUM.
+- Zakres zachowuje się przy zmianie strony, błędne i odwrócone wartości są odrzucane. Dodano teksty PL/EN i testy obu przypadków.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-09 · 1.114.28 · Podkategorie ofert rynku
 
 - Filtr rynku rozróżnia typ broni, tarcze i hełmy, biżuterię, klasy ksiąg, poziom kamieni duszy oraz rodzaje materiałów zgodnie z regułami Tieru.
