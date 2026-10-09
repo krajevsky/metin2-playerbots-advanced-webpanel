@@ -63,6 +63,10 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Nick sprzedawcy": "Seller nickname",
+    "Nick postaci": "Character nickname",
+    "Nazwa sklepu": "Shop name",
+    "Nazwa straganu": "Stall name",
     "Cena od": "Price from",
     "Cena do": "Price to",
     "Filtruj cenę za sztukę": "Filter by unit price",

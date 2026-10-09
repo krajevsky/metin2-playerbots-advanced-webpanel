@@ -6684,6 +6684,8 @@ def economy_offers():
     seller_type = request.args.get("seller", "all")
     if seller_type not in ("all", "bot", "person"):
         seller_type = "all"
+    seller_name = request.args.get("seller_name", "").strip()[:80]
+    shop_name = request.args.get("shop_name", "").strip()[:80]
     empire = request.args.get("empire", type=int) or 0
     if empire not in (0, 1, 2, 3):
         empire = 0
@@ -6717,6 +6719,12 @@ def economy_offers():
         params.append(empire)
     if seller_type != "all":
         clauses.append("LEFT(a.login,10)" + ("=" if seller_type == "bot" else "<>") + "'playerbot_'")
+    if seller_name:
+        clauses.append("p.name LIKE %s")
+        params.append(f"%{seller_name}%")
+    if shop_name:
+        clauses.append("s.name LIKE %s")
+        params.append(f"%{shop_name}%")
     price_expr = "CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED)"
     if unit_price_filter:
         price_expr += " / GREATEST(i.`count`,1)"
@@ -6756,7 +6764,8 @@ def economy_offers():
         except (TypeError, ValueError, KeyError):
             app.logger.warning("Skipping malformed global market offer: %r", offer)
     return render_template("economy_offers.html", offers=offers, query=query,
-                           seller_type=seller_type, empire=empire, sort=sort,
+                           seller_type=seller_type, seller_name=seller_name,
+                           shop_name=shop_name, empire=empire, sort=sort,
                            page=page, has_next=has_next, price_inputs=price_inputs,
                            price_errors=price_errors, unit_price_filter=unit_price_filter)
 

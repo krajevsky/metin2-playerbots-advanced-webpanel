@@ -64,3 +64,17 @@ def test_market_offers_price_filter_uses_units_and_bound_parameters():
     assert "GREATEST(i.`count`,1)" in sql
     assert ">=%s" in sql and "<=%s" in sql
     assert params == [500000, 2000000, 51, 0]
+
+
+def test_market_offers_filters_seller_and_shop_names_with_parameters():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "rows", return_value=[]) as read_rows, \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get(
+            "/economy/offers?seller_name=Handlarz&shop_name=Tanie%20miejsce&q=42")
+    assert response.status_code == 200
+    sql, params = read_rows.call_args.args
+    assert "p.name LIKE %s" in sql and "s.name LIKE %s" in sql
+    assert params == [42, "%42%", "%Handlarz%", "%Tanie miejsce%", 51, 0]
+    assert render.call_args.kwargs["seller_name"] == "Handlarz"
+    assert render.call_args.kwargs["shop_name"] == "Tanie miejsce"

@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.24 · Sprzedawca i nazwa sklepu w filtrach rynku
+
+- Aktywne oferty można filtrować po nicku sprzedawcy oraz nazwie straganu. Oba filtry działają razem z dotychczasowymi filtrami i pozostają przy zmianie strony wyników.
+- Zapytania są parametryzowane, a teksty formularza mają wersję PL/EN. Dodano testy złożonych filtrów.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.23 · Zakres cen na rynku
 
 - Przeglądarka ofert przyjmuje minimalną i maksymalną cenę Yang oraz opcjonalnie filtruje cenę za sztukę w stosie. Obsługuje wpisy `500k`, `1.5kk`, `2kkk` i grupowane kwoty tak samo jak parser Tieru.
