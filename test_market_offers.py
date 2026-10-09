@@ -198,3 +198,19 @@ def test_market_offers_rejects_reversed_level_range():
         panel.app.test_client().get("/economy/offers?lmin=200&lmax=30")
     assert count_rows.call_args.args[1] == ()
     assert render.call_args.kwargs["level_inputs"] == {"lmin": "", "lmax": ""}
+
+
+@pytest.mark.parametrize("sort,fragment", [
+    ("newest", "ORDER BY i.id DESC"),
+    ("plus_desc", "SUBSTRING_INDEX(ip.locale_name,'+',-1)"),
+    ("level_desc", "ip.limittype1=1"),
+    ("level_asc", "ASC, price ASC, i.id DESC"),
+])
+def test_market_offers_extra_sort_orders_are_whitelisted(sort, fragment):
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}), \
+            patch.object(panel, "rows", return_value=[]) as read_rows, \
+            patch.object(panel, "render_template", return_value="ok"):
+        response = panel.app.test_client().get(f"/economy/offers?sort={sort}")
+    assert response.status_code == 200
+    assert fragment in read_rows.call_args.args[0]

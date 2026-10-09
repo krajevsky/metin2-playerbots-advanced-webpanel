@@ -6742,7 +6742,11 @@ def economy_offers():
     sort = request.args.get("sort", "price_asc")
     order = {"price_asc": "price ASC, i.id DESC",
              "price_desc": "price DESC, i.id DESC",
-             "unit_asc": "price / GREATEST(i.`count`,1) ASC, i.id DESC"}.get(sort)
+             "unit_asc": "price / GREATEST(i.`count`,1) ASC, i.id DESC",
+             "newest": "i.id DESC",
+             "plus_desc": "(" + market_refine_sql() + ") DESC, price ASC, i.id DESC",
+             "level_desc": "(" + market_required_level_sql() + ") DESC, price ASC, i.id DESC",
+             "level_asc": "(" + market_required_level_sql() + ") ASC, price ASC, i.id DESC"}.get(sort)
     if order is None:
         sort, order = "price_asc", "price ASC, i.id DESC"
     page_size = request.args.get("size", 50, type=int)

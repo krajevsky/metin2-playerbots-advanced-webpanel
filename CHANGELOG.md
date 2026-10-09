@@ -1,3 +1,9 @@
+## 2026-10-10 · 1.114.32 · Sortowanie aktywnych ofert
+
+- Przeglądarka rynku sortuje teraz także po najnowszych ofertach, najwyższym ulepszeniu oraz wymaganym poziomie rosnąco lub malejąco. Reguły ulepszenia i poziomu korzystają z tych samych pól `item_proto` co filtry, zgodnie z panelem Tieru.
+- Każdy porządek jest na zamkniętej liście SQL; dodano nazwy PL/EN i testy wszystkich nowych wariantów.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-10 · 1.114.31 · Wymagany poziom w ofertach rynku
 
 - Przeglądarka ofert filtruje przedmioty po wymaganym poziomie od 0 do 255. Odczyt z dwóch pól limitu `item_proto` zachowuje regułę Tieru: drugi limit poziomu ma pierwszeństwo, jeśli obydwa są ustawione.
