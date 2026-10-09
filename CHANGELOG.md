@@ -1,3 +1,9 @@
+## 2026-10-09 · 1.114.28 · Podkategorie ofert rynku
+
+- Filtr rynku rozróżnia typ broni, tarcze i hełmy, biżuterię, klasy ksiąg, poziom kamieni duszy oraz rodzaje materiałów zgodnie z regułami Tieru.
+- Lista podkategorii zależy od wybranej kategorii, a wybór pozostaje przy zmianie strony. Zachowano nazwy PL/EN i dodano testy zgodności oraz odrzucania niepasujących podkategorii.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-09 · 1.114.27 · Kategorie aktywnych ofert
 
 - Oferty rynku można filtrować według 11 kategorii Tieru. Klasyfikacja używa typu i podtypu przedmiotu z `item_proto` oraz dokładnej listy wyjątków dla ulepszaczy, ksiąg, ziół i rud z jego reguł.

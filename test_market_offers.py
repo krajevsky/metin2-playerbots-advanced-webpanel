@@ -116,3 +116,25 @@ def test_market_offers_category_filter_applies_to_count_and_page():
     assert count_params == (10,)
     assert page_params == [10, 51, 0]
     assert render.call_args.kwargs["category"] == 10
+
+
+def test_market_offers_subcategory_is_scoped_to_category():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]) as read_rows, \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?category=6&subcategory=3")
+    assert response.status_code == 200
+    assert "i.socket0" in count_rows.call_args.args[0]
+    assert "i.socket0" in read_rows.call_args.args[0]
+    assert count_rows.call_args.args[1] == (6, 3)
+    assert read_rows.call_args.args[1] == [6, 3, 51, 0]
+    assert render.call_args.kwargs["subcategory"] == 3
+
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers?category=2&subcategory=3")
+    assert count_rows.call_args.args[1] == (2,)
+    assert render.call_args.kwargs["subcategory"] == 0

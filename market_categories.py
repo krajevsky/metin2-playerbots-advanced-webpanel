@@ -19,6 +19,24 @@ CATEGORIES = (
     (11, "Inne", "Other"),
 )
 
+# Tieru rules.CATEGORIES: subcategory IDs are scoped to their parent category.
+SUBCATEGORIES = {
+    1: ((1, "Miecze", "Swords"), (2, "Broń dwuręczna", "Two-handed"),
+        (3, "Sztylety", "Daggers"), (4, "Łuki", "Bows"),
+        (5, "Dzwony", "Bells"), (6, "Wachlarze", "Fans")),
+    3: ((1, "Tarcze", "Shields"), (2, "Hełmy", "Helmets")),
+    4: ((1, "Bransolety", "Bracelets"), (2, "Naszyjniki", "Necklaces"),
+        (3, "Kolczyki", "Earrings")),
+    6: ((1, "Wojownik", "Warrior"), (2, "Ninja", "Ninja"),
+        (3, "Sura", "Sura"), (4, "Szaman", "Shaman"),
+        (5, "Księgi Zapomnienia", "Forgetting books"),
+        (6, "Księgi pasywne", "Passive books")),
+    7: tuple((grade + 1, f"+{grade}", f"+{grade}") for grade in range(5)),
+    10: ((1, "Ulepszacze", "Upgrade materials"),
+         (2, "Rudy i przetopy", "Ores and smelted ores"),
+         (3, "Zioła", "Herbs"), (4, "Ryby", "Fish")),
+}
+
 # Tieru market_preview.sheet.REFINE_MATERIALS, including items whose proto
 # type is not ITEM_MATERIAL. Keep this explicit instead of assuming a VNUM
 # range (there are gaps and other item kinds inside those ranges).
@@ -62,3 +80,36 @@ def category_sql():
         OR ip.type=12 OR i.vnum IN ({refine}) OR ip.type IN (5,14) THEN 10
       WHEN ip.type IN (3,4,36,19) THEN 9
       ELSE 11 END"""
+
+
+def subcategory_sql():
+    """Return Tieru's subcategory expression; combine with category_sql.
+
+    The general skill book stores its skill in socket0; 50401–50599 encode
+    the skill in the VNUM. Other skill books fall into passive books.
+    """
+    skill = "CASE WHEN i.vnum=50300 THEN i.socket0 WHEN i.vnum BETWEEN 50401 AND 50599 THEN i.vnum-50400 ELSE 0 END"
+    herbs = ",".join(str(n) for n in (*range(50721, 50741), 50056))
+    return f"""CASE
+      WHEN ip.type=1 THEN CASE ip.subtype
+        WHEN 0 THEN 1 WHEN 3 THEN 2 WHEN 1 THEN 3
+        WHEN 2 THEN 4 WHEN 4 THEN 5 WHEN 5 THEN 6 ELSE 0 END
+      WHEN ip.type=2 THEN CASE ip.subtype
+        WHEN 2 THEN 1 WHEN 1 THEN 2 WHEN 3 THEN 1
+        WHEN 5 THEN 2 WHEN 6 THEN 3 ELSE 0 END
+      WHEN ip.type=17 THEN CASE
+        WHEN ({skill}) BETWEEN 1 AND 5 OR ({skill}) BETWEEN 16 AND 20 THEN 1
+        WHEN ({skill}) BETWEEN 31 AND 35 OR ({skill}) BETWEEN 46 AND 51 THEN 2
+        WHEN ({skill}) BETWEEN 61 AND 66 OR ({skill}) BETWEEN 76 AND 81 THEN 3
+        WHEN ({skill}) BETWEEN 91 AND 96 OR ({skill}) BETWEEN 106 AND 111 THEN 4
+        ELSE 6 END
+      WHEN ip.type=22 THEN 5
+      WHEN i.vnum IN (50060,50061,50600,50301,50302,50303,50304,50305,50306,
+                      50311,50312,50313,50314,50315,50316) THEN 6
+      WHEN ip.type=10 THEN CASE WHEN i.vnum BETWEEN 28000 AND 28999
+        AND MOD(i.vnum DIV 100,10) <= 4 THEN MOD(i.vnum DIV 100,10)+1 ELSE 0 END
+      WHEN i.vnum IN ({herbs}) THEN 3
+      WHEN i.vnum BETWEEN 50601 AND 50640 THEN 2
+      WHEN ip.type=12 THEN 4
+      WHEN ({category_sql()})=10 THEN 1
+      ELSE 0 END"""

@@ -66,6 +66,8 @@ EXACT = {
     "Nick sprzedawcy": "Seller nickname",
     "Ofert na stronę": "Offers per page",
     "Wszystkie kategorie": "All categories",
+    "Podkategoria": "Subcategory",
+    "Wszystkie podkategorie": "All subcategories",
     "Liczba ofert:": "Offers found:",
     "Nick postaci": "Character nickname",
     "Nazwa sklepu": "Shop name",
