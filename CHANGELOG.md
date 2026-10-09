@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.37 · Filtr kamieni duszy na rynku
+
+- Oferty można ograniczyć do broni i zbroi z dowolnym kamieniem duszy albo z konkretnym VNUM kamienia. Zakres 28000–28999 i trzy gniazda są zgodne z regułą Tieru; wpisanie VNUM ma pierwszeństwo przed ogólnym wyborem.
+- Filtr zachowuje się przy stronicowaniu, jest widoczny jako aktywny chip i ma teksty PL/EN. Dodano testy zapytania.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.36 · Filtry obrażeń na rynku
 
 - Dodano osobne zakresy średnich obrażeń i obrażeń umiejętności (0–200) przy przeglądaniu ofert. Odczyt siedmiu atrybutów korzysta z punktów 122 i 121 silnika MT2009, zgodnie z kodem Tieru, i wybiera ostatnią niezerową linię danego typu.

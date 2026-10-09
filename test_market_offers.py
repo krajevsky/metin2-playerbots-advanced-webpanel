@@ -292,3 +292,33 @@ def test_market_damage_ranges_reject_reversed_and_out_of_range():
     assert count_rows.call_args.args[1] == ()
     assert render.call_args.kwargs["damage_inputs"] == {
         "avgmin": "", "avgmax": "", "sklmin": "", "sklmax": ""}
+
+
+def test_market_stone_filter_only_matches_weapon_or_armor_sockets():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?ks=has")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "ip.type IN (1,2)" in sql
+    assert "i.socket0 BETWEEN 28000 AND 28999" in sql
+    assert "i.socket2 BETWEEN 28000 AND 28999" in sql
+    assert params == ()
+    assert render.call_args.kwargs["has_stone"] is True
+
+
+def test_market_specific_stone_vnum_overrides_generic_stone_filter():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?ks=has&stone=28130")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "ip.type IN (1,2)" in sql
+    assert "i.socket0=%s OR i.socket1=%s OR i.socket2=%s" in sql
+    assert params == (28130, 28130, 28130)
+    assert render.call_args.kwargs["has_stone"] is False
+    assert render.call_args.kwargs["stone_vnum"] == 28130

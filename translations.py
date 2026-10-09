@@ -63,6 +63,10 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Kamień duszy": "Soul stone",
+    "VNUM kamienia": "Stone VNUM",
+    "Dowolny": "Any",
+    "Z kamieniem": "With a stone",
     "Średnie obrażenia od": "Average damage from",
     "Średnie obrażenia do": "Average damage to",
     "Obrażenia umiejętności od": "Skill damage from",

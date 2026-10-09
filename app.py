@@ -6736,6 +6736,10 @@ def economy_offers():
     bonus_min = request.args.get("nbmin", 0, type=int)
     if bonus_min not in range(6):
         bonus_min = 0
+    stone_vnum = request.args.get("stone", 0, type=int)
+    if not 28000 <= stone_vnum <= 28999:
+        stone_vnum = 0
+    has_stone = request.args.get("ks") == "has" and not stone_vnum
     damage_inputs = {key: request.args.get(key, "").strip() for key in
                      ("avgmin", "avgmax", "sklmin", "sklmax")}
     damage_values = {}
@@ -6803,6 +6807,8 @@ def economy_offers():
                      "subcategory": subcategory if subcategory else "",
                      "cls": class_bit if class_bit else "",
                      "nbmin": bonus_min if bonus_min else "",
+                     "ks": "has" if has_stone else "",
+                     "stone": stone_vnum if stone_vnum else "",
                      **damage_inputs,
                      "rmin": refine_inputs["rmin"], "rmax": refine_inputs["rmax"],
                      "lmin": level_inputs["lmin"], "lmax": level_inputs["lmax"],
@@ -6818,6 +6824,8 @@ def economy_offers():
         "subcategory": ("Podkategoria", "Subcategory"),
         "cls": ("Klasa postaci", "Character class"),
         "nbmin": ("Liczba bonusów od", "Minimum bonus lines"),
+        "ks": ("Kamień duszy", "Soul stone"),
+        "stone": ("VNUM kamienia", "Stone VNUM"),
         "avgmin": ("Średnie obrażenia od", "Average damage from"),
         "avgmax": ("Średnie obrażenia do", "Average damage to"),
         "sklmin": ("Obrażenia umiejętności od", "Skill damage from"),
@@ -6873,6 +6881,14 @@ def economy_offers():
             for index in range(7))
         clauses.append("(" + bonus_count_sql + ")>=%s")
         params.append(bonus_min)
+    if has_stone or stone_vnum:
+        clauses.append("ip.type IN (1,2)")
+        if stone_vnum:
+            clauses.append("(i.socket0=%s OR i.socket1=%s OR i.socket2=%s)")
+            params.extend((stone_vnum,) * 3)
+        else:
+            clauses.append("(" + " OR ".join(
+                f"i.socket{index} BETWEEN 28000 AND 28999" for index in range(3)) + ")")
     for prefix, point in (("avg", 122), ("skl", 121)):
         damage_sql = "COALESCE(" + ",".join(
             f"NULLIF(IF(i.attrtype{index}={point},i.attrvalue{index},0),0)"
@@ -6943,6 +6959,7 @@ def economy_offers():
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
                            class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,
                            bonus_min=bonus_min,
+                           has_stone=has_stone, stone_vnum=stone_vnum,
                            damage_inputs=damage_inputs,
                            refine_inputs=refine_inputs, level_inputs=level_inputs,
                            empire=empire, sort=sort,
