@@ -68,3 +68,5 @@
 .unique70-form .unique70-option input[type=radio]{flex:0 0 auto;width:18px;height:18px;margin:0}
 .yang-ground-form .yang-ground-option{display:flex;align-items:center;gap:10px;min-height:36px;min-width:0}
 .yang-ground-form .yang-ground-option input[type=radio]{flex:0 0 auto;width:18px;height:18px;margin:0}
+.owner-defence-form .owner-defence-option{display:flex;align-items:center;gap:10px;min-height:36px;min-width:0}
+.owner-defence-form .owner-defence-option input[type=radio]{flex:0 0 auto;width:18px;height:18px;margin:0}

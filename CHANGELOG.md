@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.9 · Obrona przed botami innych królestw
+
+- W dodatkach świata można teraz włączyć lub wyłączyć reakcję Towarzysza w trybie Atak/Obrona oraz pomocy gildii i grupy na celowe ataki obcych botów na gracza. Pasywny Towarzysz nie odpowiada atakiem.
+- Panel zapisuje flagę `m2_owner_defence_off` i wysyła komendę `OWNER_DEFENCE`, tak jak panel Tieru. Ustawienie działa na żywo po odpowiedzi silnika, przetrwa restart i ma teksty PL/EN.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.8 · Yang z potworów: do ekwipunku lub na ziemię
 
 - W dodatkach świata dodano wybór, czy Yang z potworów zabitych przez gracza trafia od razu do ekwipunku, czy spada na ziemię jak w oryginalnej grze. Boty i Towarzysz nadal dostają Yang bezpośrednio.

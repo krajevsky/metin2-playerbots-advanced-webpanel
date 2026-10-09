@@ -63,6 +63,11 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Obrona przed botami innych królestw": "Defence against foreign kingdom bots",
+    "Towarzysz w trybie Atak lub Obrona oraz pomoc gildii i grupy odpowiadają na celowe ataki obcych botów na gracza. Pasywny Towarzysz nie atakuje.": "A Companion in Attack or Defend mode, and guild and party help, respond to deliberate attacks by foreign kingdom bots on a player. A passive Companion does not attack.",
+    "Włączona": "Enabled",
+    "Wyłączona": "Disabled",
+    "Zapisz obronę": "Save defence",
     "Yang z potworów zabitych przez gracza": "Yang from monsters killed by players",
     "Domyślnie trafia prosto do ekwipunku. Opcja „na ziemię” działa jak w oryginalnej grze; podnieść Yang może każdy. Boty i Towarzysz nadal otrzymują je prosto do ekwipunku.": "By default, Yang goes straight into the inventory. The ground option works as in the original game; anyone can pick it up. Bots and Companions still receive it directly.",
     "Do ekwipunku": "Into inventory",
