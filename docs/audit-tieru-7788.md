@@ -66,7 +66,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 
 | Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
 |---|---|---|---|---|---|
-| Panel AI: suwak częstości komunikatów nad botem `LIVE_CHAT` 0–200% | `admin_panel.py:8257–8262` `/ai` | brak kontrolki w `templates/manage.html` | brak | średnia | Dodać odczyt/zapis klucza i suwak, nie mieszać z `CHAT`. |
+| Panel AI: gęstość czatu Global `LIVE_CHAT` 0–200% | `admin_panel.py:8257–8262` `/ai` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.13, niezależnie od `CHAT`. |
 | Panel AI: przełącznik napisów `CHAT` | `admin_panel.py:8253–8256` `/ai` | `templates/manage.html` zachowanie botów | jest | średnia | Bez zmian. |
 | Panel AI: udział rzemieślników `CRAFTSMAN` 0–100% | `admin_panel.py:8274–8279` `/ai` | brak | brak | średnia | Przenieść wartość domyślną 30 i zakres. |
 | Panel AI: szybkie księgi `BOOKS` | `admin_panel.py:8280–8295` `/ai` | `templates/manage.html` (tylko r40250) | jest | niska | Na mt2009 Tieru przeniósł to do rat; nie dublować. |

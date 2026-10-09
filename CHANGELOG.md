@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.13 · Gęstość czatu botów
+
+- Dodano suwak Global chat 0–200% niezależny od przełącznika komunikatów nad głową bota. 100% oznacza normalne natężenie, 0 przywraca dawny czat i wołanie w obrębie królestwa.
+- Odczyt i zapis `LIVE_CHAT` jest zgodny z panelem Tieru. Teksty dostępne po polsku i angielsku; testy chronią domyślną wartość, zakres i niezależność ustawień.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.12 · Realistyczne sesje botów
 
 - W ustawieniach zachowania botów dodano suwak „Realizm sesji” 0–100%. Wskazuje odsetek botów objętych rytmem dnia i tygodnia Iwakury; działa niezależnie od starszego przełącznika sesji.

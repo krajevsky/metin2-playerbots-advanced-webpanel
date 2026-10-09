@@ -239,7 +239,7 @@ AI_WEIGHT_HINTS = {
 # These values share the live weight file with goal weights, but the core treats
 # them as switches or direct settings rather than 25–250% goal weights.
 AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1,
-                     "SHOP_M2": 0, "PERSONA": 1, "LIFE_HOURS": 0, "SESSION_REALISM": 0, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
+                     "SHOP_M2": 0, "PERSONA": 1, "LIFE_HOURS": 0, "SESSION_REALISM": 0, "LIVE_CHAT": 100, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
                      "WAR_MINUTES": 30, "WAR_HOURS": 2, "CHEST": None, "CHEST_STONE": None}
 AI_SPECIAL_WEIGHT_KEYS = frozenset(AI_LIVE_DEFAULTS)
 BIOLOGIST_COMPLETE_STATE = 557528158
@@ -2887,6 +2887,8 @@ def read_ai_weights():
                         values[key] = 0 if raw_value.lower() in ("0", "off", "no") else 1
                     elif key in ("SCRAP", "REST", "KINGDOMPVP"):
                         values[key] = max(0, min(100, int(raw_value)))
+                    elif key == "LIVE_CHAT":
+                        values[key] = max(0, min(200, int(raw_value)))
                     elif key == "LIFE_HOURS":
                         values[key] = max(0, min(24, int(raw_value)))
                     elif key == "SESSION_REALISM":
@@ -2935,6 +2937,7 @@ def write_ai_weights(values):
     ]
     content.extend(f"{key}\t{values[key]}" for key, _, _ in AI_WEIGHT_KEYS)
     content.append(f"CHAT\t{1 if values.get('CHAT', 1) else 0}")
+    content.append(f"LIVE_CHAT\t{max(0, min(200, int(values.get('LIVE_CHAT', 100))))}")
     content.append(f"BOOKS\t{1 if values.get('BOOKS', 1) else 0}")
     content.append(f"NIGHT\t{1 if values.get('NIGHT', 1) else 0}")
     content.append(f"LIFE	{1 if values.get('LIFE', 0) else 0}")
@@ -8779,6 +8782,10 @@ def manage_behavior():
             value = AI_WEIGHT_NEUTRAL
         values[key] = max(AI_WEIGHT_MIN, min(AI_WEIGHT_MAX, value))
     values["CHAT"] = 1 if "1" in request.form.getlist("CHAT") else 0
+    try:
+        values["LIVE_CHAT"] = max(0, min(200, int(request.form.get("LIVE_CHAT", values.get("LIVE_CHAT", 100)))))
+    except (TypeError, ValueError):
+        values["LIVE_CHAT"] = values.get("LIVE_CHAT", 100)
     values["BOOKS"] = values.get("BOOKS", 1) if "BOOKS" not in request.form else (1 if "1" in request.form.getlist("BOOKS") else 0)
     for key, default in (("NIGHT", 1), ("LIFE", 0), ("WARS", 1), ("TOWER", 1), ("ISHOP", 1), ("SHOP_M2", 0), ("PERSONA", 1)):
         values[key] = values.get(key, default) if key not in request.form else (1 if "1" in request.form.getlist(key) else 0)

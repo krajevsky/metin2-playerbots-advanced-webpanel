@@ -63,6 +63,8 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Gęstość czatu Global (%)": "Global chat density (%)",
+    "100% to zwykłe natężenie rozmów botów na Globalu. 0 przywraca dawny czat i wołanie w obrębie królestwa.": "100% is the normal rate of bot conversations on Global. 0 restores the old chat and kingdom-only shouts.",
     "Realizm sesji (%)": "Session realism (%)",
     "Odsetek botów grających według realistycznego rytmu dnia i tygodnia. 0 zachowuje dotychczasowy tryb. Działa niezależnie od przełącznika sesji powyżej.": "Percentage of bots following a realistic daily and weekly rhythm. 0 keeps the previous behaviour. This works independently of the session switch above.",
     "jak dotąd": "as before",
