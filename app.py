@@ -6707,6 +6707,9 @@ def economy_offers():
              "unit_asc": "price / GREATEST(i.`count`,1) ASC, i.id DESC"}.get(sort)
     if order is None:
         sort, order = "price_asc", "price ASC, i.id DESC"
+    page_size = request.args.get("size", 50, type=int)
+    if page_size not in (25, 50, 100):
+        page_size = 50
     page = max(1, min(100, request.args.get("page", 1, type=int)))
     clauses = ["i.`window`='IKASHOP_OFFLINESHOP'", "i.ikashop_data IS NOT NULL",
                "i.ikashop_data<>''", "s.duration>0"]
@@ -6732,7 +6735,7 @@ def economy_offers():
         if price_values.get(key) is not None:
             clauses.append(price_expr + operator + "%s")
             params.append(price_values[key])
-    params.extend([51, (page - 1) * 50])
+    params.extend([page_size + 1, (page - 1) * page_size])
     raw = rows("""SELECT i.id, i.owner_id, i.vnum, i.`count` AS quantity,
         CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED) AS price,
         COALESCE(ip.locale_name, CONCAT('VNUM ',i.vnum)) AS item_name,
@@ -6744,9 +6747,9 @@ def economy_offers():
       LEFT JOIN account.account a ON a.id=p.account_id
       LEFT JOIN player.player_index pi ON pi.id=p.account_id
       WHERE """ + " AND ".join(clauses) + " ORDER BY " + order + " LIMIT %s OFFSET %s", params)
-    has_next = len(raw) > 50
+    has_next = len(raw) > page_size
     offers = []
-    for offer in raw[:50]:
+    for offer in raw[:page_size]:
         try:
             quantity = max(1, int(offer.get("quantity") or 1))
             price = max(0, int(offer.get("price") or 0))
@@ -6766,7 +6769,8 @@ def economy_offers():
     return render_template("economy_offers.html", offers=offers, query=query,
                            seller_type=seller_type, seller_name=seller_name,
                            shop_name=shop_name, empire=empire, sort=sort,
-                           page=page, has_next=has_next, price_inputs=price_inputs,
+                           page=page, page_size=page_size, has_next=has_next,
+                           price_inputs=price_inputs,
                            price_errors=price_errors, unit_price_filter=unit_price_filter)
 
 

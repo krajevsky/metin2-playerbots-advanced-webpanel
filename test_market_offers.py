@@ -78,3 +78,16 @@ def test_market_offers_filters_seller_and_shop_names_with_parameters():
     assert params == [42, "%42%", "%Handlarz%", "%Tanie miejsce%", 51, 0]
     assert render.call_args.kwargs["seller_name"] == "Handlarz"
     assert render.call_args.kwargs["shop_name"] == "Tanie miejsce"
+
+
+@pytest.mark.parametrize("size,expected", [(25, 25), (50, 50), (100, 100), (999, 50)])
+def test_market_offers_page_size_is_bounded_and_changes_offset(size, expected):
+    offer = {"id": 1, "owner_id": 7, "vnum": 42, "quantity": 1, "price": 1000}
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "rows", return_value=[offer] * (expected + 1)) as read_rows, \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get(f"/economy/offers?size={size}&page=2")
+    assert response.status_code == 200
+    assert read_rows.call_args.args[1] == [expected + 1, expected]
+    assert render.call_args.kwargs["page_size"] == expected
+    assert render.call_args.kwargs["has_next"] is True

@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.25 · Liczba ofert na stronie rynku
+
+- Przeglądarka aktywnych ofert pozwala wybrać 25, 50 albo 100 pozycji na stronę. Wybór pozostaje aktywny przy przechodzeniu między stronami i działa razem z filtrami.
+- Parametr ma zamkniętą listę dozwolonych wartości; dodano tłumaczenie PL/EN oraz test granic i przesunięcia wyników.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.24 · Sprzedawca i nazwa sklepu w filtrach rynku
 
 - Aktywne oferty można filtrować po nicku sprzedawcy oraz nazwie straganu. Oba filtry działają razem z dotychczasowymi filtrami i pozostają przy zmianie strony wyników.

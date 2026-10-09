@@ -64,6 +64,7 @@ def _dollar_to_backslash(repl):
 # ---------------------------------------------------------------------------
 EXACT = {
     "Nick sprzedawcy": "Seller nickname",
+    "Ofert na stronę": "Offers per page",
     "Nick postaci": "Character nickname",
     "Nazwa sklepu": "Shop name",
     "Nazwa straganu": "Stall name",
