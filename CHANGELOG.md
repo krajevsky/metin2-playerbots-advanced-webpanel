@@ -1,3 +1,11 @@
+## 2026-10-09 · 1.114.1 · Metiny osobno od bossów w respawnach
+
+- Strona Respawny ma osobne ustawienia dla Metinów, bossów i zwykłych potworów, zarówno dla tempa odrodzenia, jak i liczebności (Patch 12 Iwakury, punkt 2). Metin to kamień Metin, boss to potwór o randze bossa.
+- Kolejka gry dostaje teraz trzy liczby, „metin,boss,mob”, w REGEN i REGEN_COUNT. Rdzeń czyta je z flag `fastMetinSpawn` i `m2_metin_count` obok dotychczasowych `fastBossSpawn` i `m2_boss_count`. web_admin.quest gry z Patchem 12 nadal rozumie też dawną postać „boss,mob”.
+- Świat, w którym migrator Playerbots nie rozdzielił jeszcze ustawień, pokazuje dla Metinów wartość bossów. Podsumowanie respawnów na mapie świata wymienia Metiny i bossów osobno.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-09 · 1.114.0 · Laka i Złoto: nowy panel
 
 - Nowy motyw jest domyślny. Nowe instalacje startują w „Laka i Złoto”, a istniejące przełączają się na niego jeden raz, przy pierwszym starcie tej wersji. Kto potem wybierze w Ustawieniach panelu dawną kolorystykę (Cesarstwo, Ocean, Ember, Forest), ten ją zachowa przy kolejnych aktualizacjach.

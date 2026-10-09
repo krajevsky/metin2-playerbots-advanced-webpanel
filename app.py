@@ -183,8 +183,14 @@ GAME_HOST = os.environ.get("PLAYERBOTS_GAME_HOST", "metin2-game")
 GAME_LOGIN_PORT = int(os.environ.get("PLAYERBOTS_LOGIN_PORT", "11000"))
 GAME_WORLD_PORT = int(os.environ.get("PLAYERBOTS_WORLD_PORT", "13000"))
 RATE_NAMES = ("exp", "drop", "yang")
-REGEN_DELAY_FLAGS = {"boss": "fastBossSpawn", "mob": "fastMobSpawn"}
-REGEN_COUNT_FLAGS = {"boss": "m2_boss_count", "mob": "m2_mob_count"}
+# Metin stones apart from bosses since Iwakura's Patch 12, point 2: the core
+# reads fastMetinSpawn/m2_metin_count for a line that puts down a Metin stone
+# and fastBossSpawn/m2_boss_count for a boss. Playerbots' migrator copies the
+# old "Metiny i bossy" values into the Metin rows once; a world without the
+# row yet shows the bosses' value for the Metins (read_regen_settings).
+REGEN_DELAY_FLAGS = {"metin": "fastMetinSpawn", "boss": "fastBossSpawn", "mob": "fastMobSpawn"}
+REGEN_COUNT_FLAGS = {"metin": "m2_metin_count", "boss": "m2_boss_count", "mob": "m2_mob_count"}
+REGEN_METIN_FALLBACK = {"fastMetinSpawn": "fastBossSpawn", "m2_metin_count": "m2_boss_count"}
 REGEN_DELAY_MIN = 10
 REGEN_COUNT_CHOICES = (100, 150, 200, 250, 300, 400)
 QUEUE_FINAL_STATUSES = frozenset((
@@ -632,11 +638,19 @@ def read_regen_settings():
             for kind, flag in REGEN_DELAY_FLAGS.items():
                 cur.execute("SELECT lValue FROM player.quest WHERE dwPID=0 AND szName=%s LIMIT 1", (flag,))
                 row = cur.fetchone()
+                if not row and flag in REGEN_METIN_FALLBACK:
+                    cur.execute("SELECT lValue FROM player.quest WHERE dwPID=0 AND szName=%s LIMIT 1",
+                                (REGEN_METIN_FALLBACK[flag],))
+                    row = cur.fetchone()
                 if row and REGEN_DELAY_MIN <= int(row["lValue"]) < 100:
                     result["delay"][kind] = int(row["lValue"])
             for kind, flag in REGEN_COUNT_FLAGS.items():
                 cur.execute("SELECT lValue FROM player.quest WHERE dwPID=0 AND szName=%s LIMIT 1", (flag,))
                 row = cur.fetchone()
+                if not row and flag in REGEN_METIN_FALLBACK:
+                    cur.execute("SELECT lValue FROM player.quest WHERE dwPID=0 AND szName=%s LIMIT 1",
+                                (REGEN_METIN_FALLBACK[flag],))
+                    row = cur.fetchone()
                 if row and 100 < int(row["lValue"]) <= max(REGEN_COUNT_CHOICES):
                     result["count"][kind] = int(row["lValue"])
     except (KeyError, TypeError, ValueError, pymysql.MySQLError):
@@ -7818,7 +7832,9 @@ def respawns_delay():
         if any(not REGEN_DELAY_MIN <= value <= 100 for value in values.values()):
             raise ValueError(f"Szybkość odrodzenia musi mieścić się w zakresie {REGEN_DELAY_MIN}–100%.")
         persist_regen_settings("delay", values)
-        status, queue_id = queue_game_admin_command("REGEN", f"{0 if values['boss'] == 100 else values['boss']},{0 if values['mob'] == 100 else values['mob']}")
+        # "metin,boss,mob" - web_admin.quest's REGEN since Patch 12, point 2.
+        status, queue_id = queue_game_admin_command("REGEN", ",".join(
+            str(0 if values[key] == 100 else values[key]) for key in ("metin", "boss", "mob")))
         if status != "done":
             if status == "timeout": cancel_pending_admin_command(queue_id)
             raise RuntimeError("Ustawienie zapisano na następny start, ale rdzeń nie potwierdził zmiany na żywo.")
@@ -7839,7 +7855,7 @@ def respawns_count():
         if any(value not in REGEN_COUNT_CHOICES for value in values.values()):
             raise ValueError("Wybierz jeden z dostępnych mnożników liczby potworów.")
         persist_regen_settings("count", values)
-        status, queue_id = queue_game_admin_command("REGEN_COUNT", f"{values['boss']},{values['mob']}")
+        status, queue_id = queue_game_admin_command("REGEN_COUNT", f"{values['metin']},{values['boss']},{values['mob']}")
         if status != "done":
             if status == "timeout": cancel_pending_admin_command(queue_id)
             raise RuntimeError("Ustawienie zapisano na następny start, ale rdzeń nie potwierdził zmiany na żywo.")

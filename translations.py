@@ -464,6 +464,8 @@ EXACT.update({
     "Grota Wygnańców V2": "Grotto of Exile V2",
     "⚔ Potwory": "⚔ Monsters",
     "🗿 Metiny i bossy": "🗿 Metins & bosses",
+    "🗿 Metiny": "🗿 Metins",
+    "👹 Bossowie": "👹 Bosses",
     "✦ Liczebność": "✦ Population",
     "Auto": "Auto",
     "Poprzedni ranking": "Previous ranking",
@@ -929,6 +931,11 @@ EXACT.update({
     "100% zachowuje czasy z plików Tieru. Niższa wartość skraca oczekiwanie, przy czym rdzeń nigdy nie zejdzie poniżej 3 sekund.":
         "100% keeps the times from Tieru's files. A lower value shortens the wait, though the core will never go below 3 seconds.",
     "🗿 Metiny i bossy": "🗿 Metins & bosses",
+    "🗿 Metiny": "🗿 Metins",
+    "👹 Bossowie": "👹 Bosses",
+    "🗿 Metiny · 👹 Bossowie": "🗿 Metins · 👹 Bosses",
+    "Osobno dla Metinów, bossów i zwykłych potworów. Metin to kamień Metin, boss to potwór o randze bossa.":
+        "Metins, bosses and regular monsters each have their own. A Metin is a Metin stone, a boss a monster of the boss rank.",
     "⚔ Zwykłe potwory": "⚔ Regular monsters",
     "Zastosuj tempo na żywo": "Apply pace live",
     "LICZEBNOŚĆ": "POPULATION",
@@ -2225,6 +2232,8 @@ PATTERNS_RAW += [
     (r'^Globalnie · (\d+)% czasu podstawowego$', 'Global · $1% of base time'),
     (r'Potwory (\d+)%', 'Monsters $1%'),
     (r'Metiny/bossy (\d+)%', 'Metins/bosses $1%'),
+    (r'Metiny (\d+)%', 'Metins $1%'),
+    (r'Bossowie (\d+)%', 'Bosses $1%'),
 ]
 
 # --- static/news-feed.js ---
