@@ -36,7 +36,8 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Dodatki świata | `admin_panel.py:20341` `/rates/world_extras` | `app.py:8051`, `templates/manage.html` | częściowo | średnia | Porównać każdą flagę z formularzem; brakujące dodać osobno. |
 | Smocza Alchemia | `admin_panel.py:20383` `/rates/dragon_soul` | `app.py:8051`, `/player` | częściowo | średnia | Porównać ustawienia, bez naruszania okna alchemii. |
 | Bonus unikatowych przedmiotów poziomu 70 | `admin_panel.py:20423` | `app.py` `/manage/unique70-bonus`, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.7 z flagą i komendą silnika Tieru. |
-| Yang na ziemi, obrona właściciela | `admin_panel.py:20457,20491` | `app.py:8051` | częściowo | średnia | Porównać flagi i testy. |
+| Yang z potworów: ekwipunek lub ziemia | `admin_panel.py:20457` `/rates/yang_ground` | `app.py` `/manage/yang-ground`, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.8, flaga `m2_yang_ground`. |
+| Obrona przed botami innych królestw | `admin_panel.py:20491` `/rates/owner_defence` | brak | brak | średnia | Przenieść flagę `m2_owner_defence_off` i komendę `OWNER_DEFENCE`. |
 | Kanały i rozdział botów | `admin_panel.py:20622` `/rates/channels` | `app.py:8111`, `templates/manage.html` | jest | wysoka | Bez zmian. |
 | Wagi AI, decyzje i aktualne akcje | `admin_panel.py:1745–2000,20883,21120` `/ai`, `/decisions` | `app.py:7780,8051`, `templates/decisions.html` | częściowo | wysoka | Porównać wszystkie suwaki, limity i etykiety. |
 | Polityka przedmiotów AI | `admin_panel.py:1603–1627,21344` `/ai/items` | `app.py:8067`, `templates/manage.html` | jest | wysoka | Zachować plik TSV odczytywany przez silnik. |

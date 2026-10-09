@@ -63,6 +63,11 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Yang z potworów zabitych przez gracza": "Yang from monsters killed by players",
+    "Domyślnie trafia prosto do ekwipunku. Opcja „na ziemię” działa jak w oryginalnej grze; podnieść Yang może każdy. Boty i Towarzysz nadal otrzymują je prosto do ekwipunku.": "By default, Yang goes straight into the inventory. The ground option works as in the original game; anyone can pick it up. Bots and Companions still receive it directly.",
+    "Do ekwipunku": "Into inventory",
+    "Na ziemię": "On the ground",
+    "Zapisz ustawienie Yang": "Save Yang setting",
     "Szósty bonus nowych broni 70 poziomu": "Sixth bonus for new level-70 weapons",
     "Zmiana dotyczy tylko nowo tworzonych broni; istniejące przedmioty zachowują bonus. Działa na żywo i zostaje po restarcie.": "The setting affects only newly created weapons; existing items keep their bonus. It applies live and persists after a restart.",
     "Zapisz szósty bonus": "Save sixth bonus",

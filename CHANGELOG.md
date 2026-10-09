@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.8 · Yang z potworów: do ekwipunku lub na ziemię
+
+- W dodatkach świata dodano wybór, czy Yang z potworów zabitych przez gracza trafia od razu do ekwipunku, czy spada na ziemię jak w oryginalnej grze. Boty i Towarzysz nadal dostają Yang bezpośrednio.
+- Panel używa flagi `m2_yang_ground` i komendy `YANG_GROUND` z panelu Tieru. Ustawienie działa na żywo po potwierdzeniu silnika i przetrwa restart. Formularz jest dostępny po polsku i angielsku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.7 · Szósty bonus nowych broni 70 poziomu
 
 - W zarządzaniu dodatkami świata można teraz włączać lub wyłączać losowy szósty bonus nowo tworzonych broni poziomu 70. Istniejące bronie nie zmieniają się.
