@@ -239,7 +239,7 @@ AI_WEIGHT_HINTS = {
 # These values share the live weight file with goal weights, but the core treats
 # them as switches or direct settings rather than 25–250% goal weights.
 AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1,
-                     "SHOP_M2": 0, "PERSONA": 1, "LIFE_HOURS": 0, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
+                     "SHOP_M2": 0, "PERSONA": 1, "LIFE_HOURS": 0, "SESSION_REALISM": 0, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
                      "WAR_MINUTES": 30, "WAR_HOURS": 2, "CHEST": None, "CHEST_STONE": None}
 AI_SPECIAL_WEIGHT_KEYS = frozenset(AI_LIVE_DEFAULTS)
 BIOLOGIST_COMPLETE_STATE = 557528158
@@ -2889,6 +2889,8 @@ def read_ai_weights():
                         values[key] = max(0, min(100, int(raw_value)))
                     elif key == "LIFE_HOURS":
                         values[key] = max(0, min(24, int(raw_value)))
+                    elif key == "SESSION_REALISM":
+                        values[key] = max(0, min(100, int(raw_value)))
                     elif key == "SCROLL_FROM":
                         values[key] = max(1, min(9, int(raw_value)))
                     elif key == "WAR_MINUTES":
@@ -2939,6 +2941,8 @@ def write_ai_weights(values):
     # Zero removes the key and leaves the core's standard session rhythm.
     if values.get("LIFE_HOURS"):
         content.append(f"LIFE_HOURS	{max(1, min(24, int(values['LIFE_HOURS'])))}")
+    if values.get("SESSION_REALISM"):
+        content.append(f"SESSION_REALISM\t{max(1, min(100, int(values['SESSION_REALISM'])))}")
     content.append(f"WARS	{1 if values.get('WARS', 1) else 0}")
     content.append(f"TOWER\t{1 if values.get('TOWER', 1) else 0}")
     content.append(f"CATACOMB\t{1 if values.get('CATACOMB', 1) else 0}")
@@ -8782,6 +8786,10 @@ def manage_behavior():
         values["LIFE_HOURS"] = max(0, min(24, int(request.form.get("LIFE_HOURS", values.get("LIFE_HOURS", 0)))))
     except (TypeError, ValueError):
         values["LIFE_HOURS"] = values.get("LIFE_HOURS", 0)
+    try:
+        values["SESSION_REALISM"] = max(0, min(100, int(request.form.get("SESSION_REALISM", values.get("SESSION_REALISM", 0)))))
+    except (TypeError, ValueError):
+        values["SESSION_REALISM"] = values.get("SESSION_REALISM", 0)
     try:
         values["SCRAP"] = max(0, min(100, int(request.form.get("SCRAP", values.get("SCRAP", 0)))))
     except (TypeError, ValueError):

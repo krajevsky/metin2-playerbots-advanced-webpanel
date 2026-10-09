@@ -73,7 +73,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: noc `NIGHT` | `admin_panel.py:8297–8300` | `templates/manage.html` | jest | niska | Bez zmian. |
 | Panel AI: cykl sesji `LIFE` | `admin_panel.py:8302–8308` | `templates/manage.html` | jest | wysoka | Bez zmian. |
 | Panel AI: godziny na dobę `LIFE_HOURS` 0–24 | `admin_panel.py:8309–8312` | `templates/manage.html` | jest | wysoka | Zachować 0 = rytm domyślny. |
-| Panel AI: realizm sesji `SESSION_REALISM` 0–100% | `admin_panel.py:8313–8318` | brak | brak | wysoka | Dodać jako osobną opcję; 0 usuwa klucz z TSV. |
+| Panel AI: realizm sesji `SESSION_REALISM` 0–100% | `admin_panel.py:8313–8318` | `app.py` /manage/behavior, `templates/manage.html` | jest | wysoka | Wdrożone w 1.114.12; 0 usuwa klucz z TSV. |
 | Panel AI: wojny gildii `WARS`, długość `WAR_MINUTES`, odstęp `WAR_HOURS` | `admin_panel.py:8320–8345` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: limit zabójstw wojny `WAR_KILLS` | `admin_panel.py:8346–8353` | brak | brak | średnia | Sprawdzić zakres 0–1000 i portować. |
 | Panel AI: Wieża Demonów `TOWER` i przycisk „teraz” | `admin_panel.py:8354–8359` | `templates/manage.html` | jest | średnia | Bez zmian. |
@@ -130,7 +130,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 ## Kolejność dalszych prac
 
 1. `DELITEM` z ekwipunku/wyposażenia, ze stanem kolejki i anulowaniem: wykonane w 1.114.6. Usuwanie ze sklepu wymaga nowej, potwierdzonej komendy silnika.
-2. Brakujące ustawienia świata: szósty bonus, Yang i obrona wykonane w 1.114.7–1.114.9; następne są bonus dropu i prędkość ruchu. Potem brakujące kontrolki AI, najpierw `SESSION_REALISM`.
+2. Brakujące ustawienia świata: szósty bonus, Yang i obrona wykonane w 1.114.7–1.114.9; bonus dropu, prędkość ruchu i `SESSION_REALISM` wykonane do 1.114.12. Następne są pozostałe kontrolki AI.
 3. Filtry rynku, statusy kolejek, historie, potem edytor dropów i diagnostyka awarii.
 4. Funkcje o niskiej przydatności tylko po potwierdzeniu ich źródeł danych i uprawnień.
 

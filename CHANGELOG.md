@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.12 · Realistyczne sesje botów
+
+- W ustawieniach zachowania botów dodano suwak „Realizm sesji” 0–100%. Wskazuje odsetek botów objętych rytmem dnia i tygodnia Iwakury; działa niezależnie od starszego przełącznika sesji.
+- Zapis jest zgodny z `SESSION_REALISM` panelu Tieru. Przy 0 klucz znika z pliku wag, więc silnik zachowuje dotychczasowy tryb. Dodano teksty PL/EN i testy odczytu oraz zapisu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.11 · Szybkość ruchu graczy i botów
 
 - W dodatkach świata można ustawić 50–200% szybkości ruchu graczy, botów i Towarzysza pieszo oraz na wierzchowcu. 100% oznacza normalne tempo gry; potwory nie są objęte zmianą.

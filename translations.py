@@ -63,6 +63,9 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Realizm sesji (%)": "Session realism (%)",
+    "Odsetek botów grających według realistycznego rytmu dnia i tygodnia. 0 zachowuje dotychczasowy tryb. Działa niezależnie od przełącznika sesji powyżej.": "Percentage of bots following a realistic daily and weekly rhythm. 0 keeps the previous behaviour. This works independently of the session switch above.",
+    "jak dotąd": "as before",
     "Szybkość ruchu postaci (%)": "Character movement speed (%)",
     "100% to tempo z gry. Dotyczy graczy, botów i Towarzysza, pieszo i na wierzchowcu. Potwory zachowują swoje tempo.": "100% is the normal game speed. This affects players, bots and Companions, on foot and on mounts. Monsters keep their normal speed.",
     "Zapisz szybkość ruchu": "Save movement speed",
