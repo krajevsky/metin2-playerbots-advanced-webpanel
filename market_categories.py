@@ -141,3 +141,10 @@ def class_mask_sql():
         + IF((COALESCE(ip.antiflag,0) & 16)=0,4,0)
         + IF((COALESCE(ip.antiflag,0) & 32)=0,8,0)
       ELSE 15 END"""
+
+
+def required_level_sql():
+    """Tieru snapshot.protos: second level limit overwrites the first."""
+    return """CASE WHEN ip.limittype1=1 THEN COALESCE(ip.limitvalue1,0)
+      WHEN ip.limittype0=1 THEN COALESCE(ip.limitvalue0,0)
+      ELSE 0 END"""

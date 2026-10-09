@@ -72,6 +72,8 @@ EXACT = {
     "Ulepszenie od": "Refinement from",
     "Ulepszenie do": "Refinement to",
     "Dowolne": "Any",
+    "Poziom od": "Level from",
+    "Poziom do": "Level to",
     "Liczba ofert:": "Offers found:",
     "Nick postaci": "Character nickname",
     "Nazwa sklepu": "Shop name",

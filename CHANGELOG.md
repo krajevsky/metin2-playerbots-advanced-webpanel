@@ -1,3 +1,9 @@
+## 2026-10-10 · 1.114.31 · Wymagany poziom w ofertach rynku
+
+- Przeglądarka ofert filtruje przedmioty po wymaganym poziomie od 0 do 255. Odczyt z dwóch pól limitu `item_proto` zachowuje regułę Tieru: drugi limit poziomu ma pierwszeństwo, jeśli obydwa są ustawione.
+- Granice działają razem z innymi filtrami i pozostają przy zmianie strony. Dodano teksty PL/EN i testy błędnego zakresu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-09 · 1.114.30 · Filtr klasy na rynku
 
 - Aktywne oferty można ograniczyć do przedmiotów używanych przez Wojownika, Ninjy, Surę albo Szamana. Zgodność sprzętu wynika z `item_proto.antiflag`, a ksiąg z numeru umiejętności, tak jak w klasyfikacji Tieru.

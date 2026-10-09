@@ -175,3 +175,26 @@ def test_market_offers_class_filter_uses_proto_antiflags_and_book_skill():
     assert "ip.antiflag" in sql and "i.socket0" in sql
     assert params == (4,)
     assert render.call_args.kwargs["class_bit"] == 4
+
+
+def test_market_offers_required_level_range_uses_both_proto_limits():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?lmin=30&lmax=90")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "ip.limittype1=1" in sql and "ip.limittype0=1" in sql
+    assert params == (30, 90)
+    assert render.call_args.kwargs["level_inputs"] == {"lmin": "30", "lmax": "90"}
+
+
+def test_market_offers_rejects_reversed_level_range():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers?lmin=200&lmax=30")
+    assert count_rows.call_args.args[1] == ()
+    assert render.call_args.kwargs["level_inputs"] == {"lmin": "", "lmax": ""}

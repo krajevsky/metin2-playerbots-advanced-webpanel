@@ -34,7 +34,8 @@ from market_categories import (CATEGORIES as MARKET_CATEGORIES,
                                category_sql as market_category_sql,
                                subcategory_sql as market_subcategory_sql,
                                refine_sql as market_refine_sql,
-                               class_mask_sql as market_class_mask_sql)
+                               class_mask_sql as market_class_mask_sql,
+                               required_level_sql as market_required_level_sql)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SEBAN_SESSION_SECRET", "change-this-before-public-use")
@@ -6714,6 +6715,15 @@ def economy_offers():
             and refine_values["rmin"] > refine_values["rmax"]):
         refine_inputs = {"rmin": "", "rmax": ""}
         refine_values = {"rmin": None, "rmax": None}
+    level_inputs = {key: request.args.get(key, "").strip() for key in ("lmin", "lmax")}
+    level_values = {}
+    for key, value in level_inputs.items():
+        level_values[key] = int(value) if value.isdigit() and len(value) <= 3 and int(value) <= 255 else None
+        level_inputs[key] = str(level_values[key]) if level_values[key] is not None else ""
+    if (level_values["lmin"] is not None and level_values["lmax"] is not None
+            and level_values["lmin"] > level_values["lmax"]):
+        level_inputs = {"lmin": "", "lmax": ""}
+        level_values = {"lmin": None, "lmax": None}
     empire = request.args.get("empire", type=int) or 0
     if empire not in (0, 1, 2, 3):
         empire = 0
@@ -6769,6 +6779,10 @@ def economy_offers():
         if refine_values[key] is not None:
             clauses.append("(" + market_refine_sql() + ")" + operator + "%s")
             params.append(refine_values[key])
+    for key, operator in (("lmin", ">="), ("lmax", "<=")):
+        if level_values[key] is not None:
+            clauses.append("(" + market_required_level_sql() + ")" + operator + "%s")
+            params.append(level_values[key])
     price_expr = "CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED)"
     if unit_price_filter:
         price_expr += " / GREATEST(i.`count`,1)"
@@ -6821,7 +6835,7 @@ def economy_offers():
                            subcategory=subcategory, market_categories=MARKET_CATEGORIES,
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
                            class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,
-                           refine_inputs=refine_inputs,
+                           refine_inputs=refine_inputs, level_inputs=level_inputs,
                            empire=empire, sort=sort,
                            page=page, page_size=page_size, has_next=has_next,
                            total=total,
