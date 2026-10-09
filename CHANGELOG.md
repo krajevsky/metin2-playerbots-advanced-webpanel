@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.35 · Liczba bonusów w filtrze rynku
+
+- Przeglądarka ofert potrafi ograniczyć wyniki do przedmiotów mających co najmniej 1–5 zwykłych linii bonusów. Zliczanie siedmiu atrybutów odpowiada regule Tieru: puste linie oraz średnie obrażenia i obrażenia umiejętności nie podnoszą licznika.
+- Filtr pozostaje przy zmianie strony, jest widoczny w aktywnych filtrach i ma etykiety PL/EN. Dodano testy granic i zapytania SQL.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.34 · Aktywne filtry rynku
 
 - Przeglądarka ofert pokazuje aktywne filtry jako chipy. Kliknięcie usuwa tylko wybrany filtr i wraca na pierwszą stronę wyników; usunięcie kategorii usuwa też zależną podkategorię. Sortowanie i liczba ofert na stronę pozostają bez zmian.

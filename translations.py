@@ -63,6 +63,8 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Liczba bonusów od": "Minimum bonus lines",
+    "Dowolna": "Any",
     "Nick sprzedawcy": "Seller nickname",
     "Ofert na stronę": "Offers per page",
     "Wszystkie kategorie": "All categories",

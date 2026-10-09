@@ -242,3 +242,27 @@ def test_market_filter_chips_use_english_labels():
         response = panel.app.test_client().get("/economy/offers?seller_name=Merchant")
     assert response.status_code == 200
     assert render.call_args.kwargs["active_filters"][0]["label"] == "Seller nickname"
+
+
+def test_market_bonus_line_count_matches_tieru_non_damage_lines():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?nbmin=3")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "i.attrtype0 NOT IN (0,121,122) AND i.attrvalue0<>0" in sql
+    assert "i.attrtype6 NOT IN (0,121,122) AND i.attrvalue6<>0" in sql
+    assert params == (3,)
+    assert render.call_args.kwargs["bonus_min"] == 3
+
+
+def test_market_bonus_line_count_rejects_out_of_range():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers?nbmin=99")
+    assert count_rows.call_args.args[1] == ()
+    assert render.call_args.kwargs["bonus_min"] == 0

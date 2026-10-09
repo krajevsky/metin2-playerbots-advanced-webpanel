@@ -6733,6 +6733,9 @@ def economy_offers():
     class_bit = request.args.get("cls", 0, type=int)
     if class_bit not in (0, *(entry[0] for entry in MARKET_CLASS_FILTERS)):
         class_bit = 0
+    bonus_min = request.args.get("nbmin", 0, type=int)
+    if bonus_min not in range(6):
+        bonus_min = 0
     refine_inputs = {key: request.args.get(key, "").strip() for key in ("rmin", "rmax")}
     refine_values = {}
     for key, value in refine_inputs.items():
@@ -6788,6 +6791,7 @@ def economy_offers():
                      "category": category if category else "",
                      "subcategory": subcategory if subcategory else "",
                      "cls": class_bit if class_bit else "",
+                     "nbmin": bonus_min if bonus_min else "",
                      "rmin": refine_inputs["rmin"], "rmax": refine_inputs["rmax"],
                      "lmin": level_inputs["lmin"], "lmax": level_inputs["lmax"],
                      "empire": empire if empire else "",
@@ -6801,6 +6805,7 @@ def economy_offers():
         "category": ("Kategoria", "Category"),
         "subcategory": ("Podkategoria", "Subcategory"),
         "cls": ("Klasa postaci", "Character class"),
+        "nbmin": ("Liczba bonusów od", "Minimum bonus lines"),
         "rmin": ("Ulepszenie od", "Refinement from"),
         "rmax": ("Ulepszenie do", "Refinement to"),
         "lmin": ("Poziom od", "Level from"), "lmax": ("Poziom do", "Level to"),
@@ -6846,6 +6851,12 @@ def economy_offers():
     if class_bit:
         clauses.append("((" + market_class_mask_sql() + ") & %s)<>0")
         params.append(class_bit)
+    if bonus_min:
+        bonus_count_sql = " + ".join(
+            f"(i.attrtype{index} NOT IN (0,121,122) AND i.attrvalue{index}<>0)"
+            for index in range(7))
+        clauses.append("(" + bonus_count_sql + ")>=%s")
+        params.append(bonus_min)
     for key, operator in (("rmin", ">="), ("rmax", "<=")):
         if refine_values[key] is not None:
             clauses.append("(" + market_refine_sql() + ")" + operator + "%s")
@@ -6906,6 +6917,7 @@ def economy_offers():
                            subcategory=subcategory, market_categories=MARKET_CATEGORIES,
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
                            class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,
+                           bonus_min=bonus_min,
                            refine_inputs=refine_inputs, level_inputs=level_inputs,
                            empire=empire, sort=sort,
                            page=page, page_size=page_size, has_next=has_next,
