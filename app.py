@@ -2945,6 +2945,36 @@ def preserved_ai_weight_lines():
     return preserved
 
 
+def read_ai_explain_days():
+    """None means the core's seven-day default; zero disables recording."""
+    try:
+        for line in AI_WEIGHTS_FILE.read_text(encoding="utf-8", errors="replace").splitlines():
+            fields = line.split("#", 1)[0].split()
+            if len(fields) >= 2 and fields[0].upper() == "EXPLAIN":
+                return max(0, min(30, int(fields[1])))
+    except (OSError, ValueError):
+        pass
+    return None
+
+
+def write_ai_explain_days(days):
+    """Change only EXPLAIN in the live TSV, preserving all other core keys."""
+    RATES_SPOOL.mkdir(parents=True, exist_ok=True)
+    try:
+        lines = AI_WEIGHTS_FILE.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        lines = []
+    lines = [line for line in lines if (line.split("#", 1)[0].split() or [""])[0].upper() != "EXPLAIN"]
+    if days is not None:
+        lines.append(f"EXPLAIN\t{days}")
+    temporary = AI_WEIGHTS_FILE.with_name(f"{AI_WEIGHTS_FILE.name}.{uuid.uuid4().hex}.new")
+    try:
+        temporary.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        os.replace(temporary, AI_WEIGHTS_FILE)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def write_ai_weights(values):
     """Atomically replace known values without erasing newer-core settings."""
     RATES_SPOOL.mkdir(parents=True, exist_ok=True)
@@ -8449,7 +8479,7 @@ def manage():
     bot_channels = sorted(per_channel.items()) if len(per_channel) > 1 else []
     updater = update_status()
     updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES, world_extras=read_world_extras() if ENGINE_MT2009 else None)
+    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES, world_extras=read_world_extras() if ENGINE_MT2009 else None, explain_days=read_ai_explain_days())
 
 
 @app.post("/manage/difficulty")
@@ -9116,6 +9146,34 @@ def manage_behavior():
     else:
         flash("Zachowanie botów zapisane — nowy plan działania wejdzie w życie do 5 sekund, bez restartu.")
     return redirect(url_for("manage"))
+
+
+@app.post("/manage/explain-retention")
+@login_required
+def manage_explain_retention():
+    supplied = request.form.get("update_csrf", "")
+    expected = session.get("seban_update_csrf", "")
+    if not expected or not hmac.compare_digest(supplied, expected):
+        abort(403)
+    if request.form.get("action") == "default":
+        days = None
+    else:
+        try:
+            days = int(request.form.get("days", ""))
+        except ValueError:
+            days = -1
+        if not 0 <= days <= 30:
+            flash("Retencja wyjaśnień musi wynosić od 0 do 30 dni.", "error")
+            return redirect(url_for("manage") + "#explain-retention")
+    try:
+        current_days = read_ai_explain_days()
+        if days != current_days and not (current_days is None and days == 7):
+            write_ai_explain_days(days)
+    except OSError:
+        flash("Nie udało się zapisać retencji wyjaśnień.", "error")
+    else:
+        flash("Retencja wyjaśnień decyzji została zapisana — działa bez restartu.")
+    return redirect(url_for("manage") + "#explain-retention")
 
 
 @app.post("/manage/item-policy")

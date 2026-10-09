@@ -82,3 +82,5 @@
 .behavior-live-options .pvp-set-controls>label:not(.checkbox-row) output{justify-self:end}
 .behavior-live-options .pvp-set-controls>.checkbox-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
 .behavior-live-options .pvp-set-controls>.checkbox-row span{flex:1 1 170px;min-width:0;white-space:normal}
+#explain-retention .explain-retention-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#explain-retention .explain-retention-actions button{min-height:40px}

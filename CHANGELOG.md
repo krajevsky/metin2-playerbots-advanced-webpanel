@@ -1,3 +1,9 @@
+## 2026-10-10 · 1.114.33 · Retencja wyjaśnień decyzji botów
+
+- W ustawieniach zachowania botów można ustawić przechowywanie wyjaśnień decyzji na 0–30 dni. Zero wyłącza zapis, a przywrócenie domyślnego ustawienia usuwa klucz `EXPLAIN`, dzięki czemu rdzeń stosuje własne 7 dni.
+- Zapis modyfikuje tylko ten klucz w pliku wag, zachowuje nieznane opcje silnika i wymaga aktywnej sesji oraz tokenu formularza. Dodano teksty PL/EN i testy zapisu, resetu oraz zwykłego zapisu pozostałych wag.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-10 · 1.114.32 · Sortowanie aktywnych ofert
 
 - Przeglądarka rynku sortuje teraz także po najnowszych ofertach, najwyższym ulepszeniu oraz wymaganym poziomie rosnąco lub malejąco. Reguły ulepszenia i poziomu korzystają z tych samych pól `item_proto` co filtry, zgodnie z panelem Tieru.

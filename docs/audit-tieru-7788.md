@@ -81,7 +81,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: zakupy ItemShop `ISHOP` | `admin_panel.py:8364–8366` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: targowanie `HAGGLE` | `admin_panel.py:8362–8364` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.16, domyślnie włączone. |
 | Panel AI: sprzedaż w sklepiku w mieście `SHOP_ROOM_SELL` | `admin_panel.py:8366–8371` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.17, domyślnie włączone. |
-| Panel AI: przechowywanie wyjaśnień `EXPLAIN` | `admin_panel.py:8372–8386` | `app.py` ustawienie retencji decyzji | częściowo | średnia | Porównać zakres i lokalizację, nie utracić historii decyzji. |
+| Panel AI: przechowywanie wyjaśnień `EXPLAIN` | `admin_panel.py:8372–8386` | `app.py` `/manage/explain-retention`, `templates/manage.html` | jest | średnia | W 1.114.33 dodano 0–30 dni z domyślnym brakiem klucza = 7 dni; zapis innych wag zachowuje `EXPLAIN`. |
 | Panel AI: zakupy także w M2 `SHOP_M2` | `admin_panel.py:8387–8390` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: pasma podaży `SUPPLY_BANDS` | `admin_panel.py:8391–8397` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.18, domyślnie włączone. |
 | Panel AI: skalowanie podaży `SUPPLY_SCALE` | `admin_panel.py:8397–8403` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.19, domyślnie wyłączone. |
