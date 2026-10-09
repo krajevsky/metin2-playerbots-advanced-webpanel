@@ -1,6 +1,6 @@
 # Audyt porównawczy: Tieru 7788 → Seban Panel 7790
 
-Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczytem**: `/opt/panel/admin_panel.py` (27 394 linie) oraz pakiety `/opt/panel/editsql` i `/opt/panel/market_preview` z kontenera `metin2-panel`. Jego szablony i skrypty są w większości osadzone w `admin_panel.py`; nie istnieje osobny `/opt/panel/templates`. Odnośniki `admin_panel.py:linia` dotyczą tej kopii. Odpowiedniki podano dla Seban Panelu 1.114.5 (`app.py`, `templates/`, `static/`). „Częściowo” oznacza także funkcję dostępną wyłącznie przez link do Tieru, a nie natywnie u nas. Ten dokument jest listą kontrolną wdrożenia: statusy należy aktualizować wraz z kolejnymi commitami.
+Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczytem**: `/opt/panel/admin_panel.py` (27 394 linie) oraz pakiety `/opt/panel/editsql` i `/opt/panel/market_preview` z kontenera `metin2-panel`. Jego szablony i skrypty są w większości osadzone w `admin_panel.py`; nie istnieje osobny `/opt/panel/templates`. Odczytano też HTML działających tras `/admin`, `/map`, `/rates`, `/ai`, `/market`, `/events`, `/guilds`, `/player/2005`; `/season` nie odpowiedział w limicie 15 sekund, więc tę stronę oceniono z kodu. `/editsql` zwracał 401, a `/drops` i `/client-data` przekierowywały do logowania edytora; tych formularzy nie uruchamiano. Odnośniki `admin_panel.py:linia` dotyczą tej kopii. Odpowiedniki podano dla Seban Panelu 1.114.5 i aktualizowano wraz z patchami (`app.py`, `templates/`, `static/`). „Częściowo” oznacza także funkcję dostępną wyłącznie przez link do Tieru, a nie natywnie u nas. Ten dokument jest listą kontrolną wdrożenia.
 
 | Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
 |---|---|---|---|---|---|
@@ -31,18 +31,19 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Trudność i tempo gry | `admin_panel.py:20104` `/rates/difficulty` | `app.py:8070` | jest | wysoka | Bez zmian. |
 | Automatyczne polowanie | `admin_panel.py:20153` `/rates/autohunt` | `app.py:8099` | jest | średnia | Bez zmian. |
 | Skrzynia startowa | `admin_panel.py:20188` `/rates/starter_chest` | `app.py:8051` | jest | średnia | Nie nadpisywać Skrzyni Ucznia. |
-| HP mobów i bonus dropu | `admin_panel.py:20224,20263` | `app.py:8051`, `templates/manage.html` | jest | średnia | Zweryfikować zakresy formularzy. |
-| Szybkość ruchu botów | `admin_panel.py:20302` | `app.py:8051`, `templates/manage.html` | jest | średnia | Zweryfikować zakres. |
-| Dodatki świata | `admin_panel.py:20341` `/rates/world_extras` | `app.py:8051`, `templates/manage.html` | częściowo | średnia | Porównać każdą flagę z formularzem; brakujące dodać osobno. |
-| Smocza Alchemia | `admin_panel.py:20383` `/rates/dragon_soul` | `app.py:8051`, `/player` | częściowo | średnia | Porównać ustawienia, bez naruszania okna alchemii. |
+| HP mobów | `admin_panel.py:20224` `/rates/mob_hp` | `app.py` `/manage/mob-hp`, `templates/manage.html` | jest | średnia | Zakres 10–300% zgodny. |
+| Dodatkowy bonus dropu | `admin_panel.py:20263` `/rates/drop_bonus` | brak | brak | średnia | Przenieść dokładną flagę i komendę silnika. |
+| Szybkość ruchu postaci | `admin_panel.py:20302` `/rates/move_speed` | brak | brak | średnia | Przenieść dokładną flagę i komendę silnika. |
+| Dodatki świata | `admin_panel.py:20341` `/rates/world_extras` | `app.py` `/manage/world-extras`, `templates/manage.html` | jest | średnia | Cor Draconis, drop kamieni i szkatułek zgodny. |
+| Smocza Alchemia | `admin_panel.py:20383` `/rates/dragon_soul` | `app.py` `/manage/dragon-soul`, `/player` | jest | średnia | Nie naruszać okna alchemii. |
 | Bonus unikatowych przedmiotów poziomu 70 | `admin_panel.py:20423` | `app.py` `/manage/unique70-bonus`, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.7 z flagą i komendą silnika Tieru. |
 | Yang z potworów: ekwipunek lub ziemia | `admin_panel.py:20457` `/rates/yang_ground` | `app.py` `/manage/yang-ground`, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.8, flaga `m2_yang_ground`. |
 | Obrona przed botami innych królestw | `admin_panel.py:20491` `/rates/owner_defence` | `app.py` `/manage/owner-defence`, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.9 z flagą i komendą silnika Tieru. |
 | Kanały i rozdział botów | `admin_panel.py:20622` `/rates/channels` | `app.py:8111`, `templates/manage.html` | jest | wysoka | Bez zmian. |
 | Wagi AI, decyzje i aktualne akcje | `admin_panel.py:1745–2000,20883,21120` `/ai`, `/decisions` | `app.py:7780,8051`, `templates/decisions.html` | częściowo | wysoka | Porównać wszystkie suwaki, limity i etykiety. |
 | Polityka przedmiotów AI | `admin_panel.py:1603–1627,21344` `/ai/items` | `app.py:8067`, `templates/manage.html` | jest | wysoka | Zachować plik TSV odczytywany przez silnik. |
-| Natychmiastowy start Wieży Demonów/Katakumb | `admin_panel.py:21292,21309` | `app.py:8051` | częściowo | średnia | Sprawdzić kolejkę i dodać akcje, jeśli brak. |
-| Zwolnienie zatrzymanych botów | `admin_panel.py:21326` | `app.py:8051` | częściowo | wysoka | Sprawdzić istniejący przełącznik hold. |
+| Natychmiastowy start Wieży Demonów/Katakumb | `admin_panel.py:21292,21309` | `app.py` `/manage/tower-now`, `/manage/catacomb-now` | jest | średnia | Zachować istniejący tor plików silnika. |
+| Zwolnienie zatrzymanych botów | `admin_panel.py:21326` | `app.py` `/manage/release-bots` | jest | wysoka | Zachować istniejący przełącznik hold. |
 | Eventy: harmonogramy, status, wywołanie | `admin_panel.py:7909,20995` `/events` | `app.py:7934`, `templates/events.html` | częściowo | wysoka | Porównać rodzaje eventów i formularze. |
 | Changelog/patchlog i sprawdzanie aktualizacji | `admin_panel.py:21540,21684,21712` | `app.py:7459`, `templates/changelog.html` | jest | średnia | Zachować wersjonowanie naszego panelu. |
 | Aktualizator Tieru i pliki Playerbots | `admin_panel.py:21611,21742–21779` | `app.py:8051`, `templates/manage.html` | częściowo | średnia | Zachować istniejący updater i bezpieczny tor wdrożenia. |
@@ -59,18 +60,77 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Edytor SQL: przegląd struktury i nazwy | `editsql/__init__.py:53–125,1264–1275` `/editsql`, `/editsql/structure`, `/editsql/api/name` | `templates/_laka_nav.html:40`, `base.html:59` (link do Tieru) | częściowo | średnia | Rozważyć natywny widok tylko z osobnym modelem uprawnień. |
 | Edytor SQL: historia, plan zmian, etykiety, formularze, dodanie i usunięcie wiersza | `editsql/__init__.py:69–110,269–1050,1264–1282` | tylko link do Tieru | częściowo | niska | Pozostawić po audycie bezpieczeństwa i uprawnień. |
 
+## Szczegółowa lista kontrolek, kolumn i API
+
+Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źródłom Tieru odczytanym z kontenera, a nie kopii wyglądu. Przy ustawieniach AI stan „częściowo” znaczy, że nasz odczyt/zapis pliku wag zna klucz, lecz nie daje operatorowi tej samej kontrolki albo zakresu. Zmiany w pliku wag zachowują nieznane klucze, co chroni nowe opcje Tieru przed skasowaniem.
+
+| Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
+|---|---|---|---|---|---|
+| Panel AI: suwak częstości komunikatów nad botem `LIVE_CHAT` 0–200% | `admin_panel.py:8257–8262` `/ai` | brak kontrolki w `templates/manage.html` | brak | średnia | Dodać odczyt/zapis klucza i suwak, nie mieszać z `CHAT`. |
+| Panel AI: przełącznik napisów `CHAT` | `admin_panel.py:8253–8256` `/ai` | `templates/manage.html` zachowanie botów | jest | średnia | Bez zmian. |
+| Panel AI: udział rzemieślników `CRAFTSMAN` 0–100% | `admin_panel.py:8274–8279` `/ai` | brak | brak | średnia | Przenieść wartość domyślną 30 i zakres. |
+| Panel AI: szybkie księgi `BOOKS` | `admin_panel.py:8280–8295` `/ai` | `templates/manage.html` (tylko r40250) | jest | niska | Na mt2009 Tieru przeniósł to do rat; nie dublować. |
+| Panel AI: noc `NIGHT` | `admin_panel.py:8297–8300` | `templates/manage.html` | jest | niska | Bez zmian. |
+| Panel AI: cykl sesji `LIFE` | `admin_panel.py:8302–8308` | `templates/manage.html` | jest | wysoka | Bez zmian. |
+| Panel AI: godziny na dobę `LIFE_HOURS` 0–24 | `admin_panel.py:8309–8312` | `templates/manage.html` | jest | wysoka | Zachować 0 = rytm domyślny. |
+| Panel AI: realizm sesji `SESSION_REALISM` 0–100% | `admin_panel.py:8313–8318` | brak | brak | wysoka | Dodać jako osobną opcję; 0 usuwa klucz z TSV. |
+| Panel AI: wojny gildii `WARS`, długość `WAR_MINUTES`, odstęp `WAR_HOURS` | `admin_panel.py:8320–8345` | `templates/manage.html` | jest | średnia | Bez zmian. |
+| Panel AI: limit zabójstw wojny `WAR_KILLS` | `admin_panel.py:8346–8353` | brak | brak | średnia | Sprawdzić zakres 0–1000 i portować. |
+| Panel AI: Wieża Demonów `TOWER` i przycisk „teraz” | `admin_panel.py:8354–8359` | `templates/manage.html` | jest | średnia | Bez zmian. |
+| Panel AI: Katakumby `CATACOMB` i przycisk „teraz” | `admin_panel.py:8360–8363` | `templates/manage.html` | jest | średnia | Bez zmian. |
+| Panel AI: zakupy ItemShop `ISHOP` | `admin_panel.py:8364–8366` | `templates/manage.html` | jest | średnia | Bez zmian. |
+| Panel AI: targowanie `HAGGLE` | `admin_panel.py:8362–8364` | brak | brak | średnia | Dodać przełącznik, domyślnie włączony. |
+| Panel AI: sprzedaż w sklepiku w mieście `SHOP_ROOM_SELL` | `admin_panel.py:8366–8371` | brak | brak | średnia | Dodać przełącznik, domyślnie włączony. |
+| Panel AI: przechowywanie wyjaśnień `EXPLAIN` | `admin_panel.py:8372–8386` | `app.py` ustawienie retencji decyzji | częściowo | średnia | Porównać zakres i lokalizację, nie utracić historii decyzji. |
+| Panel AI: zakupy także w M2 `SHOP_M2` | `admin_panel.py:8387–8390` | `templates/manage.html` | jest | średnia | Bez zmian. |
+| Panel AI: pasma podaży `SUPPLY_BANDS` | `admin_panel.py:8391–8397` | brak | brak | średnia | Dodać przełącznik i definicję wpływu na ceny. |
+| Panel AI: skalowanie podaży `SUPPLY_SCALE` | `admin_panel.py:8397–8403` | brak | brak | średnia | Dodać przełącznik, domyślnie wyłączony. |
+| Panel AI: referencyjna liczba botów `SUPPLY_REF_BOTS` | `admin_panel.py:8400–8408` | brak | brak | średnia | Portować limit z kodu źródłowego. |
+| Panel AI: złomiarze `SCRAP`, odpoczynek `REST`, PvP między królestwami `KINGDOMPVP` | `admin_panel.py:8410–8430` | `templates/manage.html` | jest | średnia | Bez zmian. |
+| Panel AI: minimalny poziom zwoju `SCROLL_FROM` | `admin_panel.py:8431–8440` | `app.py` czyta/zapisuje, brak suwaka | częściowo | niska | Silnik 2.2.83 (Patch 14) usunął tę opcję; nie przywracać martwej kontrolki. |
+| Panel AI: Szkatułki Blasku `CHEST_OFF`, `CHEST`, `CHEST_STONE` | `admin_panel.py:8441–8460` | `templates/manage.html` | jest | średnia | Nie nadpisywać niestandardowych ustawień skrzynek. |
+| Panel AI: zestawy PvP `PVP_SET` | `admin_panel.py:8461–8475` | brak | brak | średnia | Dodać po sprawdzeniu aktywności klucza w silniku. |
+| Panel AI: udział zestawów `PVP_SET_SHARE` | `admin_panel.py:8476–8478` | brak | brak | średnia | Portować 0–100%. |
+| Panel AI: minimalny poziom `PVP_SET_MIN_LEVEL` | `admin_panel.py:8479–8482` | brak | brak | średnia | Portować 1–120. |
+| Panel AI: siła `PVP_SET_STRENGTH` | `admin_panel.py:8483–8491` | brak | brak | średnia | Portować enum źródłowy, bez zgadywania znaczeń. |
+| Panel AI: budżet `PVP_SET_BUDGET` | `admin_panel.py:8492–8498` | brak | brak | średnia | Portować 0–100%. |
+| Panel AI: zestawy przeciw graczom `PVP_SET_VS_HUMAN` | `admin_panel.py:8499–8503` | brak | brak | średnia | Dodać przełącznik. |
+| Panel AI: wagi celów, reset do 100%, podpowiedzi | `admin_panel.py:8503–8534` | `app.py` `AI_WEIGHT_KEYS`, `templates/manage.html` | jest | wysoka | Zachować limity poszczególnych wag. |
+| Panel AI: polityka przedmiotów TSV | `admin_panel.py:8535–8560` `/ai/items` | `templates/manage.html` | jest | wysoka | Zachować składnię i odczyt silnika. |
+| Rynek: szukanie po nazwie/VNUM i odświeżanie migawki | `market_preview/page.py:188–200,415–430`; `__init__.py:312` | `templates/economy_shops.html` | częściowo | wysoka | Rozszerzyć wyszukiwanie na pojedyncze oferty, zachować limit zapytań. |
+| Rynek: sortowanie (najnowsze, ceny, ulepszenie, poziom, bonusy, okazje) | `market_preview/rules.py:256–270`; `page.py:194–196` | brak | brak | wysoka | Zbudować sortowanie w naszej stronie rynku. |
+| Rynek: cena min/max, cena za sztukę | `market_preview/page.py:205–212`; `rules.py:313–350` | brak | brak | wysoka | Portować parser `k/kk/kkk` i filtr jednostkowy. |
+| Rynek: kategoria/podkategoria, ulepszenie +min/+max | `market_preview/page.py:213–218`; `rules.py:29–67` | brak | brak | wysoka | Portować klasyfikację z `item_proto`, nie z VNUM. |
+| Rynek: klasa postaci i tylko pasujące do mojej postaci | `market_preview/page.py:219–223`; `rules.py:162–180,364` | brak | brak | średnia | Użyć `antiflag` i klasy, bez zgadywania. |
+| Rynek: bonusy (do trzech), minimum bonusów, maksymalne wartości | `market_preview/page.py:224–232`; `rules.py:370–380` | brak | brak | średnia | Portować identyfikatory bonusów z migawki. |
+| Rynek: średnie obrażenia, obrażenia umiejętności, kamienie | `market_preview/page.py:233–238`; `rules.py:313–350` | brak | brak | średnia | Portować dokładne pola przedmiotu. |
+| Rynek: królestwo, bot/osoba, nick sprzedawcy i nazwa sklepu | `market_preview/page.py:239–245`; `rules.py:393–400` | `templates/economy_shops.html` częściowo | częściowo | wysoka | Dodać filtry bez naruszania listy popularności. |
+| Rynek: okazje, ukrycie pomyłek cenowych, zakończone oferty | `market_preview/page.py:246–249`; `rules.py:505–656` | brak | brak | średnia | Portować wzór ceny referencyjnej z arkusza Tieru. |
+| Rynek: strony 25/50/100, liczba wyników, chipy aktywnych filtrów | `market_preview/page.py:270,527–531` | brak | brak | średnia | Dodać paginację serwerową i reset filtrów. |
+| Rynek: karta oferty (ikona, nazwa, sprzedawca, CH/mapa, cena, sztuki, bonusy, kamienie) | `market_preview/page.py:480–510`; `__init__.py:211–241` | `templates/economy_shops.html` tylko agregaty | częściowo | wysoka | Zbudować natywną listę ofert z naszej migawki. |
+| Rynek: wykres historii cen wybranego przedmiotu | `market_preview/page.py:535–552`; `__init__.py:341–350` | `templates/economy_item.html` częściowo | częściowo | średnia | Porównać źródła punktów i zakres czasu. |
+| Rynek: porównanie zaznaczonych ofert | `market_preview/page.py:270–275,580–600` | brak | brak | średnia | Dodać po kartach ofert. |
+| Rynek: teleport do sklepu, koszt, status, historia teleportów | `market_preview/__init__.py:366–468` | `/api/admin/teleport-me` bez historii | częściowo | średnia | Nie przenosić opłaty bez weryfikacji wymagań serwera. |
+| Mapa: filtry poziomów, map, auto-logów, heatmapa | `admin_panel.py:10050–12465` `/map` | `templates/maps.html`, dashboard | częściowo | średnia | Porównać każdą nakładkę z aktualnym podglądem; proporcje map są chronione. |
+| Gildie: kolumny gildia/królestwo/klasa/poziom/członkowie/online/mistrz/siła/ranking/Z-R-P/EXP/wojna | `admin_panel.py:8012–8226` `/guilds` | `templates/guilds.html`, `guild.html` | częściowo | średnia | Rozbić statystyki członków i wojen na szczegóły profilu gildii. |
+| Sezon: 9 kolumn i sortowanie tabeli | `admin_panel.py:7841–7908` `/season` | `templates/season.html` | częściowo | średnia | Zweryfikować realne dane sezonu; live GET przekroczył 15 s. |
+| Eventy: wiersze harmonogramu, dni tygodnia, start/koniec, mapa, wartość, usunięcie | `admin_panel.py:7909–8011` `/events` | `templates/events.html` | częściowo | wysoka | Porównać zapisane typy eventów i walidacje zakresu. |
+| Dropy: przegląd grup, edycja wierszy, podgląd zmiany, potwierdzenie | `admin_panel.py:26513–26878` `/drops/*` | brak | brak | średnia | Dopiero po sprawdzeniu fizycznych plików i atomowego zapisu. |
+| Edytor SQL: struktura, historia, etykiety, formularz, dodanie/usunięcie wiersza | `editsql/__init__.py:53–110,269–1050` `/editsql/*` | link do Tieru | częściowo | niska | Wymaga osobnego audytu autoryzacji; nie kopiować ogólnego zapisu SQL. |
+
 ## Elementy świadomie nieprzenoszone
 
 - HTML, CSS i JS klasycznego panelu Tieru: przenosimy zachowanie do komponentów `laka` i drugiego motywu, aby zachować skalowanie na telefonach.
 - Alternatywne mechanizmy logowania i sesji konta gracza z `/account`: nasz panel jest administracyjny i nie powinien bez analizy otwierać drugiego portalu gracza.
 - Bezpośrednie usuwanie danych SQL w celu skasowania przedmiotu bota: silnik musi wykonać `DELITEM` i ponownie sprawdzić przedmiot; modyfikacja DB pod aktywnym botem może rozjechać stan gry.
+- Przycisk usuwania przedmiotu już wystawionego w sklepie offline: kontrakt `DELITEM` Tieru ogranicza się do `INVENTORY` i `EQUIPMENT`, a usuwanie aktywnej oferty bez osobnej komendy silnika mogłoby rozjechać sklep i stan bota.
 - Automatyczne kopiowanie updatera i binariów klienta Tieru: to oddzielny tor dystrybucji, który mógłby nadpisać lokalne poprawki i zasoby serwera.
 - Zastępowanie naszych map, natywnych okien `/player` i warstwy tooltipów wariantami Tieru: obecny układ spełnia wymagania proporcji, slotów i zoomu mobilnego.
 
 ## Kolejność dalszych prac
 
-1. `DELITEM` z ekwipunku/wyposażenia, ze stanem kolejki i anulowaniem. Usuwanie ze sklepu wymaga osobnej weryfikacji komendy silnika.
-2. Brakujące akcje AI i ustawienia świata wykryte w porównaniu pól formularzy.
+1. `DELITEM` z ekwipunku/wyposażenia, ze stanem kolejki i anulowaniem: wykonane w 1.114.6. Usuwanie ze sklepu wymaga nowej, potwierdzonej komendy silnika.
+2. Brakujące ustawienia świata: szósty bonus, Yang i obrona wykonane w 1.114.7–1.114.9; następne są bonus dropu i prędkość ruchu. Potem brakujące kontrolki AI, najpierw `SESSION_REALISM`.
 3. Filtry rynku, statusy kolejek, historie, potem edytor dropów i diagnostyka awarii.
 4. Funkcje o niskiej przydatności tylko po potwierdzeniu ich źródeł danych i uprawnień.
 
