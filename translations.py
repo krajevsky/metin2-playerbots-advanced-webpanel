@@ -63,6 +63,20 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Aktywne oferty w sklepach offline": "Active offline-shop offers",
+    "Ceny pochodzą bezpośrednio z ofert IkarusShop. Pokazujemy do 100 aktywnych pozycji; zakup i stan sklepu mogą zmienić się w grze.": "Prices come directly from IkarusShop offers. Up to 100 active listings are shown; purchases and shop status may change in game.",
+    "Sortuj oferty": "Sort offers",
+    "Najtańsze najpierw": "Lowest price first",
+    "Najdroższe najpierw": "Highest price first",
+    "Zastosuj": "Apply",
+    "Sprzedawca": "Seller",
+    "Sklep": "Shop",
+    "Królestwo": "Kingdom",
+    "Mapa / CH": "Map / CH",
+    "Ilość": "Quantity",
+    "Cena": "Price",
+    "Cena za sztukę": "Unit price",
+    "Brak aktywnych ofert tego przedmiotu.": "No active offers for this item.",
     "🧪 Zestawy PvP botów": "🧪 Bot PvP sets",
     "Eksperymentalne. Część botów buduje osobny zestaw do walki z innymi botami; domyślnie wyłączone.": "Experimental. Some bots build a separate set for fighting other bots; disabled by default.",
     "Włącz zestawy PvP": "Enable PvP sets",

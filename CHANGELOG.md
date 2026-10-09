@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.21 · Aktywne oferty przedmiotu na rynku
+
+- Strona historii przedmiotu pokazuje do 100 aktywnych ofert IkarusShop z ceną całkowitą i za sztukę, ilością, sprzedawcą, nazwą sklepu, królestwem, mapą i kanałem. Można sortować po cenie rosnąco lub malejąco.
+- Dane pochodzą z tych samych tabel i pola JSON ceny, których używa rynek Tieru. Widok ma teksty PL/EN, zapytanie ograniczone limitem oraz testy sortowania i przeliczania ceny.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.20 · Zestawy PvP botów
 
 - Dodano eksperymentalny przełącznik zestawów PvP botów wraz z udziałem, minimalnym poziomem, siłą zestawu, budżetem i użyciem przeciw graczom. Domyślnie funkcja jest wyłączona.

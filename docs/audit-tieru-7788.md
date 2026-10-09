@@ -98,7 +98,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: wagi celów, reset do 100%, podpowiedzi | `admin_panel.py:8503–8534` | `app.py` `AI_WEIGHT_KEYS`, `templates/manage.html` | jest | wysoka | Zachować limity poszczególnych wag. |
 | Panel AI: polityka przedmiotów TSV | `admin_panel.py:8535–8560` `/ai/items` | `templates/manage.html` | jest | wysoka | Zachować składnię i odczyt silnika. |
 | Rynek: szukanie po nazwie/VNUM i odświeżanie migawki | `market_preview/page.py:188–200,415–430`; `__init__.py:312` | `templates/economy_shops.html` | częściowo | wysoka | Rozszerzyć wyszukiwanie na pojedyncze oferty, zachować limit zapytań. |
-| Rynek: sortowanie (najnowsze, ceny, ulepszenie, poziom, bonusy, okazje) | `market_preview/rules.py:256–270`; `page.py:194–196` | brak | brak | wysoka | Zbudować sortowanie w naszej stronie rynku. |
+| Rynek: sortowanie (najnowsze, ceny, ulepszenie, poziom, bonusy, okazje) | `market_preview/rules.py:256–270`; `page.py:194–196` | `economy_item` sortuje ceny ofert | częściowo | wysoka | W 1.114.21 dodano ceny rosnąco/malejąco na stronie przedmiotu; pozostałe sortowania wymagają widoku globalnego. |
 | Rynek: cena min/max, cena za sztukę | `market_preview/page.py:205–212`; `rules.py:313–350` | brak | brak | wysoka | Portować parser `k/kk/kkk` i filtr jednostkowy. |
 | Rynek: kategoria/podkategoria, ulepszenie +min/+max | `market_preview/page.py:213–218`; `rules.py:29–67` | brak | brak | wysoka | Portować klasyfikację z `item_proto`, nie z VNUM. |
 | Rynek: klasa postaci i tylko pasujące do mojej postaci | `market_preview/page.py:219–223`; `rules.py:162–180,364` | brak | brak | średnia | Użyć `antiflag` i klasy, bez zgadywania. |
@@ -107,7 +107,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Rynek: królestwo, bot/osoba, nick sprzedawcy i nazwa sklepu | `market_preview/page.py:239–245`; `rules.py:393–400` | `templates/economy_shops.html` częściowo | częściowo | wysoka | Dodać filtry bez naruszania listy popularności. |
 | Rynek: okazje, ukrycie pomyłek cenowych, zakończone oferty | `market_preview/page.py:246–249`; `rules.py:505–656` | brak | brak | średnia | Portować wzór ceny referencyjnej z arkusza Tieru. |
 | Rynek: strony 25/50/100, liczba wyników, chipy aktywnych filtrów | `market_preview/page.py:270,527–531` | brak | brak | średnia | Dodać paginację serwerową i reset filtrów. |
-| Rynek: karta oferty (ikona, nazwa, sprzedawca, CH/mapa, cena, sztuki, bonusy, kamienie) | `market_preview/page.py:480–510`; `__init__.py:211–241` | `templates/economy_shops.html` tylko agregaty | częściowo | wysoka | Zbudować natywną listę ofert z naszej migawki. |
+| Rynek: karta oferty (ikona, nazwa, sprzedawca, CH/mapa, cena, sztuki, bonusy, kamienie) | `market_preview/page.py:480–510`; `__init__.py:211–241` | `economy_item` tabela aktywnych ofert | częściowo | wysoka | W 1.114.21 dodano sprzedawcę, sklep, mapę/CH, ilość i ceny; bonusy oraz porównanie pozostały do wdrożenia. |
 | Rynek: wykres historii cen wybranego przedmiotu | `market_preview/page.py:535–552`; `__init__.py:341–350` | `templates/economy_item.html` częściowo | częściowo | średnia | Porównać źródła punktów i zakres czasu. |
 | Rynek: porównanie zaznaczonych ofert | `market_preview/page.py:270–275,580–600` | brak | brak | średnia | Dodać po kartach ofert. |
 | Rynek: teleport do sklepu, koszt, status, historia teleportów | `market_preview/__init__.py:366–468` | `/api/admin/teleport-me` bez historii | częściowo | średnia | Nie przenosić opłaty bez weryfikacji wymagań serwera. |

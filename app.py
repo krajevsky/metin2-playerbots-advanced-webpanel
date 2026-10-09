@@ -6236,7 +6236,41 @@ def economy_item(vnum):
     item["captured_at"] = latest.strftime("%m-%d %H:%M") if latest else None
     history = rows("""SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:%%i') AS captured_at,SUM(amount) AS amount
       FROM player.web_seban_item_snapshot WHERE """ + where + """ AND captured_at >= NOW() - INTERVAL 14 DAY GROUP BY captured_at ORDER BY captured_at""", params)
-    return render_template("economy_item.html", item=item, history=history)
+    # Same live IkarusShop rows and JSON price as Tieru's market snapshot.
+    # Limit this on-demand view so common VNUMs cannot hold up the page.
+    offer_sort = request.args.get("offer_sort", "price_asc")
+    order = {"price_asc": "price ASC, i.id DESC", "price_desc": "price DESC, i.id DESC"}.get(offer_sort)
+    if order is None:
+        offer_sort, order = "price_asc", "price ASC, i.id DESC"
+    shop_socket_clause = " AND i.socket0=%s" if socket0 is not None else ""
+    offer_rows = rows("""SELECT i.id, i.owner_id, i.vnum, i.`count` AS quantity, i.socket0,
+        CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data, '$.yang')) AS UNSIGNED) AS price,
+        p.name AS seller, s.name AS shop_name, s.`map` AS map_index, s.channel,
+        pi.empire, (LEFT(a.login, 10)='playerbot_') AS is_bot
+      FROM player.item i JOIN player.ikashop_offlineshop s ON s.owner=i.owner_id
+      LEFT JOIN player.player p ON p.id=i.owner_id
+      LEFT JOIN account.account a ON a.id=p.account_id
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      WHERE i.vnum=%s AND i.`window`='IKASHOP_OFFLINESHOP'
+        AND i.ikashop_data IS NOT NULL AND i.ikashop_data<>'' AND s.duration>0"""
+      + shop_socket_clause + " ORDER BY " + order + " LIMIT 100", params)
+    offers = []
+    for offer in offer_rows:
+        try:
+            quantity = max(1, int(offer.get("quantity") or 1))
+            price = max(0, int(offer.get("price") or 0))
+            offers.append({"item_id": int(offer["id"]), "pid": int(offer["owner_id"]),
+                           "seller": game_text(offer.get("seller")) or f"pid {offer['owner_id']}",
+                           "shop_name": game_text(offer.get("shop_name")) or "—",
+                           "map_name": map_name(int(offer.get("map_index") or 0)),
+                           "channel": int(offer.get("channel") or 1),
+                           "empire": int(offer.get("empire") or 0),
+                           "is_bot": bool(offer.get("is_bot")),
+                           "quantity": quantity, "price": price, "unit_price": round(price / quantity, 2)})
+        except (TypeError, ValueError, KeyError):
+            app.logger.warning("Skipping malformed market offer for VNUM %s: %r", vnum, offer)
+    return render_template("economy_item.html", item=item, history=history,
+                           offers=offers, offer_sort=offer_sort)
 
 
 # "Kto ma najwięcej" -- przeszukiwanie na żądanie operatora. Zapytanie po
