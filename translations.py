@@ -63,6 +63,9 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Szybkość ruchu postaci (%)": "Character movement speed (%)",
+    "100% to tempo z gry. Dotyczy graczy, botów i Towarzysza, pieszo i na wierzchowcu. Potwory zachowują swoje tempo.": "100% is the normal game speed. This affects players, bots and Companions, on foot and on mounts. Monsters keep their normal speed.",
+    "Zapisz szybkość ruchu": "Save movement speed",
     "Bonusy w przedmiotach z potworów (%)": "Bonuses on monster drops (%)",
     "100% to szansa z gry. Zmienia tylko nowe bronie i zbroje wypadające z potworów, najwyżej do trzech bonusów; nagrody, skrzynie i sklepy pozostają bez zmian.": "100% is the game's normal chance. This changes only newly dropped weapons and armour, up to three bonuses; rewards, chests and shops are unchanged.",
     "Zapisz bonusy w dropie": "Save drop bonus chance",

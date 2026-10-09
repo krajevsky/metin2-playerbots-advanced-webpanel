@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.11 · Szybkość ruchu graczy i botów
+
+- W dodatkach świata można ustawić 50–200% szybkości ruchu graczy, botów i Towarzysza pieszo oraz na wierzchowcu. 100% oznacza normalne tempo gry; potwory nie są objęte zmianą.
+- Panel zapisuje `m2_move_speed_pct` i wysyła komendę `MOVE_SPEED` jak Tieru. Po potwierdzeniu silnika ustawienie działa na żywo i zostaje po restarcie. Dodano PL/EN oraz testy zakresu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.10 · Bonusy w przedmiotach wypadających z potworów
 
 - W dodatkach świata można ustawić 10–1000% szansy na bonusy nowych broni i zbroi z potworów; 100% oznacza normalną szansę gry. Dotyczy najwyżej trzech bonusów i nie zmienia nagród, skrzyń ani sklepów.
