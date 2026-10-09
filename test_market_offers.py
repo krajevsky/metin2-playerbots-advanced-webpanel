@@ -100,3 +100,19 @@ def test_market_offers_page_size_is_bounded_and_changes_offset(size, expected):
     assert read_rows.call_args.args[1] == [expected + 1, expected]
     assert render.call_args.kwargs["page_size"] == expected
     assert render.call_args.kwargs["has_next"] is True
+
+
+def test_market_offers_category_filter_applies_to_count_and_page():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]) as read_rows, \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?category=10")
+    assert response.status_code == 200
+    count_sql, count_params = count_rows.call_args.args
+    page_sql, page_params = read_rows.call_args.args
+    assert "ip.type" in count_sql and "ip.type" in page_sql
+    assert "i.vnum IN" in count_sql and "i.vnum IN" in page_sql
+    assert count_params == (10,)
+    assert page_params == [10, 51, 0]
+    assert render.call_args.kwargs["category"] == 10

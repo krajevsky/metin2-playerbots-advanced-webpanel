@@ -1,3 +1,9 @@
+## 2026-10-09 · 1.114.27 · Kategorie aktywnych ofert
+
+- Oferty rynku można filtrować według 11 kategorii Tieru. Klasyfikacja używa typu i podtypu przedmiotu z `item_proto` oraz dokładnej listy wyjątków dla ulepszaczy, ksiąg, ziół i rud z jego reguł.
+- Filtr działa razem z pozostałymi i pozostaje przy zmianie strony. Opcje mają nazwy PL/EN, a zapytania są parametryzowane.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-09 · 1.114.26 · Liczba ofert dla filtrów rynku
 
 - Przeglądarka rynku pokazuje łączną liczbę aktywnych ofert odpowiadających bieżącym filtrom, niezależnie od rozmiaru strony. Liczy ją z tego samego źródła IkarusShop co listę pozycji.
