@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.22 · Przeglądarka ofert rynku
+
+- W Gospodarce dodano stronę aktywnych ofert IkarusShop z wyszukiwaniem po nazwie lub VNUM, filtrem królestwa i typu sprzedawcy oraz sortowaniem po cenie całkowitej albo za sztukę. Wyniki są stronicowane po 50 i prowadzą do przedmiotu lub sprzedawcy.
+- Odczyt używa źródłowych tabel sklepu i ceny JSON, ogranicza zapytania oraz nie dotyka wystawionych przedmiotów. Nowa strona jest w nawigacji Laka i klasycznej, z tekstami PL/EN oraz testami filtrów.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.21 · Aktywne oferty przedmiotu na rynku
 
 - Strona historii przedmiotu pokazuje do 100 aktywnych ofert IkarusShop z ceną całkowitą i za sztukę, ilością, sprzedawcą, nazwą sklepu, królestwem, mapą i kanałem. Można sortować po cenie rosnąco lub malejąco.

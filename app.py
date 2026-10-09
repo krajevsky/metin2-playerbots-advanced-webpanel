@@ -6647,6 +6647,71 @@ def economy_shops():
                             recent_sales=recent_shop_sales(10))
 
 
+@app.route("/economy/offers")
+@login_required
+def economy_offers():
+    """Browse current IkarusShop rows, using Tieru's owner/shop/price sources."""
+    query = request.args.get("q", "").strip()[:80]
+    seller_type = request.args.get("seller", "all")
+    if seller_type not in ("all", "bot", "person"):
+        seller_type = "all"
+    empire = request.args.get("empire", type=int) or 0
+    if empire not in (0, 1, 2, 3):
+        empire = 0
+    sort = request.args.get("sort", "price_asc")
+    order = {"price_asc": "price ASC, i.id DESC",
+             "price_desc": "price DESC, i.id DESC",
+             "unit_asc": "price / GREATEST(i.`count`,1) ASC, i.id DESC"}.get(sort)
+    if order is None:
+        sort, order = "price_asc", "price ASC, i.id DESC"
+    page = max(1, min(100, request.args.get("page", 1, type=int)))
+    clauses = ["i.`window`='IKASHOP_OFFLINESHOP'", "i.ikashop_data IS NOT NULL",
+               "i.ikashop_data<>''", "s.duration>0"]
+    params = []
+    if query:
+        clauses.append("(i.vnum=%s OR ip.locale_name LIKE %s)")
+        params.extend([int(query) if query.isdigit() else -1, f"%{query}%"])
+    if empire:
+        clauses.append("pi.empire=%s")
+        params.append(empire)
+    if seller_type != "all":
+        clauses.append("LEFT(a.login,10)" + ("=" if seller_type == "bot" else "<>") + "'playerbot_'")
+    params.extend([51, (page - 1) * 50])
+    raw = rows("""SELECT i.id, i.owner_id, i.vnum, i.`count` AS quantity,
+        CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED) AS price,
+        COALESCE(ip.locale_name, CONCAT('VNUM ',i.vnum)) AS item_name,
+        p.name AS seller, s.name AS shop_name, s.`map` AS map_index, s.channel,
+        pi.empire, (LEFT(a.login,10)='playerbot_') AS is_bot
+      FROM player.item i JOIN player.ikashop_offlineshop s ON s.owner=i.owner_id
+      LEFT JOIN player.item_proto ip ON ip.vnum=i.vnum
+      LEFT JOIN player.player p ON p.id=i.owner_id
+      LEFT JOIN account.account a ON a.id=p.account_id
+      LEFT JOIN player.player_index pi ON pi.id=p.account_id
+      WHERE """ + " AND ".join(clauses) + " ORDER BY " + order + " LIMIT %s OFFSET %s", params)
+    has_next = len(raw) > 50
+    offers = []
+    for offer in raw[:50]:
+        try:
+            quantity = max(1, int(offer.get("quantity") or 1))
+            price = max(0, int(offer.get("price") or 0))
+            vnum = int(offer["vnum"])
+            offers.append({"id": int(offer["id"]), "pid": int(offer["owner_id"]),
+                           "vnum": vnum, "item_name": game_text(offer.get("item_name")),
+                           "seller": game_text(offer.get("seller")) or f"pid {offer['owner_id']}",
+                           "shop_name": game_text(offer.get("shop_name")) or "—",
+                           "map_name": map_name(int(offer.get("map_index") or 0)),
+                           "channel": int(offer.get("channel") or 1),
+                           "empire": int(offer.get("empire") or 0),
+                           "is_bot": bool(offer.get("is_bot")),
+                           "quantity": quantity, "price": price,
+                           "unit_price": round(price / quantity, 2)})
+        except (TypeError, ValueError, KeyError):
+            app.logger.warning("Skipping malformed global market offer: %r", offer)
+    return render_template("economy_offers.html", offers=offers, query=query,
+                           seller_type=seller_type, empire=empire, sort=sort,
+                           page=page, has_next=has_next)
+
+
 @app.route("/api/shop-feed")
 @login_required
 def api_shop_feed():
