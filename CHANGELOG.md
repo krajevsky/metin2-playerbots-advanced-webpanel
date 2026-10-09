@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.14 · Rzemieślnicy botów
+
+- Dodano suwak udziału botów od 35 poziomu kujących przedmioty na sprzedaż. Wartość domyślna 30%, zakres 0–100%; 0 wyłącza tę cechę.
+- Kontrolka używa klucza `CRAFTSMAN` jak panel Tieru, ma teksty PL/EN oraz testy odczytu i zapisu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.13 · Gęstość czatu botów
 
 - Dodano suwak Global chat 0–200% niezależny od przełącznika komunikatów nad głową bota. 100% oznacza normalne natężenie, 0 przywraca dawny czat i wołanie w obrębie królestwa.
