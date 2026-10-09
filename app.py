@@ -6783,6 +6783,43 @@ def economy_offers():
     if page_size not in (25, 50, 100):
         page_size = 50
     page = max(1, min(100, request.args.get("page", 1, type=int)))
+    filter_values = {"q": query, "seller": seller_type if seller_type != "all" else "",
+                     "seller_name": seller_name, "shop_name": shop_name,
+                     "category": category if category else "",
+                     "subcategory": subcategory if subcategory else "",
+                     "cls": class_bit if class_bit else "",
+                     "rmin": refine_inputs["rmin"], "rmax": refine_inputs["rmax"],
+                     "lmin": level_inputs["lmin"], "lmax": level_inputs["lmax"],
+                     "empire": empire if empire else "",
+                     "pmin": price_inputs["pmin"] if "pmin" not in price_errors else "",
+                     "pmax": price_inputs["pmax"] if "pmax" not in price_errors else "",
+                     "unit": "1" if unit_price_filter else ""}
+    filter_labels = {
+        "q": ("Przedmiot", "Item"), "seller": ("Sprzedawca", "Seller"),
+        "seller_name": ("Nick sprzedawcy", "Seller nickname"),
+        "shop_name": ("Nazwa sklepu", "Shop name"),
+        "category": ("Kategoria", "Category"),
+        "subcategory": ("Podkategoria", "Subcategory"),
+        "cls": ("Klasa postaci", "Character class"),
+        "rmin": ("Ulepszenie od", "Refinement from"),
+        "rmax": ("Ulepszenie do", "Refinement to"),
+        "lmin": ("Poziom od", "Level from"), "lmax": ("Poziom do", "Level to"),
+        "empire": ("Królestwo", "Kingdom"),
+        "pmin": ("Cena od", "Price from"), "pmax": ("Cena do", "Price to"),
+        "unit": ("Cena za sztukę", "Unit price")}
+    english = settings().get("ui_language") == "en"
+    active_filters = []
+    for key, value in filter_values.items():
+        if not value:
+            continue
+        remaining = {name: selected for name, selected in filter_values.items()
+                     if selected and name != key and not (key == "category" and name == "subcategory")}
+        if sort != "price_asc":
+            remaining["sort"] = sort
+        if page_size != 50:
+            remaining["size"] = page_size
+        active_filters.append({"label": filter_labels[key][1 if english else 0],
+                               "value": value, "url": url_for("economy_offers", **remaining)})
     clauses = ["i.`window`='IKASHOP_OFFLINESHOP'", "i.ikashop_data IS NOT NULL",
                "i.ikashop_data<>''", "s.duration>0"]
     params = []
@@ -6873,6 +6910,7 @@ def economy_offers():
                            empire=empire, sort=sort,
                            page=page, page_size=page_size, has_next=has_next,
                            total=total,
+                           active_filters=active_filters,
                            price_inputs=price_inputs,
                            price_errors=price_errors, unit_price_filter=unit_price_filter)
 

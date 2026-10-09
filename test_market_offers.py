@@ -214,3 +214,31 @@ def test_market_offers_extra_sort_orders_are_whitelisted(sort, fragment):
         response = panel.app.test_client().get(f"/economy/offers?sort={sort}")
     assert response.status_code == 200
     assert fragment in read_rows.call_args.args[0]
+
+
+def test_market_filter_chips_remove_one_filter_and_reset_page():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}), \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get(
+            "/economy/offers?q=Miecz&category=2&seller=bot&sort=newest&size=25&page=3")
+    assert response.status_code == 200
+    chips = render.call_args.kwargs["active_filters"]
+    category_chip = next(chip for chip in chips if chip["label"] == "Kategoria")
+    assert "q=Miecz" in category_chip["url"]
+    assert "seller=bot" in category_chip["url"]
+    assert "sort=newest" in category_chip["url"]
+    assert "size=25" in category_chip["url"]
+    assert "category=" not in category_chip["url"]
+    assert "page=" not in category_chip["url"]
+
+
+def test_market_filter_chips_use_english_labels():
+    with patch.object(panel, "settings", return_value={**SETTINGS, "ui_language": "en"}), \
+            patch.object(panel, "one", return_value={"total": 0}), \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?seller_name=Merchant")
+    assert response.status_code == 200
+    assert render.call_args.kwargs["active_filters"][0]["label"] == "Seller nickname"

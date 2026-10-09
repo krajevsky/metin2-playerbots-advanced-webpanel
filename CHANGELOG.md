@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.34 · Aktywne filtry rynku
+
+- Przeglądarka ofert pokazuje aktywne filtry jako chipy. Kliknięcie usuwa tylko wybrany filtr i wraca na pierwszą stronę wyników; usunięcie kategorii usuwa też zależną podkategorię. Sortowanie i liczba ofert na stronę pozostają bez zmian.
+- Dodano przycisk wyczyszczenia wszystkich filtrów, etykiety PL/EN oraz testy zachowania adresów filtrów.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.33 · Retencja wyjaśnień decyzji botów
 
 - W ustawieniach zachowania botów można ustawić przechowywanie wyjaśnień decyzji na 0–30 dni. Zero wyłącza zapis, a przywrócenie domyślnego ustawienia usuwa klucz `EXPLAIN`, dzięki czemu rdzeń stosuje własne 7 dni.
