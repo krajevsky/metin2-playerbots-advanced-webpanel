@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.15 · Koniec wojny gildii po zabójstwach
+
+- Dodano limit 0–1000 zabójstw kończących wojnę gildii botów; 0 oznacza zakończenie wyłącznie po czasie. `WAR_KILLS` zapisuje się w pliku wag dokładnie jak u Tieru.
+- Dopasowano dotychczasowe suwaki wojny do zakresów silnika: 15 lub 30 minut oraz 1–4 godziny odstępu. Dodano polskie i angielskie teksty oraz testy.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.14 · Rzemieślnicy botów
 
 - Dodano suwak udziału botów od 35 poziomu kujących przedmioty na sprzedaż. Wartość domyślna 30%, zakres 0–100%; 0 wyłącza tę cechę.

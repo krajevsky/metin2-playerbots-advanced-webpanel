@@ -74,8 +74,8 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: cykl sesji `LIFE` | `admin_panel.py:8302–8308` | `templates/manage.html` | jest | wysoka | Bez zmian. |
 | Panel AI: godziny na dobę `LIFE_HOURS` 0–24 | `admin_panel.py:8309–8312` | `templates/manage.html` | jest | wysoka | Zachować 0 = rytm domyślny. |
 | Panel AI: realizm sesji `SESSION_REALISM` 0–100% | `admin_panel.py:8313–8318` | `app.py` /manage/behavior, `templates/manage.html` | jest | wysoka | Wdrożone w 1.114.12; 0 usuwa klucz z TSV. |
-| Panel AI: wojny gildii `WARS`, długość `WAR_MINUTES`, odstęp `WAR_HOURS` | `admin_panel.py:8320–8345` | `templates/manage.html` | jest | średnia | Bez zmian. |
-| Panel AI: limit zabójstw wojny `WAR_KILLS` | `admin_panel.py:8346–8353` | brak | brak | średnia | Sprawdzić zakres 0–1000 i portować. |
+| Panel AI: wojny gildii `WARS`, długość `WAR_MINUTES`, odstęp `WAR_HOURS` | `admin_panel.py:8320–8345` | `templates/manage.html` | jest | średnia | W 1.114.15 skorygowano zakresy do 15/30 minut i 1–4 godzin. |
+| Panel AI: limit zabójstw wojny `WAR_KILLS` | `admin_panel.py:8346–8353` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.15, zakres 0–1000. |
 | Panel AI: Wieża Demonów `TOWER` i przycisk „teraz” | `admin_panel.py:8354–8359` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: Katakumby `CATACOMB` i przycisk „teraz” | `admin_panel.py:8360–8363` | `templates/manage.html` | jest | średnia | Bez zmian. |
 | Panel AI: zakupy ItemShop `ISHOP` | `admin_panel.py:8364–8366` | `templates/manage.html` | jest | średnia | Bez zmian. |

@@ -63,6 +63,8 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "⚔️ Zabójstwa kończące wojnę": "⚔️ Kills to end a guild war",
+    "0 = tylko czas wojny": "0 = war timer only",
     "⚒️ Rzemieślnicy (%)": "⚒️ Craftsmen (%)",
     "Udział botów od 35 poziomu kujących przedmioty na sprzedaż. Domyślnie 30%; 0 wyłącza tę cechę.": "Share of bots from level 35 that forge items for sale. The default is 30%; 0 disables this trait.",
     "Gęstość czatu Global (%)": "Global chat density (%)",

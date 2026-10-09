@@ -240,7 +240,7 @@ AI_WEIGHT_HINTS = {
 # them as switches or direct settings rather than 25–250% goal weights.
 AI_LIVE_DEFAULTS = {"CHAT": 1, "BOOKS": 1, "NIGHT": 1, "LIFE": 0, "WARS": 1, "TOWER": 1, "CATACOMB": 1, "ISHOP": 1,
                      "SHOP_M2": 0, "PERSONA": 1, "LIFE_HOURS": 0, "SESSION_REALISM": 0, "LIVE_CHAT": 100, "CRAFTSMAN": 30, "SCRAP": 0, "REST": 100, "KINGDOMPVP": 0, "SCROLL_FROM": 1,
-                     "WAR_MINUTES": 30, "WAR_HOURS": 2, "CHEST": None, "CHEST_STONE": None}
+                     "WAR_MINUTES": 30, "WAR_HOURS": 2, "WAR_KILLS": 100, "CHEST": None, "CHEST_STONE": None}
 AI_SPECIAL_WEIGHT_KEYS = frozenset(AI_LIVE_DEFAULTS)
 BIOLOGIST_COMPLETE_STATE = 557528158
 BIOLOGIST_KEY_ITEM_STATE = -1726153001
@@ -2896,9 +2896,11 @@ def read_ai_weights():
                     elif key == "SCROLL_FROM":
                         values[key] = max(1, min(9, int(raw_value)))
                     elif key == "WAR_MINUTES":
-                        values[key] = max(5, min(180, int(raw_value)))
+                        values[key] = 15 if int(raw_value) <= 15 else 30
                     elif key == "WAR_HOURS":
-                        values[key] = max(1, min(24, int(raw_value)))
+                        values[key] = max(1, min(4, int(raw_value)))
+                    elif key == "WAR_KILLS":
+                        values[key] = max(0, min(1000, int(raw_value)))
                     elif key in ("CHEST", "CHEST_STONE"):
                         values[key] = max(0, min(1000, int(raw_value)))
                     else:
@@ -2957,8 +2959,9 @@ def write_ai_weights(values):
     content.append(f"REST\t{max(0, min(100, int(values.get('REST', 100))))}")
     content.append(f"KINGDOMPVP\t{max(0, min(100, int(values.get('KINGDOMPVP', 0))))}")
     content.append(f"SCROLL_FROM\t{max(1, min(9, int(values.get('SCROLL_FROM', 1))))}")
-    content.append(f"WAR_MINUTES\t{max(5, min(180, int(values.get('WAR_MINUTES', 30))))}")
-    content.append(f"WAR_HOURS\t{max(1, min(24, int(values.get('WAR_HOURS', 2))))}")
+    content.append(f"WAR_MINUTES\t{15 if int(values.get('WAR_MINUTES', 30)) <= 15 else 30}")
+    content.append(f"WAR_HOURS\t{max(1, min(4, int(values.get('WAR_HOURS', 2))))}")
+    content.append(f"WAR_KILLS\t{max(0, min(1000, int(values.get('WAR_KILLS', 100))))}")
     for key in ("CHEST", "CHEST_STONE"):
         if values.get(key) is not None:
             content.append(f"{key}\t{max(0, min(1000, int(values[key])))}")
@@ -8818,11 +8821,15 @@ def manage_behavior():
         values["SCROLL_FROM"] = max(1, min(9, int(request.form.get("SCROLL_FROM", values.get("SCROLL_FROM", 1)))))
     except (TypeError, ValueError):
         values["SCROLL_FROM"] = 1
-    for key, minimum, maximum, default in (("WAR_MINUTES", 5, 180, 30), ("WAR_HOURS", 1, 24, 2)):
+    try:
+        values["WAR_MINUTES"] = 15 if int(request.form.get("WAR_MINUTES", values.get("WAR_MINUTES", 30))) <= 15 else 30
+    except (TypeError, ValueError):
+        values["WAR_MINUTES"] = values.get("WAR_MINUTES", 30)
+    for key, minimum, maximum, default in (("WAR_HOURS", 1, 4, 2), ("WAR_KILLS", 0, 1000, 100)):
         try:
             values[key] = max(minimum, min(maximum, int(request.form.get(key, values.get(key, default)))))
         except (TypeError, ValueError):
-            values[key] = default
+            values[key] = values.get(key, default)
     switch = read_chest_switch()
     chest_off = "1" in request.form.getlist("CHEST_OFF")
     for key in ("CHEST", "CHEST_STONE"):
