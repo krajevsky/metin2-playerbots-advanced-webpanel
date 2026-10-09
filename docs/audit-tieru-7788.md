@@ -16,7 +16,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Sklep bota i oferty | `admin_panel.py:19378` `/api/bot_shop/<pid>` | `app.py:5504`, `templates/player.html` | u nas lepiej | wysoka | Zachować okno sklepu i warstwę tooltipów body. |
 | Usunięcie konkretnego przedmiotu z torby lub wyposażenia przez `DELITEM` | `admin_panel.py:22995–23131` `/api/bot_item_delete` | `app.py` `/api/bot-item-delete`, `templates/player.html` | jest | wysoka | Wdrożone w 1.114.6: kolejka, walidacja właściciela/vnum/liczby/window i testy. |
 | Anulowanie oczekującego `DELITEM` | `admin_panel.py:23069–23102` `/api/bot_item_delete` | `app.py` `/api/bot-item-delete` | jest | wysoka | Wdrożone w 1.114.6; bez anulowania stanu wykonywania `w*`. |
-| Usuwanie przedmiotu bezpośrednio ze sklepu offline | `admin_panel.py:23099–23107` (tylko INVENTORY/EQUIPMENT) | brak | brak u obu | wysoka | Najpierw sprawdzić komendę silnika i własność pozycji sklepu; nie pisać bezpośrednio do DB. |
+| Usuwanie przedmiotu bezpośrednio ze sklepu offline | `admin_panel.py:23099–23107` (tylko INVENTORY/EQUIPMENT); silnik `ikarus_shop_manager.cpp:3651–3712` | brak bezpiecznej komendy kolejki | brak u obu | wysoka | IkarusShop usuwa ofertę własnym pakietem DB po sprawdzeniu właściciela, trybu edycji, odległości i miejsca na przedmiot; wymaga osobnej komendy silnika, nie `DELITEM` ani bezpośredniego SQL. |
 | Blokada/odblokowanie EXP bota | `admin_panel.py:22827` `/player/<pid>/exp_lock` | `app.py:5419–5503,5726` | jest | wysoka | Bez zmian. |
 | Teleport administratora do gracza/sklepu | `admin_panel.py:12634` `/api/admin/warp_me`; `market_preview/__init__.py:366` | `app.py:5040`, `templates/player.html` | jest | wysoka | Porównać statusy kolejki przy wdrożeniu rynku. |
 | Historia decyzji sprzętowych bota | `admin_panel.py:14637` `/api/bot_gear_history/<pid>` | `app.py:4909`, `templates/decisions.html` | częściowo | średnia | Porównać filtry i objaśnienia, portować brakujące kody z tablic źródłowych. |
@@ -44,7 +44,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Polityka przedmiotów AI | `admin_panel.py:1603–1627,21344` `/ai/items` | `app.py:8067`, `templates/manage.html` | jest | wysoka | Zachować plik TSV odczytywany przez silnik. |
 | Natychmiastowy start Wieży Demonów/Katakumb | `admin_panel.py:21292,21309` | `app.py` `/manage/tower-now`, `/manage/catacomb-now` | jest | średnia | Zachować istniejący tor plików silnika. |
 | Zwolnienie zatrzymanych botów | `admin_panel.py:21326` | `app.py` `/manage/release-bots` | jest | wysoka | Zachować istniejący przełącznik hold. |
-| Eventy: harmonogramy, status, wywołanie | `admin_panel.py:7909,20995` `/events` | `app.py:7934`, `templates/events.html` | częściowo | wysoka | Porównać rodzaje eventów i formularze. |
+| Eventy: harmonogramy, status, wywołanie | `admin_panel.py:7909,20995` `/events` | `app.py`, `templates/events.html`, `_laka_events.html` | u nas lepiej | wysoka | Oba panele mają te same sześć typów; nasz dodatkowo udostępnia kalendarz tygodniowy, status map i historię. Zachować istniejący planer. |
 | Changelog/patchlog i sprawdzanie aktualizacji | `admin_panel.py:21540,21684,21712` | `app.py:7459`, `templates/changelog.html` | jest | średnia | Zachować wersjonowanie naszego panelu. |
 | Aktualizator Tieru i pliki Playerbots | `admin_panel.py:21611,21742–21779` | `app.py:8051`, `templates/manage.html` | częściowo | średnia | Zachować istniejący updater i bezpieczny tor wdrożenia. |
 | Pobieranie klienta, uruchamianie gry przez przeglądarkę | `admin_panel.py:21945,22049–22064` | brak | brak | niska | Osobna integracja; odłożyć do potwierdzenia dostępności klienta. |
@@ -115,7 +115,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Mapa: filtry poziomów, map, auto-logów, heatmapa | `admin_panel.py:10050–12465` `/map` | `templates/maps.html`, dashboard | częściowo | średnia | Porównać każdą nakładkę z aktualnym podglądem; proporcje map są chronione. |
 | Gildie: kolumny gildia/królestwo/klasa/poziom/członkowie/online/mistrz/siła/ranking/Z-R-P/EXP/wojna | `admin_panel.py:8012–8226` `/guilds` | `templates/guilds.html`, `guild.html` | częściowo | średnia | Rozbić statystyki członków i wojen na szczegóły profilu gildii. |
 | Sezon: 9 kolumn i sortowanie tabeli | `admin_panel.py:7841–7908` `/season` | `templates/season.html` | częściowo | średnia | Zweryfikować realne dane sezonu; live GET przekroczył 15 s. |
-| Eventy: wiersze harmonogramu, dni tygodnia, start/koniec, mapa, wartość, usunięcie | `admin_panel.py:7909–8011` `/events` | `templates/events.html` | częściowo | wysoka | Porównać zapisane typy eventów i walidacje zakresu. |
+| Eventy: wiersze harmonogramu, dni tygodnia, start/koniec, mapa, wartość, usunięcie | `admin_panel.py:7909–8011` `/events` | `templates/events.html`, `_laka_events.html` | u nas lepiej | wysoka | Te same pola edytuje tygodniowy kalendarz w obu motywach; brak funkcji do przeniesienia. |
 | Dropy: przegląd grup, edycja wierszy, podgląd zmiany, potwierdzenie | `admin_panel.py:26513–26878` `/drops/*` | brak | brak | średnia | Dopiero po sprawdzeniu fizycznych plików i atomowego zapisu. |
 | Edytor SQL: struktura, historia, etykiety, formularz, dodanie/usunięcie wiersza | `editsql/__init__.py:53–110,269–1050` `/editsql/*` | link do Tieru | częściowo | niska | Wymaga osobnego audytu autoryzacji; nie kopiować ogólnego zapisu SQL. |
 
@@ -124,7 +124,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 - HTML, CSS i JS klasycznego panelu Tieru: przenosimy zachowanie do komponentów `laka` i drugiego motywu, aby zachować skalowanie na telefonach.
 - Alternatywne mechanizmy logowania i sesji konta gracza z `/account`: nasz panel jest administracyjny i nie powinien bez analizy otwierać drugiego portalu gracza.
 - Bezpośrednie usuwanie danych SQL w celu skasowania przedmiotu bota: silnik musi wykonać `DELITEM` i ponownie sprawdzić przedmiot; modyfikacja DB pod aktywnym botem może rozjechać stan gry.
-- Przycisk usuwania przedmiotu już wystawionego w sklepie offline: kontrakt `DELITEM` Tieru ogranicza się do `INVENTORY` i `EQUIPMENT`, a usuwanie aktywnej oferty bez osobnej komendy silnika mogłoby rozjechać sklep i stan bota.
+- Przycisk usuwania przedmiotu już wystawionego w sklepie offline: `DELITEM` Tieru ogranicza się do `INVENTORY` i `EQUIPMENT`, a `RecvShopRemoveItemClientPacket` w silniku wymaga trybu edycji sklepu, bliskości właściciela i synchronizacji przez pakiet IkarusShop; bez osobnej komendy kolejki panel nie może bezpiecznie wykonać tej operacji.
 - Automatyczne kopiowanie updatera i binariów klienta Tieru: to oddzielny tor dystrybucji, który mógłby nadpisać lokalne poprawki i zasoby serwera.
 - Zastępowanie naszych map, natywnych okien `/player` i warstwy tooltipów wariantami Tieru: obecny układ spełnia wymagania proporcji, slotów i zoomu mobilnego.
 
