@@ -63,6 +63,11 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Szósty bonus nowych broni 70 poziomu": "Sixth bonus for new level-70 weapons",
+    "Zmiana dotyczy tylko nowo tworzonych broni; istniejące przedmioty zachowują bonus. Działa na żywo i zostaje po restarcie.": "The setting affects only newly created weapons; existing items keep their bonus. It applies live and persists after a restart.",
+    "Zapisz szósty bonus": "Save sixth bonus",
+    "Włączony": "Enabled",
+    "Wyłączony dla nowych broni": "Off for new weapons",
     "Usuń przedmiot bota": "Delete bot item",
     "Usuwanie wykonuje silnik gry. Gdy bot jest offline, żądanie czeka do jego wejścia.": "The game engine handles deletion. If the bot is offline, the request waits until it logs in.",
     "Założony": "Equipped",

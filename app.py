@@ -8451,13 +8451,14 @@ def manage_spawn_plan():
 # and the same web_admin_queue commands as his panel, so the game's
 # web_admin.quest applies them live and a restart keeps them.
 def read_world_extras():
-    raw = read_global_quest_flags(("m2_ds_eyes_per_day", "m2_extra_ds_drop", "m2_extra_coupon_drop", "m2_dragon_soul_off", "m2_mob_hp"))
+    raw = read_global_quest_flags(("m2_ds_eyes_per_day", "m2_extra_ds_drop", "m2_extra_coupon_drop", "m2_dragon_soul_off", "m2_mob_hp", "m2_unique70_bonus_off"))
     eyes = int(raw.get("m2_ds_eyes_per_day") or 0)
     return {
         "eyes": eyes if 1 <= eyes <= 100 else 10,
         "ds": max(0, min(100, int(raw.get("m2_extra_ds_drop") or 0))),
         "coupon": max(0, min(100, int(raw.get("m2_extra_coupon_drop") or 0))),
         "alchemy_off": 1 if int(raw.get("m2_dragon_soul_off") or 0) > 0 else 0,
+        "unique70_off": 1 if int(raw.get("m2_unique70_bonus_off") or 0) > 0 else 0,
         "mob_hp": (lambda v: 100 if v <= 0 else max(10, min(300, v)))(int(raw.get("m2_mob_hp") or 0)),
     }
 
@@ -8513,6 +8514,26 @@ def manage_dragon_soul():
     else:
         flash("Alchemia Smoczych Kamieni włączona " + ("— działa od razu." if status == "done" else "— zadziała po restarcie gry."))
     return redirect(url_for("manage"))
+
+
+@app.post("/manage/unique70-bonus")
+@login_required
+def manage_unique70_bonus():
+    """Tieru's m2_unique70_bonus_off / UNIQUE70_BONUS live switch."""
+    if not ENGINE_MT2009:
+        return redirect(url_for("manage"))
+    value = (request.form.get("off") or "").strip()
+    if value not in ("0", "1"):
+        flash("Nieprawidłowa wartość szóstego bonusu broni 70 poziomu.", "error")
+        return redirect(url_for("manage"))
+    rows("REPLACE INTO player.quest (dwPID,szName,szState,lValue) "
+         "VALUES (0,'m2_unique70_bonus_off','',%s)", (int(value),))
+    status, queue_id = queue_game_admin_command("UNIQUE70_BONUS", value)
+    if status == "timeout":
+        cancel_pending_admin_command(queue_id)
+    flash("Szósty bonus nowych broni 70 poziomu zapisany" +
+          (" — działa od razu." if status == "done" else " — zadziała po restarcie gry."))
+    return redirect(url_for("manage", _anchor="world-extras"))
 
 
 @app.post("/manage/student-chest")

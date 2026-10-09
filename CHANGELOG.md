@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.7 · Szósty bonus nowych broni 70 poziomu
+
+- W zarządzaniu dodatkami świata można teraz włączać lub wyłączać losowy szósty bonus nowo tworzonych broni poziomu 70. Istniejące bronie nie zmieniają się.
+- Panel zapisuje tę samą flagę `m2_unique70_bonus_off` i wysyła tę samą komendę `UNIQUE70_BONUS` co panel Tieru. Zmiana działa na żywo po odpowiedzi silnika i przetrwa restart. Dodano tłumaczenie angielskie oraz testy kontraktu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.6 · Usuwanie przedmiotów bota przez silnik gry
 
 - Na karcie bota, pod ekwipunkiem, dodano zwijaną listę przedmiotów z torby i wyposażenia. Administrator może wskazać konkretny egzemplarz do usunięcia; panel potwierdza nazwę, a operację wykonuje silnik Playerbots przez kolejkę `DELITEM`.

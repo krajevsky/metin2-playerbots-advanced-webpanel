@@ -35,7 +35,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Szybkość ruchu botów | `admin_panel.py:20302` | `app.py:8051`, `templates/manage.html` | jest | średnia | Zweryfikować zakres. |
 | Dodatki świata | `admin_panel.py:20341` `/rates/world_extras` | `app.py:8051`, `templates/manage.html` | częściowo | średnia | Porównać każdą flagę z formularzem; brakujące dodać osobno. |
 | Smocza Alchemia | `admin_panel.py:20383` `/rates/dragon_soul` | `app.py:8051`, `/player` | częściowo | średnia | Porównać ustawienia, bez naruszania okna alchemii. |
-| Bonus unikatowych przedmiotów poziomu 70 | `admin_panel.py:20423` | `app.py:8051` | częściowo | niska | Dodać, jeśli silnik na VPS czyta tę flagę. |
+| Bonus unikatowych przedmiotów poziomu 70 | `admin_panel.py:20423` | `app.py` `/manage/unique70-bonus`, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.7 z flagą i komendą silnika Tieru. |
 | Yang na ziemi, obrona właściciela | `admin_panel.py:20457,20491` | `app.py:8051` | częściowo | średnia | Porównać flagi i testy. |
 | Kanały i rozdział botów | `admin_panel.py:20622` `/rates/channels` | `app.py:8111`, `templates/manage.html` | jest | wysoka | Bez zmian. |
 | Wagi AI, decyzje i aktualne akcje | `admin_panel.py:1745–2000,20883,21120` `/ai`, `/decisions` | `app.py:7780,8051`, `templates/decisions.html` | częściowo | wysoka | Porównać wszystkie suwaki, limity i etykiety. |

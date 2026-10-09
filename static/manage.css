@@ -64,3 +64,5 @@
 .behavior-life-control .behavior-weight{grid-template-columns:minmax(0,1fr) minmax(120px,2fr) auto auto}
 .behavior-life-help{color:var(--muted);line-height:1.35}
 @media(max-width:680px){.behavior-life-control .behavior-weight{grid-template-columns:1fr}}
+.unique70-form .unique70-option{display:flex;align-items:center;gap:10px;min-height:36px;min-width:0}
+.unique70-form .unique70-option input[type=radio]{flex:0 0 auto;width:18px;height:18px;margin:0}
