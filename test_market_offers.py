@@ -322,3 +322,25 @@ def test_market_specific_stone_vnum_overrides_generic_stone_filter():
     assert params == (28130, 28130, 28130)
     assert render.call_args.kwargs["has_stone"] is False
     assert render.call_args.kwargs["stone_vnum"] == 28130
+
+
+def test_market_shop_owner_filter_uses_item_owner_id():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?shop=2005")
+    assert response.status_code == 200
+    assert "i.owner_id=%s" in count_rows.call_args.args[0]
+    assert count_rows.call_args.args[1] == (2005,)
+    assert render.call_args.kwargs["shop_owner"] == 2005
+
+
+def test_market_shop_owner_filter_rejects_invalid_ids():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "rows", return_value=[]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers?shop=999999999999")
+    assert count_rows.call_args.args[1] == ()
+    assert render.call_args.kwargs["shop_owner"] == 0

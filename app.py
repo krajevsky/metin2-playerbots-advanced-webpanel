@@ -6724,6 +6724,9 @@ def economy_offers():
         seller_type = "all"
     seller_name = request.args.get("seller_name", "").strip()[:80]
     shop_name = request.args.get("shop_name", "").strip()[:80]
+    shop_owner = request.args.get("shop", 0, type=int)
+    if not 1 <= shop_owner <= 0xFFFFFFFF:
+        shop_owner = 0
     category = request.args.get("category", 0, type=int)
     if category not in (0, *(entry[0] for entry in MARKET_CATEGORIES)):
         category = 0
@@ -6803,6 +6806,7 @@ def economy_offers():
     page = max(1, min(100, request.args.get("page", 1, type=int)))
     filter_values = {"q": query, "seller": seller_type if seller_type != "all" else "",
                      "seller_name": seller_name, "shop_name": shop_name,
+                     "shop": shop_owner if shop_owner else "",
                      "category": category if category else "",
                      "subcategory": subcategory if subcategory else "",
                      "cls": class_bit if class_bit else "",
@@ -6820,6 +6824,7 @@ def economy_offers():
         "q": ("Przedmiot", "Item"), "seller": ("Sprzedawca", "Seller"),
         "seller_name": ("Nick sprzedawcy", "Seller nickname"),
         "shop_name": ("Nazwa sklepu", "Shop name"),
+        "shop": ("ID właściciela sklepu", "Shop owner ID"),
         "category": ("Kategoria", "Category"),
         "subcategory": ("Podkategoria", "Subcategory"),
         "cls": ("Klasa postaci", "Character class"),
@@ -6866,6 +6871,9 @@ def economy_offers():
     if shop_name:
         clauses.append("s.name LIKE %s")
         params.append(f"%{shop_name}%")
+    if shop_owner:
+        clauses.append("i.owner_id=%s")
+        params.append(shop_owner)
     if category:
         clauses.append("(" + market_category_sql() + ")=%s")
         params.append(category)
@@ -6954,7 +6962,7 @@ def economy_offers():
             app.logger.warning("Skipping malformed global market offer: %r", offer)
     return render_template("economy_offers.html", offers=offers, query=query,
                            seller_type=seller_type, seller_name=seller_name,
-                           shop_name=shop_name, category=category,
+                           shop_name=shop_name, shop_owner=shop_owner, category=category,
                            subcategory=subcategory, market_categories=MARKET_CATEGORIES,
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
                            class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,

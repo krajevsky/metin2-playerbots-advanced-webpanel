@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.38 · Oferty jednego sklepu
+
+- Przeglądarka rynku pozwala ograniczyć oferty do sklepu jednego właściciela po ID postaci. Filtr odpowiada polu `owner` u Tieru, działa razem z pozostałymi warunkami i zachowuje się przy stronicowaniu.
+- Dodano aktywny chip, etykietę PL/EN i testy ograniczenia identyfikatora oraz parametryzacji SQL.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.37 · Filtr kamieni duszy na rynku
 
 - Oferty można ograniczyć do broni i zbroi z dowolnym kamieniem duszy albo z konkretnym VNUM kamienia. Zakres 28000–28999 i trzy gniazda są zgodne z regułą Tieru; wpisanie VNUM ma pierwszeństwo przed ogólnym wyborem.

@@ -63,6 +63,7 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "ID właściciela sklepu": "Shop owner ID",
     "Kamień duszy": "Soul stone",
     "VNUM kamienia": "Stone VNUM",
     "Dowolny": "Any",
