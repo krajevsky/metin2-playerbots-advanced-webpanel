@@ -622,7 +622,9 @@ body[data-skin="laka"] .laka-flash{animation:laka-flash .9s ease-out}
   .laka-bottombar a,.laka-bottombar button{display:grid;justify-items:center;gap:3px;padding:4px 0;border:0;background:none;color:var(--laka-dust);font:700 11px var(--laka-body);cursor:pointer;text-decoration:none}
   .laka-bottombar .laka-slot{width:34px;height:34px}
   .laka-bottombar [aria-current="true"]{color:var(--laka-gold-hi)}
-  body[data-skin="laka"] .action-toast-stack,body[data-skin="laka"] .notif-toast-stack{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+  /* above the bottom bar, only as tall as the toasts: with top left at its default the empty stack
+     stretched over the whole screen and swallowed taps (e.g. the shop's right-hand columns) */
+  body[data-skin="laka"] .action-toast-stack,body[data-skin="laka"] .notif-toast-stack{top:auto!important;bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
   /* ticker sits above the bottom bar instead of under it */
   body[data-skin="laka"] .news-ticker{left:7px;right:7px;bottom:calc(76px + env(safe-area-inset-bottom,0px))}
   body[data-skin="laka"] .news-ticker.is-hidden{left:auto}

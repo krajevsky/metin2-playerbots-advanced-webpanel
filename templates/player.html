@@ -246,9 +246,17 @@ function bindShopTips(){
     hideTip();
     const tip=src.cloneNode(true); tip.querySelector('.tip-explain')?.remove();
     if(shop.dataset.explain==='1'&&slot.dataset.itemId){
-      const hint=document.createElement('span'); hint.className='dx-tip-hint';
-      hint.textContent=touchUi()?(en?'Tap again to see where this price comes from':'Stuknij ponownie, aby zobaczyć, skąd ta cena'):(en?'Click to see where this price comes from':'Kliknij, aby zobaczyć, skąd ta cena');
-      tip.append(hint);
+      if(touchUi()){
+        // touch: a real button in the tooltip (a second tap on a 25px slot was too fiddly)
+        const button=document.createElement('button'); button.type='button'; button.className='dx-tip-btn';
+        button.textContent=en?'Why this price?':'Dlaczego ta cena?';
+        button.addEventListener('click',e=>{e.stopPropagation();openPanel(slot)});
+        tip.append(button); tip.classList.add('is-touch');
+      } else {
+        const hint=document.createElement('span'); hint.className='dx-tip-hint';
+        hint.textContent=en?'Click to see where this price comes from':'Kliknij, aby zobaczyć, skąd ta cena';
+        tip.append(hint);
+      }
     }
     tip.classList.add('shop-floating-tip'); tip.style.visibility='hidden';
     layer.append(tip); place(tip,x,y,below); tipSlot=slot;
@@ -304,7 +312,7 @@ function bindShopTips(){
     slot.addEventListener('click',e=>{
       e.stopPropagation();
       if(touchUi()){
-        if(tipSlot===slot){ if(!openPanel(slot))hideTip(); return; }
+        if(tipSlot===slot){ hideTip(); return; }  // the same item again: put the tooltip away
         const r=slot.getBoundingClientRect(); showTip(slot,r.left+r.width/2,r.top,false);
       } else openPanel(slot);
     });

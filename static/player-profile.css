@@ -818,3 +818,7 @@ html[lang="en"] .native-character-quests{background-image:url('/static/character
 @keyframes dx-pulse{0%,80%,100%{opacity:.25;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
 #shop-tip-layer .dx-empty{margin:0;padding:18px 16px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){#shop-tip-layer .dx-loading span{animation:none;opacity:.7}}
+/* touch: the tooltip takes taps (its button opens the explanation) */
+#shop-tip-layer .item-tip.shop-floating-tip.is-touch{pointer-events:auto}
+#shop-tip-layer .dx-tip-btn{display:block;width:100%;margin-top:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--gold,#f2c34d);background:linear-gradient(180deg,#f3c955,#c99227);color:#1d1404;font:800 13px/1.2 inherit;cursor:pointer;touch-action:manipulation}
+#shop-tip-layer .dx-tip-btn:active{filter:brightness(.92)}

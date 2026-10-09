@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.4 · Telefon: sklep da się klikać, przycisk „Dlaczego ta cena?”
+
+- Na telefonie dało się stuknąć tylko pierwsze kolumny sklepu na karcie postaci. Pusty pojemnik na wyskakujące powiadomienia rozciągał się w motywie Laka i Złoto na niemal cały ekran i przechwytywał dotknięcia. Teraz ma tylko wysokość powiadomień i nigdy nie zabiera dotknięć stronie pod spodem, także w pozostałych motywach.
+- Na telefonie tooltip przedmiotu w sklepie ma przycisk „Dlaczego ta cena?”, który otwiera wyjaśnienie. Nie trzeba już trafiać drugi raz w mały slot. Ponowne stuknięcie w ten sam przedmiot chowa tooltip.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-09 · 1.114.3 · Wyjaśnienie ceny wczytywane po kliknięciu
 
 - Wyjaśnienie ceny w sklepie na karcie postaci znów działa. Od przebudowy okna sklepu (natywne UI) żadna oferta go nie dostawała, także w 1.114.2.
