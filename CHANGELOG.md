@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.23 · Zakres cen na rynku
+
+- Przeglądarka ofert przyjmuje minimalną i maksymalną cenę Yang oraz opcjonalnie filtruje cenę za sztukę w stosie. Obsługuje wpisy `500k`, `1.5kk`, `2kkk` i grupowane kwoty tak samo jak parser Tieru.
+- Niepoprawne wartości są oznaczane bez przerwania strony. Filtry pozostają przy zmianie strony wyników; dodano teksty PL/EN i testy parsera oraz zapytania.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.22 · Przeglądarka ofert rynku
 
 - W Gospodarce dodano stronę aktywnych ofert IkarusShop z wyszukiwaniem po nazwie lub VNUM, filtrem królestwa i typu sprzedawcy oraz sortowaniem po cenie całkowitej albo za sztukę. Wyniki są stronicowane po 50 i prowadzą do przedmiotu lub sprzedawcy.

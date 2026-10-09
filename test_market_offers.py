@@ -2,6 +2,7 @@
 from unittest.mock import patch
 
 import app as panel
+import pytest
 
 
 SETTINGS = {"setup_complete": "1", "auth_enabled": "0", "ui_language": "pl"}
@@ -38,3 +39,28 @@ def test_market_offers_uses_sort_whitelist_and_caps_page():
     assert render.call_args.kwargs["seller_type"] == "all"
     assert render.call_args.kwargs["empire"] == 0
     assert render.call_args.kwargs["page"] == 100
+
+
+@pytest.mark.parametrize("text,value", [("500k", 500_000), ("1.5kk", 1_500_000),
+                                         ("2kkk", 2_000_000_000), ("1 500 000", 1_500_000),
+                                         ("2,5kk Yang", 2_500_000), ("", None)])
+def test_market_price_parser_matches_tieru(text, value):
+    assert panel.parse_market_price(text) == value
+
+
+@pytest.mark.parametrize("text", ["abc", "1.2", "-5k", "100000000000000"])
+def test_market_price_parser_rejects_invalid(text):
+    with pytest.raises(ValueError):
+        panel.parse_market_price(text)
+
+
+def test_market_offers_price_filter_uses_units_and_bound_parameters():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "rows", return_value=[]) as read_rows, \
+            patch.object(panel, "render_template", return_value="ok"):
+        response = panel.app.test_client().get("/economy/offers?pmin=500k&pmax=2kk&unit=1")
+    assert response.status_code == 200
+    sql, params = read_rows.call_args.args
+    assert "GREATEST(i.`count`,1)" in sql
+    assert ">=%s" in sql and "<=%s" in sql
+    assert params == [500000, 2000000, 51, 0]

@@ -63,6 +63,10 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "Cena od": "Price from",
+    "Cena do": "Price to",
+    "Filtruj cenę za sztukę": "Filter by unit price",
+    "Nieprawidłowy zakres ceny. Użyj liczby Yang albo skrótu k, kk, kkk.": "Invalid price range. Use a Yang amount or k, kk, kkk shorthand.",
     "Oferty rynku": "Market offers",
     "Przeglądaj aktywne oferty →": "Browse active offers →",
     "GOSPODARKA · SKLEPY OFFLINE": "ECONOMY · OFFLINE SHOPS",

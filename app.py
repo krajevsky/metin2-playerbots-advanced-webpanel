@@ -6647,6 +6647,35 @@ def economy_shops():
                             recent_sales=recent_shop_sales(10))
 
 
+MARKET_PRICE_MAX = 10 ** 13
+MARKET_PRICE_K = re.compile(r"^(\d+(?:[.,]\d+)?)\s*(k{1,4})$")
+MARKET_PRICE_GROUPS = re.compile(r"^\d{1,3}(?:[ .,_]\d{3})+$")
+
+
+def parse_market_price(text):
+    """Tieru market_preview.rules.parse_price: k/kk/kkk and grouped Yang."""
+    value_text = str(text if text is not None else "").strip().lower().replace("\xa0", " ")
+    if not value_text:
+        return None
+    value_text = re.sub(r"\s*yang$", "", value_text)
+    match = MARKET_PRICE_K.match(value_text.replace(" ", ""))
+    if match:
+        whole, _, fraction = match.group(1).replace(",", ".").partition(".")
+        scale = 1000 ** len(match.group(2))
+        value = int(whole) * scale
+        if fraction:
+            value += int(fraction) * scale // (10 ** len(fraction))
+    elif value_text.isdigit():
+        value = int(value_text)
+    elif MARKET_PRICE_GROUPS.match(value_text):
+        value = int(re.sub(r"[ .,_]", "", value_text))
+    else:
+        raise ValueError(text)
+    if value < 0 or value > MARKET_PRICE_MAX:
+        raise ValueError(text)
+    return value
+
+
 @app.route("/economy/offers")
 @login_required
 def economy_offers():
@@ -6658,6 +6687,18 @@ def economy_offers():
     empire = request.args.get("empire", type=int) or 0
     if empire not in (0, 1, 2, 3):
         empire = 0
+    price_inputs = {key: request.args.get(key, "").strip()[:40] for key in ("pmin", "pmax")}
+    price_values, price_errors = {}, {}
+    for key, raw_price in price_inputs.items():
+        try:
+            price_values[key] = parse_market_price(raw_price)
+        except ValueError:
+            price_errors[key] = True
+    if (price_values.get("pmin") is not None and price_values.get("pmax") is not None
+            and price_values["pmin"] > price_values["pmax"]):
+        price_errors = {"pmin": True, "pmax": True}
+        price_values = {}
+    unit_price_filter = request.args.get("unit") == "1"
     sort = request.args.get("sort", "price_asc")
     order = {"price_asc": "price ASC, i.id DESC",
              "price_desc": "price DESC, i.id DESC",
@@ -6676,6 +6717,13 @@ def economy_offers():
         params.append(empire)
     if seller_type != "all":
         clauses.append("LEFT(a.login,10)" + ("=" if seller_type == "bot" else "<>") + "'playerbot_'")
+    price_expr = "CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED)"
+    if unit_price_filter:
+        price_expr += " / GREATEST(i.`count`,1)"
+    for key, operator in (("pmin", ">="), ("pmax", "<=")):
+        if price_values.get(key) is not None:
+            clauses.append(price_expr + operator + "%s")
+            params.append(price_values[key])
     params.extend([51, (page - 1) * 50])
     raw = rows("""SELECT i.id, i.owner_id, i.vnum, i.`count` AS quantity,
         CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED) AS price,
@@ -6709,7 +6757,8 @@ def economy_offers():
             app.logger.warning("Skipping malformed global market offer: %r", offer)
     return render_template("economy_offers.html", offers=offers, query=query,
                            seller_type=seller_type, empire=empire, sort=sort,
-                           page=page, has_next=has_next)
+                           page=page, has_next=has_next, price_inputs=price_inputs,
+                           price_errors=price_errors, unit_price_filter=unit_price_filter)
 
 
 @app.route("/api/shop-feed")
