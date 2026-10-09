@@ -63,6 +63,8 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    "📈 Opaski i Kamień Duchowy wyceniane według podaży": "📈 Price Forgetting Bands and Spirit Stones by supply",
+    "Silnik stosuje te same progi podaży co dla ksiąg umiejętności. Domyślnie włączone.": "The core uses the same supply thresholds as for skill books. Enabled by default.",
     "🧺 Miejsce w sklepie offline bota": "🧺 Space in a bot's offline shop",
     "Przy pełnym sklepie bot może sprzedać u handlarki ćwierć najtańszego stosu materiałów lub ksiąg, aby zwolnić miejsce. Nie dotyka wyposażenia.": "When a shop is full, a bot may sell a quarter of its cheapest materials or books stack to the general merchant to free space. Equipment is untouched.",
     "🤝 Targowanie botów z graczami": "🤝 Bots haggle with players",

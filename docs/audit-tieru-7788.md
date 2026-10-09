@@ -83,7 +83,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 | Panel AI: sprzedaż w sklepiku w mieście `SHOP_ROOM_SELL` | `admin_panel.py:8366–8371` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.17, domyślnie włączone. |
 | Panel AI: przechowywanie wyjaśnień `EXPLAIN` | `admin_panel.py:8372–8386` | `app.py` ustawienie retencji decyzji | częściowo | średnia | Porównać zakres i lokalizację, nie utracić historii decyzji. |
 | Panel AI: zakupy także w M2 `SHOP_M2` | `admin_panel.py:8387–8390` | `templates/manage.html` | jest | średnia | Bez zmian. |
-| Panel AI: pasma podaży `SUPPLY_BANDS` | `admin_panel.py:8391–8397` | brak | brak | średnia | Dodać przełącznik i definicję wpływu na ceny. |
+| Panel AI: pasma podaży `SUPPLY_BANDS` | `admin_panel.py:8391–8397` | `app.py` /manage/behavior, `templates/manage.html` | jest | średnia | Wdrożone w 1.114.18, domyślnie włączone. |
 | Panel AI: skalowanie podaży `SUPPLY_SCALE` | `admin_panel.py:8397–8403` | brak | brak | średnia | Dodać przełącznik, domyślnie wyłączony. |
 | Panel AI: referencyjna liczba botów `SUPPLY_REF_BOTS` | `admin_panel.py:8400–8408` | brak | brak | średnia | Portować limit z kodu źródłowego. |
 | Panel AI: złomiarze `SCRAP`, odpoczynek `REST`, PvP między królestwami `KINGDOMPVP` | `admin_panel.py:8410–8430` | `templates/manage.html` | jest | średnia | Bez zmian. |

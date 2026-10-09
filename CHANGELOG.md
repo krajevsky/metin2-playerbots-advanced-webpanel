@@ -1,3 +1,10 @@
+## 2026-10-09 · 1.114.18 · Wycena opasek i Kamienia Duchowego według podaży
+
+- Dodano przełącznik `SUPPLY_BANDS`: Opaski Zapomnienia i Kamień Duchowy mogą korzystać z progów podaży ksiąg umiejętności. Stan domyślny jest zgodny z silnikiem Tieru: włączony.
+- Ustawienie działa przez plik wag AI, ma teksty PL/EN i test odczytu/zapisu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-09 · 1.114.17 · Miejsce w sklepach offline botów
 
 - Dodano przełącznik `SHOP_ROOM_SELL`, zgodny z panelem Tieru. Gdy sklep bota jest pełny, silnik może sprzedać u handlarki ćwierć najtańszego stosu materiałów lub ksiąg, aby zwolnić komórkę. Wyposażenie pozostaje poza tą regułą.
