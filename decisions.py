@@ -20,9 +20,15 @@ natural follow-up, using the same tables.
 import re
 
 from decision_tables import (
-    DECISION_CODE_NAMES, DECISION_ENUMS, DECISION_EVENTS, DECISION_GOODS,
-    DECISION_OFF, DECISION_SHAPES, DECISION_STAND, DECISION_STEPS,
+    DECISION_CODE_NAMES, DECISION_ENUMS, DECISION_EVENTS, DECISION_GOODS, DECISION_LFLAGS,
+    DECISION_LISTING_UNUSUAL, DECISION_OFF, DECISION_SHAPES, DECISION_SHEET_STEPS, DECISION_STAND,
+    DECISION_STEPS, DECISION_TEXTS,
 )
+
+# Names this module cannot look up itself; app.py fills these in at import
+# (a skill's name by its id, a monster's by its vnum). Without them the
+# number is said with its word: "umiejętność #46", "potwór #2091".
+NAME_SOURCES = {"skill": None, "mob": None}
 
 _DX_SLOT = re.compile(r"\{(value|a|b|c)\}")
 
@@ -73,10 +79,15 @@ def decision_code_name(prefix, code):
     return DECISION_CODE_NAMES.get(prefix, {}).get(code) or "%s_%d" % (prefix, code)
 
 
+def _text(key, lang, **values):
+    """One of the explanation's framing phrases (DECISION_TEXTS, Tieru's ex_*)."""
+    return _pick(DECISION_TEXTS.get(key, {}), lang).format(**values)
+
+
 def _dx_unknown(code, raw, lang):
+    """A code this panel has no words for (a newer core's): its number and parameters."""
     params = ", ".join("%s=%s" % (k, raw[k]) for k in ("value", "a", "b", "c") if raw.get(k))
-    base = "code %d" % code if lang == "en" else "kod %d" % code
-    return base + (" (" + params + ")" if params else "")
+    return _text("ex_code_n", lang, n=code) + (" (" + params + ")" if params else "")
 
 
 def _dx_param(kind, raw, params, lang, item_name, apply_text):
@@ -101,8 +112,16 @@ def _dx_param(kind, raw, params, lang, item_name, apply_text):
         return "%d‰" % raw
     if kind == "x100":
         return "×" + _dec_text(raw / 100.0, 2, lang)
+    if kind == "x1000":
+        return "×" + _dec_text(raw / 1000.0, 2, lang)
     if kind == "x10000":
         return "×" + _dec_text(raw / 10000.0, 4, lang)
+    if kind == "skill":
+        name = NAME_SOURCES["skill"](raw) if NAME_SOURCES["skill"] and raw > 0 else None
+        return name or (_text("ex_skill_n", lang, n=raw) if raw > 0 else "—")
+    if kind == "mob":
+        name = NAME_SOURCES["mob"](raw, lang) if NAME_SOURCES["mob"] and raw > 0 else None
+        return name or (_text("ex_mob_n", lang, n=raw) if raw > 0 else "—")
     if kind == "minutes":
         return "%d %s" % (raw, "min" if lang == "en" else "min")
     if kind == "item":
@@ -140,6 +159,17 @@ def decision_goods_text(code, a, b, c, lang, item_name, apply_text):
     return _dx_fill(_pick(texts, lang), kinds, raw, lang, item_name, apply_text)
 
 
+def _dx_change(before, after, lang):
+    """How a step moved the price: "=" when it did not, a percentage, or a multiple when large."""
+    if not before or before == after:
+        return "=" if before else ""
+    ratio = float(after) / float(before)
+    if ratio >= 2.0 or ratio <= 0.5:
+        return "×" + _dec_text(ratio, 2, lang)
+    change = (ratio - 1.0) * 100.0
+    return ("+" if change > 0 else "") + _dec_text(change, 1, lang) + "%"
+
+
 def decision_step_rows(text, lang, item_name, apply_text):
     """A price-steps column as rows of (name, detail, effect on the running
     price, price after this step); and whether the column was cut short."""
@@ -160,13 +190,7 @@ def decision_step_rows(text, lang, item_name, apply_text):
         effect = shown = ""
         if value_kind is None:
             shown = _int_text(value)
-            if running is not None and running:
-                ratio = float(value) / float(running)
-                if ratio >= 2.0 or ratio <= 0.5:
-                    effect = "×" + _dec_text(ratio, 2, lang)
-                else:
-                    change = (ratio - 1.0) * 100.0
-                    effect = ("+" if change > 0 else "") + _dec_text(change, 1, lang) + "%"
+            effect = _dx_change(running, value, lang) if running is not None else ""
             running = value
         rows.append({"name": label, "detail": detail, "effect": effect, "value": shown})
     return rows, cut
@@ -176,51 +200,109 @@ _LISTING_END_EVENTS = frozenset((8, 9, 10))
 _LISTING_CHANGE_EVENTS = frozenset((4, 5, 6, 7))
 
 
+def decision_flags(flags, lang):
+    """A counter line's flag badges, each marked when it is an unusual one."""
+    flags, out, bit = int(flags or 0), [], 1
+    while bit <= flags:
+        if flags & bit:
+            entry = DECISION_LFLAGS.get(bit)
+            out.append({"label": _pick(entry, lang) if entry else "#%d" % bit,
+                        "unusual": bool(bit & DECISION_LISTING_UNUSUAL)})
+        bit <<= 1
+    return out
+
+
+def decision_sheet_ratio(row, steps):
+    """One unit's price against the sheet's (the first sheet step, with the
+    bonus premium after it for gear, and a slip's meant price); None when the
+    price came from no sheet."""
+    sheet = meant = None
+    for code, value, a, _b, _c in steps:
+        if code in DECISION_SHEET_STEPS and sheet is None:
+            sheet = value
+        elif code == 11 and sheet:
+            sheet = value
+        elif code == 39:
+            meant = a
+    count = max(1, int(row.get("count") or 0))
+    price = meant or int(row.get("list_price") or 0)
+    if not sheet or not price:
+        return None
+    return {"unit": price // count, "sheet": sheet, "ratio": float(price) / count / sheet}
+
+
 def explain_listing(row, lang, item_name, apply_text, counter_price=None):
-    """One row of log.playerbot_listing, in the panel's current language:
-    why the item is goods and on this counter, the price step by step, what
-    happened to it since, and (for a still-listed line) whether the
-    counter's current price still matches what was last explained."""
+    """One row of log.playerbot_listing in the panel's language, the way Tieru's
+    panel says it: why the item is goods (and its score), why the stall is
+    open, how it was picked and cut from its stack, the price step by step and
+    against the sheet, what happened to it since, and its flags."""
     count = int(row.get("count") or 0)
     goods = decision_goods_text(row.get("why"), row.get("why_a"), row.get("why_b"), row.get("why_c"),
-                                 lang, item_name, apply_text)
+                                lang, item_name, apply_text)
+    if int(row.get("score") or 0):
+        goods += " · " + _text("ex_score", lang, score=_int_text(row.get("score")))
     stand = int(row.get("stand_reason") or 0)
-    stand_text = (("Stragan: " if lang != "en" else "Stall: ") + decision_label(DECISION_STAND, stand, lang)) if stand else ""
+    stand_text = _text("ex_stand", lang, reason=decision_label(DECISION_STAND, stand, lang)) if stand else ""
+    candidates = int(row.get("candidates") or 0)
+    pick = ""
+    if candidates:
+        # pick_rank is the index among the scored candidates, 0 the first
+        pick = _text("ex_pick", lang, rank=int(row.get("pick_rank") or 0) + 1, n=candidates)
+        if int(row.get("refused_above") or 0):
+            pick += _text("ex_pick_refused", lang, k=int(row.get("refused_above") or 0))
+    cut = ""
+    if int(row.get("cut_from") or 0):
+        cut = _text("ex_cut", lang, shape=decision_label(DECISION_SHAPES, row.get("cut_shape"), lang),
+                    whole=_int_text(row.get("cut_from")), take=_int_text(count), keep=_int_text(row.get("cut_keep")))
+    if int(row.get("held") or 0):
+        cut += ("; " if cut else "") + _text("ex_held", lang, held=_int_text(row.get("held")))
     list_event = int(row.get("list_event") or 0)
+    list_price = int(row.get("list_price") or 0)
+    listed_event = decision_label(DECISION_EVENTS, list_event, lang) if list_event else ""
+    listed_time = _dx_time(row.get("listed_at"))
+    listed = " · ".join(p for p in (listed_event, listed_time,
+                                    _text("ex_list_price", lang, price=_int_text(list_price)) if list_price else "") if p)
     steps, steps_cut = decision_step_rows(row.get("list_steps"), lang, item_name, apply_text)
     last_event = int(row.get("last_event") or 0)
+    last_time = _dx_time(row.get("last_at"))
     last = None
     if last_event in _LISTING_CHANGE_EVENTS:
         last_steps, last_cut = decision_step_rows(row.get("last_steps"), lang, item_name, apply_text)
-        last = {"title": decision_label(DECISION_EVENTS, last_event, lang), "steps": last_steps, "steps_cut": last_cut,
+        line = _text("ex_was_now", lang, was=_int_text(row.get("was")), now=_int_text(row.get("price")))
+        if int(row.get("changes") or 0):
+            line += " · " + _text("ex_changes", lang, n=int(row.get("changes") or 0))
+        last = {"title": decision_label(DECISION_EVENTS, last_event, lang) + " · " + last_time, "line": line,
+                "steps": last_steps, "steps_cut": last_cut,
                 "was": _int_text(row.get("was")), "now": _int_text(row.get("price"))}
     end = ""
     if last_event in _LISTING_END_EVENTS:
         if last_event == 10:
-            end = ("Sprzedane za " if lang != "en" else "Sold for ") + _int_text(row.get("sold_price")) + " Yang"
+            end = _text("ex_end_sold", lang, price=_int_text(row.get("sold_price")))
         else:
-            end = decision_label(DECISION_OFF, row.get("off_reason"), lang)
-    explained = int(row.get("price") or 0) or int(row.get("list_price") or 0)
+            end = _text("ex_end_off", lang, reason=decision_label(DECISION_OFF, row.get("off_reason"), lang))
+        end += " · " + last_time
+    explained = int(row.get("price") or 0) or list_price
     price_note = ""
-    if counter_price is not None and explained and int(counter_price or 0) != explained and last_event not in _LISTING_END_EVENTS:
-        price_note = (
-            "Cena na ladzie (%s) różni się od wyjaśnionej (%s) — tej zmiany nic nie zapisało."
-            % (_int_text(counter_price), _int_text(explained)) if lang != "en" else
-            "The counter's price (%s) differs from the explained one (%s) — nothing recorded that change."
-            % (_int_text(counter_price), _int_text(explained))
-        )
+    if counter_price is not None and explained and int(counter_price or 0) != explained \
+            and last_event not in _LISTING_END_EVENTS:
+        price_note = _text("ex_price_differs", lang, now=_int_text(counter_price), explained=_int_text(explained))
+    flags = int(row.get("flags") or 0)
+    ratio = decision_sheet_ratio(row, decode_explain_pairs(row.get("list_steps"))[0])
     return {
-        "goods": goods, "stand": stand_text,
-        "listed_event": decision_label(DECISION_EVENTS, list_event, lang) if list_event else "",
-        "listed_time": _dx_time(row.get("listed_at")),
+        "goods": goods, "stand": stand_text, "pick": pick, "cut": cut,
+        "listed": listed, "listed_event": listed_event, "listed_time": listed_time,
         "steps": steps, "steps_cut": steps_cut,
-        "last": last, "end": end, "last_time": _dx_time(row.get("last_at")),
+        "sheet": _text("ex_sheet_ratio", lang, unit=_int_text(ratio["unit"]), sheet=_int_text(ratio["sheet"]),
+                       ratio="×" + _dec_text(ratio["ratio"], 2, lang)) if ratio else "",
+        "last": last, "end": end, "last_time": last_time,
         "price": _int_text(explained) if explained else "", "price_note": price_note,
+        "flags": decision_flags(flags, lang),
+        "unusual": _text("ex_unusual", lang) if flags & DECISION_LISTING_UNUSUAL else "",
         "count": count,
     }
 
 
 def _dx_time(value):
     if hasattr(value, "strftime"):
-        return value.strftime("%d.%m %H:%M")
+        return value.strftime("%d.%m %H:%M:%S")
     return str(value or "")

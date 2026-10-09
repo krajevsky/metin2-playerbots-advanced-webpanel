@@ -1178,6 +1178,17 @@ def parse_passive_skills(raw):
 
 
 SKILL_NAMES = {vnum: name for skill_set in SKILLS.values() for vnum, name in skill_set}
+# The bots' explained decisions name skills and monsters (decisions.py's "skill" and
+# "mob" parameters): skills from the table above, monsters from the client's names file.
+_MOB_NAMES_BY_VNUM = translations._load_game_names("mob_names_en.json")
+
+
+def _decision_mob_name(vnum, lang):
+    names = _MOB_NAMES_BY_VNUM.get(str(int(vnum or 0)))
+    return (names[1] if lang == "en" and len(names) > 1 else names[0]) if names else None
+
+
+decisions.NAME_SOURCES.update(skill=lambda skill_id: SKILL_NAMES.get(int(skill_id or 0)), mob=_decision_mob_name)
 # Every ordinary Skill Book is vnum 50300 no matter which skill it teaches --
 # the skill itself only lives in socket0 (the "Instr." vnums from 50401 up
 # already carry their skill in locale_name and never need this). Kept as a
@@ -4864,8 +4875,15 @@ def bot_gear_history(pid, limit=60):
 
 
 def _decision_item_name(vnum):
-    proto = ITEM_DEFS.get(str(int(vnum or 0)))
-    return proto["name"] if proto else f"VNUM {int(vnum or 0)}"
+    """An item's Polish client name for the explained decisions. item_names_en.json first:
+    item_defs.json carries some names with broken Polish letters ("Bia³. Z³ota") and lacks
+    a few materials altogether ("VNUM 27798" for Skamieniała Krewetka)."""
+    vnum = int(vnum or 0)
+    names = translations._ITEM_NAMES_BY_VNUM.get(str(vnum))
+    if names and names[0]:
+        return names[0]
+    proto = ITEM_DEFS.get(str(vnum))
+    return proto["name"] if proto else f"VNUM {vnum}"
 
 
 def explain_shop_offer(item_id, counter_price):

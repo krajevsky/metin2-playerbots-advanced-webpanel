@@ -6,8 +6,8 @@
 {% for e in entries %}<tr><td class="muted" style="white-space:nowrap">{{ e.ex.listed_time if e.ex else e.row.listed_at }}</td><td><a href="{{ url_for('player', pid=e.row.pid) }}">{{ e.bot_name }}</a></td><td>{{ e.item }}{% if e.ex and e.ex.count and e.ex.count > 1 %} ×{{ e.ex.count }}{% endif %}</td><td>{{ e.ex.price if e.ex else '' }}</td>
 <td>{% if e.ex %}<details><summary>{{ e.ex.goods }}</summary>
 {% if e.ex.stand %}<p class="muted">{{ e.ex.stand }}</p>{% endif %}{% if e.ex.listed_event %}<p class="muted">{{ e.ex.listed_event }}</p>{% endif %}
-<ol>{% for st in e.ex.steps %}<li>{{ st }}</li>{% endfor %}</ol>
-{% if e.ex.last %}<p><b>{{ e.ex.last.title }}</b>: {{ e.ex.last.was }} → {{ e.ex.last.now }}</p>{% endif %}
+{% if e.ex.pick %}<p class="muted">{{ e.ex.pick }}</p>{% endif %}{% if e.ex.cut %}<p class="muted">{{ e.ex.cut }}</p>{% endif %}<table class="tip-explain-t dx-page-steps"><thead><tr><th>Krok</th><th class="n">Zmiana</th><th class="n">Cena</th></tr></thead><tbody>{% for st in e.ex.steps %}<tr><td><b>{{ st.name }}</b>{% if st.detail %} <span class="muted">{{ st.detail }}</span>{% endif %}</td><td class="n">{{ st.effect }}</td><td class="n">{{ st.value }}</td></tr>{% endfor %}</tbody></table>{% if e.ex.sheet %}<p class="muted">{{ e.ex.sheet }}</p>{% endif %}
+{% if e.ex.last %}<p><b>{{ e.ex.last.title }}</b>: {{ e.ex.last.line }}</p>{% endif %}
 {% if e.ex.end %}<p class="muted">{{ e.ex.end }}</p>{% endif %}{% if e.ex.price_note %}<p class="muted">{{ e.ex.price_note }}</p>{% endif %}</details>{% else %}<span class="muted">brak wyjaśnienia</span>{% endif %}</td></tr>
 {% else %}<tr><td colspan="5" class="muted">Brak wpisów{% if bot %} dla „{{ bot }}”{% endif %}.</td></tr>{% endfor %}
 </tbody></table></section>

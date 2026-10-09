@@ -804,3 +804,7 @@ html[lang="en"] .native-character-quests{background-image:url('/static/character
 #shop-tip-layer .tip-explain-t .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 #shop-tip-layer .tip-explain-t td.n:last-child{color:var(--gold,#f2c34d);font-weight:700}
 #shop-tip-layer .tip-explain-warn{margin:10px 0 0;color:#fca5a5}
+#shop-tip-layer .dx-flags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+#shop-tip-layer .dx-flag{padding:2px 9px;border-radius:999px;border:1px solid var(--edge);background:color-mix(in srgb,var(--panel) 70%,#000);color:var(--text);font-size:12px;font-weight:600}
+#shop-tip-layer .dx-flag.is-unusual{border-color:#f0a030;color:#f0a030}
+#shop-tip-layer .dx-sheet{margin:6px 0 0;color:var(--muted);font-size:12.5px}

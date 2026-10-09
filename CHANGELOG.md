@@ -1,3 +1,13 @@
+## 2026-10-09 · 1.114.2 · Sklep na karcie postaci: tooltipy na telefonie i wyjaśnienie ceny
+
+- Tooltipy przedmiotów w sklepie offline działają na telefonie w każdej kolumnie. Wcześniej okno sklepu, szersze od ekranu, ucinało je od mniej więcej szóstej kolumny.
+- Najechanie pokazuje zwykły tooltip przedmiotu, a kliknięcie przypina obok panel z wyjaśnieniem ceny. Na telefonie pierwsze stuknięcie pokazuje tooltip, a drugie otwiera wyjaśnienie jako arkusz od dołu.
+- Wyjaśnienie mówi tyle co panel Tieru: wynik towaru, który był kandydatem i ilu wyżej odrzuciła lada, jak ucięto stos i ile zostało w plecaku, kiedy i za ile wystawiono, flagi lady, cenę krok po kroku (z „=” dla kroków bez zmiany) i cenę za sztukę wobec arkusza.
+- Słownik decyzji botów odświeżony z panelu Tieru (Playerbots 2.2.82): nowe kroki ceny, np. „Ludzkie zaokrąglenie” zamiast „kod 47”, nazwy umiejętności i potworów oraz poprawne polskie nazwy przedmiotów. Generator `tools/generate_decision_tables.py` odświeża go po każdej aktualizacji.
+- Strona Decyzje botów pokazuje kroki ceny jako tabelę zamiast surowych danych.
+
+![via Claude by Seban](https://img.shields.io/badge/via-Claude%20by%20Seban-D97757)
+
 ## 2026-10-09 · 1.114.1 · Metiny osobno od bossów w respawnach
 
 - Strona Respawny ma osobne ustawienia dla Metinów, bossów i zwykłych potworów, zarówno dla tempa odrodzenia, jak i liczebności (Patch 12 Iwakury, punkt 2). Metin to kamień Metin, boss to potwór o randze bossa.
