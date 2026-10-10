@@ -235,3 +235,21 @@ def test_recently_added_pages_and_controls_follow_english_language():
     }
     for polish, expected in examples.items():
         assert english(polish) == expected
+
+
+def test_empty_collector_messages_do_not_leave_polish_inside_english_sentences():
+    with patch.object(panel, "settings", return_value=english_settings(theme="laka")), \
+            patch.object(panel, "one", return_value={}), \
+            patch.object(panel, "rows", return_value=[]):
+        client = panel.app.test_client()
+        for path in ("/economy", "/economy/shops"):
+            response = client.get(path)
+            assert response.status_code == 200
+            body = response.get_data(as_text=True)
+            assert "the collector has not read yet" in body
+
+
+def test_admin_page_short_labels_follow_english_language():
+    assert english("Decyzje botów (sklepy, ceny) →") == "Bot decisions (shops, prices) →"
+    assert english("🎒 Wyłącz skrzynię startową dla nowych postaci (wszystkie klasy)") == \
+        "🎒 Disable the starter chest for new characters (all classes)"

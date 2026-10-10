@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.50 · Spójny angielski w gospodarce i administracji
+
+- Puste stany kolektora na stronach gospodarki i sklepów offline nie wstawiają już polskiego tekstu w środku angielskiego zdania. Uzupełniono także etykietę decyzji botów w diagnostyce oraz przełącznik skrzyni startowej w ustawieniach.
+- Przejrzano wyrenderowane odpowiedzi głównych sekcji w trybie English. Zmienione widoki działają w obu motywach na 375 i 1440 px; 132 testy regresji przechodzą.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.49 · Trwałość szybkości biegu postaci
 
 - Komenda szybkości biegu na karcie postaci wysyła teraz do kolejki silnika czas 30 dni, taki jak panel Tieru. Opcja „Normalna” zleca reset, a opis pola nie obiecuje już godzinnego efektu.

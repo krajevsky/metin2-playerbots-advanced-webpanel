@@ -104,6 +104,9 @@ EXACT = {
     "Najwyższy poziom konia": "Highest horse level",
     "Najwięcej Yang": "Most Yang",
     "Premia na 30 dni (Normalna resetuje)": "Bonus for 30 days (Normal resets it)",
+    "Decyzje botów (sklepy, ceny) →": "Bot decisions (shops, prices) →",
+    "🎒 Wyłącz skrzynię startową dla nowych postaci (wszystkie klasy)":
+        "🎒 Disable the starter chest for new characters (all classes)",
     "Ilość:": "Quantity:",
     "Jakość:": "Quality:",
     "Pozostały czas:": "Time remaining:",
