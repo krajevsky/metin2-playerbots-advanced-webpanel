@@ -197,3 +197,22 @@ def test_the_live_chat_refresh_arrives_translated_with_the_lines_as_written():
     assert 'translate="no">Szukam grupy, poziom 40</span>' in fragment
     assert "CALL" in fragment and "WOŁAJ" not in fragment
     assert "<b>Boss defeated</b><span>Bots of the Jinno kingdom defeated: Nine Tails (6 min).</span>" in fragment
+
+
+def test_laka_dashboard_navigation_and_hero_are_consistently_english():
+    latest = [{"version": "1.114.40", "changes": ["Changelog wyświetla polski opis wersji."],
+               "timestamp": "2026-10-10"}]
+    totals = {"characters": 0, "accounts": 0, "item_stacks": 0, "yang": 0}
+    with patch.object(panel, "settings", return_value=english_settings(theme="laka")), \
+            patch.object(panel, "one", return_value=totals), \
+            patch.object(panel, "changelog_entries", return_value=latest):
+        response = panel.app.test_client().get("/")
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert ">World overview<" in body and ">World<" in body
+    assert ">Event planner<" in body and ">Season &amp; records<" in body
+    assert "MEADOW &amp; GOLD · COMMAND CENTER" in body
+    assert "&nbsp;bots online" in body
+    assert "Read the release notes" in body
+    assert "Changelog wyświetla polski opis wersji." not in body
+    assert ">Przegląd świata<" not in body

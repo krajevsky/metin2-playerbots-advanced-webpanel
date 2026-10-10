@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.41 · Spójny język na stronie głównej
+
+- Uzupełniono angielskie nazwy krótkich etykiet nawigacji Laka, belki, menu mobilnego i widżetów strony głównej. Te same tłumaczenia obejmują teksty dodawane później przez skrypty dashboardu.
+- Najnowszy wpis na stronie głównej prowadzi w wersji angielskiej do opisu wydania bez wstawiania polskiej treści changelogu. Dodano test strony głównej po angielsku; wygląd obu motywów pozostał bez zmian.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.40 · Changelog na telefonie
 
 - Changelog wyświetla teraz najwyżej 20 wpisów na stronie, zamiast renderować całą historię ponad 200 wersji i setki animowanych elementów naraz. Starsze wpisy pozostają dostępne przez przyciski stron.
