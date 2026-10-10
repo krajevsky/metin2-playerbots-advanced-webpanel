@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.46 · Porównanie aktywnych ofert
+
+- Rynek pozwala zaznaczyć dwie lub trzy oferty z bieżącej strony i porównać cenę, cenę za sztukę, liczbę przedmiotów, sprzedawcę, bonusy oraz kamienie w kartach pod tabelą.
+- Wybór nie przenosi starych cen między stronami. Kontrolki mają teksty polskie i angielskie; sprawdzono interakcję w obu motywach przy 375 i 1440 px. Pełna regresja: 126 testów zielonych.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.45 · Angielski kalendarza eventów
 
 - Dwa teksty tworzone z połączonych fragmentów w widoku eventów Laka — stan rdzenia i instrukcja edycji harmonogramu — wyświetlają się teraz po angielsku po przełączeniu języka.

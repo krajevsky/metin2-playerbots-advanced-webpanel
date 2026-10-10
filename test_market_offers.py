@@ -421,3 +421,16 @@ def test_market_offer_does_not_mistake_other_item_sockets_for_stones():
             patch.object(panel, "render_template", return_value="ok") as render:
         panel.app.test_client().get("/economy/offers")
     assert render.call_args.kwargs["offers"][0]["stones"] == []
+
+
+def test_market_comparison_controls_render_in_both_languages():
+    for language, expected in (("pl", "Porównaj wybrane"), ("en", "Compare selected")):
+        with patch.object(panel, "settings", return_value={**SETTINGS, "ui_language": language}), \
+                patch.object(panel, "one", return_value={"total": 0}), \
+                patch.object(panel, "rows", return_value=[]):
+            response = panel.app.test_client().get("/economy/offers")
+        assert response.status_code == 200
+        body = response.get_data(as_text=True)
+        assert expected in body
+        assert 'id="market-compare-panel" hidden' in body
+        assert 'colspan="9"' in body
