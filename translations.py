@@ -63,6 +63,41 @@ def _dollar_to_backslash(repl):
 # trimmed HTML text node or attribute value (after un-escaping &amp; etc).
 # ---------------------------------------------------------------------------
 EXACT = {
+    # Shared pages and recently added controls that must follow the UI language.
+    "Eventy światowe": "World events",
+    "Playerbots · na żywo": "Playerbots · live",
+    "Teraz w świecie": "Happening now",
+    "Rdzeń:": "Core:",
+    "Tydzień powtarzalny": "Weekly cycle",
+    "Ostatnio zakończone": "Recently ended",
+    "Liczone ze zdarzeń w logu gry, więc dokładne niezależnie od tego, co boty zrobiły z łupem.":
+        "Counted from the game log, so results stay accurate regardless of what bots did with the loot.",
+    "Tymczasowy event działa niezależnie od harmonogramu i kończy się sam.":
+        "A temporary event runs independently of the schedule and ends automatically.",
+    "ŚWIAT · DODATKI": "WORLD · EXTRAS",
+    "⚗️ Alchemia Smoczych Kamieni i dodatki świata": "⚗️ Dragon Soul Alchemy and world extras",
+    "Ustawienia zgodne z panelem Tieru: zapisują te same flagi i działają od razu, a restart je zachowuje.":
+        "These settings use the same flags as Tieru's panel, take effect immediately and survive a restart.",
+    "Alchemia Smoczych Kamieni wyłączona w całym świecie": "Dragon Soul Alchemy disabled across the world",
+    "Zapisz alchemię": "Save alchemy",
+    "Dodatkowy drop Smoczych Kamieni z Metinów (%)": "Extra Dragon Stone drops from Metins (%)",
+    "Dodatkowy drop szkatułek z bossów (%)": "Extra chest drops from bosses (%)",
+    "Zapisz dodatki świata": "Save world extras",
+    "Zdrowie potworów, metinów i bossów (% maks. HP)": "Monster, Metin and boss health (% max HP)",
+    "Dlaczego bot wystawił przedmiot na stragan i jak wyliczył cenę (Playerbots 2.2.39+). Ostatnie 60 wpisów.":
+        "Why a bot listed an item and how it calculated the price (Playerbots 2.2.39+). Latest 60 entries.",
+    "Wyjaśnienie": "Explanation",
+    "brak wyjaśnienia": "no explanation",
+    "Co zrobić:": "What to do:",
+    "Log panelu dla tego błędu": "Panel log for this error",
+    "Wróć do ekranu logowania": "Back to login",
+    "Oferty i ceny są odczytywane bezpośrednio z IkarusShop. Stan sklepu może zmienić się w grze.":
+        "Offers and prices come directly from IkarusShop. Shop contents may change in game.",
+    "Minimalna wartość bonusu": "Minimum bonus value",
+    "Kanał": "Channel",
+    "Ilość:": "Quantity:",
+    "Jakość:": "Quality:",
+    "Pozostały czas:": "Time remaining:",
     # Laka navigation and dashboard share these short, unprefixed labels.
     "Świat": "World",
     "Przegląd świata": "World overview",

@@ -216,3 +216,20 @@ def test_laka_dashboard_navigation_and_hero_are_consistently_english():
     assert "Read the release notes" in body
     assert "Changelog wyświetla polski opis wersji." not in body
     assert ">Przegląd świata<" not in body
+
+
+def test_recently_added_pages_and_controls_follow_english_language():
+    examples = {
+        "Eventy światowe": "World events",
+        "Tydzień powtarzalny": "Weekly cycle",
+        "Ostatnio zakończone": "Recently ended",
+        "Alchemia Smoczych Kamieni wyłączona w całym świecie":
+            "Dragon Soul Alchemy disabled across the world",
+        "Dodatkowy drop szkatułek z bossów (%)": "Extra chest drops from bosses (%)",
+        "Wyjaśnienie": "Explanation",
+        "Log panelu dla tego błędu": "Panel log for this error",
+        "Oferty i ceny są odczytywane bezpośrednio z IkarusShop. Stan sklepu może zmienić się w grze.":
+            "Offers and prices come directly from IkarusShop. Shop contents may change in game.",
+    }
+    for polish, expected in examples.items():
+        assert english(polish) == expected

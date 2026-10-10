@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.42 · Angielski w pozostałych widokach
+
+- Uzupełniono tłumaczenia eventów, nowych ustawień świata i alchemii, decyzji botów, rynku oraz strony błędu. Krótkie etykiety i opisy dodawane przez skrypty korzystają z tej samej warstwy tłumaczeń.
+- Dodano kontrolę tłumaczeń nowych sekcji. Pełna regresja: 122 testy zakończone powodzeniem.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.41 · Spójny język na stronie głównej
 
 - Uzupełniono angielskie nazwy krótkich etykiet nawigacji Laka, belki, menu mobilnego i widżetów strony głównej. Te same tłumaczenia obejmują teksty dodawane później przez skrypty dashboardu.
