@@ -7,7 +7,7 @@
   // faktycznie wyrenderowanej mapy, zamiast rosnąć/kurczyć się razem z
   // ilością botów/aktywności -- mapa sama w sobie pozostaje nietknięta.
   const liveSidebar = document.querySelector('.live-sidebar');
-  if (map && liveSidebar && 'ResizeObserver' in window) {
+  if (map && liveSidebar && !document.body.matches('[data-skin="laka"]') && 'ResizeObserver' in window) {
     // Tylko gdy mapa i panel faktycznie stoją obok siebie (desktop) -- poniżej
     // 1001px .live-grid układa się w jedną kolumnę (mapa nad panelem), więc
     // dopasowanie wysokości do mapy nie ma sensu i tylko ściska ranking do
@@ -30,7 +30,7 @@
   // rozciąga się i wypełnia dokładnie tyle, ile trzeba, żeby oba dolne
   // krawędzie się zrównały.
   const liveInsights = document.querySelector('.live-insights');
-  if (map && liveInsights && 'ResizeObserver' in window) {
+  if (map && liveInsights && !document.body.matches('[data-skin="laka"]') && 'ResizeObserver' in window) {
     const insightsFloat = () => window.matchMedia('(min-width: 1700px)').matches;
     const syncInsightsHeight = () => {
       if (insightsFloat()) liveInsights.style.height = map.offsetHeight + 'px';

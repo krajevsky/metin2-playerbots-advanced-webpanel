@@ -125,6 +125,7 @@ EXACT = {
     "Wydajność": "Performance",
     "Diagnostyka": "Diagnostics",
     "Decyzje botów": "Bot decisions",
+    "⚙ Filtry mapy": "⚙ Map filters",
     "Dlaczego bot wystawił przedmiot na stragan i jak wyliczył cenę (Playerbots 2.2.39+). Ostatnie 60 wpisów z wybranego okresu.": "Why a bot listed an item and how it calculated the price (Playerbots 2.2.39+). Latest 60 entries from the selected period.",
     "Bot (nick albo pid)": "Bot (name or PID)",
     "Okres": "Period",

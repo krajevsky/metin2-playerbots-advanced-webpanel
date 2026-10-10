@@ -1,3 +1,11 @@
+## 2026-10-10 · 1.114.62 · Nowy Przegląd świata w motywie Łąka i Złoto
+
+- Dashboard motywu Laka stawia mapę na pierwszym planie. Jej rozmiar dopasowuje się do wysokości ekranu z zachowaniem proporcji 4:5 dla map M1 i 1:1 dla pozostałych; cała mapa mieści się w pierwszym widoku także na telefonie. Na mniejszych ekranach podstawowe wyszukiwanie pozostaje widoczne, a pozostałe filtry otwiera przycisk.
+- Karty liczb, panel rankingu, analizy kanałów i królestw oraz stan serwera otrzymały nowy układ z półprzezroczystymi powierzchniami. Widżety przewijają własną zawartość i nie wychodzą poza swoje ramki. Stan serwera, raty i boty na mapach przełącza się kropkami pod kartą.
+- Zmiana dotyczy tylko motywu Laka. Punkt powrotu do poprzedniego wyglądu zapisano w tagu `laka-dashboard-before-redesign-20261010`.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.61 · Poprawna historia nieudanego ulepszania
 
 - Historia przedmiotów bota nie oznacza już jako spalonego przedmiotu, który po nieudanym ulepszeniu wrócił z poziomem niższym o jeden. Łączy wpis usunięcia starej wersji z pobliskim wpisem `REFINE FAIL`, zgodnie z regułą panelu Tieru. Faktycznie zniszczone przedmioty pozostają widoczne.
