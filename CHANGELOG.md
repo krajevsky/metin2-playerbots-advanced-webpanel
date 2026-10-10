@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.40 · Changelog na telefonie
+
+- Changelog wyświetla teraz najwyżej 20 wpisów na stronie, zamiast renderować całą historię ponad 200 wersji i setki animowanych elementów naraz. Starsze wpisy pozostają dostępne przez przyciski stron.
+- Stronicowanie obejmuje także changelog Tieru, zachowuje wybrane źródło i działa w obu językach. Dodano testy liczby wpisów oraz nawigacji.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.39 · Konkretne bonusy na rynku
 
 - Wyszukiwarka ofert przyjmuje do trzech konkretnych bonusów wraz z minimalną wartością każdego. Numery bonusów pochodzą z tabeli cenowej Tieru; każdy warunek przeszukuje siedem linii atrybutów i działa łącznie z pozostałymi filtrami.

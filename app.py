@@ -8011,9 +8011,24 @@ def changelog():
     source = request.args.get("source", "seban")
     if source not in ("seban", "tieru"):
         source = "seban"
-    tieru_entries, tieru_error = ([], None) if source != "tieru" else tieru_changelog_entries()
-    return render_template("changelog.html", entries=changelog_entries(), panel_version=PANEL_VERSION,
-                            source=source, tieru_entries=tieru_entries, tieru_error=tieru_error)
+    page = max(1, min(1000, request.args.get("page", 1, type=int)))
+    page_size = 20
+    if source == "tieru":
+        tieru_entries, tieru_error = tieru_changelog_entries()
+        entries = []
+        total = len(tieru_entries)
+    else:
+        entries = changelog_entries()
+        total = len(entries)
+        tieru_entries, tieru_error = [], None
+    page = min(page, max(1, (total + page_size - 1) // page_size))
+    all_entries = tieru_entries if source == "tieru" else entries
+    selected = all_entries[(page - 1) * page_size:page * page_size]
+    return render_template("changelog.html", entries=selected if source == "seban" else [],
+                           panel_version=PANEL_VERSION, source=source,
+                           tieru_entries=selected if source == "tieru" else [],
+                           tieru_error=tieru_error, page=page,
+                           has_previous=page > 1, has_next=page * page_size < total)
 
 
 @app.route("/accounts/<int:aid>/characters")
