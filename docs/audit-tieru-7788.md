@@ -1,5 +1,7 @@
 # Audyt porównawczy: Tieru 7788 → Seban Panel 7790
 
+Kontrola 10 października: działający kontener Tieru nadal ma dokładnie to samo `admin_panel.py` (27 394 linie, SHA-256 zaczyna się od `62134cc74a3e602`), z którego wykonano ten audyt. Wersja Seban Panelu podczas ostatniej aktualizacji matrycy: 1.114.57.
+
 Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczytem**: `/opt/panel/admin_panel.py` (27 394 linie) oraz pakiety `/opt/panel/editsql` i `/opt/panel/market_preview` z kontenera `metin2-panel`. Jego szablony i skrypty są w większości osadzone w `admin_panel.py`; nie istnieje osobny `/opt/panel/templates`. Odczytano też HTML działających tras `/admin`, `/map`, `/rates`, `/ai`, `/market`, `/events`, `/guilds`, `/player/2005`; `/season` nie odpowiedział w limicie 15 sekund, więc tę stronę oceniono z kodu. `/editsql` zwracał 401, a `/drops` i `/client-data` przekierowywały do logowania edytora; tych formularzy nie uruchamiano. Odnośniki `admin_panel.py:linia` dotyczą tej kopii. Odpowiedniki podano dla Seban Panelu 1.114.5 i aktualizowano wraz z patchami (`app.py`, `templates/`, `static/`). „Częściowo” oznacza także funkcję dostępną wyłącznie przez link do Tieru, a nie natywnie u nas. Ten dokument jest listą kontrolną wdrożenia.
 
 | Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
@@ -24,6 +26,10 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Mapa na żywo, kafelki, heatmapa, pozycje | `admin_panel.py:10050,12466,18998–19069` `/map`, `/api/map_tile`, `/api/bot_heatmap`, `/api/bot_positions` | `app.py:4282,7416`, `templates/maps.html`, `player.html` | u nas lepiej | wysoka | Nie zmieniać proporcji M1 4:5/max 416 px i pozostałych 1:1/max 520 px. |
 | Rankingi botów i graczy, filtry | `admin_panel.py:19478` `/api/bot_rankings` | `app.py:7542`, `templates/rankings.html` | u nas lepiej | średnia | Utrzymać istniejące kategorie +9 i języki. |
 | Ranking sławy botów i oznaczenie na profilu | `admin_panel.py:1567–1592,23203–23221` `/fame`, `playerbot_live_fame.tsv` | `app.py` `/fame`, `templates/fame.html`, `player.html` | jest | średnia | Wdrożone w 1.114.57 z walidacją migawki `PB7F1`, kolorów i kolejności; brak pliku nie blokuje karty postaci. |
+| Zmiana języka samej gry | `admin_panel.py:2639–2695,23442–23473` `/language`, `lang.status` i `lang.request` | tylko wybór języka panelu w `/manage/panel`; brak sterowania językiem gry | brak | średnia | Osobna funkcja od tłumaczenia panelu: skopiować odczyt statusu i atomowe zlecenie do `m2-lang`, z ostrzeżeniem o restarcie rdzeni oraz ochroną sesji administratora. Nie wybierać języka klienta gry za operatora. |
+| Zmiana hasła administratora klasycznego panelu | `admin_panel.py:23476–23537` `/passphrase` | `/manage/panel` zmienia hasło Seban Panelu | częściowo | średnia | To dwa niezależne hasła i dwa modele sesji. Nie zastępować hasła Tieru naszym formularzem; ewentualna integracja wymaga osobnej kontroli starego hasła i zapisu do konfiguracji Tieru. |
+| Alias karty gracza z okna GM w kliencie | `admin_panel.py:23223–23226` `/players/<pid>` | `/player/<pid>` bez aliasu | częściowo | niska | Alias ma znaczenie dopiero po skierowaniu `M2_GM_PANEL_URL` na port 7790; wtedy dodać ograniczone przekierowanie. |
+| Ikona przeglądarki | `admin_panel.py:6596` `/favicon.ico` | brak osobnej ikony | brak | niska | Dodać zasób dopiero wraz z identyfikacją wizualną panelu; nie wpływa na funkcje administracyjne. |
 | Gildie i ich statystyki | `admin_panel.py:20683` `/guilds` | `app.py:4597,4622` | u nas lepiej | średnia | Zachować profil gildii. |
 | Sezon i sortowanie | `admin_panel.py:21503` `/season` | `app.py:7707`, `templates/season.html` | jest | średnia | Zweryfikować kolumny sezonu w dalszym audycie. |
 | Ustawienia EXP/drop/Yang | `admin_panel.py:19860` `/rates` | `app.py:8051`, `templates/manage.html` | jest | wysoka | Zachować źródła danych silnika. |
@@ -122,7 +128,7 @@ Każdy wiersz poniżej jest osobną pozycją kontrolną. Linie odpowiadają źr�
 
 ## Trasy pakietów poza głównym `admin_panel.py`
 
-Te trasy rejestrują się przez `add_url_rule`, więc nie pojawiają się w wyszukiwaniu dekoratorów `@app.route`. Poniższy spis uzupełnia tabelę funkcji; status dotyczy zachowania, nie identyczności adresu URL.
+Kontrola rejestracji objęła 65 dekoratorów `@app.route` i 14 `@app.post` w głównym pliku, 6 tras `market_preview` oraz 15 tras `editsql`, czyli **100 rejestracji tras**. Alias `/map`/`/live_map`, trzy ścieżki `/play` i warianty `/editsql` liczą się osobno jako adresy, choć mają wspólną funkcję. Funkcje z tych tras są sklasyfikowane w tabelach wyżej i niżej; dopisano również pominięte wcześniej `/fame`, `/language`, `/passphrase`, `/players/<pid>` i `/favicon.ico`. Status dotyczy zachowania, nie identyczności URL. To zamyka **inwentaryzację tras**, a nie wszystkie wdrożenia braków.
 
 | Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
 |---|---|---|---|---|---|
