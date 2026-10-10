@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.49 · Trwałość szybkości biegu postaci
+
+- Komenda szybkości biegu na karcie postaci wysyła teraz do kolejki silnika czas 30 dni, taki jak panel Tieru. Opcja „Normalna” zleca reset, a opis pola nie obiecuje już godzinnego efektu.
+- Dodano test parametrów komendy dla premii i resetu. Pełna regresja: 130 testów zielonych.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.48 · Rekordy konia i Yang w sezonie
 
 - Do rekordów sezonu dodano najwyższy poziom konia oraz największą ilość Yang u postaci wraz z nazwą właściciela. Dane pochodzą z `player.player` i obejmują ten sam zakres postaci co ranking, bez zapisu do bazy.

@@ -103,6 +103,7 @@ EXACT = {
     "Zgony": "Deaths",
     "Najwyższy poziom konia": "Highest horse level",
     "Najwięcej Yang": "Most Yang",
+    "Premia na 30 dni (Normalna resetuje)": "Bonus for 30 days (Normal resets it)",
     "Ilość:": "Quantity:",
     "Jakość:": "Quality:",
     "Pozostały czas:": "Time remaining:",

@@ -5900,7 +5900,8 @@ def player_action_game(pid):
             speed = int(request.form.get("speed", -1))
             if speed not in (0, 30, 60, 100):
                 raise ValueError("Wybierz poprawną szybkość biegu.")
-            arg1, arg2, label = speed, 3600, f"szybkość +{speed}% na godzinę"
+            arg1, arg2, label = speed, 2_592_000, (
+                "normalna szybkość" if speed == 0 else f"szybkość +{speed}% (do 30 dni)")
         else:
             raise ValueError("Nieobsługiwana akcja.")
         status, _queue_id = queue_player_admin_command(character["name"], command, arg1, arg2)
