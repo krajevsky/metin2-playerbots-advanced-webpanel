@@ -57,7 +57,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Podgląd rynku: oferty, szukanie i filtry | `market_preview/__init__.py:282,312,513–518` `/market`, `/market/api/offers` | `app.py` `/economy/offers`, `templates/economy_offers.html` | częściowo | wysoka | Działają kategorie, sprzedawca, cena, do trzech konkretnych bonusów, kamienie, właściciel sklepu, sortowanie bonusów i porównanie 2–3 ofert. Pozostają referencyjne okazje, filtry maksymalnych wartości i zakończonych ofert. |
 | Podgląd rynku: teleport, status kolejki i historia | `market_preview/__init__.py:366–470` `/market/api/tp*` | `app.py:5040`, `templates/player.html` | częściowo | średnia | Porównać koszt i historię; zachować ochronę API. |
 | Ustawienia rynku: koszt teleportacji | `market_preview/__init__.py:470–494` `/market/settings` | brak opłaty w `/api/admin/teleport-me` | brak | średnia | Tieru zapisuje wyłącznie `tp_cost`; nie pobierać opłaty w panelu, dopóki własna ścieżka teleportacji nie ma atomowego rozliczenia w silniku. |
-| Edytor SQL: przegląd struktury i nazwy | `editsql/__init__.py:53–125,1264–1275` `/editsql`, `/editsql/structure`, `/editsql/api/name` | `templates/_laka_nav.html:40`, `base.html:59` (link do Tieru) | częściowo | średnia | Rozważyć natywny widok tylko z osobnym modelem uprawnień. |
+| Edytor SQL: przegląd struktury i nazwy | `editsql/__init__.py:53–125,1264–1275` `/editsql`, `/editsql/structure`, `/editsql/api/name` | `app.py` `/database/structure`, `templates/database_structure.html`; link do Tieru | częściowo | średnia | Od 1.114.54 mamy natywny, tylko odczytowy podgląd struktury z obowiązkową sesją administratora. Etykiety i pełna edycja rekordów pozostają u Tieru. |
 | Edytor SQL: historia, plan zmian, etykiety, formularze, dodanie i usunięcie wiersza | `editsql/__init__.py:69–110,269–1050,1264–1282` | tylko link do Tieru | częściowo | niska | Pozostawić po audycie bezpieczeństwa i uprawnień. |
 
 ## Szczegółowa lista kontrolek, kolumn i API
@@ -136,6 +136,13 @@ Te trasy rejestrują się przez `add_url_rule`, więc nie pojawiają się w wysz
 | Struktura baz i tabel | `editsql/__init__.py:1270–1272` `/editsql/structure[/<db>/<table>]` | `app.py` `/database/structure`, `templates/database_structure.html` | częściowo | średnia | Od 1.114.54 natywny podgląd tabel i kolumn z `information_schema`, tylko po zalogowaniu administratora. Pełny edytor wciąż wymaga przeniesienia walidacji, transakcji, audytu i cofania. |
 | Historia, plan, etykiety | `editsql/__init__.py:1273–1275` `/editsql/history`, `/editsql/apply`, `/editsql/labels` | brak | brak | niska | Wymaga audytu zapisów i uprawnień. |
 | Formularze rekordów | `editsql/__init__.py:1276–1282` `/editsql/<module_id>[/new|/delete|/<db>/<pk>]` | brak | brak | niska | Nie kopiować ogólnej mutacji SQL do panelu administracji botów. |
+
+## Otwarte prace o największym znaczeniu
+
+- **Edytor bazy:** natywny podgląd schematu jest ukończony, lecz zapis rekordów nadal działa tylko w osobno uwierzytelnionym edytorze Tieru. Jego pakiet `editsql` ma model tabel, walidację zależności, blokady wierszy, transakcje, kopie bezpieczeństwa, dziennik zmian i cofanie. Przeniesienie wymaga portu tych zasad, testów konfliktów i osobnej kontroli uprawnień; pole na dowolny SQL nie jest odpowiednikiem.
+- **Rynek:** pozostały referencyjne ceny i okazje (`market_preview/snapshot.py`, `rules.py`), maksymalne linie bonusów z tablic `tops`, zakończone oferty oraz historia i koszt teleportu. Nasz wykres 1.114.51 dotyczy ceny *wystawienia*, a nie sfinalizowanych sprzedaży.
+- **Sklep offline bota:** silnik IkarusShop nie obsługuje usuwania wystawionej oferty przez istniejące `DELITEM`. Potrzebna jest osobna komenda silnika z kontrolą właściciela, miejsca w torbie i synchronizacji sklepu.
+- **Pozostałe integracje:** część akcji GM, pełny edytor dropów, historia decyzji sprzętowych i część widoków gildii/AI nadal mają status „częściowo” lub „brak” w tabelach poniżej. Kolejność wdrożeń zależy od zgodności ze źródłem danych silnika.
 
 ## Elementy świadomie nieprzenoszone
 
