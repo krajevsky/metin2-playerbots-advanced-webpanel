@@ -8243,14 +8243,15 @@ SEASON_CATEGORIES = {
 def _season_week_rows():
     if time.time() - _season_cache["at"] < 600 and _season_cache.get("weekly") is not None:
         return _season_cache["weekly"], _season_cache["records"]
-    weekly = rows("""SELECT p.id,p.name,p.level,
+    weekly = rows("""SELECT p.id,p.name,p.level,p.horse_level,
         SUM(l.how='STONE_KILL') AS metins,
         SUM(l.how='BOSS_KILL') AS bosses,
-        SUM(l.how='REFINE SUCCESS' AND (l.hint LIKE '%%+7' OR l.hint LIKE '%%+8' OR l.hint LIKE '%%+9')) AS refine7
+        SUM(l.how='REFINE SUCCESS' AND (l.hint LIKE '%%+7' OR l.hint LIKE '%%+8' OR l.hint LIKE '%%+9')) AS refine7,
+        SUM(l.how='DEAD_BY_NPC') AS deaths
         FROM log.log l JOIN player.player p ON p.id=l.who
         WHERE l.time>=NOW()-INTERVAL 7 DAY AND """ + ranking_scope_sql("p") + """
-          AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS')
-        GROUP BY p.id""")
+          AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS','DEAD_BY_NPC')
+        GROUP BY p.id HAVING metins>0 OR bosses>0 OR refine7>0""")
     for row in weekly:
         row["monsters"] = 0
         row["points"] = int(row.get("metins") or 0)*150 + int(row.get("bosses") or 0)*500 + int(row.get("refine7") or 0)*200
@@ -8271,7 +8272,7 @@ def _season_alltime_rows():
     # character Y-panel reads), pivoted per character. Exact, and cheap.
     # The +7 count isn't a lifetime flag, so the all-time "Ulepszenia" column
     # is every successful refine (stat_refine_success) instead.
-    alltime = rows("""SELECT p.id,p.name,p.level,
+    alltime = rows("""SELECT p.id,p.name,p.level,p.horse_level,
         COALESCE(SUM(CASE WHEN f.flag='stat_stone' THEN f.value END),0) AS metins,
         COALESCE(SUM(CASE WHEN f.flag='stat_boss' THEN f.value END),0) AS bosses,
         COALESCE(SUM(CASE WHEN f.flag='stat_monster' THEN f.value END),0) AS monsters,
@@ -8279,7 +8280,7 @@ def _season_alltime_rows():
         FROM player.player p JOIN player.player_special_flag f ON f.pid=p.id
         WHERE """ + ranking_scope_sql("p") + """
           AND f.flag IN ('stat_stone','stat_boss','stat_monster','stat_refine_success')
-        GROUP BY p.id,p.name,p.level HAVING metins>0 OR bosses>0 OR monsters>0 OR refine7>0""")
+        GROUP BY p.id,p.name,p.level,p.horse_level HAVING metins>0 OR bosses>0 OR monsters>0 OR refine7>0""")
     for row in alltime:
         row["points"] = int(row["metins"]) * 150 + int(row["bosses"]) * 500
     return alltime

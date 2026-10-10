@@ -100,6 +100,7 @@ EXACT = {
     "Minimalna wartość bonusu": "Minimum bonus value",
     "Najwięcej bonusów": "Most bonus lines",
     "Kanał": "Channel",
+    "Zgony": "Deaths",
     "Ilość:": "Quantity:",
     "Jakość:": "Quality:",
     "Pozostały czas:": "Time remaining:",

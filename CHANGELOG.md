@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.47 · Zgony i koń w sezonie
+
+- Tygodniowa tabela sezonu pokazuje zgony z rzeczywistego zdarzenia silnika `DEAD_BY_NPC`; oba widoki pokazują poziom konia. Zgony same w sobie nie dodają postaci do rankingu, tak jak u Tieru.
+- Tabela z nowymi kolumnami przewija się we własnym obszarze na telefonie. Sprawdzono motywy Laka i Ocean na 375 i 1440 px oraz 128 testów regresji.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.46 · Porównanie aktywnych ofert
 
 - Rynek pozwala zaznaczyć dwie lub trzy oferty z bieżącej strony i porównać cenę, cenę za sztukę, liczbę przedmiotów, sprzedawcę, bonusy oraz kamienie w kartach pod tabelą.
