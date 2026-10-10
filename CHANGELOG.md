@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.53 · Czytelniejsze diagramy na mapie
+
+- Diagramy rozkładu kanałów i królestw w motywie Laka i Złoto mają wyraźniejsze pierścienie, liczbę dominującej grupy i paski udziałów. Puste mapy nie wskazują fałszywego lidera.
+- Karty sprawdzono przy 375 i 1440 px bez poziomego przewijania; pozostałe motywy zachowują swój wygląd.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.52 · Filtry rynku po lewej stronie
 
 - Na szerokim ekranie filtry ofert znajdują się w przewijalnej kolumnie po lewej, a wyniki i porównanie ofert po prawej. Na telefonie układ pozostaje jednokolumnowy; tabela przewija się w swoim kontenerze.

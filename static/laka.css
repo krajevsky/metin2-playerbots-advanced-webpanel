@@ -638,3 +638,34 @@ body[data-skin="laka"] .laka-flash{animation:laka-flash .9s ease-out}
 @media (prefers-reduced-motion:reduce){
   body[data-skin="laka"] *,body[data-skin="laka"] *::before,body[data-skin="laka"] *::after{animation:none!important;transition:none!important}
 }
+
+/* Map distribution cards: compact lacquer gauges, scoped to the Laka dashboard. */
+html body[data-skin="laka"] .live-insights .map-insight-card--channels,
+html body[data-skin="laka"] .live-insights .map-insight-card--empires{
+  border-color:#6b4a22;background:radial-gradient(circle at 15% 15%,#5c3a181f,transparent 65%),linear-gradient(145deg,#20150b,#120c08 72%);
+  box-shadow:inset 0 1px #e8b93f30,0 10px 22px #0005;
+}
+html body[data-skin="laka"] .live-insights .map-insight-card--channels h3,
+html body[data-skin="laka"] .live-insights .map-insight-card--empires h3{
+  color:var(--laka-gold-hi);letter-spacing:.055em;
+}
+html body[data-skin="laka"] .live-insights .map-donut{
+  width:clamp(82px,7vw,112px);border:4px solid #110b06;
+  background:radial-gradient(circle at center,#140e09 0 52%,transparent 54%),var(--map-donut);
+  box-shadow:0 0 0 1px #9b6b31,inset 0 0 16px #000a,0 0 22px #d7a33238;
+}
+html body[data-skin="laka"] .live-insights .map-donut b{color:#f8ebd0;font-size:12px}
+html body[data-skin="laka"] .live-insights .map-donut small{color:#ffe08a;font:700 20px/1.1 var(--laka-display);text-shadow:0 0 12px #e8b93f88}
+html body[data-skin="laka"] .live-insights .map-donut-legend{flex:1;gap:7px;min-width:0}
+html body[data-skin="laka"] .live-insights .map-donut-legend span{
+  position:relative;display:grid;grid-template-columns:9px minmax(0,1fr) auto;gap:6px;padding:3px 0 7px;
+  border-bottom:1px solid #6b4a2255;color:#e7d4af;overflow:hidden;
+}
+html body[data-skin="laka"] .live-insights .map-donut-legend span::after{
+  content:"";position:absolute;bottom:0;left:0;width:var(--share);max-width:100%;height:2px;
+  background:var(--dot);box-shadow:0 0 8px var(--dot);pointer-events:none;
+}
+html body[data-skin="laka"] .live-insights .map-donut-legend i{width:8px;height:8px;box-shadow:0 0 8px var(--dot)}
+html body[data-skin="laka"] .live-insights .map-donut-legend em{font-style:normal;overflow:hidden;text-overflow:ellipsis}
+html body[data-skin="laka"] .live-insights .map-donut-legend b{color:#ffe08a;font-variant-numeric:tabular-nums}
+@media(max-width:420px){html body[data-skin="laka"] .live-insights .map-insight-chart{gap:9px}}
