@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.48 · Rekordy konia i Yang w sezonie
+
+- Do rekordów sezonu dodano najwyższy poziom konia oraz największą ilość Yang u postaci wraz z nazwą właściciela. Dane pochodzą z `player.player` i obejmują ten sam zakres postaci co ranking, bez zapisu do bazy.
+- Karty są dostępne po polsku i angielsku; obydwa motywy sprawdzono na 375 i 1440 px. Pełna regresja: 129 testów zielonych.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.47 · Zgony i koń w sezonie
 
 - Tygodniowa tabela sezonu pokazuje zgony z rzeczywistego zdarzenia silnika `DEAD_BY_NPC`; oba widoki pokazują poziom konia. Zgony same w sobie nie dodają postaci do rankingu, tak jak u Tieru.

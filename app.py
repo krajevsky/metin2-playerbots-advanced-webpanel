@@ -8263,6 +8263,15 @@ def _season_week_rows():
         FROM log.log l
         WHERE l.time>=NOW()-INTERVAL 7 DAY
           AND l.how IN ('STONE_KILL','BOSS_KILL','REFINE SUCCESS')""")
+    records = records or {}
+    horse_record = one("SELECT p.name,p.horse_level AS value FROM player.player p WHERE "
+                       + ranking_scope_sql("p") + " ORDER BY p.horse_level DESC,p.level DESC LIMIT 1") or {}
+    gold_record = one("SELECT p.name,p.gold AS value FROM player.player p WHERE "
+                      + ranking_scope_sql("p") + " ORDER BY p.gold DESC,p.level DESC LIMIT 1") or {}
+    records["horse"] = int(horse_record.get("value") or 0)
+    records["horse_name"] = game_text(horse_record.get("name"))
+    records["gold"] = int(gold_record.get("value") or 0)
+    records["gold_name"] = game_text(gold_record.get("name"))
     _season_cache.update(at=time.time(), weekly=weekly, records=records)
     return weekly, records
 
