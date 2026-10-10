@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.59 · Wyprawy gildii do Wieży Demonów
+
+- Lista gildii pokazuje, kiedy gildia bota jest w Wieży Demonów. Stan jest łączony ze wszystkich rdzeni tak samo jak u Tieru; wystarczy raport z jednego kanału. Wskazanie nie zastępuje informacji o trwającej wojnie.
+- Etykieta działa po polsku i angielsku, bez zmiany szerokości tabeli ani proporcji motywu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.58 · Pełna ilość przedmiotów w akcji GM
 
 - Akcja „Daj przedmiot” przyjmuje stos do 65 535 sztuk, zgodnie z limitem `player.item.count` używanym przez Tieru i silnik gry. Większe ilości są odrzucane przed dodaniem komendy do kolejki.

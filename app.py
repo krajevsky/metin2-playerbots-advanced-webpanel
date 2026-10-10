@@ -1840,7 +1840,8 @@ def guild_statuses():
             if guild is None:
                 guild = {"id": gid, "name": row.get("name", ""), "online": 0,
                          "strength_sum": 0, "exp_offered": 0, "master": row.get("master", ""),
-                         "war_with": row.get("war_with", ""), "next_war_in_s": None}
+                         "war_with": row.get("war_with", ""), "next_war_in_s": None,
+                         "tower_raid": False}
                 for key in ("empire", "tier", "level", "members", "master_pid", "ladder", "wins", "draws", "losses", "war_score", "war_enemy_score"):
                     try: guild[key] = int(row.get(key, 0))
                     except ValueError: guild[key] = 0
@@ -1852,6 +1853,8 @@ def guild_statuses():
                 guild["master"] = row["master"]
             if not guild["war_with"] and row.get("war_with"):
                 guild["war_with"] = row["war_with"]
+            if row.get("tower_raid", "0").strip() == "1":
+                guild["tower_raid"] = True
             try: next_war = int(row.get("next_war_in_s", -1))
             except ValueError: next_war = -1
             previous = guild["next_war_in_s"]
