@@ -157,6 +157,43 @@ def channel_paths(filename):
         except OSError:
             continue
 RATES_SPOOL = Path("/opt/m2spool")
+FAME_FILE = RATES_SPOOL / "playerbot_live_fame.tsv"
+FAME_COLORS = ("#9E9E9E", "#FFFFFF", "#A5D66F", "#3FAF4A", "#2EC4C4",
+               "#3A7BEF", "#9B59D6", "#F39C12", "#E74C3C", "#FFD700")
+_fame_cache = {"key": None, "rows": {}}
+
+
+def playerbot_fame():
+    """Validate the engine's hourly PB7F1 snapshot; never derive fame in SQL."""
+    try:
+        stat = FAME_FILE.stat()
+        key = (str(FAME_FILE), stat.st_mtime_ns, stat.st_size)
+        if key == _fame_cache["key"]:
+            return _fame_cache["rows"]
+        if stat.st_size > 1024 * 1024:
+            return {}
+        with FAME_FILE.open(encoding="ascii") as source:
+            lines = source.read(1024 * 1024 + 1).splitlines()
+        tag, timestamp, count = lines[0].split()
+        timestamp, count = int(timestamp), int(count)
+        now = int(time.time() * 1000)
+        if (tag != "PB7F1" or not 0 <= timestamp <= now or
+                not 0 <= count <= 10000 or len(lines) != count + 1):
+            return {}
+        result, previous = {}, 1000000000
+        for rank, line in enumerate(lines[1:], 1):
+            pid, points, level, fell = map(int, line.split())
+            if (pid <= 0 or pid in result or not 0 <= points <= previous or
+                    not 1 <= level <= 10 or not 0 <= fell <= now):
+                return {}
+            result[pid] = {"pid": pid, "points": points, "level": level,
+                           "rank": rank, "color": FAME_COLORS[level - 1]}
+            previous = points
+        _fame_cache.update(key=key, rows=result)
+        return result
+    except (OSError, ValueError, IndexError, UnicodeError):
+        return {}
+
 UPDATE_SPOOL = Path("/opt/m2update")
 # "Diagnostyka -> Logi panelu": a persistent, downloadable record of what
 # actually crashed and when, so a bug report can come with proof instead of
@@ -4686,6 +4723,19 @@ def guilds():
                            status_written_at=datetime.fromtimestamp(written_at).strftime("%H:%M") if written_at else None)
 
 
+@app.route("/fame")
+@login_required
+def fame_ranking():
+    ranking = sorted(playerbot_fame().values(), key=lambda entry: entry["rank"])[:100]
+    names = {}
+    if ranking:
+        ids = tuple(entry["pid"] for entry in ranking)
+        found = rows("SELECT id,name FROM player.player WHERE id IN (" +
+                     ",".join("%s" for _ in ids) + ")", ids)
+        names = {int(entry["id"]): game_text(entry["name"]) for entry in found}
+    return render_template("fame.html", ranking=ranking, names=names)
+
+
 @app.route("/guild/<int:guild_id>")
 @login_required
 def guild(guild_id):
@@ -5811,6 +5861,7 @@ def player(pid):
                  if str(row.get("arg1") or "").isdigit()}) if can_delete_bot_items else {})
     gm_row = one("SELECT mAuthority FROM common.gmlist WHERE mName=%s LIMIT 1", (character["name"],))
     character["gm_rank"] = gm_row["mAuthority"] if gm_row else ""
+    character["fame"] = playerbot_fame().get(pid)
     presence = bot_presence_timeline(pid) if panel_feature_enabled("bot_timeline") else None
     return render_template("player.html", presence=presence, character=character, equipment=equipment, inventory=inventory, safebox=safebox,
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),

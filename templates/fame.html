@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Fame ranking' if ui_language == 'en' else 'Ranking sławy' }} · {{ panel_brand }}{% endblock %}
+{% block content %}
+<p class="eyebrow">PLAYERBOTS · {{ 'FAME' if ui_language == 'en' else 'SŁAWA' }}</p>
+<h1>{{ 'Fame ranking' if ui_language == 'en' else 'Ranking sławy' }}</h1>
+<p class="muted">{{ 'The game engine updates this ranking once an hour.' if ui_language == 'en' else 'Silnik gry aktualizuje ten ranking raz na godzinę.' }}</p>
+<section class="panel fame-table-wrap"><table class="fame-table"><thead><tr><th>#</th><th>{{ 'Character' if ui_language == 'en' else 'Postać' }}</th><th>{{ 'Fame' if ui_language == 'en' else 'Sława' }}</th><th>{{ 'Fame points' if ui_language == 'en' else 'Punkty sławy' }}</th></tr></thead><tbody>
+{% for entry in ranking %}<tr><td>{{ entry.rank }}</td><td><a href="{{ url_for('player', pid=entry.pid) }}">{{ names.get(entry.pid, '#' ~ entry.pid) }}</a></td><td><strong style="color:{{ entry.color }}">{{ entry.level }}/10</strong></td><td>{{ entry.points }}</td></tr>
+{% else %}<tr><td colspan="4" class="muted">{{ 'The engine has not published a fame snapshot yet.' if ui_language == 'en' else 'Silnik nie opublikował jeszcze rankingu sławy.' }}</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}

@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.57 · Ranking sławy botów
+
+- Ranking sławy z silnika jest dostępny w sekcji postaci; karta bota pokazuje jego poziom sławy i miejsce w rankingu. Dane pochodzą z godzinowej migawki `PB7F1`, nie z szacunków panelu.
+- Odczyt odrzuca niepoprawny lub zbyt duży plik; brak migawki wyświetla pusty stan. Widok ma polskie i angielskie etykiety oraz przewijaną tabelę na telefonie.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.56 · Maksymalne bonusy w ofertach
 
 - Rynek pozwala wybrać minimalną liczbę bonusów o maksymalnej wartości. Progi są czytane z tabel `world.item_attr` i `world.item_attr_rare` tak jak u Tieru; obrażenia średnie i umiejętności nie są liczone jako zwykłe linie bonusów.

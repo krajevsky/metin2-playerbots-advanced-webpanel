@@ -2,7 +2,7 @@
     'extra' to podstrony szczegółów (karta postaci, gildia, przedmiot…), które podświetlają swoją sekcję. -#}
 {% set LAKA_SECTIONS = [
   {'name': 'Świat', 'icon': 'world', 'pages': [('dashboard', 'Przegląd świata'), ('events', 'Planer eventów'), ('season', 'Sezon i rekordy')], 'extra': ['daily_summary']},
-  {'name': 'Postacie', 'icon': 'chars', 'pages': [('players', 'Gracze i boty'), ('rankings', 'Rankingi'), ('guilds', 'Gildie'), ('bot_personalities', 'Osobowości botów'), ('character_creator', 'Kreator postaci')], 'extra': ['player', 'guild']},
+  {'name': 'Postacie', 'icon': 'chars', 'pages': [('players', 'Gracze i boty'), ('rankings', 'Rankingi'), ('fame_ranking', 'Fame ranking' if ui_language == 'en' else 'Ranking sławy'), ('guilds', 'Gildie'), ('bot_personalities', 'Osobowości botów'), ('character_creator', 'Kreator postaci')], 'extra': ['player', 'guild']},
   {'name': 'Gospodarka', 'icon': 'economy', 'pages': [('economy', 'Przedmioty i drop'), ('economy_shops', 'Sklepy offline'), ('economy_offers', 'Oferty rynku'), ('economy_itemshop', 'ItemShop')], 'extra': ['economy_item', 'economy_holders_status']},
   {'name': 'Kronika', 'icon': 'chronicle', 'pages': [('world_feed', 'Wiadomości ze świata'), ('live_chat', 'Czat na żywo')], 'extra': []},
   {'name': 'Serwer', 'icon': 'server', 'pages': [('manage', 'Gra i serwer'), ('maps', 'Aktywność map'), ('respawns', 'Respawny'), ('system', 'Wydajność'), ('diagnostics', 'Diagnostyka'), ('decisions_page', 'Decyzje botów'), ('panel_logs', 'Logi panelu')], 'extra': []},
