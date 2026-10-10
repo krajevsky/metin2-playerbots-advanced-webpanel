@@ -68,12 +68,16 @@ EXACT = {
     "Playerbots · na żywo": "Playerbots · live",
     "Teraz w świecie": "Happening now",
     "Rdzeń:": "Core:",
+    "Rdzeń: połączony": "Core: connected",
+    "Rdzeń: czeka na status": "Core: waiting for status",
     "Tydzień powtarzalny": "Weekly cycle",
     "Ostatnio zakończone": "Recently ended",
     "Liczone ze zdarzeń w logu gry, więc dokładne niezależnie od tego, co boty zrobiły z łupem.":
         "Counted from the game log, so results stay accurate regardless of what bots did with the loot.",
     "Tymczasowy event działa niezależnie od harmonogramu i kończy się sam.":
         "A temporary event runs independently of the schedule and ends automatically.",
+    "Kliknij wolną godzinę, aby dodać event, albo blok, aby go edytować. Bloki powtarzają się co tydzień; okno przez północ (np. 22:00–02:00) przechodzi na następny dzień. Zmiany zapisują się dopiero po „Zapisz harmonogram”.":
+        "Tap an empty hour to add an event or an existing block to edit it. Blocks repeat weekly; an overnight window (such as 22:00–02:00) continues into the next day. Changes are saved only when you select Save schedule.",
     "ŚWIAT · DODATKI": "WORLD · EXTRAS",
     "⚗️ Alchemia Smoczych Kamieni i dodatki świata": "⚗️ Dragon Soul Alchemy and world extras",
     "Ustawienia zgodne z panelem Tieru: zapisują te same flagi i działają od razu, a restart je zachowuje.":

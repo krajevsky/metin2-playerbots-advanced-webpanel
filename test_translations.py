@@ -142,6 +142,8 @@ def test_the_events_page_history_in_english_in_the_laka_theme():
     assert "<b>Pirate Tanaka · Event&#x27;s choice</b>" in body
     assert "<small>no statistics</small>" in body and "<small>12 chests</small>" in body
     assert "<option value=\"67\">Ghost Wood</option>" in body
+    assert "Core: waiting for status" in body
+    assert "Tap an empty hour to add an event" in body
 
 
 def test_the_events_page_history_in_english():

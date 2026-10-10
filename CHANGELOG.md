@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.45 · Angielski kalendarza eventów
+
+- Dwa teksty tworzone z połączonych fragmentów w widoku eventów Laka — stan rdzenia i instrukcja edycji harmonogramu — wyświetlają się teraz po angielsku po przełączeniu języka.
+- Dodano test odpowiedzi strony; oba motywy sprawdzono na 375 i 1440 px bez poziomego przewijania. Pełna regresja: 125 testów zielonych.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.44 · Bonusy i kamienie w ofertach rynku
 
 - Lista aktywnych ofert pokazuje pod nazwą przedmiotu rzeczywiste linie bonusów i kamienie w slotach broni lub zbroi. Odczyt korzysta z tych samych pól `attrtype/attrvalue` i `socket` silnika, które obsługują ekwipunek i sklep bota.
