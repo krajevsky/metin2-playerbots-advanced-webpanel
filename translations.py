@@ -2780,8 +2780,13 @@ EXACT.update({
     "Zmiana": "Change",
 })
 
-# Laka Atlas dashboard. The same table also translates data inserted by live-widget.js.
+# Laka observatory dashboard. The same table also translates data inserted by live-widget.js.
 EXACT.update({
+    "OBSERWATORIUM PLAYERBOTS": "PLAYERBOTS OBSERVATORY",
+    "teraz.": "now.",
+    "Żywy zapis serwera, sekunda po sekundzie.": "A live view of the server, second by second.",
+    "STEROWANIE": "CONTROLS",
+    "Wybierz obszar": "Choose an area",
     "PLAYERBOTS / TRANSMISJA NA ŻYWO": "PLAYERBOTS / LIVE TRANSMISSION",
     "01 / ATLAS": "01 / ATLAS",
     "02 / OBSERWACJA": "02 / OBSERVATION",

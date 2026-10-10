@@ -1,3 +1,11 @@
+## 2026-10-10 · 1.114.64 · Obserwatorium świata w motywie Łąka i Złoto
+
+- Dashboard motywu Łąka i Złoto otrzymał nową kompozycję: wąski pulpit sterowania, mapę dopasowaną do jej rzeczywistych proporcji oraz sąsiadujące z nią dane o postaciach i świecie. Usunęliśmy pustą przestrzeń wokół mapy; cała mapa mieści się w pierwszym widoku na sprawdzonych ekranach.
+- Zielone akcenty dashboardu zastąpiły mosiądz, miedź i ciepłe złoto. Znaczniki postaci na mapie są teraz drobnymi rombami z odrębnym kolorem dla grupy, walki z Metinem i zablokowania. Niższe sekcje opierają się na typografii i delikatnych liniach zamiast ściany kart.
+- Nowe nagłówki mają polskie i angielskie tłumaczenia. Zmiana dotyczy wyłącznie motywu Łąka i Złoto. Poprzednią wersję zapisano pod tagiem `laka-dashboard-atlas-before-redesign-20261010`.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.63 · Atlas świata — nowy dashboard Łąki i Złota
 
 - Przegląd świata w motywie Łąka i Złoto powstał od nowa jako osobny szablon. Mapa jest główną sceną, obok której działa dziennik obserwacji postaci, aktywności i rytmu świata. Filtry rozwijają się na żądanie; ważne sterowanie mapą pozostaje dostępne od razu.

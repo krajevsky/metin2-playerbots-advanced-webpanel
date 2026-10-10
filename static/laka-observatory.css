@@ -1,0 +1,303 @@
+/* Observatory: a warm lacquer-and-brass dashboard, isolated to Laka. */
+html body[data-skin="laka"] .laka-dashboard-main {
+  --obs-bg:#130e0a;--obs-ink:#1c140d;--obs-cream:#f7ebd2;--obs-gold:#e7bd72;
+  --obs-dim:#a99476;--obs-rule:rgba(227,185,112,.22);
+  --obs-map-height:clamp(180px,calc(100dvh - 300px),800px);min-width:0;
+}
+html body[data-skin="laka"]:has(.laka-dashboard-main) .laka-live {
+  color:#f4d49a;background:#3b2816;
+}
+html body[data-skin="laka"]:has(.laka-dashboard-main) .laka-live i {
+  background:#e9b76b;box-shadow:0 0 9px #d89650;
+}
+html body[data-skin="laka"] .laka-dashboard-main>.empire-hero {display:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-world {min-width:0;width:100%}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-world * {box-sizing:border-box}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage {
+  display:grid!important;grid-template-columns:minmax(170px,205px) minmax(0,1fr);grid-template-rows:auto auto;
+  gap:14px 20px;position:relative!important;isolation:isolate;width:100%!important;max-width:none!important;min-width:0;
+  margin:0!important;padding:18px 20px!important;overflow:hidden!important;
+  border:1px solid #8e663d8c!important;border-radius:8px!important;
+  background:radial-gradient(ellipse at 90% 0,rgba(210,134,55,.13),transparent 42%),
+             radial-gradient(ellipse at -10% 80%,rgba(130,67,28,.16),transparent 48%),
+             linear-gradient(145deg,#21160f,#130d0a 62%,#100b09)!important;
+  box-shadow:0 22px 65px #0008,inset 0 1px 0 #ffdfac25!important;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage::before {
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(90deg,transparent 0 89px,#e5b26608 90px),
+             linear-gradient(120deg,transparent 65%,#f0b76c0c 80%,transparent 95%);
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage::after {display:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-head {
+  grid-column:1/-1;display:flex;align-items:end;justify-content:space-between;gap:12px;
+  margin:0!important;padding:0 0 11px;border-bottom:1px solid var(--obs-rule);min-width:0;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-kicker,
+html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar-label span,
+html body[data-skin="laka"] .laka-dashboard-main .atlas-panel-head span,
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger-lead>span,
+html body[data-skin="laka"] .laka-dashboard-main .atlas-section-title>span,
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation header>span {
+  color:#d5a667;font:700 10px/1.3 var(--laka-body);letter-spacing:.22em;text-transform:uppercase;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-kicker i {
+  display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:1px;
+  background:#e8b46e;transform:rotate(45deg);box-shadow:0 0 13px #ec9c5a;
+  animation:obs-beacon 2.4s ease-in-out infinite;
+}
+@keyframes obs-beacon {50%{opacity:.4;box-shadow:0 0 3px #ec9c5a}}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-head h1 {
+  margin:2px 0 0;color:var(--obs-cream)!important;
+  font:700 clamp(28px,2.3vw,42px)/1.05 var(--laka-display)!important;letter-spacing:-.055em;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-head h1 em {font-style:normal;color:var(--obs-gold)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-title p {display:none}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-signal {
+  display:flex;align-items:center;gap:8px;min-width:0;padding:7px 10px;
+  color:#f7dab4;font-size:12px;font-weight:800;white-space:nowrap;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-signal-pulse {width:7px;height:7px;flex:none;border-radius:50%;background:#efbf77;box-shadow:0 0 10px #e5a85c}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-signal small {color:#957e62;font-size:10px;font-weight:500}
+
+/* The controls become a vertical instrument rail beside the map. */
+html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar {
+  grid-column:1;grid-row:2;display:flex;flex-direction:column;align-items:stretch;gap:12px;
+  min-width:0;min-height:0;margin:0!important;padding:9px 18px 0 0;border-right:1px solid var(--obs-rule);
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar-label {display:grid;gap:3px;min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar-label b {color:var(--obs-cream);font:700 20px var(--laka-display)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters {
+  display:flex!important;flex-direction:column;align-items:stretch;gap:8px;min-width:0;
+  margin:0!important;padding:0!important;background:none!important;border:0!important;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters>* {min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters>:is(.atlas-quick-filter,.level-filter,.map-autoplay) {display:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters>:is(#live-mode,#channel-select) {display:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters select,
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters input[type="search"] {
+  display:block;width:100%!important;max-width:none!important;min-height:37px;padding:6px 9px;
+  color:#f6e2bf!important;border:1px solid #986b3b75!important;border-radius:4px!important;background:#100b08cf!important;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-filter-toggle {
+  display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 10px;
+  color:var(--obs-gold);background:#38251a;border:1px solid #986b3b75;border-radius:4px;font-size:12px;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-filter-toggle[aria-expanded="true"] {background:var(--obs-gold);color:#211209}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage.filters-open .live-filters>:is(.atlas-quick-filter,.level-filter,.map-autoplay) {display:flex!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage.filters-open .live-filters>#live-mode {display:block!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage.filters-open .live-filters>#channel-select:not([style*="none"]) {display:block!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .atlas-quick-filter {align-items:center;gap:6px;color:#dcc29d;font-size:11px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .level-filter {flex-wrap:wrap;gap:4px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .level-filter button {padding:5px 7px!important;border-radius:3px!important;font-size:10px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .level-filter button.active {color:#24140b!important;background:var(--obs-gold)!important;border-color:var(--obs-gold)!important}
+
+/* No wide empty map well. The two map dimensions determine its actual column. */
+html body[data-skin="laka"] .laka-dashboard-main .atlas-dashboard-grid {grid-column:2;grid-row:2;display:block!important;position:static!important;min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-grid {
+  display:grid!important;grid-template-columns:max-content minmax(0,1fr)!important;align-items:stretch;
+  gap:clamp(14px,1.5vw,28px)!important;min-width:0;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-grid>* {min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-column {display:flex;flex-direction:column;align-items:start;gap:9px;min-width:0;width:max-content;max-width:100%}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-well {display:block;padding:0;border:0;background:none;min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map {
+  position:relative!important;display:block;grid-column:auto!important;grid-row:auto!important;
+  width:var(--obs-map-height)!important;height:auto!important;max-width:100%!important;max-height:none!important;
+  aspect-ratio:1!important;overflow:hidden;border:1px solid #d6ac70!important;border-radius:3px!important;
+  background-size:100% 100%!important;box-shadow:0 0 0 4px #100a06,0 0 0 5px #76533780,0 22px 45px #0008!important;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map:is([data-map-index="21"],[data-map-index="1"],[data-map-index="41"]) {
+  width:calc(var(--obs-map-height) * .8)!important;aspect-ratio:4/5!important;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map::before {display:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map::after {
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.55;
+  background:linear-gradient(90deg,#e1b8765c,transparent 14%,transparent 86%,#e1b8765c),
+             repeating-linear-gradient(0deg,#0000 0 3px,#1b100c1a 3px 4px);
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .map-caption {
+  top:9px;left:9px;padding:5px 9px;color:#ffe4b6!important;background:#1a100ccc!important;
+  border:1px solid #c391517d!important;border-radius:2px!important;backdrop-filter:blur(8px);
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-legend {
+  display:flex!important;flex-wrap:wrap;align-items:center;gap:7px 13px!important;
+  grid-column:auto!important;grid-row:auto!important;width:100%;margin:0!important;padding:5px 0!important;
+  color:#c3aa87;background:none!important;border:0!important;font-size:10px;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-legend .map-dot {width:8px;height:8px;border-radius:1px;transform:rotate(45deg)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point {
+  width:17px!important;height:17px!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;color:#e7c778!important;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point.dot-purple {color:#ae8cc6!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point.dot-yellow {color:#ef8754!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point.dot-red {color:#e54646!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point::before {
+  content:"";display:block!important;position:absolute;inset:1px;z-index:2;border:1px solid #fff9;border-radius:1px;
+  background:#100a09ad;transform:rotate(45deg);box-shadow:0 1px 6px #000a;pointer-events:none;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point::after {
+  content:"";position:absolute;inset:5px;z-index:3;border-radius:1px;background:currentColor;
+  transform:rotate(45deg);box-shadow:0 0 10px currentColor;pointer-events:none;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point.is-metin::before {border-color:#f3a26d;animation:obs-metin 1.7s ease-in-out infinite}
+@keyframes obs-metin {50%{box-shadow:0 0 0 5px #e9793d33,0 0 12px #e9793d}}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map .bot-point em {
+  left:14px;top:-17px;z-index:5;padding:2px 5px;border:1px solid #9b714b85;border-radius:2px;
+  color:#f3dfbd;background:#180e0cdb;box-shadow:0 3px 10px #0008;white-space:nowrap;
+}
+
+/* An editorial readout, split by hairlines rather than boxed widgets. */
+html body[data-skin="laka"] .laka-dashboard-main .atlas-intel-column {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);gap:12px 17px;
+  min-width:0;height:var(--obs-map-height);max-height:var(--obs-map-height);overflow:hidden;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals {grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--obs-rule);border-bottom:1px solid var(--obs-rule)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals>div {display:grid;align-content:center;gap:3px;min-width:0;padding:7px 10px;border-right:1px solid var(--obs-rule)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals>div:first-child {padding-left:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals>div:last-child {border:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals span {color:var(--obs-dim);font-size:10px;white-space:nowrap}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals b {color:#ffdea4;font:800 clamp(17px,1.4vw,25px) var(--laka-body);font-variant-numeric:tabular-nums}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-sidebar,
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-insights {
+  position:static!important;inset:auto!important;grid-column:auto!important;grid-row:auto!important;
+  display:flex!important;flex-direction:column;gap:7px;width:100%!important;height:100%!important;
+  min-width:0;min-height:0!important;max-height:100%!important;margin:0;padding:0!important;
+  border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow:hidden!important;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-insights {border-left:1px solid var(--obs-rule)!important;padding-left:15px!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-panel-head {display:grid;gap:3px;min-width:0;padding-bottom:8px;border-bottom:1px solid var(--obs-rule)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-panel-head h2 {margin:0;color:var(--obs-cream)!important;font:700 19px var(--laka-display)!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-sidebar-tabs {display:flex;gap:8px;margin:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage :is(.live-sidebar-tabs,.insight-tabs) button {
+  padding:5px 3px!important;color:#b29a79!important;border:0!important;border-bottom:1px solid transparent!important;border-radius:0!important;background:none!important;font-size:11px;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage :is(.live-sidebar-tabs,.insight-tabs) button.active {color:#f1cf91!important;border-bottom-color:#e6bd78!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage :is(.live-ranking-section,.live-activity) {min-height:0!important;overflow:hidden!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage :is(.live-ranking,#live-activity) {max-height:100%;min-height:0;overflow-y:auto!important;overflow-x:hidden!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-ranking a {padding:7px 2px!important;border:0!important;border-bottom:1px solid var(--obs-rule)!important;border-radius:0!important;background:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-insight-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .map-insight-card {min-width:0;max-width:100%;padding:8px 0!important;border:0!important;border-top:1px solid var(--obs-rule)!important;border-radius:0!important;background:none!important;overflow:hidden}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .map-insight-card h3 {margin:0 0 5px;color:#edd0a0;font-size:12px;overflow-wrap:anywhere}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage :is(.map-insight-card--respawns,.map-insight-card--world) {grid-column:1/-1}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage #world-insights-card .world-tab-panel {max-height:145px!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .map-insight-row {min-width:0;grid-template-columns:minmax(0,1fr) minmax(22px,1fr) auto}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .map-insight-row>* {min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .map-insight-row span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .map-respawn-summary>div {min-width:0;overflow-wrap:anywhere;background:#1c120e!important;border-color:#51361e!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-insights-toggle {display:none!important}
+
+/* Below the map: open typography and copper rules, without a second card wall. */
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger {
+  display:grid;grid-template-columns:minmax(180px,1.25fr) repeat(3,minmax(0,1fr));gap:0;
+  margin:25px 0 0;padding:0;border:0;border-top:2px solid #c4945d;border-bottom:1px solid var(--obs-rule);border-radius:0;background:none;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>div {display:grid;align-content:center;gap:4px;min-width:0;min-height:82px;padding:15px 17px;border:0!important;border-right:1px solid var(--obs-rule)!important;border-bottom:1px solid var(--obs-rule)!important;background:none!important;box-shadow:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>div::before {display:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>.atlas-ledger-lead {grid-row:span 2;align-content:start;padding:22px 20px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger-lead h2 {margin:13px 0 3px;color:#f8e9ca;font:700 clamp(24px,2vw,36px)/1.1 var(--laka-display)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger-lead p {max-width:22ch;color:#b9a080;font-size:12px;line-height:1.45}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>div>span {color:var(--obs-dim);font-size:10px;letter-spacing:.14em}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>div>b {color:#f4d49a;font:800 clamp(18px,1.5vw,26px)/1.15 var(--laka-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>.atlas-ledger-primary b {font-size:clamp(29px,2.5vw,42px);color:#ffe3a7}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger small {color:#aa9276;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview {
+  display:grid;grid-template-columns:minmax(180px,.6fr) minmax(0,2fr);gap:20px;position:relative!important;inset:auto!important;
+  width:100%!important;height:auto!important;max-height:none!important;min-width:0;margin:27px 0 0;padding:20px 0 30px;
+  border:0!important;border-top:1px solid var(--obs-rule)!important;border-bottom:1px solid var(--obs-rule)!important;border-radius:0;background:none!important;overflow:hidden;
+}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-section-title h2 {margin:8px 0 0;color:#f6e6c9;font:700 clamp(24px,2vw,37px)/1.1 var(--laka-display)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .overview-pages {display:block!important;min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .overview-page {display:none!important;min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .overview-page.active {display:block!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview h3 {margin:0 0 9px;color:#e4c797;font-size:14px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .world-summary-grid {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--obs-rule)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .world-summary-grid>div {display:grid;gap:4px;min-width:0;min-height:65px;padding:10px;border:0!important;border-right:1px solid var(--obs-rule)!important;border-bottom:1px solid var(--obs-rule)!important;border-radius:0;background:none!important}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .world-summary-grid b {font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .world-summary-grid span {font-size:10px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .overview-dots {display:flex!important;position:absolute;left:0;bottom:10px;gap:8px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .overview-dots button {width:9px;height:9px;min-width:9px;padding:0;border:1px solid var(--obs-gold);border-radius:1px;background:transparent;transform:rotate(45deg)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .overview-dots button.active {background:var(--obs-gold)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .overview-maps-list {max-height:180px;overflow:auto}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operations {min-width:0;margin:34px 0 0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operations-grid {display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:0;margin-top:16px;border-top:1px solid var(--obs-rule);border-bottom:1px solid var(--obs-rule)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation {min-width:0;min-height:315px;max-height:420px;padding:18px 22px;border:0;border-right:1px solid var(--obs-rule);border-radius:0;background:none;overflow:hidden}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation header {position:relative;display:grid;gap:3px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--obs-rule)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation h2 {margin:0!important;padding:0!important;border:0!important;color:#f3dfbc;font:700 22px var(--laka-display)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation header a {position:absolute;right:0;top:0;font-size:11px;color:#e9c27f}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation :is(.laka-hbars,.laka-rank) {max-height:310px;overflow-y:auto;overflow-x:hidden}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation .laka-history {margin-top:12px}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-operation .laka-carousel {position:absolute;top:0;right:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-chronicle {display:grid;grid-template-columns:minmax(180px,.3fr) minmax(0,1fr);min-width:0;margin:26px 0 0;padding:0;border:0!important;border-top:1px solid var(--obs-rule)!important;border-bottom:1px solid var(--obs-rule)!important;border-radius:0!important;background:none!important;overflow:hidden}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-chronicle .laka-chronicle-label {padding:18px;border-right:1px solid var(--obs-rule)}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-chronicle ol {min-width:0}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-latest {margin:12px 0;color:#aa9275;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body[data-skin="laka"] .laka-dashboard-main .atlas-latest>span {color:#d9ad71;letter-spacing:.14em}
+
+@media (max-width:1650px) {
+  html body[data-skin="laka"] .laka-dashboard-main {--obs-map-height:clamp(170px,calc(100dvh - 315px),690px)}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-intel-column {display:flex;flex-direction:column;gap:10px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals {flex:none}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-sidebar {flex:1 1 40%;height:auto!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-insights {flex:1 1 60%;height:auto!important;min-height:0!important;border-left:0!important;border-top:1px solid var(--obs-rule)!important;padding:10px 0 0!important}
+}
+@media (max-width:1250px) {
+  html body[data-skin="laka"] .laka-dashboard-main {--obs-map-height:clamp(170px,calc(100dvh - 345px),620px)}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage {grid-template-columns:1fr;grid-template-rows:auto auto auto}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar {grid-column:1;grid-row:2;display:flex;flex-direction:row;align-items:center;gap:9px;padding:0 0 9px;border:0;border-bottom:1px solid var(--obs-rule)}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar-label {min-width:135px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters {flex:1;flex-direction:row;align-items:center}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters #map-select {width:200px!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters #bot-search {width:145px!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-filter-toggle {width:auto;min-width:72px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-dashboard-grid {grid-column:1;grid-row:3}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger {grid-template-columns:repeat(3,minmax(0,1fr))}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>.atlas-ledger-lead {grid-column:1/-1;grid-row:auto;min-height:90px}
+}
+@media (max-width:850px) {
+  html body[data-skin="laka"] .laka-dashboard-main {--obs-map-height:clamp(170px,calc(100dvh - 350px),600px)}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-grid {grid-template-columns:minmax(0,1fr)!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-map-column {width:100%;align-items:center}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-map-well {max-width:100%}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .world-map {max-width:100%!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-intel-column {height:auto;max-height:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals {grid-column:1/-1}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage :is(.live-sidebar,.live-insights) {height:290px!important;max-height:290px!important;padding:10px!important;border:1px solid var(--obs-rule)!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-insights {padding:10px!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-overview {grid-template-columns:1fr;padding-bottom:34px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-operations-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-operation--rank {grid-column:1/-1;border-top:1px solid var(--obs-rule)}
+}
+@media (max-width:650px) {
+  html body[data-skin="laka"] .laka-dashboard-main {--obs-map-height:clamp(170px,calc(100dvh - 320px),450px)}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage {gap:10px;padding:12px!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-head {align-items:start;padding-bottom:8px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-head h1 {font-size:27px!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-kicker {font-size:8px;letter-spacing:.1em}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-signal {font-size:10px;padding:4px;max-width:96px;white-space:normal}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-signal small {display:none}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar {padding-bottom:7px;gap:6px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-toolbar-label {display:none}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters {display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,.72fr);gap:5px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters>* {display:none!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage .live-filters>:is(#map-select,#bot-search) {display:block!important;width:100%!important;min-width:0;font-size:11px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage.filters-open .live-filters>:is(.atlas-quick-filter,.level-filter,.map-autoplay) {display:flex!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage.filters-open .live-filters>#live-mode {display:block!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage.filters-open .live-filters>#channel-select:not([style*="none"]) {display:block!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage.filters-open .live-filters .level-filter {grid-column:1/-1}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-filter-toggle {padding:7px;font-size:10px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-intel-column {grid-template-columns:1fr}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-map-totals {grid-column:1}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-stage :is(.live-sidebar,.live-insights) {height:260px!important;max-height:260px!important}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger {grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>.atlas-ledger-lead {grid-column:1/-1}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-ledger>div {min-height:72px;padding:11px}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-overview .world-summary-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-operations-grid {grid-template-columns:1fr}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-operation--rank {grid-column:1}
+  html body[data-skin="laka"] .laka-dashboard-main .atlas-chronicle {grid-template-columns:1fr}
+}
+@media (max-height:650px) and (min-width:651px) {html body[data-skin="laka"] .laka-dashboard-main {--obs-map-height:clamp(160px,calc(100dvh - 310px),380px)}}
+@media (max-height:650px) and (max-width:650px) {html body[data-skin="laka"] .laka-dashboard-main {--obs-map-height:clamp(145px,calc(100dvh - 375px),230px)}}
+@media (prefers-reduced-motion:reduce) {html body[data-skin="laka"] .laka-dashboard-main .atlas-kicker i,html body[data-skin="laka"] .laka-dashboard-main .bot-point.is-metin::before {animation:none}}
