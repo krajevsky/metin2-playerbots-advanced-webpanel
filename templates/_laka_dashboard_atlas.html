@@ -1,0 +1,91 @@
+{# Laka's dashboard is an independent view. Keep the ids consumed by live-widget.js and laka-dashboard.js. #}
+<div class="atlas-world">
+  <section class="live-shell atlas-stage" aria-label="Atlas świata na żywo">
+    <header class="atlas-head">
+      <div class="atlas-title">
+        <span class="atlas-kicker"><i></i> PLAYERBOTS / TRANSMISJA NA ŻYWO</span>
+        <h1>Świat <em>w ruchu.</em></h1>
+        <p>Obserwuj postacie, kanały i wydarzenia wprost z serwera.</p>
+      </div>
+      <div class="atlas-signal"><span class="atlas-signal-pulse"></span><span id="live-count">Ładowanie…</span><small>odświeżanie co 1,5 s</small></div>
+    </header>
+
+    <div class="atlas-toolbar">
+      <div class="atlas-toolbar-label"><span>01 / ATLAS</span><b>Widok mapy</b></div>
+      <div class="live-filters" id="laka-live-filters">
+        <select id="map-select" aria-label="Wybierz mapę">
+          <option value="21">Chunjo M1 — Joan</option><option value="23">Chunjo M2 — Bokjung</option><option value="24">Chunjo M3 — Waryong</option><option value="25">Loch Małp Chunjo</option>
+          <option value="1">Shinsoo M1 — Yongan</option><option value="3">Shinsoo M2 — Jayang</option><option value="4">Shinsoo M3 — Jungrang</option><option value="5">Loch Małp Shinsoo</option>
+          <option value="41">Jinno M1 — Pyongmoo</option><option value="43">Jinno M2 — Bakra</option><option value="44">Jinno M3 — Imha</option><option value="45">Loch Małp Jinno</option>
+          <option value="108">Loch Małp Normalny</option><option value="109">Loch Małp Trudny</option><option value="64">Dolina Orków</option><option value="63">Pustynia Yongbi</option>
+          <option value="61">Góra Sohan</option><option value="104">Loch Pająków V1</option><option value="65">Świątynia Hwang</option><option value="67">Las</option><option value="68">Czerwony Las</option>
+        </select>
+        <input id="bot-search" type="search" placeholder="Znajdź bota…" aria-label="Znajdź bota">
+        <label class="atlas-quick-filter"><input id="show-names" type="checkbox" checked> Nazwy</label>
+        <label class="atlas-quick-filter"><input id="party-only" type="checkbox"> Grupy</label>
+        <div class="level-filter"><button data-level="all" class="active">Każdy poziom</button><button data-level="1-15">1–15</button><button data-level="16-25">16–25</button><button data-level="26-34">26–34</button><button data-level="35-45">35–45</button><button data-level="46-55">46–55</button><button data-level="56+">56+</button></div>
+      </div>
+      <button type="button" class="atlas-filter-toggle" id="laka-filter-toggle" aria-expanded="false" aria-controls="laka-live-filters">Filtry <span>+</span></button>
+    </div>
+
+    <div class="live-dashboard-grid atlas-dashboard-grid"><div class="live-grid atlas-grid">
+      <div class="atlas-map-column">
+        <div class="atlas-map-well"><div class="world-map" id="world-map"><div class="map-caption" id="map-caption">Ładowanie pozycji…</div></div></div>
+        <footer class="map-legend atlas-legend"><span><i class="map-dot" style="background:#3ddc84"></i>Solo</span><span><i class="map-dot" style="background:#a66bff"></i>W grupie</span><span><i class="map-dot" style="background:#ffd23f"></i>Metin</span><span><i class="map-dot" style="background:#ff3b3b"></i>Zablokowany</span><span class="kd-legend"><b class="kd-1">Shinsoo</b><b class="kd-2">Chunjo</b><b class="kd-3">Jinno</b></span></footer>
+      </div>
+      <div class="atlas-intel-column">
+        <div class="atlas-map-totals" aria-label="Stan wybranej mapy">
+          <div><span>Widoczne</span><b id="stat-visible">—</b></div><div><span>W grupie</span><b id="stat-pt">—</b></div><div><span>Śr. poziom</span><b id="stat-avg">—</b></div><div><span>Maks. poziom</span><b id="stat-max">—</b></div>
+        </div>
+        <aside class="live-sidebar atlas-roster" data-sidebar-tab="ranking">
+          <div class="atlas-panel-head"><span>02 / OBSERWACJA</span><h2>Na tej mapie</h2></div>
+          <div class="live-sidebar-tabs" id="live-sidebar-tabs"><button type="button" class="active" data-tab="ranking">Postacie</button><button type="button" data-tab="activity">Zajęcia</button></div>
+          <section class="live-ranking-section"><div id="live-ranking" class="live-ranking"></div></section>
+          <section class="live-activity"><div id="live-activity"></div></section>
+        </aside>
+        <aside class="live-insights atlas-insights" id="live-insights">
+          <div class="atlas-panel-head"><span>03 / DANE</span><h2>Rytm świata</h2></div>
+          <div class="atlas-insight-grid">
+            <section class="map-insight-card map-insight-card--channels"><h3>Kanały</h3><div id="map-channel-chart" class="map-insight-chart"></div></section>
+            <section class="map-insight-card map-insight-card--empires"><h3>Królestwa</h3><div id="map-empire-chart" class="map-insight-chart"></div></section>
+            <section class="map-insight-card map-insight-card--respawns"><h3>Respawny</h3><div id="map-respawn-summary" class="map-respawn-summary"></div></section>
+            <section class="map-insight-card map-insight-card--world" id="world-insights-card" data-world-tab="activity"><div class="insight-tabs" id="world-insights-tabs"><button type="button" class="active" data-tab="activity">Aktywności</button><button type="button" data-tab="levels">Poziomy</button></div><div class="insight-empire-filter" id="world-activity-filter"><button type="button" class="active" data-empire="all">Wszystkie</button><button type="button" data-empire="1">Shinsoo</button><button type="button" data-empire="2">Chunjo</button><button type="button" data-empire="3">Jinno</button></div><div id="world-activity-chart" class="map-respawn-summary map-insight-list world-tab-panel" data-panel="activity"></div><div id="world-level-chart" class="map-respawn-summary map-insight-list world-tab-panel" data-panel="levels"></div></section>
+          </div>
+        </aside>
+      </div>
+    </div></div>
+    <button type="button" class="live-insights-toggle" id="live-insights-toggle" aria-expanded="false">▦ Diagramy mapy</button>
+  </section>
+
+  <section class="atlas-ledger laka-ledger" aria-label="Puls serwera">
+    <div class="atlas-ledger-lead"><span>04 / PULS SERWERA</span><h2>W jednej chwili.</h2><p>Najważniejsze liczby bez odrywania wzroku od świata.</p></div>
+    <div class="atlas-ledger-primary"><span>W świecie</span><b id="lg-bots">—</b><small>w grupach <span id="lg-party">—</span></small></div>
+    <div><span>Postacie / konta</span><b>{{ '{:,}'.format(totals.characters or 0).replace(',', ' ') }} / {{ '{:,}'.format(totals.accounts or 0).replace(',', ' ') }}</b><small>w bazie graczy</small></div>
+    <div><span>Yang w obiegu</span><b>{{ '{:,}'.format(totals.yang or 0).replace(',', ' ') }}</b><small>na postaciach</small></div>
+    <div><span>Śr. / maks. poziom</span><b id="lg-levels">—</b><small>boty online</small></div>
+    <div><span>EXP · Drop · Yang</span><b id="lg-rates">—</b><small id="lg-event">bez eventu</small></div>
+    <div><span>Wersje</span><b id="lg-panel">—</b><small><span id="lg-playerbots">Playerbots —</span> · <a href="{{ url_for('changelog') }}">changelog</a></small></div>
+  </section>
+
+  <section class="world-overview atlas-overview" aria-label="Przekrój serwera"><div class="atlas-section-title"><span>05 / PRZEKRÓJ</span><h2>Świat w liczbach.</h2></div><div class="overview-pages" id="overview-pages">
+    <div class="overview-page active" data-page="0"><h3>Stan serwera</h3><div class="world-summary-grid">
+      <div><b id="overview-bots">{{world_summary.bots}}</b><span>Botów w grze</span></div><div><b id="overview-resting">{{ world_summary.life_resting if world_summary.life_resting is not none else '—' }}</b><span>Odpoczywa</span></div><div><b id="overview-avg">{{world_summary.average_level}}</b><span>Śr. poziom</span></div><div><b id="overview-party">{{world_summary.party_bots}}</b><span>W grupach</span></div><div><b id="overview-max">{{world_summary.max_level}}</b><span>Maks. poziom</span></div>
+      <div class="empire-bots-cell"><b class="empire-bots-breakdown">{% for e in world_summary.empire_counts %}<span class="empire-bots-item">{% if e.flag %}<img class="empire-flag-inline" src="{{url_for('static', filename='empires/' + e.flag)}}" alt="{{e.name}}" title="{{e.name}}">{% endif %}{{e.count}}</span>{% endfor %}</b><span>Według królestwa</span></div>
+      <div class="channel-bots-cell"><b class="channel-bots-breakdown">{% for c in world_summary.channel_counts %}<span class="empire-bots-item" title="Kanał {{c.channel}}"><i class="map-legend-channel map-legend-channel--ch{{c.channel}}"></i>CH{{c.channel}} {{c.count}}</span>{% endfor %}</b><span>Według kanału</span></div>
+      <div class="playerbots-version panel-release-card {{world_summary.panel_release.tone}}"><b class="panel-installed">{{world_summary.panel_release.installed}}</b><span>Wersja panelu</span>{% if world_summary.panel_release.latest %}<small class="panel-available">{{world_summary.panel_release.label}}</small>{% endif %}</div>
+      <div class="playerbots-version playerbots-release-card {{world_summary.release.tone}}"><b class="playerbots-installed">{{world_summary.version}}</b><span>Wersja Playerbots</span>{% if world_summary.release.latest %}<small class="playerbots-available">{{world_summary.release.label}}</small>{% endif %}</div>
+    </div></div>
+    <div class="overview-page" data-page="1"><h3>Raty serwerowe</h3><section class="overview-rates">{% for key, label in (('exp','EXP'), ('drop','Drop przedmiotów'), ('yang','Drop Yang')) %}{% set ev = world_summary.events.get(key) if world_summary.events else None %}<div class="rate-row {% if ev and ev.active %}rate-event-active{% endif %}" id="rate-row-{{key}}"><span>{{label}}</span><span class="rate-value-group"><b id="overview-rate-{{key}}">{{world_summary.rates[key]}}%</b><small class="rate-bonus" id="rate-bonus-{{key}}" data-until="{{ev.until if ev and ev.active else ''}}" {% if not (ev and ev.active) %}hidden{% endif %}>{% if ev and ev.active %}⚡ +{{ev.value}}% · <span class="rate-bonus-countdown">{{ev.until_text}}</span>{% endif %}</small></span></div>{% endfor %}</section></div>
+    <div class="overview-page" data-page="2"><h3>Boty na mapach</h3></div>
+  </div><div class="overview-dots" id="overview-dots"><button class="active" data-page="0" aria-label="Stan serwera"></button><button data-page="1" aria-label="Raty serwerowe"></button><button data-page="2" aria-label="Boty na mapach"></button></div></section>
+
+  <section class="atlas-operations"><div class="atlas-section-title"><span>06 / OPERACJE</span><h2>To, co dzieje się dalej.</h2></div>
+    <div class="atlas-operations-grid">
+      <article class="atlas-operation atlas-operation--system laka-widget"><header><span>INFRASTRUKTURA</span><h2>{{ 'Obciążenie Docker' if settings.monitor_mode == 'docker' else 'Obciążenie VPS' }}</h2><a href="{{ url_for('system') }}">Szczegóły ↗</a></header><div id="lw-system" class="laka-meters"><p class="muted">Ładowanie odczytu…</p></div><div class="laka-history"><div class="laka-history-head"><span>Ostatnie 24 godziny</span><span class="laka-history-key"><i class="cpu"></i>CPU <i class="ram"></i>RAM</span></div><div id="lw-history" class="laka-spark"></div><div id="lw-history-stats" class="laka-history-stats"></div></div></article>
+      <article class="atlas-operation atlas-operation--maps"><header><span>GEOGRAFIA</span><h2>Boty według map</h2><small class="laka-legend"><i class="e1"></i>Shinsoo <i class="e2"></i>Chunjo <i class="e3"></i>Jinno</small></header><div id="lw-maps" class="laka-hbars"><p class="muted">Czekam na pozycje botów…</p></div></article>
+      <article class="atlas-operation atlas-operation--rank"><header><span>HIERARCHIA</span><h2 id="lw-rank-title">Rankingi</h2><small id="lw-rank-sub"></small><div class="laka-carousel"><button type="button" id="lw-rank-prev" aria-label="Poprzedni ranking">‹</button><button type="button" id="lw-rank-next" aria-label="Następny ranking">›</button></div></header><ol id="lw-rank" class="laka-rank"><li class="muted">Ładowanie rankingów…</li></ol></article>
+    </div>
+  </section>
+  <section class="atlas-chronicle laka-chronicle"><div class="laka-chronicle-label"><span class="eyebrow">07 / OSTATNIE 12 GODZIN</span><h2>Kronika świata</h2><a href="{{ url_for('world_feed') }}">Wszystkie wydarzenia ↗</a></div><ol id="lw-chronicle"><li class="muted">Ładowanie najważniejszych wydarzeń…</li></ol></section>
+  {% if latest_changelog %}<p class="atlas-latest"><span>OSTATNIA ZMIANA</span> <a href="{{ url_for('changelog') }}">{{ latest_changelog[0].version }}</a> · {{ 'Read the release notes' if ui_language == 'en' else (latest_changelog[0].changes[0] if latest_changelog[0].changes else 'Szczegóły w changelogu.') }}</p>{% endif %}
+</div>

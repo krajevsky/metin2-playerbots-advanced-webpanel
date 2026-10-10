@@ -1,4 +1,4 @@
-"""The map-first dashboard is isolated to the Laka theme."""
+"""The independent Atlas dashboard is isolated to the Laka theme."""
 from unittest.mock import patch
 
 import app as panel
@@ -17,16 +17,18 @@ def dashboard_html(theme, language="pl"):
     return response.get_data(as_text=True)
 
 
-def test_map_first_styles_and_controls_load_only_for_laka():
+def test_atlas_template_styles_and_controls_load_only_for_laka():
     laka = dashboard_html("laka")
     ocean = dashboard_html("ocean")
-    assert "laka-dashboard-v2.css" in laka
+    assert "laka-atlas.css" in laka
     assert 'class="laka-dashboard-main"' in laka
     assert 'id="laka-filter-toggle"' in laka
-    assert "laka-dashboard-v2.css" not in ocean
+    assert 'class="live-shell atlas-stage"' in laka
+    assert "laka-atlas.css" not in ocean
     assert 'class="laka-dashboard-main"' not in ocean
     assert 'id="laka-filter-toggle"' not in ocean
 
 
 def test_mobile_filter_control_translates_to_english():
-    assert "⚙ Map filters" in dashboard_html("laka", "en")
+    assert "Filters" in dashboard_html("laka", "en")
+    assert "in motion." in dashboard_html("laka", "en")

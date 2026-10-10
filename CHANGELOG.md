@@ -1,3 +1,11 @@
+## 2026-10-10 · 1.114.63 · Atlas świata — nowy dashboard Łąki i Złota
+
+- Przegląd świata w motywie Łąka i Złoto powstał od nowa jako osobny szablon. Mapa jest główną sceną, obok której działa dziennik obserwacji postaci, aktywności i rytmu świata. Filtry rozwijają się na żądanie; ważne sterowanie mapą pozostaje dostępne od razu.
+- Puls serwera, przekrój świata, infrastruktura, geografia botów, rankingi i kronika otrzymały nową hierarchię i układ. Dane nadal pochodzą z tych samych działających endpointów. Widżety przewijają swoją zawartość wewnątrz sekcji.
+- Mapa M1 zachowuje proporcje 4:5, pozostałe mapy 1:1. Jej pełny obszar mieści się w pierwszym widoku na przetestowanych telefonach, tabletach i monitorach. Zmiana dotyczy wyłącznie nowego motywu; obecny wcześniej wygląd można odtworzyć z tagu `laka-dashboard-v2-before-redesign-20261010`.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.62 · Nowy Przegląd świata w motywie Łąka i Złoto
 
 - Dashboard motywu Laka stawia mapę na pierwszym planie. Jej rozmiar dopasowuje się do wysokości ekranu z zachowaniem proporcji 4:5 dla map M1 i 1:1 dla pozostałych; cała mapa mieści się w pierwszym widoku także na telefonie. Na mniejszych ekranach podstawowe wyszukiwanie pozostaje widoczne, a pozostałe filtry otwiera przycisk.

@@ -34,7 +34,7 @@
     return res;
   };
 })();
-</script><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Cinzel:wght@600;700;900&display=swap"><link rel="stylesheet" href="{{ static_asset_url('laka.css') }}">{% if request.endpoint == 'dashboard' %}<link rel="stylesheet" href="{{ static_asset_url('laka-dashboard-v2.css') }}">{% endif %}{% endif %}
+</script><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Cinzel:wght@600;700;900&display=swap"><link rel="stylesheet" href="{{ static_asset_url('laka.css') }}">{% if request.endpoint == 'dashboard' %}<link rel="stylesheet" href="{{ static_asset_url('laka-atlas.css') }}">{% endif %}{% endif %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 {% if laka %}<script>/* laka: osie, siatka, legendy i podpowiedzi wykresów w barwach motywu (kolory serii ustawiają strony) */
 if (window.Chart) { const d = Chart.defaults; d.color = '#a8957a'; d.borderColor = 'rgba(110,76,37,.35)'; d.font.family = "'Alegreya Sans','Segoe UI',system-ui,sans-serif";
