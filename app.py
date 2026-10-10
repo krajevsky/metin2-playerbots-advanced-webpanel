@@ -4936,9 +4936,18 @@ def bot_gear_history(pid, limit=60):
     raw = rows(f"""SELECT l.time, l.how, l.hint, l.vnum, i.socket0 FROM log.log l
       LEFT JOIN player.item i ON i.id = l.what
       WHERE l.who=%s AND l.how IN ({marks}) ORDER BY l.time DESC LIMIT %s""", [pid] + hows + [limit])
+    # A failed scroll may return the same item one grade lower. Its old item
+    # is logged as REMOVE (REFINE FAIL), but it was not destroyed. Tieru's
+    # history pairs that removal with the adjacent REFINE FAIL entry.
+    downgrades = [(r["time"], int(r.get("vnum") or 0)) for r in raw
+                  if game_text(r.get("how")) == "REFINE FAIL" and hasattr(r.get("time"), "strftime")]
     result = []
     for r in raw:
         how = game_text(r["how"])
+        if how == "REMOVE (REFINE FAIL)" and hasattr(r.get("time"), "strftime") and any(
+                abs((t - r["time"]).total_seconds()) <= 2 and v == int(r.get("vnum") or 0) - 1
+                for t, v in downgrades):
+            continue
         kind, label = GEAR_HISTORY_HOWS.get(how, ("other", how))
         vnum = int(r["vnum"] or 0)
         socket0 = int(r["socket0"] or 0) if vnum in SKILLBOOK_VNUMS else 0
