@@ -8,6 +8,16 @@ import pytest
 SETTINGS = {"setup_complete": "1", "auth_enabled": "0", "ui_language": "pl"}
 
 
+def test_market_results_page_number_uses_english_when_selected():
+    with patch.object(panel, "settings", return_value={**SETTINGS, "ui_language": "en"}), \
+            patch.object(panel, "one", return_value={"total": 0}), \
+            patch.object(panel, "rows", return_value=[]):
+        response = panel.app.test_client().get("/economy/offers?page=2")
+    assert response.status_code == 200
+    assert b"Offers \xc2\xb7 page 2" in response.data
+    assert "Oferty · strona 2" not in response.get_data(as_text=True)
+
+
 def test_market_offers_filters_and_price():
     offer = {"id": 91, "owner_id": 7, "vnum": 42, "quantity": 4, "price": 1000,
              "item_name": "Przedmiot", "seller": "Handlarz", "shop_name": "Sklep",

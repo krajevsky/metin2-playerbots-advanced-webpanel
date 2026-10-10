@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.55 · Numer strony ofert po angielsku
+
+- Wyniki rynku w trybie English pokazują „Offers · page N” także dla dynamicznego numeru strony; polska etykieta nie przebija się już przez tłumaczenie odpowiedzi HTML.
+- Dodano test całej wyrenderowanej strony, obejmujący numer strony większy od pierwszej.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.54 · Natywny podgląd struktury bazy
 
 - Administracja ma własny widok schematu baz gry: listę tabel oraz kolumn, typów, kluczy i wartości domyślnych. Strona czyta wyłącznie `information_schema`, a nazwy baz i tabel są sprawdzane po stronie serwera.
