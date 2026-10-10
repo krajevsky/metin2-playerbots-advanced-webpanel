@@ -8496,17 +8496,24 @@ def read_panel_log_files(max_lines=500):
 def decisions_page():
     """Decyzje botów z log.playerbot_listing (Tieru's /decisions, 2.2.39+):
     dlaczego bot wystawił przedmiot i jak wyliczył cenę. Ostatnie 60 wpisów,
-    opcjonalnie tylko jednego bota (nick albo pid)."""
+    opcjonalnie z wybranego okresu i tylko jednego bota (nick albo pid)."""
     lang = settings().get("ui_language", "pl")
     bot = (request.args.get("bot") or "").strip()
-    params, where = [], ""
+    hours = request.args.get("hours", "all")
+    if hours not in ("all", "1", "6", "24", "72", "168"):
+        hours = "all"
+    params, conditions = [], []
+    if hours != "all":
+        conditions.append("COALESCE(l.last_at,l.listed_at) >= NOW() - INTERVAL %s HOUR")
+        params.append(int(hours))
     if bot:
         if bot.isdigit():
-            where = "WHERE l.pid=%s"
+            conditions.append("l.pid=%s")
             params.append(int(bot))
         else:
-            where = "WHERE p.name=%s"
+            conditions.append("p.name=%s")
             params.append(bot)
+    where = "WHERE " + " AND ".join(conditions) if conditions else ""
     try:
         records = rows(f"""SELECT l.*, p.name AS bot_name FROM log.playerbot_listing l
             LEFT JOIN player.player p ON p.id=l.pid {where}
@@ -8522,7 +8529,7 @@ def decisions_page():
             ex = None
         entries.append({"row": row, "ex": ex, "bot_name": game_text(row.get("bot_name")) or f"pid {row.get('pid')}",
                         "item": _decision_item_name(row.get("vnum"))})
-    return render_template("decisions.html", entries=entries, bot=bot)
+    return render_template("decisions.html", entries=entries, bot=bot, hours=hours)
 
 
 @app.route("/diagnostics/panel-logs")

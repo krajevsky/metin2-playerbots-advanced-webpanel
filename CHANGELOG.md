@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.60 · Zakres czasu w decyzjach botów
+
+- Diagnostyka decyzji sprzedażowych pozwala wybrać pełną historię albo ostatnie 1, 6, 24, 72 lub 168 godzin, także dla wskazanego bota. Filtr działa w zapytaniu do logu gry, więc ogranicza dane przed ich pobraniem; nieznana wartość przywraca bezpieczny widok całej historii.
+- Formularz ma polskie i angielskie etykiety. Widok nadal pokazuje maksymalnie 60 najnowszych wpisów z wybranego okresu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.59 · Wyprawy gildii do Wieży Demonów
 
 - Lista gildii pokazuje, kiedy gildia bota jest w Wieży Demonów. Stan jest łączony ze wszystkich rdzeni tak samo jak u Tieru; wystarczy raport z jednego kanału. Wskazanie nie zastępuje informacji o trwającej wojnie.
