@@ -1,3 +1,9 @@
+## 2026-10-10 · 1.114.58 · Pełna ilość przedmiotów w akcji GM
+
+- Akcja „Daj przedmiot” przyjmuje stos do 65 535 sztuk, zgodnie z limitem `player.item.count` używanym przez Tieru i silnik gry. Większe ilości są odrzucane przed dodaniem komendy do kolejki.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.57 · Ranking sławy botów
 
 - Ranking sławy z silnika jest dostępny w sekcji postaci; karta bota pokazuje jego poziom sławy i miejsce w rankingu. Dane pochodzą z godzinowej migawki `PB7F1`, nie z szacunków panelu.

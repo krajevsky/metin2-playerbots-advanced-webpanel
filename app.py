@@ -5929,8 +5929,8 @@ def player_action_game(pid):
     try:
         if command == "ITEM":
             vnum, count = int(request.form.get("vnum", 0)), int(request.form.get("count", 1))
-            if vnum <= 0 or not 1 <= count <= 200 or not one("SELECT vnum FROM player.item_proto WHERE vnum=%s", (vnum,)):
-                raise ValueError("Wybierz istniejący przedmiot i ilość 1–200.")
+            if vnum <= 0 or not 1 <= count <= 65535 or not one("SELECT vnum FROM player.item_proto WHERE vnum=%s", (vnum,)):
+                raise ValueError("Wybierz istniejący przedmiot i ilość 1–65 535.")
             arg1, arg2, label = vnum, count, f"Przedmiot #{vnum} × {count}"
         elif command == "GOLD":
             amount = int(request.form.get("amount", 0))
