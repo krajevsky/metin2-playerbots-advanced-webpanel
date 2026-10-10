@@ -387,3 +387,37 @@ def test_market_bonus_points_use_tieru_whitelist_and_value_bounds():
         panel.app.test_client().get("/economy/offers?b1=9999&b2=44&b2v=999999")
     assert count_rows.call_args.args[1] == (44, 1) * 7
     assert render.call_args.kwargs["bonus_params"] == {"b2": 44, "b2v": 1}
+
+
+def test_market_offer_shows_its_real_bonus_lines_and_weapon_stones():
+    offer = {"id": 91, "owner_id": 7, "vnum": 42, "quantity": 1, "price": 1000,
+             "item_name": "Miecz", "item_type": 1, "seller": "Handlarz", "shop_name": "Sklep",
+             "map_index": 1, "channel": 1, "empire": 1, "is_bot": 1,
+             "socket0": 28130, "socket1": 1, "socket2": 0,
+             "attrtype0": 44, "attrvalue0": 10,
+             "attrtype1": 0, "attrvalue1": 0}
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 1}), \
+            patch.object(panel, "rows", return_value=[offer]) as read_rows, \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers")
+    assert response.status_code == 200
+    assert "i.socket0,i.socket1,i.socket2" in read_rows.call_args.args[0]
+    assert "i.attrtype6,i.attrvalue6" in read_rows.call_args.args[0]
+    shown = render.call_args.kwargs["offers"][0]
+    assert shown["bonuses"] == [panel.apply_text(44, 10)]
+    assert len(shown["stones"]) == 1
+    assert shown["stones"][0] != "VNUM 28130"
+
+
+def test_market_offer_does_not_mistake_other_item_sockets_for_stones():
+    offer = {"id": 92, "owner_id": 7, "vnum": 50300, "quantity": 1, "price": 1000,
+             "item_name": "Księga", "item_type": 19, "seller": "Handlarz", "shop_name": "Sklep",
+             "map_index": 1, "channel": 1, "empire": 1, "is_bot": 1,
+             "socket0": 28130}
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 1}), \
+            patch.object(panel, "rows", return_value=[offer]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        panel.app.test_client().get("/economy/offers")
+    assert render.call_args.kwargs["offers"][0]["stones"] == []

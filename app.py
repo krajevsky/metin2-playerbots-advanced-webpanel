@@ -6964,7 +6964,11 @@ def economy_offers():
     params.extend([page_size + 1, (page - 1) * page_size])
     raw = rows("""SELECT i.id, i.owner_id, i.vnum, i.`count` AS quantity,
         CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED) AS price,
-        COALESCE(ip.locale_name, CONCAT('VNUM ',i.vnum)) AS item_name,
+        COALESCE(ip.locale_name, CONCAT('VNUM ',i.vnum)) AS item_name, ip.type AS item_type,
+        i.socket0,i.socket1,i.socket2,
+        i.attrtype0,i.attrvalue0,i.attrtype1,i.attrvalue1,i.attrtype2,i.attrvalue2,
+        i.attrtype3,i.attrvalue3,i.attrtype4,i.attrvalue4,i.attrtype5,i.attrvalue5,
+        i.attrtype6,i.attrvalue6,
         p.name AS seller, s.name AS shop_name, s.`map` AS map_index, s.channel,
         pi.empire, (LEFT(a.login,10)='playerbot_') AS is_bot
       FROM player.item i JOIN player.ikashop_offlineshop s ON s.owner=i.owner_id
@@ -6980,6 +6984,17 @@ def economy_offers():
             quantity = max(1, int(offer.get("quantity") or 1))
             price = max(0, int(offer.get("price") or 0))
             vnum = int(offer["vnum"])
+            bonuses = [apply_text(offer.get(f"attrtype{index}"), offer.get(f"attrvalue{index}"))
+                       for index in range(7)
+                       if int(offer.get(f"attrtype{index}") or 0)
+                       and int(offer.get(f"attrvalue{index}") or 0)]
+            stones = []
+            if int(offer.get("item_type") or 0) in (1, 2):
+                for index in range(3):
+                    stone_vnum = int(offer.get(f"socket{index}") or 0)
+                    if 28000 <= stone_vnum <= 28999:
+                        stone = ITEM_DEFS.get(str(stone_vnum), {})
+                        stones.append(game_text(stone.get("name")) or f"VNUM {stone_vnum}")
             offers.append({"id": int(offer["id"]), "pid": int(offer["owner_id"]),
                            "vnum": vnum, "item_name": game_text(offer.get("item_name")),
                            "seller": game_text(offer.get("seller")) or f"pid {offer['owner_id']}",
@@ -6989,7 +7004,8 @@ def economy_offers():
                            "empire": int(offer.get("empire") or 0),
                            "is_bot": bool(offer.get("is_bot")),
                            "quantity": quantity, "price": price,
-                           "unit_price": round(price / quantity, 2)})
+                           "unit_price": round(price / quantity, 2),
+                           "bonuses": bonuses, "stones": stones})
         except (TypeError, ValueError, KeyError):
             app.logger.warning("Skipping malformed global market offer: %r", offer)
     return render_template("economy_offers.html", offers=offers, query=query,

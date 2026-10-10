@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.44 · Bonusy i kamienie w ofertach rynku
+
+- Lista aktywnych ofert pokazuje pod nazwą przedmiotu rzeczywiste linie bonusów i kamienie w slotach broni lub zbroi. Odczyt korzysta z tych samych pól `attrtype/attrvalue` i `socket` silnika, które obsługują ekwipunek i sklep bota.
+- Pozostałe typy przedmiotów nie interpretują swoich socketów jako kamieni. Układ rynku sprawdzono w obu motywach na telefonie i desktopie; 125 testów przechodzi.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.43 · Sortowanie ofert po bonusach
 
 - Aktywne oferty rynku można sortować według liczby zwykłych linii bonusowych. Średnie obrażenia i obrażenia umiejętności nie są liczone jako zwykłe linie, zgodnie z logiką rynku Tieru.
