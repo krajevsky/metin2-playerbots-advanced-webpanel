@@ -278,6 +278,56 @@ def test_market_bonus_line_count_rejects_out_of_range():
     assert render.call_args.kwargs["bonus_min"] == 0
 
 
+def test_market_max_bonus_count_uses_tieru_attribute_tops_in_both_queries():
+    tops = [[{"point": 44, "top": 10}, {"point": 48, "top": 15}],
+            [{"point": 44, "top": 12}]]
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "rows", side_effect=[*tops, []]) as read_rows, \
+            patch.object(panel, "one", return_value={"total": 0}) as count_rows, \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?nmaxmin=2")
+    assert response.status_code == 200
+    sql, params = count_rows.call_args.args
+    assert "CASE i.attrtype0 WHEN 44 THEN 12 WHEN 48 THEN 15 ELSE 2147483647 END" in sql
+    assert "i.attrtype6 NOT IN (0,121,122)" in sql
+    assert params == (2,)
+    assert "CASE i.attrtype0" in read_rows.call_args.args[0]
+    assert render.call_args.kwargs["max_bonus_min"] == 2
+    assert render.call_args.kwargs["active_filters"][0]["label"] == "Maksymalnych bonusów od"
+
+
+def test_market_max_bonus_count_has_no_unknown_point_null_propagation():
+    expression = panel.market_max_bonus_count_sql({44: 10})
+    assert "ELSE 2147483647" in expression
+    assert "i.attrtype0 NOT IN (0,121,122)" in expression
+    assert panel.market_max_bonus_count_sql({}) == "0"
+
+
+def test_market_max_bonus_count_invalid_input_does_not_load_attribute_tables():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "rows", return_value=[]) as read_rows, \
+            patch.object(panel, "one", return_value={"total": 0}), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?nmaxmin=999")
+    assert response.status_code == 200
+    assert read_rows.call_count == 1
+    assert render.call_args.kwargs["max_bonus_min"] == 0
+
+
+@pytest.mark.parametrize("language,label", [("pl", "Maksymalnych bonusów od"),
+                                            ("en", "Maximum bonus lines from")])
+def test_market_max_bonus_filter_renders_in_both_languages(language, label):
+    with patch.object(panel, "settings", return_value={**SETTINGS, "ui_language": language}), \
+            patch.object(panel, "rows", side_effect=[[], [], []]), \
+            patch.object(panel, "one", return_value={"total": 0}):
+        response = panel.app.test_client().get("/economy/offers?nmaxmin=2")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert label in html
+    assert 'name="nmaxmin"' in html
+    assert 'nmaxmin=2' in html or 'value="2" selected' in html
+
+
 def test_market_can_sort_by_normal_bonus_lines():
     with patch.object(panel, "settings", return_value=SETTINGS), \
             patch.object(panel, "one", return_value={"total": 0}), \

@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.56 · Maksymalne bonusy w ofertach
+
+- Rynek pozwala wybrać minimalną liczbę bonusów o maksymalnej wartości. Progi są czytane z tabel `world.item_attr` i `world.item_attr_rare` tak jak u Tieru; obrażenia średnie i umiejętności nie są liczone jako zwykłe linie bonusów.
+- Filtr działa przy zmianie strony i w obu językach. Brak tabeli rzadkich atrybutów nie przerywa przeglądania ofert.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.55 · Numer strony ofert po angielsku
 
 - Wyniki rynku w trybie English pokazują „Offers · page N” także dla dynamicznego numeru strony; polska etykieta nie przebija się już przez tłumaczenie odpowiedzi HTML.

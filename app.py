@@ -6726,6 +6726,19 @@ def parse_market_price(text):
     return value
 
 
+def market_max_bonus_count_sql(tops):
+    """Count rolls at Tieru's item_attr/item_attr_rare top, excluding SR/UM."""
+    valid = sorted((int(point), int(top)) for point, top in tops.items()
+                   if 0 < int(point) <= 65535 and 0 < int(top) <= 2147483647)
+    if not valid:
+        return "0"
+    cases = " ".join(f"WHEN {point} THEN {top}" for point, top in valid)
+    return " + ".join(
+        f"(i.attrtype{index} NOT IN (0,121,122) AND i.attrvalue{index} >= "
+        f"CASE i.attrtype{index} {cases} ELSE 2147483647 END)"
+        for index in range(7))
+
+
 @app.route("/economy/offers")
 @login_required
 def economy_offers():
@@ -6751,6 +6764,9 @@ def economy_offers():
     bonus_min = request.args.get("nbmin", 0, type=int)
     if bonus_min not in range(6):
         bonus_min = 0
+    max_bonus_min = request.args.get("nmaxmin", 0, type=int)
+    if max_bonus_min not in range(5):
+        max_bonus_min = 0
     market_bonus_options = tuple((point, APPLY_LABELS.get(
         POINT_TO_APPLY.get(point, point), (f"Bonus #{point}", ""))[0])
         for point in MARKET_BONUS_POINTS)
@@ -6842,6 +6858,7 @@ def economy_offers():
                      "subcategory": subcategory if subcategory else "",
                      "cls": class_bit if class_bit else "",
                      "nbmin": bonus_min if bonus_min else "",
+                     "nmaxmin": max_bonus_min if max_bonus_min else "",
                      **bonus_params,
                      "ks": "has" if has_stone else "",
                      "stone": stone_vnum if stone_vnum else "",
@@ -6861,6 +6878,7 @@ def economy_offers():
         "subcategory": ("Podkategoria", "Subcategory"),
         "cls": ("Klasa postaci", "Character class"),
         "nbmin": ("Liczba bonusów od", "Minimum bonus lines"),
+        "nmaxmin": ("Maksymalnych bonusów od", "Maximum bonus lines from"),
         "ks": ("Kamień duszy", "Soul stone"),
         "stone": ("VNUM kamienia", "Stone VNUM"),
         "avgmin": ("Średnie obrażenia od", "Average damage from"),
@@ -6927,6 +6945,20 @@ def economy_offers():
     if bonus_min:
         clauses.append("(" + bonus_count_sql + ")>=%s")
         params.append(bonus_min)
+    if max_bonus_min:
+        tops = {}
+        for table_name in ("item_attr", "item_attr_rare"):
+            try:
+                top_rows = rows("SELECT apply+0 AS point, GREATEST(lv1,lv2,lv3,lv4,lv5) AS top "
+                                "FROM world." + table_name)
+            except pymysql.MySQLError:
+                continue  # Tieru also skips missing attribute tables.
+            for top_row in top_rows:
+                point, top = int(top_row.get("point") or 0), int(top_row.get("top") or 0)
+                if top > tops.get(point, 0):
+                    tops[point] = top
+        clauses.append("(" + market_max_bonus_count_sql(tops) + ")>=%s")
+        params.append(max_bonus_min)
     for point, floor in selected_bonuses:
         clauses.append("(" + " OR ".join(
             f"(i.attrtype{index}=%s AND i.attrvalue{index}>=%s)"
@@ -7025,7 +7057,7 @@ def economy_offers():
                            subcategory=subcategory, market_categories=MARKET_CATEGORIES,
                            market_subcategories=MARKET_SUBCATEGORIES.get(category, ()),
                            class_bit=class_bit, market_class_filters=MARKET_CLASS_FILTERS,
-                           bonus_min=bonus_min,
+                           bonus_min=bonus_min, max_bonus_min=max_bonus_min,
                            market_bonus_options=market_bonus_options,
                            bonus_params=bonus_params,
                            has_stone=has_stone, stone_vnum=stone_vnum,
