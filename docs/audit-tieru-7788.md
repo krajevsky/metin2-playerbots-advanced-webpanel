@@ -54,7 +54,7 @@ Stan źródeł: 9 października 2026. Panel Tieru sprawdzono **wyłącznie odczy
 | Eksport Iwakura | `admin_panel.py:25802` | brak | brak | niska | Przenieść tylko gdy jest odbiorca danych. |
 | Edytor dropów: lista plików, wyszukiwanie, grupa, dodanie, podgląd, zapis | `admin_panel.py:26513–26878` `/drops/*` | brak | brak | średnia | Zweryfikować ścieżki serwera i atomowość zapisu; nie kopiować HTML Tieru. |
 | Dane klienta i pobieranie | `admin_panel.py:27175,27214` `/client-data` | brak | brak | niska | Zostawić po funkcjach administracji botami. |
-| Podgląd rynku: oferty, szukanie i filtry | `market_preview/__init__.py:282,312,513–518` `/market`, `/market/api/offers` | `app.py` `/economy/offers`, `templates/economy_offers.html` | częściowo | wysoka | Filtry kategorii, sprzedawcy, ceny, bonusów liczbowych, kamieni i właściciela sklepu działają; pozostają wybór konkretnych bonusów oraz porównanie ofert. |
+| Podgląd rynku: oferty, szukanie i filtry | `market_preview/__init__.py:282,312,513–518` `/market`, `/market/api/offers` | `app.py` `/economy/offers`, `templates/economy_offers.html` | częściowo | wysoka | Działają kategorie, sprzedawca, cena, do trzech konkretnych bonusów, kamienie, właściciel sklepu, sortowanie bonusów i porównanie 2–3 ofert. Pozostają referencyjne okazje, filtry maksymalnych wartości i zakończonych ofert. |
 | Podgląd rynku: teleport, status kolejki i historia | `market_preview/__init__.py:366–470` `/market/api/tp*` | `app.py:5040`, `templates/player.html` | częściowo | średnia | Porównać koszt i historię; zachować ochronę API. |
 | Ustawienia rynku: koszt teleportacji | `market_preview/__init__.py:470–494` `/market/settings` | brak opłaty w `/api/admin/teleport-me` | brak | średnia | Tieru zapisuje wyłącznie `tp_cost`; nie pobierać opłaty w panelu, dopóki własna ścieżka teleportacji nie ma atomowego rozliczenia w silniku. |
 | Edytor SQL: przegląd struktury i nazwy | `editsql/__init__.py:53–125,1264–1275` `/editsql`, `/editsql/structure`, `/editsql/api/name` | `templates/_laka_nav.html:40`, `base.html:59` (link do Tieru) | częściowo | średnia | Rozważyć natywny widok tylko z osobnym modelem uprawnień. |
@@ -125,8 +125,8 @@ Te trasy rejestrują się przez `add_url_rule`, więc nie pojawiają się w wysz
 
 | Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
 |---|---|---|---|---|---|
-| Strona rynku | `market_preview/__init__.py:513` `/market` | `/economy/offers`, `/economy/shops` | częściowo | wysoka | Dokończyć porównanie ofert i statystyk. |
-| API ofert rynku | `market_preview/__init__.py:514` `/market/api/offers` | serwerowo renderowane `/economy/offers` | częściowo | wysoka | Pozostały porównania i referencyjne okazje; nie dublować bez potrzeby API. |
+| Strona rynku | `market_preview/__init__.py:513` `/market` | `/economy/offers`, `/economy/shops` | częściowo | wysoka | Oferty na żywo, filtry i porównanie są dostępne; pozostała cena referencyjna oraz okazje. |
+| API ofert rynku | `market_preview/__init__.py:514` `/market/api/offers` | serwerowo renderowane `/economy/offers` | częściowo | wysoka | Porównanie działa na bieżącej liście; osobnego API nie trzeba dublować. Pozostałe obliczenia okazji wymagają potwierdzonej ceny referencyjnej. |
 | Zlecenie teleportu | `market_preview/__init__.py:515` `/market/api/tp` | `/api/admin/teleport-me` | częściowo | średnia | Zweryfikować parametry, uprawnienia i wyniki kolejki. |
 | Stan teleportu | `market_preview/__init__.py:516` `/market/api/tp/<qid>` | stan komendy administracyjnej | częściowo | średnia | Powiązać z identyfikatorem zlecenia przed wdrożeniem. |
 | Historia teleportów | `market_preview/__init__.py:517` `/market/api/tp_history` | brak widoku historii | brak | średnia | Portować po weryfikacji źródła kolejki. |
