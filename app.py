@@ -6276,6 +6276,15 @@ def economy_item(vnum):
     item["captured_at"] = latest.strftime("%m-%d %H:%M") if latest else None
     history = rows("""SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:%%i') AS captured_at,SUM(amount) AS amount
       FROM player.web_seban_item_snapshot WHERE """ + where + """ AND captured_at >= NOW() - INTERVAL 14 DAY GROUP BY captured_at ORDER BY captured_at""", params)
+    # The collector records active listing value and units, not completed sales.
+    # Its weighted mean is labelled as an asking price, never a sale price.
+    price_variant = " AND socket0=%s" if vnum != 50300 or socket0 is not None else ""
+    price_params = (vnum, socket0 if vnum == 50300 else 0) if price_variant else (vnum,)
+    price_history = rows("""SELECT DATE_FORMAT(captured_at, '%%m-%%d %%H:%%i') AS captured_at,
+        ROUND(SUM(total_value)/NULLIF(SUM(total_units),0),2) AS unit_price
+      FROM player.web_seban_shop_item_snapshot WHERE vnum=%s""" + price_variant + """
+        AND captured_at >= NOW() - INTERVAL 14 DAY
+      GROUP BY captured_at HAVING SUM(total_units)>0 ORDER BY captured_at""", price_params)
     # Same live IkarusShop rows and JSON price as Tieru's market snapshot.
     # Limit this on-demand view so common VNUMs cannot hold up the page.
     offer_sort = request.args.get("offer_sort", "price_asc")
@@ -6310,6 +6319,7 @@ def economy_item(vnum):
         except (TypeError, ValueError, KeyError):
             app.logger.warning("Skipping malformed market offer for VNUM %s: %r", vnum, offer)
     return render_template("economy_item.html", item=item, history=history,
+                           price_history=price_history,
                            offers=offers, offer_sort=offer_sort)
 
 

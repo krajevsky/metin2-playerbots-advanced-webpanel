@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.51 · Historia cen ofertowych przedmiotu
+
+- Szczegóły przedmiotu w gospodarce pokazują wykres 14 dni średniej ważonej ceny za sztukę z aktywnych ofert sklepów offline. Wykres wyraźnie odróżnia cenę ofertową od ceny sprzedaży i uwzględnia wariant księgi umiejętności.
+- Uzupełniono polskie i angielskie etykiety tego widoku, w tym listy ofert. Dodano testy źródła i filtrowania danych; pełna regresja: 134 testy zielone.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.50 · Spójny angielski w gospodarce i administracji
 
 - Puste stany kolektora na stronach gospodarki i sklepów offline nie wstawiają już polskiego tekstu w środku angielskiego zdania. Uzupełniono także etykietę decyzji botów w diagnostyce oraz przełącznik skrzyni startowej w ustawieniach.
