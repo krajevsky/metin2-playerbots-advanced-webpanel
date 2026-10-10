@@ -125,7 +125,7 @@ Te trasy rejestrują się przez `add_url_rule`, więc nie pojawiają się w wysz
 
 | Funkcja | Gdzie u Tieru (plik:linia / URL) | Gdzie u nas | Status | Przydatność | Plan |
 |---|---|---|---|---|---|
-| Strona rynku | `market_preview/__init__.py:513` `/market` | `/economy/offers`, `/economy/shops` | częściowo | wysoka | Oferty na żywo, filtry i porównanie są dostępne; pozostała cena referencyjna oraz okazje. |
+| Strona rynku | `market_preview/__init__.py:513` `/market` | `/economy/offers`, `/economy/shops` | częściowo | wysoka | Oferty na żywo, filtry w lewej kolumnie na desktopie (1.114.52) i porównanie są dostępne; pozostała cena referencyjna oraz okazje. |
 | API ofert rynku | `market_preview/__init__.py:514` `/market/api/offers` | serwerowo renderowane `/economy/offers` | częściowo | wysoka | Porównanie działa na bieżącej liście; osobnego API nie trzeba dublować. Pozostałe obliczenia okazji wymagają potwierdzonej ceny referencyjnej. |
 | Zlecenie teleportu | `market_preview/__init__.py:515` `/market/api/tp` | `/api/admin/teleport-me` | częściowo | średnia | Zweryfikować parametry, uprawnienia i wyniki kolejki. |
 | Stan teleportu | `market_preview/__init__.py:516` `/market/api/tp/<qid>` | stan komendy administracyjnej | częściowo | średnia | Powiązać z identyfikatorem zlecenia przed wdrożeniem. |

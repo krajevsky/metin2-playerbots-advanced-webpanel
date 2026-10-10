@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.52 · Filtry rynku po lewej stronie
+
+- Na szerokim ekranie filtry ofert znajdują się w przewijalnej kolumnie po lewej, a wyniki i porównanie ofert po prawej. Na telefonie układ pozostaje jednokolumnowy; tabela przewija się w swoim kontenerze.
+- Sprawdzono obydwa motywy w szerokościach 375 i 1440 px, bez poziomego przewijania strony.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.51 · Historia cen ofertowych przedmiotu
 
 - Szczegóły przedmiotu w gospodarce pokazują wykres 14 dni średniej ważonej ceny za sztukę z aktywnych ofert sklepów offline. Wykres wyraźnie odróżnia cenę ofertową od ceny sprzedaży i uwzględnia wariant księgi umiejętności.
