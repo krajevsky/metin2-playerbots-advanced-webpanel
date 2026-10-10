@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Database structure' if ui_language == 'en' else 'Struktura bazy' }} · {{ panel_brand }}{% endblock %}
+{% block content %}
+{% set en = ui_language == 'en' %}
+<p class="eyebrow">{{ 'ADMINISTRATION · DATABASE' if en else 'ADMINISTRACJA · BAZA DANYCH' }}</p>
+<h1>{{ 'Game database structure' if en else 'Struktura baz gry' }}</h1>
+<p class="muted">{{ 'Table and column metadata only. Record editing still uses Tieru’s protected editor.' if en else 'Tutaj widać tylko strukturę tabel i kolumn. Rekordy nadal edytuje się w chronionym edytorze Tieru.' }}</p>
+<nav class="db-structure-dbs" aria-label="{{ 'Databases' if en else 'Bazy danych' }}">
+  {% for name in databases %}<a class="btn {{ '' if db_name == name else 'secondary' }}" href="{{ url_for('database_structure', db=name) }}"{% if db_name == name %} aria-current="page"{% endif %}>{{ name }}</a>{% endfor %}
+</nav>
+<div class="db-structure-layout">
+  <section class="panel db-structure-list">
+    <h2>{{ 'Tables' if en else 'Tabele' }} · {{ db_name }}</h2>
+    <div class="db-structure-scroll">
+      {% for table in tables %}<a href="{{ url_for('database_structure', db=db_name, table=table.name) }}"{% if table_name == table.name %} aria-current="true"{% endif %}><span>{{ table.name }}</span><small>{{ table.engine or '—' }}</small></a>{% else %}<p class="muted">{{ 'No visible tables.' if en else 'Brak widocznych tabel.' }}</p>{% endfor %}
+    </div>
+  </section>
+  <section class="panel db-structure-detail">
+    {% if table_name %}<h2>{{ db_name }}.{{ table_name }}</h2>
+    <div class="db-structure-table-wrap"><table><thead><tr><th>{{ 'Column' if en else 'Kolumna' }}</th><th>{{ 'Type' if en else 'Typ' }}</th><th>NULL</th><th>{{ 'Key' if en else 'Klucz' }}</th><th>{{ 'Default' if en else 'Domyślnie' }}</th><th>{{ 'Extra' if en else 'Dodatkowe' }}</th></tr></thead><tbody>
+      {% for column in columns %}<tr><td><strong>{{ column.name }}</strong></td><td>{{ column.type }}</td><td>{{ column.nullable }}</td><td>{{ column.column_key or '—' }}</td><td>{{ column.default_value if column.default_value is not none else '—' }}</td><td>{{ column.extra or '—' }}</td></tr>{% else %}<tr><td colspan="6">{{ 'No columns.' if en else 'Brak kolumn.' }}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<h2>{{ 'Choose a table' if en else 'Wybierz tabelę' }}</h2><p class="muted">{{ 'Select a table on the left to inspect its columns.' if en else 'Wybierz tabelę po lewej, aby zobaczyć kolumny.' }}</p>{% endif %}
+    <a class="btn secondary" href="{{ tieru_url }}/editsql" target="_blank" rel="noopener">{{ 'Open protected Tieru editor ↗' if en else 'Otwórz chroniony edytor Tieru ↗' }}</a>
+  </section>
+</div>
+<style>
+.db-structure-dbs{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.db-structure-dbs .btn{min-height:38px;display:inline-flex;align-items:center}
+.db-structure-layout{display:grid;grid-template-columns:minmax(230px,280px) minmax(0,1fr);gap:16px;align-items:start}.db-structure-layout .panel{min-width:0}
+.db-structure-scroll{max-height:70vh;overflow:auto;display:grid;gap:2px}.db-structure-scroll a{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:5px;text-decoration:none;overflow-wrap:anywhere}.db-structure-scroll a[aria-current]{background:color-mix(in srgb,var(--gold,#e8b93f) 18%,transparent)}.db-structure-scroll small{opacity:.65}
+.db-structure-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px}.db-structure-table-wrap table{min-width:720px}.db-structure-table-wrap td,.db-structure-table-wrap th{white-space:nowrap}
+body[data-skin="laka"] .db-structure-scroll a{color:var(--laka-parchment);border-bottom:1px solid var(--laka-bronze-dim)}body[data-skin="laka"] .db-structure-scroll a[aria-current]{color:var(--laka-gold-hi)}
+@media(max-width:760px){.db-structure-layout{grid-template-columns:minmax(0,1fr)}.db-structure-scroll{max-height:240px}}
+</style>
+{% endblock %}

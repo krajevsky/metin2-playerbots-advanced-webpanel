@@ -7061,6 +7061,32 @@ def item_name_search(query):
     return "(" + clause + ")", params
 
 
+@app.get("/database/structure")
+@login_required
+def database_structure():
+    """Read-only game schema browser; unlike regular pages, always requires login."""
+    if settings().get("auth_enabled") != "1" or not session.get("seban_admin"):
+        abort(403)
+    db_name = request.args.get("db", "player")
+    if db_name not in ("account", "common", "player", "log"):
+        abort(404)
+    table_name = request.args.get("table", "").strip()
+    tables = rows("""SELECT TABLE_NAME AS name, ENGINE AS engine,
+        TABLE_ROWS AS rows_estimate, DATA_LENGTH + INDEX_LENGTH AS bytes_estimate
+        FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s
+        ORDER BY TABLE_NAME LIMIT 500""", (db_name,))
+    if table_name and table_name not in {row["name"] for row in tables}:
+        abort(404)
+    columns = rows("""SELECT COLUMN_NAME AS name, COLUMN_TYPE AS type,
+        IS_NULLABLE AS nullable, COLUMN_KEY AS column_key,
+        COLUMN_DEFAULT AS default_value, EXTRA AS extra
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s
+        ORDER BY ORDINAL_POSITION LIMIT 500""", (db_name, table_name)) if table_name else []
+    return render_template("database_structure.html", databases=("account", "common", "player", "log"),
+                           db_name=db_name, table_name=table_name, tables=tables, columns=columns)
+
+
 @app.route("/items")
 @login_required
 def items_database():

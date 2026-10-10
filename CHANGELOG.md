@@ -1,3 +1,11 @@
+## 2026-10-10 · 1.114.54 · Natywny podgląd struktury bazy
+
+- Administracja ma własny widok schematu baz gry: listę tabel oraz kolumn, typów, kluczy i wartości domyślnych. Strona czyta wyłącznie `information_schema`, a nazwy baz i tabel są sprawdzane po stronie serwera.
+- Ze względu na dane graczy widok wymaga włączonego logowania administratora nawet wtedy, gdy reszta panelu jest otwarta. Zapis rekordów pozostaje w chronionym edytorze Tieru do czasu przeniesienia jego transakcji, walidacji i historii zmian.
+- Oba motywy sprawdzono przy 375 i 1440 px; 137 testów przechodzi.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.53 · Czytelniejsze diagramy na mapie
 
 - Diagramy rozkładu kanałów i królestw w motywie Laka i Złoto mają wyraźniejsze pierścienie, liczbę dominującej grupy i paski udziałów. Puste mapy nie wskazują fałszywego lidera.

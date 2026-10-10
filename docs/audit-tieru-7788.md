@@ -133,7 +133,7 @@ Te trasy rejestrują się przez `add_url_rule`, więc nie pojawiają się w wysz
 | Koszt teleportu | `market_preview/__init__.py:518` `/market/settings` | brak | brak | średnia | Zachować wyłączenie do atomowego pobrania Yang w silniku. |
 | Logowanie edytora SQL | `editsql/__init__.py:1264` `/editsql/login`, `/editsql/logout` | link do Tieru | częściowo | niska | Nie wprowadzać drugiego modelu sesji bez projektu uprawnień. |
 | Strona edytora SQL i nazwa | `editsql/__init__.py:1266–1269` `/editsql`, `/editsql/`, `/editsql/api/name` | link do Tieru | częściowo | niska | Pozostawić po przeglądzie uprawnień. |
-| Struktura baz i tabel | `editsql/__init__.py:1270–1272` `/editsql/structure[/<db>/<table>]` | brak natywnego widoku | brak | średnia | Rozważyć osobny, tylko odczytowy podgląd. |
+| Struktura baz i tabel | `editsql/__init__.py:1270–1272` `/editsql/structure[/<db>/<table>]` | `app.py` `/database/structure`, `templates/database_structure.html` | częściowo | średnia | Od 1.114.54 natywny podgląd tabel i kolumn z `information_schema`, tylko po zalogowaniu administratora. Pełny edytor wciąż wymaga przeniesienia walidacji, transakcji, audytu i cofania. |
 | Historia, plan, etykiety | `editsql/__init__.py:1273–1275` `/editsql/history`, `/editsql/apply`, `/editsql/labels` | brak | brak | niska | Wymaga audytu zapisów i uprawnień. |
 | Formularze rekordów | `editsql/__init__.py:1276–1282` `/editsql/<module_id>[/new|/delete|/<db>/<pk>]` | brak | brak | niska | Nie kopiować ogólnej mutacji SQL do panelu administracji botów. |
 
