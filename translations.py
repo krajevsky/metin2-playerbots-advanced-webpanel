@@ -94,6 +94,7 @@ EXACT = {
     "Oferty i ceny są odczytywane bezpośrednio z IkarusShop. Stan sklepu może zmienić się w grze.":
         "Offers and prices come directly from IkarusShop. Shop contents may change in game.",
     "Minimalna wartość bonusu": "Minimum bonus value",
+    "Najwięcej bonusów": "Most bonus lines",
     "Kanał": "Channel",
     "Ilość:": "Quantity:",
     "Jakość:": "Quality:",

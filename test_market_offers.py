@@ -268,6 +268,20 @@ def test_market_bonus_line_count_rejects_out_of_range():
     assert render.call_args.kwargs["bonus_min"] == 0
 
 
+def test_market_can_sort_by_normal_bonus_lines():
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", return_value={"total": 0}), \
+            patch.object(panel, "rows", return_value=[]) as offers, \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/offers?sort=bonus_count")
+    assert response.status_code == 200
+    sql = offers.call_args.args[0]
+    assert "i.attrtype0 NOT IN (0,121,122) AND i.attrvalue0<>0" in sql
+    assert "i.attrtype6 NOT IN (0,121,122) AND i.attrvalue6<>0" in sql
+    assert ") DESC, price ASC, i.id DESC LIMIT %s OFFSET %s" in sql
+    assert render.call_args.kwargs["sort"] == "bonus_count"
+
+
 def test_market_damage_ranges_use_tieru_points_and_last_nonzero_line():
     with patch.object(panel, "settings", return_value=SETTINGS), \
             patch.object(panel, "one", return_value={"total": 0}) as count_rows, \

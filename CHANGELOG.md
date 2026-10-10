@@ -1,3 +1,10 @@
+## 2026-10-10 · 1.114.43 · Sortowanie ofert po bonusach
+
+- Aktywne oferty rynku można sortować według liczby zwykłych linii bonusowych. Średnie obrażenia i obrażenia umiejętności nie są liczone jako zwykłe linie, zgodnie z logiką rynku Tieru.
+- Sortowanie działa z pozostałymi filtrami i stronicowaniem w obu językach. Dodano test SQL; pełna regresja: 123 testy zielone.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.42 · Angielski w pozostałych widokach
 
 - Uzupełniono tłumaczenia eventów, nowych ustawień świata i alchemii, decyzji botów, rynku oraz strony błędu. Krótkie etykiety i opisy dodawane przez skrypty korzystają z tej samej warstwy tłumaczeń.

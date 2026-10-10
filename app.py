@@ -6806,11 +6806,15 @@ def economy_offers():
         price_errors = {"pmin": True, "pmax": True}
         price_values = {}
     unit_price_filter = request.args.get("unit") == "1"
+    bonus_count_sql = " + ".join(
+        f"(i.attrtype{index} NOT IN (0,121,122) AND i.attrvalue{index}<>0)"
+        for index in range(7))
     sort = request.args.get("sort", "price_asc")
     order = {"price_asc": "price ASC, i.id DESC",
              "price_desc": "price DESC, i.id DESC",
              "unit_asc": "price / GREATEST(i.`count`,1) ASC, i.id DESC",
              "newest": "i.id DESC",
+             "bonus_count": "(" + bonus_count_sql + ") DESC, price ASC, i.id DESC",
              "plus_desc": "(" + market_refine_sql() + ") DESC, price ASC, i.id DESC",
              "level_desc": "(" + market_required_level_sql() + ") DESC, price ASC, i.id DESC",
              "level_asc": "(" + market_required_level_sql() + ") ASC, price ASC, i.id DESC"}.get(sort)
@@ -6910,9 +6914,6 @@ def economy_offers():
         clauses.append("((" + market_class_mask_sql() + ") & %s)<>0")
         params.append(class_bit)
     if bonus_min:
-        bonus_count_sql = " + ".join(
-            f"(i.attrtype{index} NOT IN (0,121,122) AND i.attrvalue{index}<>0)"
-            for index in range(7))
         clauses.append("(" + bonus_count_sql + ")>=%s")
         params.append(bonus_min)
     for point, floor in selected_bonuses:
