@@ -476,7 +476,6 @@ PANEL_FEATURES = {
     "map_respawns": {"title": "Dokładne respawny map", "icon": "⌖", "scope": "Respawny · własny czas mapy", "requirement": "Helper m2-map-regens w obrazie gry oraz wolumen rates-spool.", "setup": "Wdróż integration/m2-map-regens do obrazu game, przebuduj usługę game i pozostaw podłączony wolumen rates-spool."},
     "student_chest": {"title": "Skrzynia startowa na żywo", "icon": "🎒", "scope": "Zarządzanie grą · skrzynia ucznia", "requirement": "Zmodyfikowany starter_chest.quest i tabela common.m2_switches.", "setup": "Zastosuj patch questa skrzyni startowej, skompiluj questy i ustaw M2_PLAYERBOT_DISABLE_STUDENT_CHEST zgodnie z wyborem dla botów."},
     "plus9_announcements": {"title": "Ogłoszenia ulepszeń +9", "icon": "📢", "scope": "Zarządzanie grą · rankingi", "requirement": "Komenda NOTICE w web_admin.quest oraz działający seban-collector.", "setup": "Wdróż do web_admin.quest obsługę NOTICE, skompiluj quest i uruchom usługę seban-collector."},
-    "seban_updater": {"title": "Aktualizator Seban", "icon": "⬆", "scope": "Zarządzanie grą · aktualizacje", "requirement": "Usługa systemowa seban-updater i wspólny wolumen update-spool.", "setup": "Uruchom: sudo updater/install-seban-updater.sh /pełna/ścieżka/do/serwera [projekt-compose]. Następnie włącz funkcję tutaj."},
     "bot_timeline": {"title": "Wykres sesji bota", "icon": "📈", "scope": "Zarządzanie panelem · wykres na /player/", "requirement": "Brak dodatkowych zależności: korzysta z migawek pozycji botów (co 5 minut).", "setup": "Włącz tutaj, aby na karcie bota w /player/ pojawił się wykres online/offline z ostatnich 24 godzin."},
 }
 ATTR_SKILL_DAMAGE = 121 if ENGINE_MT2009 else 71
@@ -2237,34 +2236,6 @@ def update_csrf_token():
         token = uuid.uuid4().hex
         session["seban_update_csrf"] = token
     return token
-
-
-def queue_tieru_update(update_seban_panel=False):
-    """Request only the updater's fixed sequence; no command, URL or path crosses this boundary."""
-    current = update_status()
-    if not current["watcher_ready"]:
-        raise RuntimeError("Aktualizator nie jest gotowy. Administrator musi uruchomić usługę updater.")
-    if current.get("state") == "running":
-        raise RuntimeError("Aktualizacja już trwa. Poczekaj na jej zakończenie.")
-    version = installed_playerbots_version().strip()
-    if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", version):
-        version = "0"
-    request_id = "seban-" + uuid.uuid4().hex
-    UPDATE_SPOOL.mkdir(parents=True, exist_ok=True)
-    temporary = UPDATE_SPOOL / (request_id + ".new")
-    try:
-        update_panel = "1" if update_seban_panel else "0"
-        temporary.write_text(
-            f"id={request_id}\nversion={version}\ntime={int(time.time())}\nupdate_seban_panel={update_panel}\n",
-            encoding="utf-8",
-        )
-        temporary.chmod(0o660)
-        # replace is atomic. The worker records the id before doing work, so a
-        # completed request never runs twice after a container recreation.
-        os.replace(temporary, UPDATE_SPOOL / "request")
-    finally:
-        temporary.unlink(missing_ok=True)
-
 
 
 EVENTS_FILE = RATES_SPOOL / "playerbot_events.tsv"
@@ -8798,9 +8769,7 @@ def manage():
     for bot in bots:
         per_channel[int(bot.get("channel") or 1)] = per_channel.get(int(bot.get("channel") or 1), 0) + 1
     bot_channels = sorted(per_channel.items()) if len(per_channel) > 1 else []
-    updater = update_status()
-    updater["protected"] = current_settings.get("auth_enabled") == "1" and bool(session.get("seban_admin"))
-    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), updater=updater, playerbots_release=playerbots_release_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES, world_extras=read_world_extras() if ENGINE_MT2009 else None, explain_days=read_ai_explain_days())
+    return render_template("manage.html", rates=read_rates(), rate_presets=RATE_PRESETS, ai_weights=read_ai_weights(), chest_switch=read_chest_switch(), ai_weight_keys=[k for k in AI_WEIGHT_KEYS if not (ENGINE_MT2009 and k[0] == "HUNTING")], ai_weight_capped=AI_WEIGHT_CAPPED, ai_weight_hints=AI_WEIGHT_HINTS, engine_mt2009=ENGINE_MT2009, restart=restart_progress(), settings=current_settings, map_counts=map_counts, bot_count=len(bots), bot_channels=bot_channels, map_respawn_options=MAP_RESPAWN_OPTIONS, map_stone_respawn_ids=MAP_STONE_RESPAWN_IDS, map_respawn_status=read_map_regen_status(), server_settings=server_settings_status(), update_csrf=update_csrf_token(), bot_count_wanted=read_bot_count() if panel_feature_enabled("bot_count", current_settings) else len(live_bots()) or 350, spawn_plan=read_spawn_plan(), student_chest_disabled=read_student_chest_disabled() if panel_feature_enabled("student_chest", current_settings) else False, custom_patches_enabled=CUSTOM_PATCHES_ENABLED, include_real_players=include_real_players_in_rankings(), announce_plus9=read_announce_plus9_refines() if panel_feature_enabled("plus9_announcements", current_settings) else False, bots_held=read_bot_hold(), item_policy=read_ai_item_policy(), difficulty=read_difficulty(), autohunt=read_autohunt(), channels=read_channel_settings(), channel_shares=CH2_SHARE_CHOICES, fresh_counts=FRESH_COUNT_CHOICES, world_extras=read_world_extras() if ENGINE_MT2009 else None, explain_days=read_ai_explain_days())
 
 
 @app.post("/manage/difficulty")
@@ -8922,29 +8891,6 @@ def manage_panel_reaper_chests():
     return redirect(url_for("manage_panel", _anchor="reaper-chests"))
 
 
-@app.post("/manage/update")
-@login_required
-def manage_update():
-    if blocked := require_panel_feature("seban_updater"):
-        return blocked
-    current = settings()
-    if current.get("auth_enabled") != "1" or not session.get("seban_admin"):
-        flash("Aktualizacje z panelu wymagają włączonej ochrony hasłem.", "error")
-        return redirect(url_for("manage"))
-    supplied = request.form.get("update_csrf", "")
-    expected = session.get("seban_update_csrf", "")
-    if not expected or not hmac.compare_digest(supplied, expected):
-        abort(403)
-    try:
-        queue_tieru_update(current.get("update_seban_panel") == "1")
-    except (OSError, RuntimeError) as exc:
-        flash(str(exc), "error")
-    else:
-        panel_note = " Razem z Playerbots zostanie zaktualizowany Seban Panel." if current.get("update_seban_panel") == "1" else " Seban Panel pozostanie w obecnej wersji."
-        flash("Pobrano zlecenie aktualizacji. Serwer zostanie przebudowany przez odizolowany updater; postęp jest widoczny poniżej." + panel_note)
-    return redirect(url_for("manage"))
-
-
 @app.post("/manage/settings")
 @login_required
 def manage_settings():
@@ -8970,17 +8916,6 @@ def manage_settings():
     write_settings(values)
     flash("Ustawienia panelu zapisane.")
     return redirect(url_for("manage_panel"))
-
-
-@app.post("/manage/overrides")
-@login_required
-def manage_overrides():
-    if blocked := require_panel_feature("seban_updater"):
-        return blocked
-    values = {key: "1" if request.form.get(key) == "1" else "0" for key in ("allow_student_chest", "allow_moonlight_chest", "keep_demo_characters", "update_seban_panel")}
-    write_settings(values)
-    flash("Override'y zapisane. Zostaną zastosowane przy następnej aktualizacji Playerbots.")
-    return redirect(url_for("manage"))
 
 
 @app.post("/manage/restart-config")
@@ -9596,10 +9531,8 @@ def manage_restart():
 @login_required
 def api_manage_status():
     status = read_rate_status()
-    updater = update_status()
-    updater["protected"] = settings().get("auth_enabled") == "1" and bool(session.get("seban_admin"))
     check_finished_events()
-    return {"ok": True, "restart": restart_progress(), "server_settings": server_settings_status(), "updater": updater, "rates": read_rates(), "events": read_events_status(), "bots": len(live_bots()), "maps": live_map_counts()}
+    return {"ok": True, "restart": restart_progress(), "server_settings": server_settings_status(), "rates": read_rates(), "events": read_events_status(), "bots": len(live_bots()), "maps": live_map_counts()}
 
 
 @app.route("/api/notifications")

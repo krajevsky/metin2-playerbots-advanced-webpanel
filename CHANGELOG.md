@@ -1,3 +1,10 @@
+## 2026-10-11 · 1.114.70 · Porządki w zarządzaniu serwerem
+
+- Usunięto z `/manage` przestarzałą kartę Aktualizatora Seban, jej ustawienia nadpisywania i akcje aktualizacji z przeglądarki. Karta zgodności panelu nie pokazuje już tego modułu.
+- Wyłączone integracje nie zajmują już miejsca w `/manage`; pozostają dostępne po włączeniu w ustawieniach zgodności. Usunięto także nieaktualny opis silnika r40250. Działający watcher pozostaje na serwerze, ponieważ obsługuje plan wejścia i odczyt wersji Playerbots.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.69 · Oferty przedmiotów według królestw
 
 - Aktywne oferty przedmiotu są dostępne w czterech rozwijanych listach: Shinsoo, Jinno, Chunjo i Wszystkie. Każda pokazuje liczbę widocznych ofert, a sortowanie i szczegóły ofert nadal działają.
