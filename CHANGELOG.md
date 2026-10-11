@@ -1,3 +1,10 @@
+## 2026-10-11 · 1.114.75 · Wieża Demonów i prawidłowy Loch Pająków V2 na mapach
+
+- Wieża Demonów jest dostępna w selektorze mapy na żywo w dashboardzie. Wykorzystuje istniejący obraz `deviltower.png` i pokazuje boty z kolejnych pięter na podkładzie wieży.
+- Loch Pająków V2 (mapa 71) ma właściwą nazwę w zestawieniu aktywności oraz własny atlas mapy z plików klienta gry. Znaczniki nie są już nakładane na podkład Lochu Pająków V1.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.74 · Usuwanie przedmiotów z widoku ekwipunku
 
 - Tryb usuwania nakłada czerwone oznaczenie na istniejące okno ekwipunku bota. Przedmiot wybiera się kliknięciem jego ikony w wyposażeniu lub torbie, bez osobnej listy. Po potwierdzeniu można też anulować oczekujące zlecenie tym samym kliknięciem.

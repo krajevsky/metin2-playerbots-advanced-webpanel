@@ -111,7 +111,7 @@ MAP_IMAGE_FILES = {
     41: "jinno-m1.png", 43: "jinno-m2.png", 44: "jinno-guild.png", 45: "easy-monkey.png",
     61: "mount-sohan.png", 62: "doyyumhwaji.png", 63: "yongbi-desert.png", 64: "orc-valley.png",
     65: "hwang-temple.png", 66: "deviltower.png", 67: "trent-forest.png", 68: "trent02-red-forest.png",
-    72: "grotto-v1.png", 73: "grotto-v2.png", 104: "spider-dungeon-v1.png",
+    71: "spider-dungeon-v2.png", 72: "grotto-v1.png", 73: "grotto-v2.png", 104: "spider-dungeon-v1.png",
     108: "medium-monkey.webp", 109: "hard-monkey.webp",
 }
 

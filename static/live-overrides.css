@@ -11,11 +11,12 @@
 .world-map[data-map-index="109"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/hard-monkey.webp')}
 .world-map[data-map-index="61"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/mount-sohan.png')}
 .world-map[data-map-index="62"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/doyyumhwaji.png')}
-.world-map[data-map-index="71"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/spider-dungeon-v1.png')}
+.world-map[data-map-index="71"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/spider-dungeon-v2.png')}
 .world-map[data-map-index="64"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/orc-valley.png')}
 .world-map[data-map-index="63"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/yongbi-desert.png')}
 .world-map[data-map-index="104"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/spider-dungeon-v1.png')}
 .world-map[data-map-index="65"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/hwang-temple.png')}
+.world-map[data-map-index="66"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/deviltower.png')}
 .world-map[data-map-index="4"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/shinsoo-guild.png')}
 .world-map[data-map-index="44"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/jinno-guild.png')}
 .world-map[data-map-index="5"]{background-image:linear-gradient(#00000012,#00000012),url('/static/maps/easy-monkey.png')}
@@ -265,6 +266,7 @@ body[data-theme="empire"]{--live-surface:#241a12;--live-surface-strong:#1a1109;-
 .map-donut-legend b{margin-left:auto;color:var(--live-number)}
 @media(min-width:1700px){.live-insights{gap:11px!important;padding:0!important;border:0!important;background:transparent!important}.live-insights .map-insight-card{box-shadow:0 8px 18px #0002}.live-insights .map-respawn-summary>div{padding:8px}}
 .world-map[data-map-index="62"],.world-map[data-map-index="71"],.world-map[data-map-index="72"],.world-map[data-map-index="73"]{aspect-ratio:1!important}
+.world-map[data-map-index="66"]{aspect-ratio:1!important;max-width:min(520px,100%)!important}
 
 /* v1.93.2: at >=1700px .live-insights (Rozklad kanalow / Respawny / Krolestwa)
    used to float via position:absolute, pinned to .live-dashboard-grid's right
