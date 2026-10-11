@@ -154,7 +154,7 @@ itemManager.querySelector('.bot-item-mode-button').onclick=()=>{
   itemManager.querySelector('.bot-item-manager-hint').hidden=!active;
   if(active)refreshInventory();
 };
-document.getElementById('inventory-live-region').addEventListener('click',async event=>{
+document.getElementById('inventory-live-region').onclick=async event=>{
   if(!itemInventory.classList.contains('is-deleting'))return;
   const slot=event.target.closest('.equip-slot[data-item-id],.inv-slot[data-item-id]');
   if(!slot)return;
@@ -179,7 +179,7 @@ document.getElementById('inventory-live-region').addEventListener('click',async 
     if(data.status==='done'||data.status==='changed'||data.status==='await'||data.status==='cancelled')refreshInventory();
   }catch(_){status.textContent=en?'Network error.':'Błąd sieci.'}
   slot.classList.remove('bot-item-busy');
-},true);
+};
 }
 let dsKind=0, dsPage=0, dsDeck=0;
 function setPage(n){invPage=n;document.querySelectorAll('.inv-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.inv-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('inventory-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}
