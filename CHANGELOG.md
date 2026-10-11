@@ -1,3 +1,12 @@
+## 2026-10-12 · 1.114.83 · Misje i wartość ekwipunku postaci
+
+- Ranking misji ma osobne kategorie fabularne, Biologa i polowania. Liczniki czytają zapisane stany questów silnika, a dawne adresy rankingu Biologa i polowań kierują do odpowiednich kategorii.
+- Zakładka zadań na karcie postaci pokazuje również rozpoczęte misje fabularne. Pod oknami gry widać ukończone misje; data pojawia się tam, gdzie zachował ją dziennik questów. Starsze ukończenia bez wpisu w dzienniku nie dostają wymyślonej daty.
+- Karta postaci rozróżnia bieżącą osobowość od pierwotnego charakteru, tak jak klasyczny panel. Nowa sekcja szacuje wartość wyposażenia, plecaka, magazynu i sklepu według cen ofert offline, z ceną NPC jako wartością zastępczą. Gotówka postaci pozostaje osobno.
+- Nowe opisy i wyniki misji działają po polsku i angielsku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-12 · 1.114.82 · Aktualna wersja Playerbots na dashboardzie
 
 - Dashboard odczytuje zainstalowaną wersję Playerbots na bieżąco, także gdy pozostałe statystyki są jeszcze w pamięci podręcznej. Po aktualizacji przez launcher nie pokazuje starego numeru z zapisanego podsumowania.

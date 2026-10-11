@@ -3675,7 +3675,108 @@ def character_mission_progress(pid):
 
     for mission in missions:
         mission["percent"] = min(100, round(mission["current"] * 100 / mission["target"])) if mission["target"] else 0
+    # Story quests have no numeric counter, but their persisted state still
+    # tells us whether the character has started one.
+    story = rows("SELECT szName,lValue FROM player.quest WHERE dwPID=%s AND szName REGEXP '^main_quest_lv[0-9]+$' AND szState='__status'", (pid,))
+    for quest in story:
+        if int(quest.get("lValue") or 0) != QUEST_COMPLETE_STATE:
+            level = re.search(r"[0-9]+$", quest["szName"])
+            missions.append({"label": f"Misja fabularna · Lv {level.group() if level else '?'}",
+                             "current": 0, "target": 0, "unit": "", "detail": "W toku", "percent": 0})
     return missions
+
+
+QUEST_COMPLETE_STATE = 668443392  # CRC32("__COMPLETE__") in this engine.
+
+
+def character_completed_quests(pid):
+    """Current completed states are authoritative; the log only supplies dates."""
+    bio = biologist_missions()
+    quest_rows = rows("SELECT szName,lValue FROM player.quest WHERE dwPID=%s AND szState='__status' "
+                      "AND (szName REGEXP '^main_quest_lv[0-9]+$' OR szName IN (" +
+                      ",".join(["%s"] * len(bio)) + "))", (pid, *bio))
+    completed = []
+    for quest in quest_rows:
+        name = quest["szName"]
+        is_bio = name in bio
+        expected = BIOLOGIST_COMPLETE_STATE if is_bio else QUEST_COMPLETE_STATE
+        if int(quest.get("lValue") or 0) != expected:
+            continue
+        level = re.search(r"[0-9]+$", name)
+        completed.append({"key": name, "category": "Biolog" if is_bio else "Fabularna",
+                          "label": (f"Biolog · Lv {level.group()}" if is_bio else f"Misja fabularna · Lv {level.group()}") if level else name,
+                          "date": None})
+    hunt = one("SELECT lValue FROM player.quest WHERE dwPID=%s AND szName='hunting' AND szState='huntingProgress'", (pid,))
+    for index in range(min(len(HUNTING_QUEST_TARGETS), max(0, int((hunt or {}).get("lValue") or 0)))):
+        completed.append({"key": None, "category": "Polowanie", "label": f"Polowanie nr {index + 1}", "date": None})
+    if completed:
+        history = rows("SELECT quest_name,MAX(time) AS finished_at FROM log.quest_state_log "
+                       "WHERE pid=%s AND quest_state='__COMPLETE__' GROUP BY quest_name", (pid,))
+        dates = {r["quest_name"]: r["finished_at"] for r in history}
+        for mission in completed:
+            mission["date"] = dates.get(mission["key"])
+    return completed
+
+
+_ITEM_VALUE_PRICES = {"at": 0.0, "prices": {}}
+
+
+def character_item_value(pid, account_id):
+    """Same market/listing/NPC valuation as Tieru's bot_value, with a 2m cache."""
+    now = time.time()
+    if now - _ITEM_VALUE_PRICES["at"] >= 120:
+        prices = {}
+        offers = rows("SELECT vnum,SUM(`count`) AS n,"
+                      "SUM(CAST(JSON_UNQUOTE(JSON_EXTRACT(ikashop_data,'$.yang')) AS UNSIGNED)) AS y "
+                      "FROM player.item WHERE `window`='IKASHOP_OFFLINESHOP' AND ikashop_data IS NOT NULL "
+                      "AND ikashop_data<>'' GROUP BY vnum")
+        for offer in offers:
+            if int(offer.get("n") or 0) and int(offer.get("y") or 0):
+                prices[int(offer["vnum"])] = int(offer["y"]) / int(offer["n"])
+        if not prices:
+            latest = one("SELECT MAX(captured_at) AS t FROM player.web_seban_shop_item_snapshot").get("t")
+            if latest:
+                for offer in rows("SELECT vnum,SUM(total_units) AS n,SUM(total_value) AS y FROM player.web_seban_shop_item_snapshot WHERE captured_at=%s GROUP BY vnum", (latest,)):
+                    if int(offer.get("n") or 0):
+                        prices[int(offer["vnum"])] = int(offer.get("y") or 0) / int(offer["n"])
+        _ITEM_VALUE_PRICES.update(at=now, prices=prices)
+    prices = _ITEM_VALUE_PRICES["prices"]
+    items = rows("SELECT `window`,vnum,`count`,ikashop_data FROM player.item WHERE owner_id=%s "
+                 "AND `window` IN ('EQUIPMENT','INVENTORY','BELT_INVENTORY','DRAGON_SOUL_INVENTORY','IKASHOP_OFFLINESHOP')", (pid,))
+    if account_id:
+        items += [dict(item, window="SAFEBOX") for item in rows(
+            "SELECT vnum,`count` FROM player.item WHERE owner_id=%s AND `window`='SAFEBOX'", (account_id,))]
+    vnums = sorted({int(item["vnum"]) for item in items})
+    npc = {}
+    if vnums:
+        proto = rows("SELECT vnum,gold FROM player.item_proto WHERE vnum IN (" + ",".join(["%s"] * len(vnums)) + ")", vnums)
+        npc = {int(item["vnum"]): int(item.get("gold") or 0) for item in proto}
+    part = {"equip": 0, "inv": 0, "safe": 0, "shop": 0}
+    how = {"listed": 0, "market": 0, "npc": 0, "none": 0}
+    for item in items:
+        window = game_text(item["window"])
+        key = {"EQUIPMENT": "equip", "SAFEBOX": "safe", "IKASHOP_OFFLINESHOP": "shop"}.get(window, "inv")
+        vnum, count = int(item["vnum"]), int(item.get("count") or 1)
+        value = None
+        if key == "shop":
+            try:
+                value = int(json.loads(game_text(item.get("ikashop_data")) or "{}").get("yang") or 0) or None
+                if value:
+                    how["listed"] += 1
+            except (ValueError, TypeError):
+                pass
+        if value is None and vnum in prices:
+            value = prices[vnum] * count
+            how["market"] += 1
+        if value is None and npc.get(vnum):
+            value = npc[vnum] * count
+            how["npc"] += 1
+        if value is None:
+            value = 0
+            how["none"] += 1
+        part[key] += int(value)
+    part["total"] = sum(part.values())
+    return {"value": part, "how": how}
 
 
 # ---------------------------------------------------------------------------
@@ -4046,6 +4147,19 @@ def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None, plus9_
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,COUNT(DISTINCT q.szName) AS score,CONCAT(COUNT(DISTINCT q.szName),' / {len(missions)} misji') AS detail
             FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id AND q.szName IN ({marks}) AND q.szState='__status' AND q.lValue=%s
             WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""", (*missions, BIOLOGIST_COMPLETE_STATE))
+    if kind == "story":
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,COUNT(DISTINCT q.szName) AS score,
+            CONCAT(COUNT(DISTINCT q.szName),' ukończonych misji') AS detail
+            FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id
+            AND q.szName REGEXP '^main_quest_lv[0-9]+$' AND q.szState='__status' AND q.lValue=%s
+            WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""", (QUEST_COMPLETE_STATE,))
+    if kind == "hunting":
+        return rows(f"""SELECT p.id,p.name,p.level,p.gold,
+            COALESCE(GREATEST(0,q.lValue),0) AS score,
+            CONCAT(COALESCE(GREATEST(0,q.lValue),0),' ukończonych polowań') AS detail
+            FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id
+            AND q.szName='hunting' AND q.szState='huntingProgress'
+            WHERE {base} ORDER BY score DESC,p.level DESC {limit_clause}""")
     # Ranking "hunting" usuniety razem z zakladka: levelup.quest nie dziala na
     # tej linii silnika, wiec zapytanie zwracalo sto rekordow z zerem. Gdyby
     # ktos wszedl ze starym ?type=hunting, kind nie ma go juz w kinds i strona
@@ -5879,6 +5993,9 @@ def player(pid):
         lambda: character_stat_summary(pid),
     )
     mission_progress = player_profile_component(pid, "missions", list, lambda: character_mission_progress(pid))
+    completed_quests = player_profile_component(pid, "completed_quests", list, lambda: character_completed_quests(pid))
+    item_value = player_profile_component(pid, "item_value", None,
+                                          lambda: character_item_value(pid, character.get("account_id")))
     exp_lock = player_profile_component(pid, "exp_lock", None, lambda: bot_exp_lock_view(character, live))
     can_delete_bot_items = ENGINE_MT2009 and player_profile_component(
         pid, "item_delete_identity", False,
@@ -5895,7 +6012,8 @@ def player(pid):
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
                             dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks,
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
-                            mission_progress=mission_progress, gm_ranks=GM_RANK_OPTIONS,
+                            mission_progress=mission_progress, completed_quests=completed_quests,
+                            item_value=item_value, gm_ranks=GM_RANK_OPTIONS,
                             admin_warps=PLAYER_ADMIN_WARPS, exp_lock=exp_lock,
                             can_delete_bot_items=can_delete_bot_items, pending_item_deletions=pending_item_deletions,
                             item_delete_token=bot_item_delete_csrf_token() if can_delete_bot_items else None)
@@ -8370,13 +8488,20 @@ def rankings():
         # quest/_unused, zaden hook zabicia nie strzela i licznik stoi na zero
         # dla kazdego bota - ranking miał wiec 100 pozycji z "Ukonczone do Lv 0"
         # (Tieru, 13 wrzesnia).
-        "gold": "Yang", "items": "Przedmioty", "horse": "Koń", "biologist": "Biolog",
+        "gold": "Yang", "items": "Przedmioty", "horse": "Koń", "missions": "Misje",
         "shops": "Sprzedaże na sklepie Offline", "skills": "Umiejętności", "plus9": "Przedmiot +9", "playtime": "Czas gry", "bosses": "Bossy", "refine": "Pomyślne ulepszenia", "refine_rate": "Skuteczność ulepszeń", "fish": "Wyłowione ryby",
         "damage_max": "Rekord obrażeń (zwykłe)", "damage_max_horse": "Rekord obrażeń (konno)", "damage_max_skill": "Rekord obrażeń (umiejętność)",
         "yang_earned": "Zdobyty Yang (łącznie)",
         "monsters_killed": "Zabite potwory (łącznie)", "minibosses": "Pokonane minibossy", "pvp_kills_total": "Pokonani gracze (PVP)", "duel_wins": "Wygrane pojedynki", "mining": "Wykopane rudy",
     }
     kind = request.args.get("type", "level")
+    mission_category = request.args.get("category", "story") if kind == "missions" else "story"
+    if mission_category not in ("story", "biologist", "hunting"):
+        mission_category = "story"
+    if kind == "biologist":
+        kind, mission_category = "missions", "biologist"
+    elif kind == "hunting":
+        kind, mission_category = "missions", "hunting"
     if kind not in kinds:
         kind = "level"
     weapon30_sort = request.args.get("sort", "avg") if kind == "weapon30" else "avg"
@@ -8407,7 +8532,7 @@ def rankings():
     people_ranked = include_real_players_in_rankings()
     people_only = people_ranked and request.args.get("people") == "1"
     ranking_sort = plus9_sort if kind == "plus9" else weapon_sort if kind == "weapon" else weapon30_sort
-    all_ranking = bot_ranking(kind, ranking_sort, people_only, weapon_type, plus9_category)
+    all_ranking = bot_ranking(mission_category if kind == "missions" else kind, ranking_sort, people_only, weapon_type, plus9_category)
     total = len(all_ranking)
     total_pages = max(1, -(-total // per_page))  # ceil division
     # "goto_page" (the jump-to-page box, 1-based, what the operator actually
@@ -8475,7 +8600,7 @@ def rankings():
                            weapon_type=weapon_type, weapon_subtypes=WEAPON_SUBTYPES,
                            plus9_category=plus9_category, plus9_categories=PLUS9_CATEGORIES, plus9_sort=plus9_sort,
                            per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers,
-                           people_ranked=people_ranked, people_only=people_only)
+                           people_ranked=people_ranked, people_only=people_only, mission_category=mission_category)
 
 
 SEASON_CATEGORIES = {

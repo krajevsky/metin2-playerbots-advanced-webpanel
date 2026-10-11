@@ -747,3 +747,10 @@ body[data-skin="laka"] .laka-sheet .laka-language{margin-top:18px;padding-top:14
   body[data-skin="laka"] .laka-rail-foot .laka-language-options button{min-height:38px;font-size:10px;padding:3px 0}
   body[data-skin="laka"] .laka-rail-foot .laka-language-options button img{width:16px}
 }
+[data-skin="laka"] .bot-quest-record-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px;max-height:320px;overflow-y:auto}
+[data-skin="laka"] .bot-quest-record-list>div{display:grid;gap:3px;padding:11px 13px;border:1px solid rgba(214,168,81,.22);border-radius:9px;background:rgba(29,19,12,.62)}
+[data-skin="laka"] .bot-quest-kind{color:#d7a754;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+[data-skin="laka"] .bot-quest-record-list time{color:#a99985;font-size:.8rem}
+[data-skin="laka"] .bot-item-value>strong{display:block;margin:.3rem 0 .8rem;color:#f2c865;font-size:1.5rem}
+[data-skin="laka"] .bot-item-value-parts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+[data-skin="laka"] .bot-item-value-parts span{padding:6px 10px;border-radius:7px;background:rgba(214,168,81,.10)}
