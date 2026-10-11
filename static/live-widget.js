@@ -33,6 +33,7 @@
   if (map && liveInsights && 'ResizeObserver' in window) {
     const insightsFloat = () => window.matchMedia('(min-width: 1700px)').matches;
     const syncInsightsHeight = () => {
+      liveInsights.style.setProperty('--laka-map-height', insightsFloat() ? map.offsetHeight + 'px' : 'auto');
       if (insightsFloat()) liveInsights.style.height = map.offsetHeight + 'px';
       else liveInsights.style.height = '';
     };

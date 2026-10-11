@@ -669,3 +669,47 @@ html body[data-skin="laka"] .live-insights .map-donut-legend i{width:8px;height:
 html body[data-skin="laka"] .live-insights .map-donut-legend em{font-style:normal;overflow:hidden;text-overflow:ellipsis}
 html body[data-skin="laka"] .live-insights .map-donut-legend b{color:#ffe08a;font-variant-numeric:tabular-nums}
 @media(max-width:420px){html body[data-skin="laka"] .live-insights .map-insight-chart{gap:9px}}
+
+/* Dashboard map: keep the insights column inside the map's measured height.
+   Earlier height:auto!important beat the inline height from live-widget.js. */
+@media(min-width:1700px){
+  html body[data-skin="laka"] .live-insights{
+    height:var(--laka-map-height,auto)!important;
+    min-height:0;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:var(--laka-bronze) transparent;
+  }
+  html body[data-skin="laka"] .live-insights .map-insight-card{flex-shrink:0}
+  html body[data-skin="laka"] .live-insights #world-insights-card{min-height:210px}
+  html body[data-skin="laka"] .live-insights #world-insights-card .world-tab-panel{max-height:none}
+}
+
+/* Still map with small lacquered waypoint markers; keep status colours. */
+html body[data-skin="laka"] .world-map::before{display:none!important;animation:none!important}
+html body[data-skin="laka"] .world-map::after{
+  background:
+    linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px top 6px/18px 2px no-repeat,
+    linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px top 6px/2px 18px no-repeat,
+    linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px top 6px/18px 2px no-repeat,
+    linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px top 6px/2px 18px no-repeat,
+    linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px bottom 6px/18px 2px no-repeat,
+    linear-gradient(var(--laka-gold),var(--laka-gold)) left 6px bottom 6px/2px 18px no-repeat,
+    linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px bottom 6px/18px 2px no-repeat,
+    linear-gradient(var(--laka-gold),var(--laka-gold)) right 6px bottom 6px/2px 18px no-repeat;
+  box-shadow:none;
+}
+html body[data-skin="laka"] .world-map .bot-point{
+  width:14px!important;height:14px!important;border:0!important;
+  background:transparent!important;box-shadow:none!important;
+  --waypoint:#e8c76d;
+}
+html body[data-skin="laka"] .world-map .bot-point.dot-purple{--waypoint:#bba1da}
+html body[data-skin="laka"] .world-map .bot-point.dot-yellow{--waypoint:#f3ba63}
+html body[data-skin="laka"] .world-map .bot-point.dot-red{--waypoint:#df776c}
+html body[data-skin="laka"] .world-map .bot-point::after{
+  content:"";position:absolute;inset:1px;pointer-events:none;
+  background:radial-gradient(circle at 39% 31%,#fff8 0 12%,transparent 15%),linear-gradient(145deg,#fff6,var(--waypoint) 42%,#352113);
+  clip-path:polygon(50% 0,95% 37%,73% 100%,27% 100%,5% 37%);
+  filter:drop-shadow(0 1px 2px #000c);
+}
+html body[data-skin="laka"] .world-map .bot-point:hover::after,
+html body[data-skin="laka"] .world-map .bot-point:focus-visible::after{filter:drop-shadow(0 0 5px var(--waypoint))}

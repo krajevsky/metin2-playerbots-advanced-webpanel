@@ -1,3 +1,10 @@
+## 2026-10-11 · 1.114.67 · Mapa i aktywności w granicach kart
+
+- W motywie Łąka i Złoto lista aktywności i diagramy przewijają się wewnątrz kolumny o wysokości mapy, zamiast wystawać poza ramkę dashboardu.
+- Usunięto obracający się efekt radaru i linie skanowania mapy. Boty oznaczają teraz małe znaczniki w kolorach odpowiadających ich stanowi.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.66 · Powrót do wyglądu dashboardu z 1.114.61
 
 - Przywrócono układ, style i działanie Przeglądu świata w motywie Łąka i Złoto z wersji 1.114.61. Pozostałe funkcje panelu i późniejsze poprawki danych pozostają zachowane.
