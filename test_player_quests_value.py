@@ -53,6 +53,19 @@ def test_core_quest_and_investment_snapshots(tmp_path, monkeypatch):
     assert summary["gap"] == 250 and summary["goal_vnum"] == 3098
 
 
+def test_offered_quests_are_not_labeled_started(monkeypatch):
+    monkeypatch.setattr(panel, "biologist_missions", lambda: ("make_herb_lv4",))
+    monkeypatch.setattr(panel, "rows", lambda sql, params=(): (
+        [{"szName": "subquest_1", "lValue": panel.QUEST_INFORMATION_STATE},
+         {"szName": "subquest_2", "lValue": 12345}]
+        if "szState='__status'" in sql else []))
+    monkeypatch.setattr(panel, "one", lambda *_: {})
+    missions = panel.character_mission_progress(5)
+    labels = [mission["label"] for mission in missions]
+    assert "Misja poboczna · #1" not in labels
+    assert "Misja poboczna · #2" in labels
+
+
 def test_item_value_prefers_listing_then_market_then_npc(monkeypatch):
     def fake_rows(sql, params=()):
         if "GROUP BY vnum" in sql:

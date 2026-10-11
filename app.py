@@ -3750,9 +3750,10 @@ def character_mission_progress(pid, current_quest=None):
     story = rows(f"SELECT szName,lValue FROM player.quest WHERE dwPID=%s AND szState='__status' AND ({STORY_QUEST_SQL})", (pid,))
     seen_story = set()
     for quest in story:
-        if int(quest.get("lValue") or 0) != QUEST_COMPLETE_STATE:
+        is_current = current_quest and current_quest.get("quest") == quest["szName"]
+        state = int(quest.get("lValue") or 0)
+        if state != QUEST_COMPLETE_STATE and (state != QUEST_INFORMATION_STATE or is_current):
             seen_story.add(quest["szName"])
-            is_current = current_quest and current_quest.get("quest") == quest["szName"]
             label = current_quest["title"] if is_current else quest_display_name(quest["szName"])
             current = max(0, current_quest["have"]) if is_current else 0
             target = max(0, current_quest["need"]) if is_current else 0
@@ -3769,6 +3770,7 @@ def character_mission_progress(pid, current_quest=None):
 
 
 QUEST_COMPLETE_STATE = 668443392  # CRC32("__COMPLETE__") in this engine.
+QUEST_INFORMATION_STATE = 695801987  # CRC32("information"): offered, not necessarily accepted.
 
 
 def character_completed_quests(pid):

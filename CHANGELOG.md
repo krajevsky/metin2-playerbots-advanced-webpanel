@@ -1,3 +1,9 @@
+## 2026-10-12 · 1.114.85 · Rozpoczęte questy bez dostępnych zadań
+
+- Zakładka zadań nie oznacza już jako rozpoczętych misji, których skrypt jest tylko w stanie `information` (dostępne u NPC). Wyjątkiem jest quest wskazany bezpośrednio przez bieżącą migawkę rdzenia.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-12 · 1.114.84 · Pełniejszy obraz misji i majątku bota
 
 - Profil i ranking misji uwzględniają teraz także questy `subquest_*`, `new_quest_lv*` i dwa osobne skrypty fabularne, które wcześniej były pomijane przez filtr obejmujący wyłącznie `main_quest_lv*`.
