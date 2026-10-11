@@ -5615,6 +5615,10 @@ def queue_bot_exp_override(name, command, wait=EXP_OVERRIDE_WAIT):
 
 
 BOT_ITEM_DELETE_WAIT = 8.0
+# DELITEM's count is an upper bound for the core's current stack, not the
+# number of units to remove. Most stacks cap at 200, while item_proto.stack
+# allows larger per-item caps. Use that actual cap for active looting bots.
+BOT_ITEM_DELETE_DEFAULT_STACK = 200
 
 
 def bot_item_delete_csrf_token():
@@ -5701,14 +5705,17 @@ def api_bot_item_delete():
             return answer("applying", "Silnik już usuwa ten przedmiot; nie można anulować.",
                           "The engine is already deleting this item; it cannot be cancelled.")
         return answer("none", "Nie ma oczekującego usunięcia.", "There is no pending deletion.")
-    item = one("SELECT id,`window`,pos,`count`,vnum FROM player.item WHERE id=%s AND owner_id=%s", (item_id, pid))
+    item = one("SELECT i.id,i.`window`,i.pos,i.`count`,i.vnum,p.stack AS max_stack "
+               "FROM player.item i LEFT JOIN player.item_proto p ON p.vnum=i.vnum "
+               "WHERE i.id=%s AND i.owner_id=%s", (item_id, pid))
     if not item or str(item.get("window")) not in ("INVENTORY", "EQUIPMENT"):
         return answer("no_item", "Przedmiotu nie ma już w ekwipunku ani na postaci.",
                       "The item is no longer in the bag or equipped.")
-    if int(item.get("vnum") or 0) != vnum or int(item.get("count") or 0) != count:
+    if int(item.get("vnum") or 0) != vnum:
         return answer("changed", "Przedmiot zmienił się od otwarcia karty. Odśwież stronę.",
                       "The item has changed since you opened the card. Reload the page.")
-    status, queue_id = queue_bot_item_delete(name, item_id, vnum, count)
+    stack_limit = max(int(item.get("count") or 1), int(item.get("max_stack") or BOT_ITEM_DELETE_DEFAULT_STACK))
+    status, queue_id = queue_bot_item_delete(name, item_id, vnum, stack_limit)
     app.logger.info("bot item delete pid=%s item=%s queue_id=%s status=%s", pid, item_id, queue_id, status)
     messages = {
         "done": ("Przedmiot usunięty przez silnik gry.", "The game engine deleted the item."),
@@ -6005,15 +6012,19 @@ def api_player_inventory_fragment(pid):
     """Re-renders just the equipment/inventory/safebox/horse-bag markup from
     a fresh SQL read -- polled by player.html so gear changes show up without
     a page reload, the same 'always live, never stale' read the full page uses."""
-    account_id = one("SELECT account_id FROM player.player WHERE id=%s", (pid,))
-    if not account_id:
+    player_row = one(f"SELECT p.account_id,p.name,p.gold,{BOT_IS} AS is_bot "
+                     "FROM player.player p WHERE p.id=%s", (pid,))
+    if not player_row:
         abort(404)
-    gold = one("SELECT gold FROM player.player WHERE id=%s", (pid,)).get("gold") or 0
-    equipment, inventory, safebox, horse_bag = load_character_items(pid, account_id["account_id"])
+    gold = player_row.get("gold") or 0
+    equipment, inventory, safebox, horse_bag = load_character_items(pid, player_row["account_id"])
+    pending_item_deletions = ({int(row["arg1"]): str(row["status"]) for row in bot_item_delete_pending(player_row["name"])
+                               if str(row.get("arg1") or "").isdigit()} if player_row and player_row.get("is_bot") else {})
     dragon_soul_inventory, dragon_soul_decks = load_dragon_soul_items(pid)
     return render_template("_inventory_fragment.html", gold=gold, equipment=equipment, inventory=inventory, safebox=safebox,
                             has_safebox=bool(safebox), horse_bag=horse_bag, has_horse_bag=bool(horse_bag),
-                            dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks)
+                            dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks,
+                            pending_item_deletions=pending_item_deletions)
 
 
 # VIP and "Dragon Coins" both turned out to be real, already-working engine

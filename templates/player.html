@@ -121,30 +121,16 @@
       <form class="manage-form danger-form admin-card admin-card--delete" method="post" action="{{url_for('player_action_delete', pid=character.id)}}" onsubmit="return confirm('To jest NIEODWRACALNE i skasuje wszystkie przedmioty tej postaci. Kontynuować?');"><h3>⚠ Usuń postać (nieodwracalne)</h3><small class="muted">Wpisz dokładną nazwę postaci, żeby potwierdzić: <b>{{character.name}}</b>. Kopia wiersza trafi do web_seban_deleted_players przed usunięciem.</small><input type="text" name="confirm_name" placeholder="Wpisz {{character.name}}" required><button class="secondary">Usuń postać</button></form>
     </section>
   </article>
-  <aside class="inventory-panel">
+  <aside class="inventory-panel" id="bot-item-inventory">
     <h2>⚔ Zawartość ekwipunku</h2>
-    <div id="inventory-live-region">{% set gold = character.gold %}{% include '_inventory_fragment.html' %}</div>
     {% if can_delete_bot_items %}
-    <details class="bot-item-manager" id="bot-item-manager" data-pid="{{character.id}}" data-name="{{character.name}}" data-csrf="{{item_delete_token}}">
-      <summary>Usuń przedmiot bota</summary>
-      <p class="muted">Usuwanie wykonuje silnik gry. Gdy bot jest offline, żądanie czeka do jego wejścia.</p>
-      <div class="bot-item-manager-list">
-        {% for item in equipment.values() %}
-        <div class="bot-item-manager-row" data-id="{{item.id}}" data-vnum="{{item.vnum}}" data-count="{{item.count}}" data-worn="1">
-          {% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="">{% endif %}<span>{{item.item_name}}{% if item.count > 1 %} ×{{item.count}}{% endif %}<small>VNUM {{item.vnum}} · ID {{item.id}} · Założony</small></span>
-          <button type="button" class="secondary bot-item-delete-button" data-mode="{{'cancel' if item.id in pending_item_deletions else 'delete'}}" {% if item.id in pending_item_deletions and pending_item_deletions[item.id].startswith('w') %}disabled{% endif %}>{{'Anuluj' if item.id in pending_item_deletions else 'Usuń'}}</button>
-        </div>
-        {% endfor %}
-        {% for item in inventory %}
-        <div class="bot-item-manager-row" data-id="{{item.id}}" data-vnum="{{item.vnum}}" data-count="{{item.count}}" data-worn="0">
-          {% if item_icon(item.vnum) %}<img src="{{item_icon(item.vnum)}}" alt="">{% endif %}<span>{{item.item_name}}{% if item.count > 1 %} ×{{item.count}}{% endif %}<small>VNUM {{item.vnum}} · ID {{item.id}}</small></span>
-          <button type="button" class="secondary bot-item-delete-button" data-mode="{{'cancel' if item.id in pending_item_deletions else 'delete'}}" {% if item.id in pending_item_deletions and pending_item_deletions[item.id].startswith('w') %}disabled{% endif %}>{{'Anuluj' if item.id in pending_item_deletions else 'Usuń'}}</button>
-        </div>
-        {% endfor %}
-      </div>
+    <div class="bot-item-manager" id="bot-item-manager" data-pid="{{character.id}}" data-name="{{character.name}}" data-csrf="{{item_delete_token}}">
+      <button type="button" class="bot-item-mode-button" aria-pressed="false">{{ 'Delete bot item' if ui_language == 'en' else 'Usuń przedmiot bota' }}</button>
+      <p class="bot-item-manager-hint" hidden>{{ 'Select an item in the equipment or bag. The whole stack will be deleted, including units gained before the engine processes it. Press the red button again to leave this mode.' if ui_language == 'en' else 'Wybierz przedmiot na postaci lub w ekwipunku. Usunięty zostanie cały stos, także sztuki zdobyte przed wykonaniem zlecenia. Naciśnij czerwony przycisk ponownie, aby wyjść z trybu.' }}</p>
       <p class="bot-item-manager-status" id="bot-item-manager-status" role="status" aria-live="polite"></p>
-    </details>
+    </div>
     {% endif %}
+    <div id="inventory-live-region">{% set gold = character.gold %}{% include '_inventory_fragment.html' %}</div>
   </aside>
 </section>
 <script>
@@ -160,27 +146,41 @@ if(window.__playerRefreshInterval)clearInterval(window.__playerRefreshInterval);
 if(window.__playerLiveLogTimer)clearInterval(window.__playerLiveLogTimer);
 let invPage=0, safeboxPage=0, activeStorage='inventory';
 const itemManager=document.getElementById('bot-item-manager');
-if(itemManager)itemManager.onclick=async event=>{
-  const button=event.target.closest('.bot-item-delete-button');if(!button)return;
-  const row=button.closest('.bot-item-manager-row'),mode=button.dataset.mode;
-  const label=row.querySelector('span')?.firstChild?.textContent?.trim()||row.dataset.vnum;
+const itemInventory=document.getElementById('bot-item-inventory');
+if(itemManager){
+itemManager.querySelector('.bot-item-mode-button').onclick=()=>{
+  const active=itemInventory.classList.toggle('is-deleting');
+  itemManager.querySelector('.bot-item-mode-button').setAttribute('aria-pressed',String(active));
+  itemManager.querySelector('.bot-item-manager-hint').hidden=!active;
+  if(active)refreshInventory();
+};
+document.getElementById('inventory-live-region').addEventListener('click',async event=>{
+  if(!itemInventory.classList.contains('is-deleting'))return;
+  const slot=event.target.closest('.equip-slot[data-item-id],.inv-slot[data-item-id]');
+  if(!slot)return;
+  event.preventDefault();event.stopPropagation();
+  if(slot.classList.contains('bot-item-busy'))return;
+  const mode=slot.dataset.pending?'cancel':'delete';
+  if(slot.dataset.pending.startsWith('w'))return;
+  const label=slot.dataset.itemName||slot.dataset.vnum;
   const en=document.documentElement.lang==='en';
   const question=mode==='cancel'
     ?(en?`Cancel pending deletion of ${label}?`:`Anulować oczekujące usunięcie ${label}?`)
-    :(en?`Destroy ${label} from bot ${itemManager.dataset.name}? This cannot be undone.`:`Zniszczyć ${label} z ekwipunku bota ${itemManager.dataset.name}? Tego nie da się cofnąć.`);
+    :(en?`Destroy the whole stack of ${label} from bot ${itemManager.dataset.name}, including units gained before the engine processes it? This cannot be undone.`:`Zniszczyć cały stos ${label} z ekwipunku bota ${itemManager.dataset.name}, także sztuki zdobyte przed wykonaniem zlecenia? Tego nie da się cofnąć.`);
   if(!confirm(question))return;
-  const status=document.getElementById('bot-item-manager-status');button.disabled=true;
+  const status=document.getElementById('bot-item-manager-status');
+  slot.classList.add('bot-item-busy');
   status.textContent=en?'Sending request…':'Wysyłanie żądania…';
   try{
-    const response=await fetch('/api/bot-item-delete',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':itemManager.dataset.csrf},body:JSON.stringify({pid:Number(itemManager.dataset.pid),item_id:Number(row.dataset.id),vnum:Number(row.dataset.vnum),count:Number(row.dataset.count),mode})});
+    const response=await fetch('/api/bot-item-delete',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':itemManager.dataset.csrf},body:JSON.stringify({pid:Number(itemManager.dataset.pid),item_id:Number(slot.dataset.itemId),vnum:Number(slot.dataset.vnum),count:Number(slot.dataset.count),mode})});
     const data=await response.json();status.textContent=data.message||'';
-    if(data.status==='done'){row.remove();refreshInventory()}
-    else if(data.status==='await'){button.dataset.mode='cancel';button.textContent=en?'Cancel':'Anuluj'}
-    else if(data.status==='cancelled'){button.dataset.mode='delete';button.textContent=en?'Delete':'Usuń'}
-    else if(data.status==='applying'||String(data.status).startsWith('w')){button.disabled=true;return}
+    if(data.status==='await')slot.dataset.pending='await';
+    else if(data.status==='cancelled')slot.dataset.pending='';
+    if(data.status==='done'||data.status==='changed'||data.status==='await'||data.status==='cancelled')refreshInventory();
   }catch(_){status.textContent=en?'Network error.':'Błąd sieci.'}
-  button.disabled=false;
-};
+  slot.classList.remove('bot-item-busy');
+},true);
+}
 let dsKind=0, dsPage=0, dsDeck=0;
 function setPage(n){invPage=n;document.querySelectorAll('.inv-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.inv-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('inventory-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}
 function setSafeboxPage(n){safeboxPage=n;document.querySelectorAll('.safebox-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.page===String(n)));const slots=document.querySelectorAll('.safebox-slot[data-page]');slots.forEach(x=>x.hidden=x.dataset.page!==String(n));document.getElementById('safebox-empty').hidden=[...slots].some(x=>x.dataset.page===String(n))}

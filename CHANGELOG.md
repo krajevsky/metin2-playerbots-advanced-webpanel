@@ -1,3 +1,10 @@
+## 2026-10-11 · 1.114.74 · Usuwanie przedmiotów z widoku ekwipunku
+
+- Tryb usuwania nakłada czerwone oznaczenie na istniejące okno ekwipunku bota. Przedmiot wybiera się kliknięciem jego ikony w wyposażeniu lub torbie, bez osobnej listy. Po potwierdzeniu można też anulować oczekujące zlecenie tym samym kliknięciem.
+- Komenda DELITEM wskazuje ID i VNUM konkretnego przedmiotu, ale akceptuje wzrost liczby sztuk w stosie między odświeżeniem strony a wykonaniem przez silnik. Potwierdzenie wyraźnie informuje, że usuwany jest cały stos.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.73 · Dostępne linki do panelu Tieru
 
 - Linki do klasycznego panelu Tieru i edytora SQL otwierają ten sam host co Seban Panel na porcie 7788, gdy konfiguracja wskazuje localhost. Jawnie skonfigurowany publiczny adres pozostaje bez zmian.
