@@ -56,3 +56,27 @@ def test_transaction_item_search_uses_item_proto_and_parameterized_query():
     assert "ip.locale_name LIKE %s" in sql and "ip.name LIKE %s" in sql
     assert "Klejnot" not in sql
     assert params == (-1, "%Klejnot%", "%Klejnot%", 41)
+
+
+def test_disabled_tracker_never_reads_transactions_or_loads_polling_script():
+    disabled = {**SETTINGS, "shop_transaction_tracker": "0"}
+    with patch.object(panel, "settings", return_value=disabled), patch.object(panel, "shop_transaction_rows") as read:
+        client = panel.app.test_client()
+        api = client.get("/api/shop-transactions")
+        page = client.get("/economy/transactions")
+    assert api.status_code == 503 and api.json["error"] == "tracker_disabled"
+    assert page.status_code == 200
+    assert b"shop-transactions.js" not in page.data
+    read.assert_not_called()
+
+
+def test_tracker_switch_saves_setting_and_english_ui():
+    english = {**SETTINGS, "ui_language": "en", "shop_transaction_tracker": "1"}
+    with patch.object(panel, "settings", return_value=english), patch.object(panel, "write_settings") as write:
+        client = panel.app.test_client()
+        page = client.get("/economy/transactions")
+        response = client.post("/manage/panel/shop-transaction-tracker", data={"enabled": "0"})
+    assert page.status_code == 200
+    assert b"Shop transactions" in page.data and b"Search item" in page.data
+    assert response.status_code == 302
+    write.assert_called_once_with({"shop_transaction_tracker": "0"})

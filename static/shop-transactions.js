@@ -8,7 +8,7 @@
   const search = document.getElementById('shop-transactions-query');
   const locale = document.documentElement.lang === 'en' ? 'en-US' : 'pl-PL';
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let newest = 0, oldest = 0, paused = false, loading = false, generation = 0, debounce;
+  let newest = 0, oldest = 0, paused = false, loading = false, generation = 0, debounce, timer, stopped = false;
 
   function actor(id, name, isBot) {
     const badge = `<small class="shop-actor-type">${isBot ? labels.bot : labels.player}</small>`;
@@ -19,8 +19,8 @@
     const price = `${Number(row.yang).toLocaleString(locale)} Yang${row.cheque ? ` · ${Number(row.cheque).toLocaleString(locale)} ${labels.cheque}` : ''}`;
     return `<article class="shop-transaction" data-id="${Number(row.id)}">
       <time>${escape(row.time)}</time>
-      <div class="shop-transaction-main"><div class="shop-transaction-actors"><span><small>${labels.seller}</small>${actor(row.seller_id,row.seller,row.seller_is_bot)}</span><span class="shop-transaction-arrow" aria-hidden="true">→</span><span><small>${labels.buyer}</small>${actor(row.buyer_id,row.buyer,row.buyer_is_bot)}</span></div>
-      <div class="shop-transaction-item">${icon}<a href="/economy/item/${Number(row.vnum)}">${escape(row.item_name)}</a><small>×${Number(row.quantity)}</small></div></div>
+      <div class="shop-transaction-main"><div class="shop-transaction-icon-cell">${icon}</div><div class="shop-transaction-detail"><div class="shop-transaction-actors"><span><small>${labels.seller}</small>${actor(row.seller_id,row.seller,row.seller_is_bot)}</span><span class="shop-transaction-arrow" aria-hidden="true">→</span><span><small>${labels.buyer}</small>${actor(row.buyer_id,row.buyer,row.buyer_is_bot)}</span></div>
+      <div class="shop-transaction-item"><a href="/economy/item/${Number(row.vnum)}">${escape(row.item_name)}</a><small>×${Number(row.quantity)}</small></div></div></div>
       <strong class="shop-transaction-price">${price}</strong>
     </article>`;
   }
@@ -37,6 +37,15 @@
       params.set(key, value);
     }
     const response = await fetch(`/api/shop-transactions?${params}`, {cache:'no-store'});
+    if (response.status === 503 && (await response.clone().json().catch(() => ({}))).error === 'tracker_disabled') {
+      stopped = true;
+      clearInterval(timer);
+      list.textContent = labels.disabled;
+      status.textContent = labels.disabled;
+      pause.disabled = true;
+      more.hidden = true;
+      throw new Error('tracker_disabled');
+    }
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.json();
   }
@@ -55,6 +64,7 @@
       more.hidden = !data.has_more;
       paintStatus();
     } catch (_) {
+      if (stopped) return;
       if (current !== generation) return;
       list.innerHTML = `<p class="muted">${labels.error}</p>`;
       list.setAttribute('aria-busy','false');
@@ -62,7 +72,7 @@
     }
   }
   async function refresh() {
-    if (paused || loading || document.hidden || search.value.trim()) return;
+    if (stopped || paused || loading || document.hidden || search.value.trim()) return;
     if (!newest) { await initial(); return; }
     loading = true;
     const current = generation;
@@ -80,7 +90,7 @@
       }
       while (list.querySelectorAll('.shop-transaction').length > 240) list.lastElementChild.remove();
       oldest = Number(list.lastElementChild?.dataset.id) || oldest;
-    } catch (_) { status.textContent = labels.error; }
+    } catch (_) { if (!stopped) status.textContent = labels.error; }
     loading = false;
   }
   pause.addEventListener('click', () => { paused = !paused; paintStatus(); if (!paused) refresh(); });
@@ -96,16 +106,17 @@
         if (rows.length) oldest = rows[rows.length - 1].id;
         more.hidden = !data.has_more;
       }
-    } catch (_) { status.textContent = labels.error; }
+    } catch (_) { if (!stopped) status.textContent = labels.error; }
     more.disabled = false; loading = false;
   });
   search.addEventListener('input', () => {
+    if (stopped) return;
     generation++;
     clearTimeout(debounce);
     debounce = setTimeout(initial, 350);
     paintStatus();
   });
   paintStatus(); initial();
-  setInterval(refresh, 15000);
+  timer = setInterval(refresh, 15000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 })();

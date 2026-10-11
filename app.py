@@ -386,6 +386,7 @@ DEFAULT_SETTINGS = {
     "legendary_notice_live_chat": "1", "legendary_notice_world_feed": "1", "legendary_notice_ticker": "1",
     "reaper_chest_world_feed": "1",
     "fastest_shop_items_limit": "15",
+    "shop_transaction_tracker": "1",
     "show_skill_paths": "0",
 }
 try:
@@ -7201,12 +7202,14 @@ def shop_transaction_rows(limit=40, before_id=None, after_id=None, item_query=""
 @app.route("/economy/transactions")
 @login_required
 def economy_transactions():
-    return render_template("economy_transactions.html")
+    return render_template("economy_transactions.html", tracker_enabled=settings().get("shop_transaction_tracker", "1") == "1")
 
 
 @app.route("/api/shop-transactions")
 @login_required
 def api_shop_transactions():
+    if settings().get("shop_transaction_tracker", "1") != "1":
+        return {"ok": False, "error": "tracker_disabled"}, 503
     before, after = request.args.get("before"), request.args.get("after")
     item_query = request.args.get("q", "").strip()
     if (before and after) or any(value and (not value.isdecimal() or int(value) < 1) for value in (before, after)):
@@ -8947,6 +8950,17 @@ def manage_panel():
     current = settings()
     badge_settings = top_level_badge_settings()
     return render_template("manage_panel.html", settings=current, capability_features=panel_feature_states(current), custom_default=CUSTOM_PATCHES_ENABLED, top_level_badges_enabled=badge_settings["enabled"], top_level_badge_places=badge_settings["places"], full_plus9_badges_enabled=full_plus9_badges_enabled(), shop_explain_enabled=shop_explain_enabled())
+
+
+@app.post("/manage/panel/shop-transaction-tracker")
+@login_required
+def manage_panel_shop_transaction_tracker():
+    enabled = "1" if request.form.get("enabled") == "1" else "0"
+    write_settings({"shop_transaction_tracker": enabled})
+    english = settings().get("ui_language", "pl") == "en"
+    flash(("Shop transaction tracker enabled." if enabled == "1" else "Shop transaction tracker disabled.") if english
+          else ("Tracker transakcji straganów włączony." if enabled == "1" else "Tracker transakcji straganów wyłączony."), "success")
+    return redirect(url_for("manage_panel", _anchor="shop-transaction-tracker"))
 
 
 @app.post("/manage/panel/features")

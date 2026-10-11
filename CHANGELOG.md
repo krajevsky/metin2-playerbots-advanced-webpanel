@@ -1,3 +1,11 @@
+## 2026-10-11 · 1.114.79 · Wyłącznik i układ trackera straganów
+
+- Ikona przedmiotu jest obok opisu transakcji; zachowuje proporcje, ale nie powiększa wiersza nawet przy przedmiocie zajmującym trzy sloty.
+- W ustawieniach panelu można wyłączyć tracker. Wyłączony widok nie uruchamia odświeżania, a API nie odczytuje transakcji; log gry pozostaje bez zmian.
+- Nowe ustawienie i komunikaty trackera mają polskie i angielskie wersje językowe.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.78 · Czytelniejszy i lżejszy tracker straganów
 
 - Sprzedający jest po lewej, kupujący po prawej. Ikony przedmiotów zachowują wysokość odpowiadającą jednemu, dwóm lub trzem slotom gry.
