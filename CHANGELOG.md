@@ -1,3 +1,11 @@
+## 2026-10-11 · 1.114.76 · Zużycie swapu VPS w monitoringu
+
+- Kolektor odczytuje swap hosta z `/proc/meminfo` i zapisuje jego zużycie w istniejącej historii telemetrii bez usuwania dotychczasowych próbek.
+- Widżet „Obciążenie VPS” pokazuje procent i ilość zajętego swapu przy RAM oraz fioletową linię na tym samym pasku i wykresie. Strona „Wydajność” pokazuje swap przy karcie pamięci i na wspólnym wykresie 24 godzin.
+- Gdy VPS nie ma skonfigurowanego swapu, strona Wydajność informuje o jego braku zamiast pokazywać pozorne 0%.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.75 · Wieża Demonów i prawidłowy Loch Pająków V2 na mapach
 
 - Wieża Demonów jest dostępna w selektorze mapy na żywo w dashboardzie. Wykorzystuje istniejący obraz `deviltower.png` i pokazuje boty z kolejnych pięter na podkładzie wieży.

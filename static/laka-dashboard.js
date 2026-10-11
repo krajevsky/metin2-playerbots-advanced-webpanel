@@ -86,8 +86,10 @@
   // ── obciążenie VPS
   function drawSystem(s) {
     if (!s || s.cpu_percent === undefined) return;
-    const row = (label, pct, detail) => `<div class="laka-meter"><div><span>${label}</span><b>${Math.round(pct)}%</b></div><div class="laka-bar${pct >= 85 ? ' is-hot' : pct >= 70 ? ' is-warm' : ''}"><i style="width:${Math.min(100, pct)}%"></i></div>${detail ? `<small>${detail}</small>` : ''}</div>`;
-    let html = row('CPU', Number(s.cpu_percent)) + row('RAM', Number(s.ram_percent), `${num(s.ram_used_mb)} / ${num(s.ram_total_mb)} MB`);
+    const row = (label, pct, detail, swap = null) => `<div class="laka-meter"><div><span>${label}</span><b>${Math.round(pct)}%${swap === null ? '' : ` <span class="laka-swap-label">/ SWAP ${Math.round(swap)}%</span>`}</b></div><div class="laka-bar${pct >= 85 ? ' is-hot' : pct >= 70 ? ' is-warm' : ''}"><i style="width:${Math.max(0, Math.min(100, pct))}%"></i>${swap === null ? '' : `<i class="laka-swap-fill" style="width:${Math.max(0, Math.min(100, swap))}%"></i>`}</div>${detail ? `<small>${detail}</small>` : ''}</div>`;
+    const swap = !monitorDocker && Number(s.swap_total_mb) > 0 ? Number(s.swap_percent || 0) : null;
+    const memoryDetail = `${num(s.ram_used_mb)} / ${num(s.ram_total_mb)} MB${swap === null ? '' : ` · SWAP ${num(s.swap_used_mb)} / ${num(s.swap_total_mb)} MB`}`;
+    let html = row('CPU', Number(s.cpu_percent)) + row('RAM', Number(s.ram_percent), memoryDetail, swap);
     if (!monitorDocker && s.disk_percent !== undefined && s.disk_percent !== null) html += row('Dysk', Number(s.disk_percent), `${(s.disk_used_mb / 1024).toFixed(1).replace('.', ',')} / ${(s.disk_total_mb / 1024).toFixed(1).replace('.', ',')} GB`);
     $('lw-system').innerHTML = html;
   }
@@ -105,13 +107,13 @@
       if (s.length < 2) { box.innerHTML = '<p class="muted">Za mało próbek z ostatniej doby.</p>'; return; }
       const W = 300, H = 92, pad = 4, x = i => pad + i / (s.length - 1) * (W - 2 * pad), y = v => H - 14 - Math.min(100, Math.max(0, Number(v) || 0)) / 100 * (H - 22);
       const line = key => s.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p[key]).toFixed(1)}`).join(' ');
-      const cpu = line('cpu_percent'), ram = line('ram_percent');
+      const cpu = line('cpu_percent'), ram = line('ram_percent'), swap = line('swap_percent');
       const mid = Math.floor(s.length / 2);
-      box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="CPU i RAM w ostatnich 24 godzinach">
+      box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="CPU, RAM${monitorDocker ? '' : ' i SWAP'} w ostatnich 24 godzinach">
         <defs><linearGradient id="lw-cpu-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b93f" stop-opacity=".35"/><stop offset="1" stop-color="#e8b93f" stop-opacity="0"/></linearGradient></defs>
         ${[0, 50, 100].map(v => `<line x1="${pad}" x2="${W - pad}" y1="${y(v)}" y2="${y(v)}" class="grid"/>`).join('')}
         <path d="${cpu} L${x(s.length - 1)} ${y(0)} L${x(0)} ${y(0)} Z" fill="url(#lw-cpu-fill)"/>
-        <path d="${ram}" class="ram"/><path d="${cpu}" class="cpu"/>
+        <path d="${ram}" class="ram"/>${monitorDocker ? '' : `<path d="${swap}" class="swap"/>`}<path d="${cpu}" class="cpu"/>
         <circle cx="${x(s.length - 1)}" cy="${y(s[s.length - 1].cpu_percent)}" r="2.6" class="dot"/>
       </svg><div class="laka-spark-axis"><span>${esc(s[0].label)}</span><span>${esc(s[mid].label)}</span><span>${esc(s[s.length - 1].label)}</span></div>`;
       const peak = s.reduce((a, b) => (Number(b.cpu_percent) > Number(a.cpu_percent) ? b : a));

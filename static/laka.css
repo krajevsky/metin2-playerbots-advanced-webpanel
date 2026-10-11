@@ -237,6 +237,11 @@ html body[data-skin="laka"] .laka-widget>header h2{margin:0;padding:0;border:0;f
 .laka-bar i{display:block;height:100%;transition:width .8s;background:repeating-linear-gradient(90deg,transparent 0 9px,#0006 9px 10px),linear-gradient(180deg,var(--laka-gold-hi),var(--laka-gold-deep))}
 .laka-bar.is-warm i{background:repeating-linear-gradient(90deg,transparent 0 9px,#0006 9px 10px),linear-gradient(180deg,#ffc56b,#b8650c)}
 .laka-bar.is-hot i{background:repeating-linear-gradient(90deg,transparent 0 9px,#0006 9px 10px),linear-gradient(180deg,#ff8a6a,#a3260f)}
+html body[data-skin="laka"] .laka-meter .laka-bar{position:relative}
+html body[data-skin="laka"] .laka-meter .laka-bar .laka-swap-fill{position:absolute;left:0;bottom:0;height:3px;background:linear-gradient(90deg,#8f79d7,#c2a5ff);box-shadow:0 0 5px #aa8dee;pointer-events:none}
+html body[data-skin="laka"] .laka-meter .laka-swap-label{color:#c2a5ff;font-size:11px;white-space:nowrap}
+html body[data-skin="laka"] .laka-meter>div:first-child{flex-wrap:wrap;gap:2px 8px}
+html body[data-skin="laka"] .system-memory-card .system-swap-usage{color:#c2a5ff}
 .laka-legend{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--laka-dust)}
 .laka-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .laka-legend .e1,.laka-track .e1{background:#d9493a}.laka-legend .e2,.laka-track .e2{background:#e8c43f}.laka-legend .e3,.laka-track .e3{background:#4d8ff0}
@@ -506,10 +511,13 @@ html body[data-skin="laka"] .laka-widget>ol.laka-rank{flex:1 1 auto}
 .laka-history-key{display:flex;gap:10px;align-items:center;letter-spacing:0;text-transform:none}
 .laka-history-key i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:4px;vertical-align:middle}
 .laka-history-key .cpu{background:#e8b93f}.laka-history-key .ram{background:#74cf8e}
+html body[data-skin="laka"] .laka-history-key .swap{background:#b09aea}
+html body[data-skin="laka"] .laka-history-head,html body[data-skin="laka"] .laka-history-key{flex-wrap:wrap;gap:5px 10px}
 .laka-spark svg{display:block;width:100%;height:92px}
 .laka-spark .grid{stroke:#3a2815;stroke-width:1;vector-effect:non-scaling-stroke}
 .laka-spark .cpu{fill:none;stroke:#e8b93f;stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .laka-spark .ram{fill:none;stroke:#74cf8e;stroke-width:1.4;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;opacity:.9}
+html body[data-skin="laka"] .laka-spark .swap{fill:none;stroke:#b09aea;stroke-width:1.5;vector-effect:non-scaling-stroke;opacity:.9}
 .laka-spark .dot{fill:#ffe08a;stroke:#0d0906;stroke-width:1}
 .laka-spark-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--laka-dust-2);font-variant-numeric:tabular-nums}
 .laka-history-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--laka-bronze-dim);border-radius:6px}

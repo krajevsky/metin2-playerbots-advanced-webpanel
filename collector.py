@@ -100,6 +100,12 @@ def check_plus9_refines(cur):
             (str(int(newest.timestamp())),))
 
 
+def swap_usage_mb(mem):
+    total = max(0, int(mem.get("SwapTotal", 0)))
+    free = max(0, int(mem.get("SwapFree", 0)))
+    return min(total, max(0, total - free)) // 1024, total // 1024
+
+
 def host_metrics(previous=None):
     try:
         with open("/host/proc/stat") as f:
@@ -108,6 +114,7 @@ def host_metrics(previous=None):
         with open("/host/proc/meminfo") as f:
             mem = {line.split(":")[0]: int(line.split()[1]) for line in f if ":" in line}
         total_mb = mem["MemTotal"] // 1024; used_mb = (mem["MemTotal"] - mem.get("MemAvailable", mem.get("MemFree", 0))) // 1024
+        swap_used_mb, swap_total_mb = swap_usage_mb(mem)
         disk = os.statvfs("/hostfs")
         disk_total_mb = (disk.f_blocks * disk.f_frsize) // (1024 * 1024)
         disk_used_mb = ((disk.f_blocks - disk.f_bavail) * disk.f_frsize) // (1024 * 1024)
@@ -119,9 +126,9 @@ def host_metrics(previous=None):
             with open("/host/proc/cpuinfo") as f:
                 cpu_count = max(1, sum(1 for line in f if line.startswith("processor")))
             cpu = round(min(100, 100 * load_1m / cpu_count), 1)
-        return (total, idle), cpu, used_mb, total_mb, disk_used_mb, disk_total_mb
+        return (total, idle), cpu, used_mb, total_mb, disk_used_mb, disk_total_mb, swap_used_mb, swap_total_mb
     except (OSError, KeyError, ValueError):
-        return previous, 0, 0, 0, 0, 0
+        return previous, 0, 0, 0, 0, 0, 0, 0
 
 
 def table_exists(cur, table):
@@ -301,10 +308,15 @@ def init(cur):
       captured_at DATETIME NOT NULL PRIMARY KEY, cpu_percent DECIMAL(5,1) NOT NULL,
       ram_percent DECIMAL(5,1) NOT NULL, ram_used_mb INT UNSIGNED NOT NULL, ram_total_mb INT UNSIGNED NOT NULL,
       disk_percent DECIMAL(5,1) NOT NULL DEFAULT 0, disk_used_mb INT UNSIGNED NOT NULL DEFAULT 0,
-      disk_total_mb INT UNSIGNED NOT NULL DEFAULT 0) ENGINE=InnoDB""")
+      disk_total_mb INT UNSIGNED NOT NULL DEFAULT 0,
+      swap_percent DECIMAL(5,1) NOT NULL DEFAULT 0, swap_used_mb INT UNSIGNED NOT NULL DEFAULT 0,
+      swap_total_mb INT UNSIGNED NOT NULL DEFAULT 0) ENGINE=InnoDB""")
     cur.execute("ALTER TABLE player.web_seban_system_snapshot ADD COLUMN IF NOT EXISTS disk_percent DECIMAL(5,1) NOT NULL DEFAULT 0")
     cur.execute("ALTER TABLE player.web_seban_system_snapshot ADD COLUMN IF NOT EXISTS disk_used_mb INT UNSIGNED NOT NULL DEFAULT 0")
     cur.execute("ALTER TABLE player.web_seban_system_snapshot ADD COLUMN IF NOT EXISTS disk_total_mb INT UNSIGNED NOT NULL DEFAULT 0")
+    cur.execute("ALTER TABLE player.web_seban_system_snapshot ADD COLUMN IF NOT EXISTS swap_percent DECIMAL(5,1) NOT NULL DEFAULT 0")
+    cur.execute("ALTER TABLE player.web_seban_system_snapshot ADD COLUMN IF NOT EXISTS swap_used_mb INT UNSIGNED NOT NULL DEFAULT 0")
+    cur.execute("ALTER TABLE player.web_seban_system_snapshot ADD COLUMN IF NOT EXISTS swap_total_mb INT UNSIGNED NOT NULL DEFAULT 0")
     cur.execute("""CREATE TABLE IF NOT EXISTS player.web_seban_metric_snapshot (
       captured_at DATETIME NOT NULL, metric VARCHAR(64) NOT NULL, value BIGINT NOT NULL,
       PRIMARY KEY(captured_at,metric), KEY(metric,captured_at)) ENGINE=InnoDB""")
@@ -444,19 +456,21 @@ def live_map_counts():
 
 def collect(con, previous):
     now = datetime.now().replace(second=0, microsecond=0)
-    previous, cpu, used, total, disk_used, disk_total = host_metrics(previous)
+    previous, cpu, used, total, disk_used, disk_total, swap_used, swap_total = host_metrics(previous)
     ram = round(100 * used / total, 1) if total else 0
+    swap = round(100 * swap_used / swap_total, 1) if swap_total else 0
     disk_percent = round(100 * disk_used / disk_total, 1) if disk_total else 0
     with con.cursor() as cur:
         init(cur)
         publish_playerbots_version(cur)
         cur.execute("""INSERT INTO player.web_seban_system_snapshot
-          (captured_at,cpu_percent,ram_percent,ram_used_mb,ram_total_mb,disk_percent,disk_used_mb,disk_total_mb)
-          VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+          (captured_at,cpu_percent,ram_percent,ram_used_mb,ram_total_mb,disk_percent,disk_used_mb,disk_total_mb,swap_percent,swap_used_mb,swap_total_mb)
+          VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
           ON DUPLICATE KEY UPDATE cpu_percent=VALUES(cpu_percent), ram_percent=VALUES(ram_percent),
             ram_used_mb=VALUES(ram_used_mb), ram_total_mb=VALUES(ram_total_mb), disk_percent=VALUES(disk_percent),
-            disk_used_mb=VALUES(disk_used_mb), disk_total_mb=VALUES(disk_total_mb)""",
-            (now, cpu, ram, used, total, disk_percent, disk_used, disk_total))
+            disk_used_mb=VALUES(disk_used_mb), disk_total_mb=VALUES(disk_total_mb),
+            swap_percent=VALUES(swap_percent), swap_used_mb=VALUES(swap_used_mb), swap_total_mb=VALUES(swap_total_mb)""",
+            (now, cpu, ram, used, total, disk_percent, disk_used, disk_total, swap, swap_used, swap_total))
         for (channel, map_index), count in live_map_counts().items():
             cur.execute("INSERT IGNORE INTO player.web_seban_map_snapshot (captured_at,channel,map_index,character_count) VALUES (%s,%s,%s,%s)", (now, channel, map_index, count))
         positions = live_positions()

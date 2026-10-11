@@ -8227,7 +8227,7 @@ def api_news_feed():
 def system():
     samples = rows("""
       SELECT DATE_FORMAT(captured_at, '%%H:%%i') AS label, cpu_percent, ram_percent, ram_used_mb, ram_total_mb,
-             disk_percent, disk_used_mb, disk_total_mb
+             swap_percent, swap_used_mb, swap_total_mb, disk_percent, disk_used_mb, disk_total_mb
       FROM player.web_seban_system_snapshot WHERE captured_at >= NOW() - INTERVAL 24 HOUR ORDER BY captured_at
     """)
     current = samples[-1] if samples else {}
@@ -8246,7 +8246,7 @@ def api_system_history():
     """Last 24h of the collector's VPS snapshots (the same rows /system charts), thinned to at most
     ~120 points for the dashboard sparkline of the laka theme."""
     samples = rows("""
-      SELECT DATE_FORMAT(captured_at, '%%H:%%i') AS label, cpu_percent, ram_percent, disk_percent
+      SELECT DATE_FORMAT(captured_at, '%%H:%%i') AS label, cpu_percent, ram_percent, swap_percent, disk_percent
       FROM player.web_seban_system_snapshot WHERE captured_at >= NOW() - INTERVAL 24 HOUR ORDER BY captured_at
     """)
     step = max(1, len(samples) // 120)

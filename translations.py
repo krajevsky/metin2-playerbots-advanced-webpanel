@@ -689,6 +689,7 @@ EXACT.update({
     "RAM": "RAM",
     "Dysk": "Disk",
     "Pamięć RAM": "RAM memory",
+    "SWAP niedostępny": "Swap unavailable",
     "Boty według map": "Bots by map",
     "Automatycznie przełączaj rankingi co 8 sekund": "Automatically switch rankings every 8 seconds",
     "najwyższe poziomy": "highest levels",
