@@ -1,9 +1,8 @@
 <form class="laka-language" action="{{ url_for('set_language') }}" method="post">
   <input type="hidden" name="next" value="{{ request.full_path }}">
-  <label for="{{ language_switcher_id }}">{{ 'Language' if ui_language == 'en' else 'Język' }}</label>
-  <select id="{{ language_switcher_id }}" name="language" aria-label="{{ 'Panel language' if ui_language == 'en' else 'Język panelu' }}" onchange="this.form.requestSubmit()">
-    <option value="pl"{% if ui_language == 'pl' %} selected{% endif %}>🇵🇱 Polish</option>
-    <option value="en"{% if ui_language == 'en' %} selected{% endif %}>🇬🇧 English</option>
-  </select>
-  <button type="submit" class="laka-language-submit">{{ 'Apply' if ui_language == 'en' else 'Zastosuj' }}</button>
+  <span class="laka-language-title">{{ 'Language' if ui_language == 'en' else 'Język' }}</span>
+  <div class="laka-language-options" role="group" aria-label="{{ 'Panel language' if ui_language == 'en' else 'Język panelu' }}">
+    <button type="submit" name="language" value="pl"{% if ui_language == 'pl' %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}><span aria-hidden="true">🇵🇱</span> Polski</button>
+    <button type="submit" name="language" value="en"{% if ui_language == 'en' %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}><span aria-hidden="true">🇬🇧</span> English</button>
+  </div>
 </form>
