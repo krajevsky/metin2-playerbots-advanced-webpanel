@@ -1,3 +1,10 @@
+## 2026-10-11 · 1.114.69 · Oferty przedmiotów według królestw
+
+- Aktywne oferty przedmiotu są dostępne w czterech rozwijanych listach: Shinsoo, Jinno, Chunjo i Wszystkie. Każda pokazuje liczbę widocznych ofert, a sortowanie i szczegóły ofert nadal działają.
+- Układ działa po polsku i angielsku; na telefonie szeroka tabela przewija się wewnątrz rozwiniętej listy.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.68 · Legenda mapy zgodna ze znacznikami
 
 - Legenda Solo, W grupie, Walka z Metinem i Zablokowany w motywie Łąka i Złoto pokazuje te same symbole i kolory co boty na mapie.

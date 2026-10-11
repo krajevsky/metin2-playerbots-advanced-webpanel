@@ -6381,9 +6381,15 @@ def economy_item(vnum):
                            "quantity": quantity, "price": price, "unit_price": round(price / quantity, 2)})
         except (TypeError, ValueError, KeyError):
             app.logger.warning("Skipping malformed market offer for VNUM %s: %r", vnum, offer)
+    offer_groups = [
+        {"name": EMPIRES[empire]["name"], "empire": empire,
+         "offers": [offer for offer in offers if offer["empire"] == empire]}
+        for empire in (1, 3, 2)
+    ]
+    offer_groups.append({"name": "Wszystkie", "empire": 0, "offers": offers})
     return render_template("economy_item.html", item=item, history=history,
                            price_history=price_history,
-                           offers=offers, offer_sort=offer_sort)
+                           offers=offers, offer_groups=offer_groups, offer_sort=offer_sort)
 
 
 # "Kto ma najwięcej" -- przeszukiwanie na żądanie operatora. Zapytanie po

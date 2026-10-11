@@ -26,6 +26,24 @@ def test_economy_item_lists_active_offers_and_unit_price():
     assert offer["channel"] == 2 and offer["pid"] == 7
 
 
+def test_economy_item_groups_listings_by_empire_and_keeps_all_view():
+    raw_offers = [
+        {"id": n, "owner_id": n, "vnum": 42, "quantity": 1, "price": 100,
+         "seller": f"Seller {n}", "shop_name": "Shop", "map_index": 1,
+         "channel": 1, "empire": empire, "is_bot": 0}
+        for n, empire in enumerate((3, 1, 2, 3, 0), start=1)
+    ]
+    with patch.object(panel, "settings", return_value=SETTINGS), \
+            patch.object(panel, "one", side_effect=[{"vnum": 42, "item_name": "Przedmiot"}, {"at": None}]), \
+            patch.object(panel, "rows", side_effect=[[], [], raw_offers]), \
+            patch.object(panel, "render_template", return_value="ok") as render:
+        response = panel.app.test_client().get("/economy/item/42")
+    assert response.status_code == 200
+    groups = render.call_args.kwargs["offer_groups"]
+    assert [group["name"] for group in groups] == ["Shinsoo", "Jinno", "Chunjo", "Wszystkie"]
+    assert [[offer["item_id"] for offer in group["offers"]] for group in groups] == [[2], [1, 4], [3], [1, 2, 3, 4, 5]]
+
+
 def test_economy_item_rejects_untrusted_sort_sql():
     with patch.object(panel, "settings", return_value=SETTINGS), \
             patch.object(panel, "one", side_effect=[{"vnum": 42, "item_name": "Przedmiot"}, {"at": None}]), \
