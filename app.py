@@ -886,6 +886,9 @@ def settings():
                 values[row["name"]] = str(row["value"])
     except pymysql.MySQLError:
         pass
+    # The Laka skin is the sole supported interface, including installations
+    # that still have a legacy theme saved in the settings table.
+    values["theme"] = "laka"
     return values
 
 
@@ -979,18 +982,18 @@ def validate_display_settings(form):
         stuck = max(1, min(120, int(form.get("stuck_minutes", "5"))))
     except (TypeError, ValueError):
         stuck = 5
-    theme, monitor_mode = form.get("theme", "empire"), form.get("monitor_mode", "vps")
+    monitor_mode = form.get("monitor_mode", "vps")
     cursor_choice = form.get("cursor", "custom")
     language = form.get("language", "pl")
     if not name:
         return None, "Nazwa panelu nie może być pusta."
-    if theme not in ("ocean", "ember", "forest", "empire", "laka") or monitor_mode not in ("vps", "docker"):
+    if monitor_mode not in ("vps", "docker"):
         return None, "Nieprawidłowe ustawienia wyglądu lub monitoringu."
     if cursor_choice not in ("custom", "system"):
         return None, "Nieprawidłowy wybór kursora."
     if language not in ("pl", "en"):
         return None, "Nieprawidłowy wybór języka."
-    return {"panel_name": name, "stuck_minutes": str(stuck), "theme": theme, "monitor_mode": monitor_mode, "cursor": cursor_choice, "ui_language": language}, None
+    return {"panel_name": name, "stuck_minutes": str(stuck), "theme": "laka", "monitor_mode": monitor_mode, "cursor": cursor_choice, "ui_language": language}, None
 
 
 def skill_rank(master_type, level):
@@ -8916,6 +8919,19 @@ def manage_settings():
     write_settings(values)
     flash("Ustawienia panelu zapisane.")
     return redirect(url_for("manage_panel"))
+
+
+@app.post("/language")
+@login_required
+def set_language():
+    language = request.form.get("language")
+    if language not in ("pl", "en"):
+        abort(400)
+    write_settings({"ui_language": language})
+    destination = request.form.get("next", "")
+    if not destination.startswith("/") or destination.startswith("//") or "\\" in destination:
+        destination = url_for("dashboard")
+    return redirect(destination)
 
 
 @app.post("/manage/restart-config")

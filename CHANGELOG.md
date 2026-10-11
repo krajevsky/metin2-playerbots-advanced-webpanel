@@ -1,3 +1,10 @@
+## 2026-10-11 · 1.114.71 · Jeden motyw i szybka zmiana języka
+
+- Łąka i Złoto jest jedynym dostępnym motywem, także gdy w bazie zapisano wcześniej inny wybór. Formularz ustawień nie pozwala już wybierać dawnych motywów.
+- W lewej nawigacji dodano przełącznik 🇵🇱 Polish / 🇬🇧 English. Na telefonie jest dostępny w menu Więcej; zmiana wraca na bieżącą stronę i zapisuje wyłącznie język.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.70 · Porządki w zarządzaniu serwerem
 
 - Usunięto z `/manage` przestarzałą kartę Aktualizatora Seban, jej ustawienia nadpisywania i akcje aktualizacji z przeglądarki. Karta zgodności panelu nie pokazuje już tego modułu.

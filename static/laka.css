@@ -722,3 +722,15 @@ html body[data-skin="laka"] .map-legend .map-dot{
 html body[data-skin="laka"] .map-legend>span:nth-child(2) .map-dot{--waypoint:#bba1da}
 html body[data-skin="laka"] .map-legend>span:nth-child(3) .map-dot{--waypoint:#f3ba63}
 html body[data-skin="laka"] .map-legend>span:nth-child(4) .map-dot{--waypoint:#df776c}
+/* Language control belongs to the navigation on both full and compact layouts. */
+body[data-skin="laka"] .laka-language{display:grid;gap:6px;min-width:0}
+body[data-skin="laka"] .laka-language label{color:var(--laka-dust);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+body[data-skin="laka"] .laka-language select{width:100%;min-height:40px;padding:7px 9px;border:1px solid var(--laka-bronze-dim);border-radius:6px;background:var(--laka-lacquer-2);color:var(--laka-parchment);font:600 13px var(--laka-body);cursor:pointer}
+body[data-skin="laka"] .laka-language select:focus-visible{outline:2px solid var(--laka-gold);outline-offset:2px}
+body[data-skin="laka"] .laka-language-submit{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+body[data-skin="laka"] .laka-sheet .laka-language{margin-top:18px;padding-top:14px;border-top:1px solid var(--laka-bronze-dim)}
+@media (min-width:761px) and (max-width:1180px){
+  body[data-skin="laka"] .laka-rail-foot{display:block;padding:8px 6px 14px}
+  body[data-skin="laka"] .laka-rail-foot>a,body[data-skin="laka"] .laka-rail-foot>form:not(.laka-language),body[data-skin="laka"] .laka-language label{display:none}
+  body[data-skin="laka"] .laka-rail-foot .laka-language select{font-size:10px;padding:4px 2px}
+}

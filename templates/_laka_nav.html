@@ -37,6 +37,7 @@
     {% endfor %}
   </nav>
   <div class="laka-rail-foot">
+    {% set language_switcher_id = 'laka-rail-language' %}{% include '_language_switcher.html' %}
     <a href="{{ tieru_url }}/editsql" target="_blank" rel="noopener">Edytor bazy danych ↗</a>
     <a href="{{ tieru_url }}" target="_blank" rel="noopener">Panel Tieru (klasyczny) ↗</a>
     <form action="{{ url_for('logout') }}" method="post"><button class="laka-quiet">Wyloguj</button></form>
@@ -63,6 +64,7 @@
 <template id="laka-sheet-tpl" data-players-url="{{ url_for('players') }}">
   <div class="laka-overlay" data-laka-close><div class="laka-sheet" role="dialog" aria-label="Wszystkie sekcje"><div class="laka-grab"></div>
   {% for s in LAKA_SECTIONS %}<h3><svg aria-hidden="true"><use href="#li-{{ s.icon }}"/></svg>{{ s.name }}</h3><div class="laka-sheet-links">{% for ep, label in s.pages %}<a href="{{ url_for(ep) }}" data-laka-section="{{ s.name }}" data-laka-icon="{{ s.icon }}"{% if ep == request.endpoint %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</div>{% endfor %}
+  {% set language_switcher_id = 'laka-sheet-language' %}{% include '_language_switcher.html' %}
   <div class="laka-sheet-foot"><a href="{{ tieru_url }}" target="_blank" rel="noopener">Panel Tieru ↗</a><form action="{{ url_for('logout') }}" method="post"><button class="laka-quiet">Wyloguj</button></form></div>
   </div></div>
 </template>
