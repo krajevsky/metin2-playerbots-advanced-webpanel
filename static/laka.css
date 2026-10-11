@@ -705,7 +705,8 @@ html body[data-skin="laka"] .world-map .bot-point{
 html body[data-skin="laka"] .world-map .bot-point.dot-purple{--waypoint:#bba1da}
 html body[data-skin="laka"] .world-map .bot-point.dot-yellow{--waypoint:#f3ba63}
 html body[data-skin="laka"] .world-map .bot-point.dot-red{--waypoint:#df776c}
-html body[data-skin="laka"] .world-map .bot-point::after{
+html body[data-skin="laka"] .world-map .bot-point::after,
+html body[data-skin="laka"] .map-legend .map-dot::after{
   content:"";position:absolute;inset:1px;pointer-events:none;
   background:radial-gradient(circle at 39% 31%,#fff8 0 12%,transparent 15%),linear-gradient(145deg,#fff6,var(--waypoint) 42%,#352113);
   clip-path:polygon(50% 0,95% 37%,73% 100%,27% 100%,5% 37%);
@@ -713,3 +714,11 @@ html body[data-skin="laka"] .world-map .bot-point::after{
 }
 html body[data-skin="laka"] .world-map .bot-point:hover::after,
 html body[data-skin="laka"] .world-map .bot-point:focus-visible::after{filter:drop-shadow(0 0 5px var(--waypoint))}
+html body[data-skin="laka"] .map-legend .map-dot{
+  position:relative;display:inline-block;width:14px;height:14px;
+  margin-right:6px;vertical-align:-3px;border:0;border-radius:0;
+  background:transparent!important;box-shadow:none;--waypoint:#e8c76d;
+}
+html body[data-skin="laka"] .map-legend>span:nth-child(2) .map-dot{--waypoint:#bba1da}
+html body[data-skin="laka"] .map-legend>span:nth-child(3) .map-dot{--waypoint:#f3ba63}
+html body[data-skin="laka"] .map-legend>span:nth-child(4) .map-dot{--waypoint:#df776c}

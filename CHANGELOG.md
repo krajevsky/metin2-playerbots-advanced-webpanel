@@ -1,3 +1,9 @@
+## 2026-10-11 · 1.114.68 · Legenda mapy zgodna ze znacznikami
+
+- Legenda Solo, W grupie, Walka z Metinem i Zablokowany w motywie Łąka i Złoto pokazuje te same symbole i kolory co boty na mapie.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.67 · Mapa i aktywności w granicach kart
 
 - W motywie Łąka i Złoto lista aktywności i diagramy przewijają się wewnątrz kolumny o wysokości mapy, zamiast wystawać poza ramkę dashboardu.
