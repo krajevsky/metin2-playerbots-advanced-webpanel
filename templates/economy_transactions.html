@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Shop transactions' if ui_language == 'en' else 'Transakcje straganów' }} · {{ panel_brand }}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ static_asset_url('shop-transactions.css') }}">
+<div class="shop-transactions-page">
+  <header class="shop-transactions-head">
+    <div><p class="eyebrow">{{ 'ECONOMY · OFFLINE SHOPS' if ui_language == 'en' else 'GOSPODARKA · SKLEPY OFFLINE' }}</p>
+      <h1>{{ 'Shop transactions' if ui_language == 'en' else 'Transakcje straganów' }}</h1>
+      <p class="muted">{{ 'Completed purchases from IkarusShop. Buyer, seller, item and price come from the same game log entry.' if ui_language == 'en' else 'Zakończone zakupy z IkarusShop. Kupujący, sprzedawca, przedmiot i cena pochodzą z tego samego wpisu silnika gry.' }}</p>
+    </div>
+    <div class="shop-transactions-controls"><span id="shop-transactions-status" class="shop-live-status" aria-live="polite"></span><button type="button" id="shop-transactions-pause" class="secondary"></button></div>
+  </header>
+  <section class="panel shop-transactions-panel" aria-label="{{ 'Recent shop transactions' if ui_language == 'en' else 'Ostatnie transakcje na straganach' }}">
+    <div id="shop-transactions-list" class="shop-transactions-list" aria-busy="true"><p class="muted">{{ 'Loading transactions…' if ui_language == 'en' else 'Ładowanie transakcji…' }}</p></div>
+    <div class="shop-transactions-footer"><button type="button" id="shop-transactions-more" class="secondary" hidden>{{ 'Load older transactions' if ui_language == 'en' else 'Załaduj starsze transakcje' }}</button></div>
+  </section>
+</div>
+<script id="shop-transactions-labels" type="application/json">{{ {
+  'live': 'Live' if ui_language == 'en' else 'Na żywo',
+  'paused': 'Paused' if ui_language == 'en' else 'Wstrzymano',
+  'pause': 'Pause updates' if ui_language == 'en' else 'Wstrzymaj odświeżanie',
+  'resume': 'Resume updates' if ui_language == 'en' else 'Wznów odświeżanie',
+  'empty': 'No completed purchases found.' if ui_language == 'en' else 'Brak zarejestrowanych zakupów.',
+  'error': 'Could not load transactions. Retrying…' if ui_language == 'en' else 'Nie udało się pobrać transakcji. Ponawiam…',
+  'buyer': 'Bought by' if ui_language == 'en' else 'Kupił(a)',
+  'seller': 'Sold by' if ui_language == 'en' else 'Sprzedał(a)',
+  'bot': 'bot',
+  'player': 'player' if ui_language == 'en' else 'gracz',
+  'cheque': 'cheques' if ui_language == 'en' else 'czeków'
+}|tojson }}</script>
+<script defer src="{{ static_asset_url('shop-transactions.js') }}"></script>
+{% endblock %}

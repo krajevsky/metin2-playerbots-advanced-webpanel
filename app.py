@@ -6613,10 +6613,9 @@ def shop_sales_velocity(hours=24, limit=15, only_skillbooks=False):
 
 def recent_shop_sales(limit=10):
     """Last N completed stall sales, newest first. The engine's sale log
-    (log.log how='PLAYERBOT_STALL_SOLD') only ever records the seller -- no
-    buyer identity exists anywhere for an offline-shop purchase, confirmed
-    against a live sample -- so this is honestly a 'who sold what' feed, not
-    a two-sided trade feed. Joined to player.item on log.what (the sold
+    (log.log how='PLAYERBOT_STALL_SOLD') only records the seller. The separate
+    log.ikarusshop_log BUY_ITEM record has both buyer and shop_owner and feeds
+    /economy/transactions. This legacy summary is joined to player.item on log.what (the sold
     item's own id) to recover socket0 for Skill Books -- see
     shop_sales_velocity() for the match-rate note."""
     raw = rows("""SELECT l.time, l.who, l.x, l.y, l.vnum, l.hint, i.socket0 FROM log.log l
@@ -7139,6 +7138,77 @@ def economy_offers():
 @login_required
 def api_shop_feed():
     return {"ok": True, "sales": recent_shop_sales(10)}
+
+
+def shop_transaction_rows(limit=40, before_id=None, after_id=None):
+    """Completed IkarusShop purchases; BUY_ITEM carries both character IDs.
+
+    LOCK_ITEM_TO_BUY is an attempted reservation, not a completed sale. The
+    seller-only PLAYERBOT_STALL_SOLD entry in log.log is not joined here, so
+    one purchase cannot appear twice or be paired with the wrong buyer.
+    """
+    if before_id is not None and after_id is not None:
+        raise ValueError("Use one transaction cursor at a time")
+    condition = " AND l.id < %s" if before_id is not None else " AND l.id > %s" if after_id is not None else ""
+    order = "ASC" if after_id is not None else "DESC"
+    params = ((before_id,) if before_id is not None else (after_id,) if after_id is not None else ()) + (limit + 1,)
+    raw = rows(f"""SELECT l.id,l.time,l.who AS buyer_id,l.shop_owner AS seller_id,
+             l.vnum,l.`count` AS quantity,l.yang,l.cheque,l.itemid,
+             b.name AS buyer_name,s.name AS seller_name,
+             LEFT(ba.login,10)='playerbot_' AS buyer_is_bot,
+             LEFT(sa.login,10)='playerbot_' AS seller_is_bot,
+             COALESCE(ip.locale_name,CONCAT('VNUM ',l.vnum)) AS proto_name,
+             i.socket0
+      FROM log.ikarusshop_log l
+      LEFT JOIN player.player b ON b.id=l.who
+      LEFT JOIN player.player s ON s.id=l.shop_owner
+      LEFT JOIN account.account ba ON ba.id=b.account_id
+      LEFT JOIN account.account sa ON sa.id=s.account_id
+      LEFT JOIN player.item_proto ip ON ip.vnum=l.vnum
+      LEFT JOIN player.item i ON i.id=l.itemid
+      WHERE l.what='BUY_ITEM'{condition}
+      ORDER BY l.id {order} LIMIT %s""", params)
+    has_more = len(raw) > limit
+    english = settings().get("ui_language", "pl") == "en"
+    transactions = []
+    for row in raw[:limit]:
+        vnum = int(row["vnum"] or 0)
+        name = resolve_item_display_name(vnum, row.get("socket0"), game_text(row["proto_name"]))
+        if english:
+            name = translations.ITEM_NAMES.get(name, name)
+        transactions.append({
+            "id": int(row["id"]), "time": row["time"].strftime("%d.%m.%Y %H:%M:%S"),
+            "buyer_id": int(row["buyer_id"] or 0),
+            "buyer": game_text(row.get("buyer_name")) or f"PID {row['buyer_id']}",
+            "buyer_is_bot": bool(row.get("buyer_is_bot")),
+            "seller_id": int(row["seller_id"] or 0),
+            "seller": game_text(row.get("seller_name")) or f"PID {row['seller_id']}",
+            "seller_is_bot": bool(row.get("seller_is_bot")),
+            "vnum": vnum, "item_name": name, "icon_url": item_icon_url(vnum),
+            "quantity": int(row["quantity"] or 0), "yang": int(row["yang"] or 0),
+            "cheque": int(row["cheque"] or 0),
+        })
+    return transactions, has_more
+
+
+@app.route("/economy/transactions")
+@login_required
+def economy_transactions():
+    return render_template("economy_transactions.html")
+
+
+@app.route("/api/shop-transactions")
+@login_required
+def api_shop_transactions():
+    before, after = request.args.get("before"), request.args.get("after")
+    if (before and after) or any(value and (not value.isdecimal() or int(value) < 1) for value in (before, after)):
+        return {"ok": False, "error": "invalid_cursor"}, 400
+    transactions, has_more = shop_transaction_rows(
+        limit=100 if after else 40,
+        before_id=int(before) if before else None,
+        after_id=int(after) if after else None,
+    )
+    return {"ok": True, "transactions": transactions, "has_more": has_more}
 
 
 def item_name_search(query):

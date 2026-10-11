@@ -1,3 +1,11 @@
+## 2026-10-11 · 1.114.77 · Tracker transakcji na straganach
+
+- Nowa strona „Transakcje straganów” pokazuje zakończone zakupy IkarusShop: kupującego, sprzedawcę, przedmiot, ilość, cenę i czas z jednego wpisu `BUY_ITEM`. Nie łączy zdarzeń po zbliżonym czasie ani nie liczy rezerwacji `LOCK_ITEM_TO_BUY` jako zakupów.
+- Lista odświeża się co 8 sekund, ma wstrzymanie odświeżania i ładowanie starszych transakcji. Działa na telefonie i w obu językach panelu.
+- Skrót sprzedaży na stronie sklepów offline prowadzi do pełnego trackera. Poprawiono jego wcześniejszy opis sugerujący, że silnik w ogóle nie zna kupującego.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.76 · Zużycie swapu VPS w monitoringu
 
 - Kolektor odczytuje swap hosta z `/proc/meminfo` i zapisuje jego zużycie w istniejącej historii telemetrii bez usuwania dotychczasowych próbek.
