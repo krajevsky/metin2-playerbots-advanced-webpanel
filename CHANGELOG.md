@@ -1,3 +1,10 @@
+## 2026-10-12 · 1.114.82 · Aktualna wersja Playerbots na dashboardzie
+
+- Dashboard odczytuje zainstalowaną wersję Playerbots na bieżąco, także gdy pozostałe statystyki są jeszcze w pamięci podręcznej. Po aktualizacji przez launcher nie pokazuje starego numeru z zapisanego podsumowania.
+- Porównanie z najnowszym wydaniem korzysta z ostatnio pobranego numeru, bez dodatkowego żądania do GitHub przy każdym otwarciu dashboardu.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.81 · Ranking broni według przedziałów postępu
 
 - Ranking broni grupuje modele według bazowego poziomu co 10 poziomów. W grupie decyduje stopień ulepszenia, a potem poziom modelu: 55 +9 wyprzedza 60 +7, natomiast 65 +6 wyprzedza 60 +9.

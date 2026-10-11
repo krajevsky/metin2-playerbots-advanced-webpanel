@@ -2195,10 +2195,11 @@ def latest_playerbots_release():
     return dict(result)
 
 
-def playerbots_release_status(check_remote=True):
+def playerbots_release_status(check_remote=True, latest_override=None):
     installed = installed_playerbots_version().strip()
     # Dashboard first paint must not wait on an external GitHub request.
-    latest_info = latest_playerbots_release() if check_remote else {"latest": None, "error": None}
+    latest_info = ({"latest": latest_override, "error": None} if latest_override is not None else
+                   latest_playerbots_release() if check_remote else {"latest": None, "error": None})
     latest = latest_info.get("latest")
     installed_key, latest_key = version_key(installed), version_key(latest)
     if installed_key and latest_key:
@@ -4625,12 +4626,24 @@ def _schedule_dashboard_deferred_refresh():
 def api_dashboard_deferred():
     cached = _read_dashboard_deferred_cache()
     if cached:
+        data = cached["data"]
+        world = data.get("world_summary")
+        if isinstance(world, dict):
+            installed = installed_playerbots_version()
+            if installed != world.get("version"):
+                # Rankings and history can use the 60-second cache, but a
+                # launcher update must not leave yesterday's version on screen.
+                previous_release = world.get("release") or {}
+                latest = previous_release.get("latest") if isinstance(previous_release, dict) else None
+                release = playerbots_release_status(check_remote=False, latest_override=latest)
+                world = {**world, "version": release["installed"], "release": release}
+                data = {**data, "world_summary": world}
         if time.time() - float(cached.get("at") or 0) >= DASHBOARD_DEFERRED_CACHE_TTL:
             _schedule_dashboard_deferred_refresh()
         # Serve stale data immediately while it is refreshed in the background.
         # These widgets are historical/server summaries; the live map retains
         # its separate 1.5-second endpoint and is never served from this cache.
-        response = jsonify(ok=True, **cached["data"])
+        response = jsonify(ok=True, **data)
     else:
         data = _dashboard_deferred_context()
         try:
