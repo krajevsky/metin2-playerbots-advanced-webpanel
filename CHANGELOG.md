@@ -1,3 +1,10 @@
+## 2026-10-11 · 1.114.66 · Powrót do wyglądu dashboardu z 1.114.61
+
+- Przywrócono układ, style i działanie Przeglądu świata w motywie Łąka i Złoto z wersji 1.114.61. Pozostałe funkcje panelu i późniejsze poprawki danych pozostają zachowane.
+- Poprzedni wygląd można odzyskać z tagu `laka-dashboard-folio-before-rollback-20261011`.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.65 · Nowy pulpit świata w motywie Łąka i Złoto
 
 - Dashboard motywu Łąka i Złoto został uszyty jako nowy szablon i nowy arkusz stylów. Mapa zajmuje prawą część pierwszego widoku, a odczyty serwera, aktywności i postacie tworzą po lewej czytelną stronę informacyjną. Na telefonie mapa pojawia się zaraz po nagłówku; zachowuje proporcje M1 4:5 i pozostałych map 1:1.

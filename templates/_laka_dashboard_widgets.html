@@ -1,0 +1,21 @@
+{#- Motyw "laka": widżety pod mapą (VPS, boty według map, rankingi) i Kronika świata.
+    Stare .dashboard-widgets i pasek wiadomości zostają w DOM (karmi je dashboard-deferred.js), ale są ukryte. -#}
+<section class="laka-trio">
+  <article class="panel laka-widget">
+    <header><h2>{{ 'Obciążenie Docker' if settings.monitor_mode == 'docker' else 'Obciążenie VPS' }}</h2><a href="{{ url_for('system') }}">Szczegóły</a></header>
+    <div id="lw-system" class="laka-meters"><p class="muted">Ładowanie odczytu…</p></div>
+    <div class="laka-history"><div class="laka-history-head"><span>Ostatnie 24 godziny</span><span class="laka-history-key"><i class="cpu"></i>CPU <i class="ram"></i>RAM</span></div><div id="lw-history" class="laka-spark"></div><div id="lw-history-stats" class="laka-history-stats"></div></div>
+  </article>
+  <article class="panel laka-widget">
+    <header><h2>Boty według map</h2><span class="laka-legend"><i class="e1"></i>Shinsoo <i class="e2"></i>Chunjo <i class="e3"></i>Jinno</span></header>
+    <div id="lw-maps" class="laka-hbars"><p class="muted">Czekam na pozycje botów…</p></div>
+  </article>
+  <article class="panel laka-widget">
+    <header><div><h2 id="lw-rank-title">Rankingi</h2><small class="muted" id="lw-rank-sub"></small></div><div class="laka-carousel"><button type="button" id="lw-rank-prev" aria-label="Poprzedni ranking">‹</button><button type="button" id="lw-rank-next" aria-label="Następny ranking">›</button></div></header>
+    <ol id="lw-rank" class="laka-rank"><li class="muted">Ładowanie rankingów…</li></ol>
+  </article>
+</section>
+<section class="panel laka-chronicle">
+  <div class="laka-chronicle-label"><span class="eyebrow">Ostatnie 12 godzin</span><h2>Kronika świata</h2><a href="{{ url_for('world_feed') }}">Wszystkie wydarzenia →</a></div>
+  <ol id="lw-chronicle"><li class="muted">Ładowanie najważniejszych wydarzeń…</li></ol>
+</section>

@@ -5,11 +5,6 @@
   const bus = window.lakaBus;
   if (!bus || !document.querySelector('.laka-ledger')) return;
   const $ = id => document.getElementById(id);
-  const filterToggle = $('laka-filter-toggle');
-  filterToggle?.addEventListener('click', () => {
-    const open = document.querySelector('.folio-page')?.classList.toggle('filters-open');
-    filterToggle.setAttribute('aria-expanded', String(Boolean(open)));
-  });
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const num = n => Number(n || 0).toLocaleString('pl-PL').replace(/ |,/g, ' ');
   const set = (id, html) => {
