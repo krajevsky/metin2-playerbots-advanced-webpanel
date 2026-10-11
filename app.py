@@ -3892,42 +3892,38 @@ def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None, plus9_
             LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
             ORDER BY power_score DESC,best.vnum DESC,p.level DESC {limit_clause}""")
     if kind == "weapon":
-        # value4 (max base damage) + value5 (the refine-step damage bonus) is
-        # the proto's own real attack power -- unlike value1/value2 (only
-        # swords/two or so subtypes), value3/value4 is populated for every
-        # weapon subtype that's an actual hand weapon (checked live,
-        # 2026-10-03: 100% coverage across subtypes 0/1/2/3/4/5/7 -- swords,
-        # daggers, bows, polearms, bells, fans). subtype 6 is ammunition
-        # (arrows) with huge unrelated value3/4/5 numbers of its own and is
-        # excluded outright, not ranked as a "weapon". Replaces an earlier
-        # pass that used value2 and fell back to a tier*10+refine heuristic
-        # for subtypes without it (2026-10-03, operator: "a dagger +2 is
-        # still #1 -- just rank by real attack value, period") -- value4 is
-        # the one column every real weapon actually has, so no fallback is
-        # needed any more. Original report: a lower-tier sword refined to +9
-        # (130-152 damage) ranked *below* a higher-tier sword at only +4
-        # (94-120) under the old req_level*10+refine heuristic, because
-        # req_level swamped the 0-9 refine signal.
-        # weapon_type (validated against WEAPON_SUBTYPES by the route before
-        # this call) narrows to one subtype; otherwise every real weapon
-        # (everything but subtype 6, ammunition) is eligible.
+        # Default compares progression first: required level, then refine
+        # grade, then attack only to break ties. Bow attack values are not
+        # comparable with melee DPS, so the old raw-attack sort is optional.
+        # Use the same order both within each owner's ROW_NUMBER and across
+        # owners; otherwise their displayed weapon could differ from the one
+        # that actually won the ranking. subtype 6 is ammunition, not a weapon.
         subtype_clause = f"ip2.subtype={WEAPON_SUBTYPES[weapon_type][0]}" if weapon_type in WEAPON_SUBTYPES else "ip2.subtype<>6"
+        req = "COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)"
+        attack = "COALESCE(ip2.value4,0)+COALESCE(ip2.value5,0)"
+        progress_order = f"{req} DESC,MOD(i.vnum,10) DESC,{attack} DESC"
+        attack_order = f"{attack} DESC,{req} DESC,MOD(i.vnum,10) DESC"
+        item_order = attack_order if sort_by == "attack" else progress_order
+        rank_order = "power_score DESC,best.req_level DESC,best.upgrade_level DESC" if sort_by == "attack" else "best.req_level DESC,best.upgrade_level DESC,power_score DESC"
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,best.vnum,
-            CONCAT(COALESCE(ip.locale_name,CONCAT('VNUM ',best.vnum)),' (wymagany poziom ',COALESCE(best.req_level,0),')') AS detail,
+            COALESCE(ip.locale_name,CONCAT('VNUM ',best.vnum)) AS detail,
+            COALESCE(best.req_level,0) AS required_level,
+            COALESCE(best.upgrade_level,0) AS upgrade_level,
             COALESCE(best.power_score,0) AS power_score,
             COALESCE(best.is_shop,0) AS is_shop
             FROM player.player p
             LEFT JOIN (
                 SELECT i.owner_id,i.vnum,
-                    COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0) AS req_level,
-                    ip2.value4+ip2.value5 AS power_score,
+                    {req} AS req_level,
+                    MOD(i.vnum,10) AS upgrade_level,
+                    {attack} AS power_score,
                     CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop,
-                    ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY ip2.value4+ip2.value5 DESC, i.window='EQUIPMENT' DESC) AS rn
+                    ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY {item_order},i.window='EQUIPMENT' DESC,i.id DESC) AS rn
                 FROM player.item i JOIN player.item_proto ip2 ON ip2.vnum=i.vnum AND ip2.type=1 AND {subtype_clause}
                 WHERE i.window IN ('EQUIPMENT','IKASHOP_OFFLINESHOP')
             ) best ON best.owner_id=p.id AND best.rn=1
             LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
-            ORDER BY power_score DESC,best.vnum DESC,p.level DESC {limit_clause}""")
+            ORDER BY {rank_order},p.level DESC,p.id ASC {limit_clause}""")
     if kind == "weapon30":
         weapon30_order = {
             "avg": "avg_damage DESC, skill_damage DESC, p.level DESC",
@@ -8358,6 +8354,9 @@ def rankings():
     weapon30_sort = request.args.get("sort", "avg") if kind == "weapon30" else "avg"
     if weapon30_sort not in ("avg", "skill", "upgrade"):
         weapon30_sort = "avg"
+    weapon_sort = request.args.get("sort", "level") if kind == "weapon" else "level"
+    if weapon_sort not in ("level", "attack"):
+        weapon_sort = "level"
     plus9_category = request.args.get("category", "all") if kind == "plus9" else "all"
     if plus9_category not in PLUS9_CATEGORIES:
         plus9_category = "all"
@@ -8377,7 +8376,8 @@ def rankings():
     # so a person far down a ranking of bots is still found (blipu, 28.09).
     people_ranked = include_real_players_in_rankings()
     people_only = people_ranked and request.args.get("people") == "1"
-    all_ranking = bot_ranking(kind, plus9_sort if kind == "plus9" else weapon30_sort, people_only, weapon_type, plus9_category)
+    ranking_sort = plus9_sort if kind == "plus9" else weapon_sort if kind == "weapon" else weapon30_sort
+    all_ranking = bot_ranking(kind, ranking_sort, people_only, weapon_type, plus9_category)
     total = len(all_ranking)
     total_pages = max(1, -(-total // per_page))  # ceil division
     # "goto_page" (the jump-to-page box, 1-based, what the operator actually
@@ -8441,7 +8441,7 @@ def rankings():
                 int(row.get("avg_damage") or 0), int(row.get("skill_damage") or 0), game_text(row.get("item_name")))
         else:
             row["detail"] = game_text(row.get("detail"))
-    return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort,
+    return render_template("rankings.html", kinds=kinds, kind=kind, ranking=ranking, weapon30_sort=weapon30_sort, weapon_sort=weapon_sort,
                            weapon_type=weapon_type, weapon_subtypes=WEAPON_SUBTYPES,
                            plus9_category=plus9_category, plus9_categories=PLUS9_CATEGORIES, plus9_sort=plus9_sort,
                            per_page=per_page, page=page, total_pages=total_pages, page_numbers=page_numbers,

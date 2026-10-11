@@ -178,3 +178,5 @@ button.danger{background:#7a2331!important}
 .dx-page-steps td{padding:6px;vertical-align:top;border-bottom:1px solid color-mix(in srgb,var(--edge) 50%,transparent)}
 .dx-page-steps .n{text-align:right;white-space:nowrap}
 .fame-table-wrap{overflow-x:auto}.fame-table{width:100%;min-width:420px}.fame-table th,.fame-table td{white-space:nowrap}
+.rank-weapon-meta{display:block;margin-top:3px;color:var(--muted);font-size:11px;white-space:nowrap}
+body[data-skin="laka"] .rank-weapon-meta{color:var(--laka-gold-deep)}

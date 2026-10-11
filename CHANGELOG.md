@@ -1,3 +1,11 @@
+## 2026-10-11 · 1.114.80 · Ranking broni według postępu wyposażenia
+
+- Domyślny ranking broni wybiera najlepszą broń każdej postaci i sortuje według wymaganego poziomu, potem stopnia ulepszenia, a dopiero na końcu wartości ataku. Broń na poziom 60 +7 jest przed bronią na poziom 55 +9; łuki nie wygrywają wyłącznie dzięki wysokiej wartości pojedynczego ataku.
+- Dotychczasowe sortowanie po wartości ataku pozostaje dostępne jednym kliknięciem. Filtry rodzajów broni oraz wybrana kolejność utrzymują się przy zmianie strony rankingu i przełączeniu na samych graczy.
+- Wynik pokazuje nazwę, wymagany poziom, stopień ulepszenia i atak. Nowe kontrolki oraz objaśnienie mają polskie i angielskie wersje językowe.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.79 · Wyłącznik i układ trackera straganów
 
 - Ikona przedmiotu jest obok opisu transakcji; zachowuje proporcje, ale nie powiększa wiersza nawet przy przedmiocie zajmującym trzy sloty.
