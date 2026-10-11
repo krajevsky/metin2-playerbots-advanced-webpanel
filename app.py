@@ -3892,21 +3892,33 @@ def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None, plus9_
             LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
             ORDER BY power_score DESC,best.vnum DESC,p.level DESC {limit_clause}""")
     if kind == "weapon":
-        # Default compares progression first: required level, then refine
-        # grade, then attack only to break ties. Bow attack values are not
-        # comparable with melee DPS, so the old raw-attack sort is optional.
-        # Use the same order both within each owner's ROW_NUMBER and across
-        # owners; otherwise their displayed weapon could differ from the one
-        # that actually won the ranking. subtype 6 is ammunition, not a weapon.
+        # Ten-level progression bands allow a fully upgraded weapon near the
+        # end of one band to outrank a less refined weapon in that same band,
+        # while the next band always wins. For example: 55 +9 > 60 +7, but
+        # 65 +6 > 60 +9. Use the +0 proto's level: some weapons increase their
+        # required level with each refinement (87 +9 requires level 105).
+        # Attack is only comparable within one subtype, never across bows and
+        # melee weapons. Pick an owner's best item and rank owners identically.
+        # Subtype 6 is ammunition, not a weapon.
         subtype_clause = f"ip2.subtype={WEAPON_SUBTYPES[weapon_type][0]}" if weapon_type in WEAPON_SUBTYPES else "ip2.subtype<>6"
         req = "COALESCE(CASE WHEN ip2.limittype0=1 THEN ip2.limitvalue0 WHEN ip2.limittype1=1 THEN ip2.limitvalue1 END,0)"
+        base_req = f"COALESCE(CASE WHEN base_ip.limittype0=1 THEN base_ip.limitvalue0 WHEN base_ip.limittype1=1 THEN base_ip.limitvalue1 END,{req})"
+        band = f"CEIL({base_req}/10)"
         attack = "COALESCE(ip2.value4,0)+COALESCE(ip2.value5,0)"
-        progress_order = f"{req} DESC,MOD(i.vnum,10) DESC,{attack} DESC"
+        progress_order = f"{band} DESC,MOD(i.vnum,10) DESC,{base_req} DESC"
+        if weapon_type in WEAPON_SUBTYPES:
+            progress_order += f",{attack} DESC"
         attack_order = f"{attack} DESC,{req} DESC,MOD(i.vnum,10) DESC"
-        item_order = attack_order if sort_by == "attack" else progress_order
-        rank_order = "power_score DESC,best.req_level DESC,best.upgrade_level DESC" if sort_by == "attack" else "best.req_level DESC,best.upgrade_level DESC,power_score DESC"
+        attack_sort = sort_by == "attack" and weapon_type in WEAPON_SUBTYPES
+        item_order = attack_order if attack_sort else progress_order
+        rank_order = ("power_score DESC,best.req_level DESC,best.upgrade_level DESC"
+                      if attack_sort else
+                      "best.progress_band DESC,best.upgrade_level DESC,best.base_level DESC" +
+                      (",power_score DESC" if weapon_type in WEAPON_SUBTYPES else ""))
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,best.vnum,
             COALESCE(ip.locale_name,CONCAT('VNUM ',best.vnum)) AS detail,
+            COALESCE(best.base_level,0) AS base_level,
+            COALESCE(best.progress_band,0) AS progress_band,
             COALESCE(best.req_level,0) AS required_level,
             COALESCE(best.upgrade_level,0) AS upgrade_level,
             COALESCE(best.power_score,0) AS power_score,
@@ -3914,12 +3926,15 @@ def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None, plus9_
             FROM player.player p
             LEFT JOIN (
                 SELECT i.owner_id,i.vnum,
+                    {base_req} AS base_level,
+                    {band} AS progress_band,
                     {req} AS req_level,
                     MOD(i.vnum,10) AS upgrade_level,
                     {attack} AS power_score,
                     CAST(i.window='IKASHOP_OFFLINESHOP' AS UNSIGNED) AS is_shop,
                     ROW_NUMBER() OVER (PARTITION BY i.owner_id ORDER BY {item_order},i.window='EQUIPMENT' DESC,i.id DESC) AS rn
                 FROM player.item i JOIN player.item_proto ip2 ON ip2.vnum=i.vnum AND ip2.type=1 AND {subtype_clause}
+                LEFT JOIN player.item_proto base_ip ON base_ip.vnum=i.vnum-MOD(i.vnum,10) AND base_ip.type=1
                 WHERE i.window IN ('EQUIPMENT','IKASHOP_OFFLINESHOP')
             ) best ON best.owner_id=p.id AND best.rn=1
             LEFT JOIN player.item_proto ip ON ip.vnum=best.vnum WHERE {base}
@@ -8366,6 +8381,8 @@ def rankings():
     weapon_type = request.args.get("weapon_type") if kind == "weapon" else None
     if weapon_type not in WEAPON_SUBTYPES:
         weapon_type = None
+    if weapon_type is None and weapon_sort == "attack":
+        weapon_sort = "level"
     try:
         per_page = int(request.args.get("per_page", 100))
     except (TypeError, ValueError):

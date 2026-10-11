@@ -1,3 +1,11 @@
+## 2026-10-11 · 1.114.81 · Ranking broni według przedziałów postępu
+
+- Ranking broni grupuje modele według bazowego poziomu co 10 poziomów. W grupie decyduje stopień ulepszenia, a potem poziom modelu: 55 +9 wyprzedza 60 +7, natomiast 65 +6 wyprzedza 60 +9.
+- Poziom bazowy jest odczytywany z wersji +0 przedmiotu, aby ulepszenie, które podnosi wymagany poziom postaci, nie przenosiło broni do sztucznie wyższego przedziału. Oba poziomy są pokazane przy wyniku, gdy się różnią.
+- Porównanie surowej wartości ataku jest dostępne wyłącznie po wybraniu jednego rodzaju broni. Widok wszystkich rodzajów nie porównuje łuków z mieczami według pojedynczego ciosu. Opisy są po polsku i angielsku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.80 · Ranking broni według postępu wyposażenia
 
 - Domyślny ranking broni wybiera najlepszą broń każdej postaci i sortuje według wymaganego poziomu, potem stopnia ulepszenia, a dopiero na końcu wartości ataku. Broń na poziom 60 +7 jest przed bronią na poziom 55 +9; łuki nie wygrywają wyłącznie dzięki wysokiej wartości pojedynczego ataku.
