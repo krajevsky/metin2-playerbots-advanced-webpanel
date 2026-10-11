@@ -13,7 +13,7 @@ import zlib
 import gzip
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from datetime import datetime, timedelta
@@ -4218,7 +4218,17 @@ def write_shop_explain_enabled(enabled):
 
 @app.context_processor
 def globals_for_templates():
-    tieru_url = os.environ.get("TIERU_PANEL_URL", "http://127.0.0.1:7788")
+    configured_tieru_url = os.environ.get("TIERU_PANEL_URL", "").strip().rstrip("/")
+    configured_host = urlsplit(configured_tieru_url).hostname
+    if configured_host and configured_host.lower() not in ("localhost", "127.0.0.1", "::1"):
+        tieru_url = configured_tieru_url
+    else:
+        # A browser interprets localhost as the visitor's device, not the VPS.
+        # Reuse the host they used for this panel, changing only the port.
+        panel_host = urlsplit(request.host_url).hostname or "localhost"
+        if ":" in panel_host:
+            panel_host = f"[{panel_host}]"
+        tieru_url = f"{request.scheme}://{panel_host}:7788"
     item_icon = item_icon_url
     current_settings = settings()
     ui_language = current_settings.get("ui_language", "pl")

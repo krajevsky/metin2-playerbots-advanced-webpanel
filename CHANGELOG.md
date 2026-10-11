@@ -1,3 +1,9 @@
+## 2026-10-11 · 1.114.73 · Dostępne linki do panelu Tieru
+
+- Linki do klasycznego panelu Tieru i edytora SQL otwierają ten sam host co Seban Panel na porcie 7788, gdy konfiguracja wskazuje localhost. Jawnie skonfigurowany publiczny adres pozostaje bez zmian.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.72 · Języki jako dwa przyciski
 
 - W nawigacji motywu Łąka i Złoto lista języków została zastąpiona dwoma widocznymi przyciskami z flagami: 🇵🇱 Polski i 🇬🇧 English. Aktywny język jest wyróżniony; układ działa także w zwiniętym pasku i menu telefonu.
