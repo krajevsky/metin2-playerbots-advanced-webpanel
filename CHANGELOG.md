@@ -1,3 +1,12 @@
+## 2026-10-12 · 1.114.84 · Pełniejszy obraz misji i majątku bota
+
+- Profil i ranking misji uwzględniają teraz także questy `subquest_*`, `new_quest_lv*` i dwa osobne skrypty fabularne, które wcześniej były pomijane przez filtr obejmujący wyłącznie `main_quest_lv*`.
+- Karta postaci czyta bieżący quest i jego postęp z migawki rdzenia. Rozpoczęte questy widać w zakładce zadań, a ukończone na liście poniżej okien gry; daty są podawane tylko tam, gdzie zapisano je w logu.
+- Przy danych postaci pojawił się wskaźnik EQ / majątek z migawki rdzenia: udział wyposażenia, cel, brakujący Yang, stan odczytu magazynu oraz postęp do kompletu +9. To inna miara niż szacunkowa wartość przedmiotów dodana w poprzedniej wersji.
+- Nowe etykiety są dostępne po polsku i angielsku.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-12 · 1.114.83 · Misje i wartość ekwipunku postaci
 
 - Ranking misji ma osobne kategorie fabularne, Biologa i polowania. Liczniki czytają zapisane stany questów silnika, a dawne adresy rankingu Biologa i polowań kierują do odpowiednich kategorii.

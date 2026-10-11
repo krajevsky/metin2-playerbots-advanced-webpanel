@@ -38,6 +38,17 @@
       <div class="presence-axis"><span class="edge-start">{{ presence.start }}</span>{% for tick in presence.ticks %}<span style="left:{{ (tick.pos / presence.slots * 100) | round(2) }}%">{{ tick.label }}</span>{% endfor %}<span class="edge-end">{{ presence.end }}</span></div>
     </figure>{% endif %}</div>
     <dl class="bot-live-details"><div><dt>Pozycja</dt><dd>{{character.x}}, {{character.y}}</dd></div><div><dt>Ranga</dt><dd><span class="honor {{character.honor.css}}">{{character.honor.title}}</span> · {{'{:,}'.format(character.honor.points).replace(',', ' ')}} pkt</dd></div><div><dt>Osobowość</dt><dd>{{character.persona or character.personality}}</dd></div>{% if character.persona %}<div><dt>Charakter</dt><dd>{{character.personality}}</dd></div><div><dt>Nastrój</dt><dd>{{character.mood}}{% if character.hold %} · {{character.hold}}{% endif %}{% if character.mood_lock %} <small class="muted">({{character.mood_lock}})</small>{% endif %}</dd></div>{% endif %}<div><dt>Ambicja</dt><dd>{{character.ambition}}</dd></div><div><dt>Aktualny cel</dt><dd>{{character.goal}}</dd></div><div><dt>Akcja</dt><dd>{{character.action}}</dd></div><div><dt>Koń</dt><dd>Lv {{character.horse_level}}</dd></div></dl>
+    {% if current_quest or investment %}<dl class="bot-live-details bot-core-insights">
+      {% if current_quest %}<div><dt>{{ 'Current quest' if ui_language == 'en' else 'Obecny quest' }}</dt><dd>
+        {% if current_quest.doing in ('idzie_do_npc','idzie_do_celu','bije_cel') and current_quest.quest != '-' %}{{ current_quest.title }} · {{ current_quest.state }}{% if current_quest.need > 1 %} · {{ current_quest.have }}/{{ current_quest.need }}{% endif %}
+        {% elif current_quest.habit == 'po_drodze' and current_quest.held %}{{ 'None (on the way:' if ui_language == 'en' else 'Brak (po drodze:' }} {{ current_quest.held }})
+        {% else %}{{ 'None' if ui_language == 'en' else 'Brak' }}{% endif %}</dd></div>{% endif %}
+      {% if investment %}<div class="bot-investment-line"><dt>{{ 'EQ / assets' if ui_language == 'en' else 'EQ / majątek' }}</dt><dd>
+        <strong>{{ investment.share }}%</strong> ({{ 'target' if ui_language == 'en' else 'cel' }} {{ investment.target_percent }}%), {{ 'gap' if ui_language == 'en' else 'luka' }}: {{ '{:,}'.format(investment.gap).replace(',', ' ') }} Yang
+        {% if not investment.depot_known %} · {{ 'storage not read yet' if ui_language == 'en' else 'magazyn jeszcze nieodczytany' }}{% endif %}
+        · +9: {% if investment.has_nine %}{{ 'yes' if ui_language == 'en' else 'tak' }}{% elif investment.level < 35 %}{{ 'from level 35' if ui_language == 'en' else 'od 35 poziomu' }}{% elif investment.goal_vnum %}{{ 'target, item' if ui_language == 'en' else 'cel, przedmiot' }} #{{ investment.goal_vnum }} (+{{ investment.goal_vnum % 10 }}){% else %}{{ 'looking for suitable gear' if ui_language == 'en' else 'szuka odpowiedniego przedmiotu' }}{% endif %}
+      </dd></div>{% endif %}
+    </dl>{% endif %}
     <div class="native-player-windows">
       <section id="native-player-map" class="native-player-map{% if character.map_portrait %} is-portrait{% endif %}" aria-label="{{ 'Character position on map' if ui_language == 'en' else 'Pozycja postaci na mapie' }}">
         <div class="native-player-map-title">{{character.map_name}}</div>

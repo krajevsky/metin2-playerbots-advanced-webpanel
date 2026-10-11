@@ -48,7 +48,7 @@
     <div class="native-quest-list" aria-label="{{ 'Active quests' if ui_language == 'en' else 'Aktywne zadania' }}">
       {% for m in mission_progress %}<article class="native-quest-row">
         <img src="{{url_for('static',filename='quest-icon.png')}}" alt="">
-        <div class="native-quest-copy"><b>{{m.label}}</b><span>{{m.current}} / {{m.target}} {{m.unit}}</span>{% if m.detail %}<small>{{m.detail}}</small>{% endif %}<i aria-label="{{ 'Progress' if ui_language == 'en' else 'Postęp' }} {{m.percent}}%"><em style="width:{{m.percent}}%"></em></i></div>
+        <div class="native-quest-copy"><b>{{m.label}}</b>{% if m.target %}<span>{{m.current}} / {{m.target}} {{m.unit}}</span>{% endif %}{% if m.detail %}<small>{{m.detail}}</small>{% endif %}<i aria-label="{{ 'Progress' if ui_language == 'en' else 'Postęp' }} {{m.percent}}%"><em style="width:{{m.percent}}%"></em></i></div>
       </article>{% else %}<p class="native-quest-empty">{{ 'No active quests.' if ui_language == 'en' else 'Brak aktywnych zadań.' }}</p>{% endfor %}
     </div>
   </div>

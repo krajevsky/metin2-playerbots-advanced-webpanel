@@ -1811,6 +1811,81 @@ def live_statuses():
     return result
 
 
+STORY_QUEST_SQL = ("szName REGEXP '^(main_quest_lv[0-9]+|subquest_[0-9]+|"
+                   "new_quest_lv[0-9]+)$' OR szName IN ('find_brother_article','find_squareguard')")
+QUEST_DOING = frozenset(("idzie_do_npc", "idzie_do_celu", "bije_cel"))
+INVESTMENT_FIELDS = ("pid", "level", "equipped", "other", "minimum", "target", "gap",
+                     "target_percent", "depot_known", "has_nine", "goal_vnum", "goal_slot",
+                     "purchase_spent", "refine_spent", "realized_income", "books_bought",
+                     "books_spent", "books_read", "updated_unix")
+_profile_snapshots = {"quest": {"until": 0, "rows": {}}, "investment": {"until": 0, "rows": {}}}
+
+
+def bot_profile_snapshots(kind):
+    """Read the same core snapshots used by Tieru's classic bot card."""
+    cache = _profile_snapshots[kind]
+    now = time.time()
+    if now < cache["until"]:
+        return cache["rows"]
+    filename = "playerbot_quest_bots.tsv" if kind == "quest" else "playerbot_investment.tsv"
+    marker = "#PB15B1" if kind == "quest" else "#PB17E1"
+    result = {}
+    for _channel, path in channel_paths(filename):
+        try:
+            if now - path.stat().st_mtime > 300:
+                continue
+            with path.open("r", encoding="ascii", errors="replace") as stream:
+                if not stream.readline().startswith(marker):
+                    continue
+                for line in stream:
+                    parts = line.rstrip("\r\n").split("\t")
+                    if kind == "quest":
+                        if len(parts) < 12 or not parts[0].isdigit() or not parts[1].isdigit():
+                            continue
+                        try:
+                            row = {"updated_unix": int(parts[0]), "pid": int(parts[1]),
+                                   "habit": parts[2], "quest": parts[3], "state": parts[4],
+                                   "have": int(parts[5]), "need": int(parts[6]), "doing": parts[7],
+                                   "held": int(parts[8]), "aside": int(parts[9]), "done": int(parts[10]),
+                                   "title": parts[11] if parts[11] != "-" else parts[3]}
+                        except ValueError:
+                            continue
+                    else:
+                        if len(parts) != len(INVESTMENT_FIELDS):
+                            continue
+                        try:
+                            row = dict(zip(INVESTMENT_FIELDS, (int(value) for value in parts)))
+                        except ValueError:
+                            continue
+                        if any(value < 0 for value in row.values()) or not row["pid"] or row["target_percent"] > 100:
+                            continue
+                    old = result.get(row["pid"])
+                    if old is None or row["updated_unix"] > old["updated_unix"]:
+                        result[row["pid"]] = row
+        except OSError:
+            continue
+    cache.update(until=now + 30, rows=result)
+    return result
+
+
+def investment_summary(row):
+    if not row:
+        return None
+    total = row["equipped"] + row["other"]
+    share = round(100 * row["equipped"] / total, 1) if total else 0.0
+    return {"share": share, "target_percent": row["target_percent"], "gap": row["gap"],
+            "depot_known": bool(row["depot_known"]), "has_nine": bool(row["has_nine"]),
+            "goal_vnum": row["goal_vnum"], "level": row["level"]}
+
+
+def quest_display_name(name):
+    match = re.fullmatch(r"(main_quest_lv|new_quest_lv|subquest_)(\d+)", name)
+    if match:
+        family = "Misja poboczna" if match.group(1) == "subquest_" else "Misja fabularna"
+        return f"{family} · {'#' if match.group(1) == 'subquest_' else 'Lv '}{match.group(2)}"
+    return {"find_brother_article": "Poszukiwanie brata", "find_squareguard": "Poszukiwanie strażnika"}.get(name, name)
+
+
 def guild_statuses():
     """Scal raporty rdzeni Playerbots (odświeżane co minutę), ze wszystkich
     kanałów naraz -- gildie są bytem serwerowym, nie kanałowym.
@@ -3616,13 +3691,8 @@ HUNTING_QUEST_TARGETS = {
 }
 
 
-def character_mission_progress(pid):
-    """Kartoteka postaci: a small, deliberately-scoped set of trackable
-    missions (Biolog, Koń bojowy, Polowanie) rather than every quest --
-    Metin2's quest system has dozens of ad-hoc scripts, most without any
-    persistent numeric counter worth showing. These three are the ones
-    that do, verified against their actual quest/engine source, 2026-09-26.
-    """
+def character_mission_progress(pid, current_quest=None):
+    """Track numeric missions plus every persisted story/side quest in progress."""
     quest_names = list(biologist_missions()) + ["playerbot", "hunting"]
     marks = ",".join(["%s"] * len(quest_names))
     quest_rows = rows(f"SELECT szName,szState,lValue FROM player.quest WHERE dwPID=%s AND szName IN ({marks})", [pid] + quest_names)
@@ -3677,12 +3747,24 @@ def character_mission_progress(pid):
         mission["percent"] = min(100, round(mission["current"] * 100 / mission["target"])) if mission["target"] else 0
     # Story quests have no numeric counter, but their persisted state still
     # tells us whether the character has started one.
-    story = rows("SELECT szName,lValue FROM player.quest WHERE dwPID=%s AND szName REGEXP '^main_quest_lv[0-9]+$' AND szState='__status'", (pid,))
+    story = rows(f"SELECT szName,lValue FROM player.quest WHERE dwPID=%s AND szState='__status' AND ({STORY_QUEST_SQL})", (pid,))
+    seen_story = set()
     for quest in story:
         if int(quest.get("lValue") or 0) != QUEST_COMPLETE_STATE:
-            level = re.search(r"[0-9]+$", quest["szName"])
-            missions.append({"label": f"Misja fabularna · Lv {level.group() if level else '?'}",
-                             "current": 0, "target": 0, "unit": "", "detail": "W toku", "percent": 0})
+            seen_story.add(quest["szName"])
+            is_current = current_quest and current_quest.get("quest") == quest["szName"]
+            label = current_quest["title"] if is_current else quest_display_name(quest["szName"])
+            current = max(0, current_quest["have"]) if is_current else 0
+            target = max(0, current_quest["need"]) if is_current else 0
+            missions.append({"label": label, "current": current, "target": target,
+                             "unit": "", "detail": "Obecny quest" if is_current else "W toku",
+                             "percent": min(100, round(current * 100 / target)) if target else 0})
+    if (current_quest and current_quest.get("doing") in QUEST_DOING and
+            current_quest.get("quest") not in seen_story and current_quest.get("quest") != "-"):
+        current, target = max(0, current_quest["have"]), max(0, current_quest["need"])
+        missions.append({"label": current_quest["title"], "current": current, "target": target,
+                         "unit": "", "detail": "Obecny quest",
+                         "percent": min(100, round(current * 100 / target)) if target else 0})
     return missions
 
 
@@ -3693,7 +3775,7 @@ def character_completed_quests(pid):
     """Current completed states are authoritative; the log only supplies dates."""
     bio = biologist_missions()
     quest_rows = rows("SELECT szName,lValue FROM player.quest WHERE dwPID=%s AND szState='__status' "
-                      "AND (szName REGEXP '^main_quest_lv[0-9]+$' OR szName IN (" +
+                      "AND ((" + STORY_QUEST_SQL + ") OR szName IN (" +
                       ",".join(["%s"] * len(bio)) + "))", (pid, *bio))
     completed = []
     for quest in quest_rows:
@@ -3702,9 +3784,8 @@ def character_completed_quests(pid):
         expected = BIOLOGIST_COMPLETE_STATE if is_bio else QUEST_COMPLETE_STATE
         if int(quest.get("lValue") or 0) != expected:
             continue
-        level = re.search(r"[0-9]+$", name)
         completed.append({"key": name, "category": "Biolog" if is_bio else "Fabularna",
-                          "label": (f"Biolog · Lv {level.group()}" if is_bio else f"Misja fabularna · Lv {level.group()}") if level else name,
+                          "label": (f"Biolog · Lv {re.search(r'[0-9]+$', name).group()}" if re.search(r'[0-9]+$', name) else name) if is_bio else quest_display_name(name),
                           "date": None})
     hunt = one("SELECT lValue FROM player.quest WHERE dwPID=%s AND szName='hunting' AND szState='huntingProgress'", (pid,))
     for index in range(min(len(HUNTING_QUEST_TARGETS), max(0, int((hunt or {}).get("lValue") or 0)))):
@@ -4151,7 +4232,7 @@ def bot_ranking(kind, sort_by="avg", people_only=False, weapon_type=None, plus9_
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,COUNT(DISTINCT q.szName) AS score,
             CONCAT(COUNT(DISTINCT q.szName),' ukończonych misji') AS detail
             FROM player.player p LEFT JOIN player.quest q ON q.dwPID=p.id
-            AND q.szName REGEXP '^main_quest_lv[0-9]+$' AND q.szState='__status' AND q.lValue=%s
+            AND ({STORY_QUEST_SQL.replace('szName', 'q.szName')}) AND q.szState='__status' AND q.lValue=%s
             WHERE {base} GROUP BY p.id ORDER BY score DESC,p.level DESC {limit_clause}""", (QUEST_COMPLETE_STATE,))
     if kind == "hunting":
         return rows(f"""SELECT p.id,p.name,p.level,p.gold,
@@ -5992,7 +6073,12 @@ def player(pid):
         pid, "statistics", lambda: {key: 0 for key in PLAYER_PROFILE_STAT_KEYS},
         lambda: character_stat_summary(pid),
     )
-    mission_progress = player_profile_component(pid, "missions", list, lambda: character_mission_progress(pid))
+    current_quest = player_profile_component(pid, "current_quest", None,
+                                             lambda: bot_profile_snapshots("quest").get(pid))
+    investment = player_profile_component(pid, "investment", None,
+                                          lambda: investment_summary(bot_profile_snapshots("investment").get(pid)))
+    mission_progress = player_profile_component(pid, "missions", list,
+                                                lambda: character_mission_progress(pid, current_quest))
     completed_quests = player_profile_component(pid, "completed_quests", list, lambda: character_completed_quests(pid))
     item_value = player_profile_component(pid, "item_value", None,
                                           lambda: character_item_value(pid, character.get("account_id")))
@@ -6013,7 +6099,8 @@ def player(pid):
                             dragon_soul_inventory=dragon_soul_inventory, dragon_soul_decks=dragon_soul_decks,
                             gear_history=gear_history, offline_shop=offline_shop, character_stats=character_stats,
                             mission_progress=mission_progress, completed_quests=completed_quests,
-                            item_value=item_value, gm_ranks=GM_RANK_OPTIONS,
+                            item_value=item_value, current_quest=current_quest,
+                            investment=investment, gm_ranks=GM_RANK_OPTIONS,
                             admin_warps=PLAYER_ADMIN_WARPS, exp_lock=exp_lock,
                             can_delete_bot_items=can_delete_bot_items, pending_item_deletions=pending_item_deletions,
                             item_delete_token=bot_item_delete_csrf_token() if can_delete_bot_items else None)

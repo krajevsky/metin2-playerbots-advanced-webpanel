@@ -2284,12 +2284,13 @@ PATTERNS_RAW = [
 EXACT.update({
     "oddanych": "handed in", "ukończonych misji": "missions completed", "pokonanych": "defeated",
     "Koń bojowy: próba na pustyni": "Battle horse: desert trial",
-    "Charakter": "Character", "Misje": "Missions", "Misje fabularne": "Story quests",
+    "Charakter": "Character", "Misje": "Missions", "Misje fabularne i poboczne": "Story and side quests",
     "Biolog": "Biologist", "Polowanie": "Hunting", "Fabularna": "Story",
-    "W toku": "In progress",
+    "W toku": "In progress", "Obecny quest": "Current quest",
 })
 PATTERNS_RAW += [
     (r'^Misja fabularna · Lv (\d+)$', 'Story quest · Lv $1'),
+    (r'^Misja poboczna · #(\d+)$', 'Side quest · #$1'),
     (r'^Biolog · Lv (\d+)$', 'Biologist · Lv $1'),
     (r'^Polowanie nr (\d+)$', 'Hunt #$1'),
     (r'^(\d+) ukończonych polowań$', '$1 completed hunts'),
