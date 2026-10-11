@@ -8,6 +8,9 @@
 .shop-live-status.is-paused{color:var(--muted,#9a8c7a)}
 .shop-live-status.is-paused:before{box-shadow:none}
 .shop-transactions-panel{padding:12px;min-width:0}
+.shop-transactions-search{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 4px 16px}
+.shop-transactions-search label{font-weight:700;white-space:nowrap}
+.shop-transactions-search input{width:min(100%,360px);min-width:0}
 .shop-transactions-list{display:grid;gap:9px}
 .shop-transaction{display:grid;grid-template-columns:145px minmax(0,1fr) minmax(130px,auto);gap:18px;align-items:center;min-width:0;padding:13px 16px;border:1px solid var(--edge,#443321);border-radius:9px;background:var(--panel,#1d140d)}
 .shop-transaction time{color:var(--muted,#aa9984);font-size:12px;font-variant-numeric:tabular-nums}
@@ -19,7 +22,7 @@
 .shop-transaction-arrow{color:var(--gold,#e8b93f);font-size:18px;line-height:1}
 .shop-actor-type{padding:2px 6px;border:1px solid var(--edge,#443321);border-radius:99px;font-size:10px;color:var(--muted,#aa9984)}
 .shop-transaction-item{display:flex;align-items:center;gap:8px;min-width:0;font-size:13px}
-.shop-transaction-item img{width:25px;height:25px;object-fit:contain;flex:0 0 auto}
+.shop-transaction-item img.shop-transaction-icon{width:32px;height:calc(32px * var(--item-size));max-height:96px;object-fit:contain;flex:0 0 auto}
 .shop-transaction-item a{overflow-wrap:anywhere}
 .shop-transaction-item small{color:var(--muted,#aa9984);white-space:nowrap}
 .shop-transaction-price{text-align:right;color:var(--gold,#e8b93f);font-variant-numeric:tabular-nums;white-space:normal}

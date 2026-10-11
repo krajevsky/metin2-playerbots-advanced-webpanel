@@ -11,7 +11,7 @@ SALE = {
     "buyer_id": 106, "buyer_name": "Kupujący", "buyer_is_bot": 0,
     "seller_id": 751, "seller_name": "Sprzedawca", "seller_is_bot": 1,
     "vnum": 30021, "quantity": 3, "yang": 67900, "cheque": 0,
-    "itemid": 36024379, "proto_name": "Kawałek Klejnotu", "socket0": None,
+    "itemid": 36024379, "proto_name": "Kawałek Klejnotu", "socket0": None, "item_size": 2,
 }
 
 
@@ -23,9 +23,11 @@ def test_transaction_api_returns_both_actors_from_buy_item():
     assert (transaction["buyer"], transaction["seller"]) == ("Kupujący", "Sprzedawca")
     assert (transaction["buyer_id"], transaction["seller_id"]) == (106, 751)
     assert (transaction["quantity"], transaction["yang"], transaction["vnum"]) == (3, 67900, 30021)
+    assert transaction["item_size"] == 2
     sql, params = read.call_args.args
     assert "l.what='BUY_ITEM'" in sql and "LOCK_ITEM_TO_BUY" not in sql
     assert "l.who AS buyer_id" in sql and "l.shop_owner AS seller_id" in sql
+    assert "l.time >= NOW() - INTERVAL 7 DAY" in sql
     assert params == (41,)
 
 
@@ -42,4 +44,15 @@ def test_transaction_cursors_are_bounded_and_parameterized():
         assert client.get("/api/shop-transactions?after=0").status_code == 400
         assert client.get("/api/shop-transactions?before=1%20OR%201=1").status_code == 400
         assert client.get("/api/shop-transactions?before=1&after=2").status_code == 400
+        assert client.get("/api/shop-transactions?q=" + "a" * 81).status_code == 400
         read.assert_not_called()
+
+
+def test_transaction_item_search_uses_item_proto_and_parameterized_query():
+    with patch.object(panel, "settings", return_value=SETTINGS), patch.object(panel, "rows", return_value=[SALE]) as read:
+        response = panel.app.test_client().get("/api/shop-transactions?q=Klejnot")
+    assert response.status_code == 200
+    sql, params = read.call_args.args
+    assert "ip.locale_name LIKE %s" in sql and "ip.name LIKE %s" in sql
+    assert "Klejnot" not in sql
+    assert params == (-1, "%Klejnot%", "%Klejnot%", 41)

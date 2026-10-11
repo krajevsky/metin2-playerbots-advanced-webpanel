@@ -6,11 +6,12 @@
   <header class="shop-transactions-head">
     <div><p class="eyebrow">{{ 'ECONOMY · OFFLINE SHOPS' if ui_language == 'en' else 'GOSPODARKA · SKLEPY OFFLINE' }}</p>
       <h1>{{ 'Shop transactions' if ui_language == 'en' else 'Transakcje straganów' }}</h1>
-      <p class="muted">{{ 'Completed purchases from IkarusShop. Buyer, seller, item and price come from the same game log entry.' if ui_language == 'en' else 'Zakończone zakupy z IkarusShop. Kupujący, sprzedawca, przedmiot i cena pochodzą z tego samego wpisu silnika gry.' }}</p>
+      <p class="muted">{{ 'Completed purchases from the last 7 days. The game log remains unchanged.' if ui_language == 'en' else 'Zakończone zakupy z ostatnich 7 dni. Log silnika gry pozostaje bez zmian.' }}</p>
     </div>
     <div class="shop-transactions-controls"><span id="shop-transactions-status" class="shop-live-status" aria-live="polite"></span><button type="button" id="shop-transactions-pause" class="secondary"></button></div>
   </header>
   <section class="panel shop-transactions-panel" aria-label="{{ 'Recent shop transactions' if ui_language == 'en' else 'Ostatnie transakcje na straganach' }}">
+    <div class="shop-transactions-search"><label for="shop-transactions-query">{{ 'Search item' if ui_language == 'en' else 'Szukaj przedmiotu' }}</label><input id="shop-transactions-query" type="search" maxlength="80" autocomplete="off" placeholder="{{ 'Item name or VNUM…' if ui_language == 'en' else 'Nazwa przedmiotu lub VNUM…' }}"></div>
     <div id="shop-transactions-list" class="shop-transactions-list" aria-busy="true"><p class="muted">{{ 'Loading transactions…' if ui_language == 'en' else 'Ładowanie transakcji…' }}</p></div>
     <div class="shop-transactions-footer"><button type="button" id="shop-transactions-more" class="secondary" hidden>{{ 'Load older transactions' if ui_language == 'en' else 'Załaduj starsze transakcje' }}</button></div>
   </section>
@@ -18,6 +19,7 @@
 <script id="shop-transactions-labels" type="application/json">{{ {
   'live': 'Live' if ui_language == 'en' else 'Na żywo',
   'paused': 'Paused' if ui_language == 'en' else 'Wstrzymano',
+  'filtered': 'Search results' if ui_language == 'en' else 'Wyniki wyszukiwania',
   'pause': 'Pause updates' if ui_language == 'en' else 'Wstrzymaj odświeżanie',
   'resume': 'Resume updates' if ui_language == 'en' else 'Wznów odświeżanie',
   'empty': 'No completed purchases found.' if ui_language == 'en' else 'Brak zarejestrowanych zakupów.',

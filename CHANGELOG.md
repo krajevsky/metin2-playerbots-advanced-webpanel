@@ -1,3 +1,11 @@
+## 2026-10-11 · 1.114.78 · Czytelniejszy i lżejszy tracker straganów
+
+- Sprzedający jest po lewej, kupujący po prawej. Ikony przedmiotów zachowują wysokość odpowiadającą jednemu, dwóm lub trzem slotom gry.
+- Wyszukiwanie po nazwie przedmiotu lub VNUM działa po stronie serwera, także dla angielskich nazw z panelu.
+- Tracker pokazuje transakcje z ostatnich 7 dni i pobiera je porcjami; log silnika nie jest czyszczony. Wyszukiwanie wstrzymuje automatyczne odświeżanie, ograniczając liczbę zapytań.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-11 · 1.114.77 · Tracker transakcji na straganach
 
 - Nowa strona „Transakcje straganów” pokazuje zakończone zakupy IkarusShop: kupującego, sprzedawcę, przedmiot, ilość, cenę i czas z jednego wpisu `BUY_ITEM`. Nie łączy zdarzeń po zbliżonym czasie ani nie liczy rezerwacji `LOCK_ITEM_TO_BUY` jako zakupów.

@@ -7140,7 +7140,7 @@ def api_shop_feed():
     return {"ok": True, "sales": recent_shop_sales(10)}
 
 
-def shop_transaction_rows(limit=40, before_id=None, after_id=None):
+def shop_transaction_rows(limit=40, before_id=None, after_id=None, item_query=""):
     """Completed IkarusShop purchases; BUY_ITEM carries both character IDs.
 
     LOCK_ITEM_TO_BUY is an attempted reservation, not a completed sale. The
@@ -7151,13 +7151,19 @@ def shop_transaction_rows(limit=40, before_id=None, after_id=None):
         raise ValueError("Use one transaction cursor at a time")
     condition = " AND l.id < %s" if before_id is not None else " AND l.id > %s" if after_id is not None else ""
     order = "ASC" if after_id is not None else "DESC"
-    params = ((before_id,) if before_id is not None else (after_id,) if after_id is not None else ()) + (limit + 1,)
+    params = list((before_id,) if before_id is not None else (after_id,) if after_id is not None else ())
+    if item_query:
+        name_clause, name_params = item_name_search(item_query)
+        condition += " AND " + name_clause.replace("p.", "ip.")
+        params.extend(name_params)
+    params.append(limit + 1)
     raw = rows(f"""SELECT l.id,l.time,l.who AS buyer_id,l.shop_owner AS seller_id,
              l.vnum,l.`count` AS quantity,l.yang,l.cheque,l.itemid,
              b.name AS buyer_name,s.name AS seller_name,
              LEFT(ba.login,10)='playerbot_' AS buyer_is_bot,
              LEFT(sa.login,10)='playerbot_' AS seller_is_bot,
              COALESCE(ip.locale_name,CONCAT('VNUM ',l.vnum)) AS proto_name,
+             ip.size AS item_size,
              i.socket0
       FROM log.ikarusshop_log l
       LEFT JOIN player.player b ON b.id=l.who
@@ -7166,8 +7172,8 @@ def shop_transaction_rows(limit=40, before_id=None, after_id=None):
       LEFT JOIN account.account sa ON sa.id=s.account_id
       LEFT JOIN player.item_proto ip ON ip.vnum=l.vnum
       LEFT JOIN player.item i ON i.id=l.itemid
-      WHERE l.what='BUY_ITEM'{condition}
-      ORDER BY l.id {order} LIMIT %s""", params)
+      WHERE l.what='BUY_ITEM' AND l.time >= NOW() - INTERVAL 7 DAY{condition}
+      ORDER BY l.id {order} LIMIT %s""", tuple(params))
     has_more = len(raw) > limit
     english = settings().get("ui_language", "pl") == "en"
     transactions = []
@@ -7185,6 +7191,7 @@ def shop_transaction_rows(limit=40, before_id=None, after_id=None):
             "seller": game_text(row.get("seller_name")) or f"PID {row['seller_id']}",
             "seller_is_bot": bool(row.get("seller_is_bot")),
             "vnum": vnum, "item_name": name, "icon_url": item_icon_url(vnum),
+            "item_size": max(1, min(3, int(row.get("item_size") or 1))),
             "quantity": int(row["quantity"] or 0), "yang": int(row["yang"] or 0),
             "cheque": int(row["cheque"] or 0),
         })
@@ -7201,12 +7208,16 @@ def economy_transactions():
 @login_required
 def api_shop_transactions():
     before, after = request.args.get("before"), request.args.get("after")
+    item_query = request.args.get("q", "").strip()
     if (before and after) or any(value and (not value.isdecimal() or int(value) < 1) for value in (before, after)):
         return {"ok": False, "error": "invalid_cursor"}, 400
+    if len(item_query) > 80:
+        return {"ok": False, "error": "query_too_long"}, 400
     transactions, has_more = shop_transaction_rows(
         limit=100 if after else 40,
         before_id=int(before) if before else None,
         after_id=int(after) if after else None,
+        item_query=item_query,
     )
     return {"ok": True, "transactions": transactions, "has_more": has_more}
 
