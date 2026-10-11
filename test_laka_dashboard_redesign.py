@@ -1,4 +1,4 @@
-"""The observatory dashboard is isolated to the Laka theme."""
+"""The independent folio dashboard is isolated to the Laka theme."""
 from unittest.mock import patch
 
 import app as panel
@@ -17,18 +17,22 @@ def dashboard_html(theme, language="pl"):
     return response.get_data(as_text=True)
 
 
-def test_observatory_template_styles_and_controls_load_only_for_laka():
+def test_folio_template_styles_and_controls_load_only_for_laka():
     laka = dashboard_html("laka")
     ocean = dashboard_html("ocean")
-    assert "laka-observatory.css" in laka
+    assert "laka-folio.css" in laka
     assert 'class="laka-dashboard-main"' in laka
     assert 'id="laka-filter-toggle"' in laka
-    assert 'class="live-shell atlas-stage"' in laka
-    assert "laka-observatory.css" not in ocean
+    assert 'class="live-shell folio-stage"' in laka
+    assert 'id="show-names" type="checkbox">' in laka
+    assert 'class="folio-channel"' in laka or 'class="channel-bots-breakdown"' in laka
+    assert "laka-observatory.css" not in laka
+    assert "laka-folio.css" not in ocean
     assert 'class="laka-dashboard-main"' not in ocean
     assert 'id="laka-filter-toggle"' not in ocean
 
 
 def test_mobile_filter_control_translates_to_english():
-    assert "Filters" in dashboard_html("laka", "en")
-    assert "now." in dashboard_html("laka", "en")
+    english = dashboard_html("laka", "en")
+    assert "More filters" in english
+    assert "The world at a glance" in english

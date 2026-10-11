@@ -1,0 +1,83 @@
+{# Independent Laka folio. Data IDs are the public contract with live-widget.js and laka-dashboard.js. #}
+<div class="folio-page">
+  <header class="folio-masthead">
+    <div class="folio-heading"><span class="folio-overline">PLAYERBOTS / OBSERWATORIUM</span><h1>Świat w jednej chwili<span>.</span></h1><p>Pozycje, decyzje i rytm gry — bezpośrednio z serwera.</p></div>
+    <div class="folio-clock"><span class="folio-live-lamp"></span><b id="live-count">Ładowanie…</b><small>odświeżanie co 1,5 s</small></div>
+  </header>
+
+  <section class="laka-ledger folio-pulse" aria-label="Puls serwera">
+    <div class="folio-pulse-lead"><small>TERAZ W ŚWIECIE</small><strong id="lg-bots">—</strong><span>w grupach <b id="lg-party">—</b></span></div>
+    <div><small>POSTACIE / KONTA</small><strong>{{ '{:,}'.format(totals.characters or 0).replace(',', ' ') }} / {{ '{:,}'.format(totals.accounts or 0).replace(',', ' ') }}</strong><span>w bazie graczy</span></div>
+    <div><small>YANG W OBIEGU</small><strong>{{ '{:,}'.format(totals.yang or 0).replace(',', ' ') }}</strong><span>na postaciach</span></div>
+    <div><small>ŚR. / MAKS. POZIOM</small><strong id="lg-levels">—</strong><span>boty online</span></div>
+    <div><small>EXP · DROP · YANG</small><strong id="lg-rates">—</strong><span id="lg-event">bez eventu</span></div>
+    <div><small>WERSJA PANELU</small><strong id="lg-panel">—</strong><span id="lg-playerbots">Playerbots —</span></div>
+  </section>
+
+  <section class="live-shell folio-stage" aria-label="Mapa świata na żywo">
+    <header class="folio-stage-head"><div><span>01 / OBSZAR</span><h2>Sytuacja na mapie</h2></div><p>Wybierz mapę i obserwuj jej mieszkańców na żywo.</p></header>
+    <div class="folio-stage-grid">
+      <div class="folio-briefing">
+        <div class="folio-controls">
+          <div class="live-filters" id="laka-live-filters">
+            <select id="map-select" aria-label="Wybierz mapę">
+              <option value="21">Chunjo M1 — Joan</option><option value="23">Chunjo M2 — Bokjung</option><option value="24">Chunjo M3 — Waryong</option><option value="25">Loch Małp Chunjo</option>
+              <option value="1">Shinsoo M1 — Yongan</option><option value="3">Shinsoo M2 — Jayang</option><option value="4">Shinsoo M3 — Jungrang</option><option value="5">Loch Małp Shinsoo</option>
+              <option value="41">Jinno M1 — Pyongmoo</option><option value="43">Jinno M2 — Bakra</option><option value="44">Jinno M3 — Imha</option><option value="45">Loch Małp Jinno</option>
+              <option value="108">Loch Małp Normalny</option><option value="109">Loch Małp Trudny</option><option value="64">Dolina Orków</option><option value="63">Pustynia Yongbi</option>
+              <option value="61">Góra Sohan</option><option value="104">Loch Pająków V1</option><option value="65">Świątynia Hwang</option><option value="67">Las</option><option value="68">Czerwony Las</option>
+            </select>
+            <input id="bot-search" type="search" placeholder="Znajdź bota…" aria-label="Znajdź bota">
+            <label class="folio-option"><input id="show-names" type="checkbox"> Pokaż nazwy na mapie</label>
+            <label class="folio-option"><input id="party-only" type="checkbox"> Tylko grupy</label>
+            <div class="level-filter"><button data-level="all" class="active">Każdy poziom</button><button data-level="1-15">1–15</button><button data-level="16-25">16–25</button><button data-level="26-34">26–34</button><button data-level="35-45">35–45</button><button data-level="46-55">46–55</button><button data-level="56+">56+</button></div>
+          </div>
+          <button type="button" class="folio-filter-toggle" id="laka-filter-toggle" aria-expanded="false" aria-controls="laka-live-filters">Więcej filtrów <span>+</span></button>
+        </div>
+        <div class="folio-map-stat" aria-label="Statystyki wybranej mapy">
+          <div><strong id="stat-visible">—</strong><span>Widoczne</span></div><div><strong id="stat-pt">—</strong><span>W grupie</span></div><div><strong id="stat-avg">—</strong><span>Śr. poziom</span></div><div><strong id="stat-max">—</strong><span>Maks. poziom</span></div>
+        </div>
+        <div class="live-sidebar folio-situation" data-sidebar-tab="ranking">
+          <section class="folio-activity live-activity"><header><span>CO ROBIĄ BOTY</span><h3>Aktywności na mapie</h3></header><div id="live-activity"></div></section>
+          <section class="folio-people live-ranking-section"><header><span>KTO TU JEST</span><h3>Postacie na mapie</h3></header><div id="live-ranking" class="live-ranking"></div></section>
+        </div>
+      </div>
+      <div class="folio-cartography">
+        <div class="folio-map-top"><span id="map-caption">Ładowanie pozycji…</span><small>MAPA NA ŻYWO</small></div>
+        <div class="world-map" id="world-map" data-map-index="21"></div>
+        <footer class="map-legend folio-legend"><span><i class="map-dot" style="background:#e6c78a"></i>Solo</span><span><i class="map-dot" style="background:#b6a2d4"></i>W grupie</span><span><i class="map-dot" style="background:#ef9263"></i>Metin</span><span><i class="map-dot" style="background:#db6865"></i>Zablokowany</span><span class="kd-legend"><b class="kd-1">Shinsoo</b><b class="kd-2">Chunjo</b><b class="kd-3">Jinno</b></span></footer>
+      </div>
+    </div>
+    <button type="button" class="live-insights-toggle" id="live-insights-toggle" aria-expanded="false">Dane mapy</button>
+  </section>
+
+  <section class="live-insights folio-analysis" id="live-insights" aria-label="Analiza świata">
+    <header class="folio-section-head"><span>02 / ANALIZA</span><h2>Rytm świata</h2><p>Rozkład sił, tempo odrodzeń i zajęcia postaci.</p></header>
+    <div class="folio-analysis-grid">
+      <section class="map-insight-card map-insight-card--channels"><h3>Kanały</h3><div id="map-channel-chart" class="map-insight-chart"></div></section>
+      <section class="map-insight-card map-insight-card--empires"><h3>Królestwa</h3><div id="map-empire-chart" class="map-insight-chart"></div></section>
+      <section class="map-insight-card map-insight-card--respawns"><h3>Respawny</h3><div id="map-respawn-summary" class="map-respawn-summary"></div></section>
+      <section class="map-insight-card map-insight-card--world" id="world-insights-card" data-world-tab="activity"><div class="insight-tabs" id="world-insights-tabs"><button type="button" class="active" data-tab="activity">Aktywności</button><button type="button" data-tab="levels">Poziomy</button></div><div class="insight-empire-filter" id="world-activity-filter"><button type="button" class="active" data-empire="all">Wszystkie</button><button type="button" data-empire="1">Shinsoo</button><button type="button" data-empire="2">Chunjo</button><button type="button" data-empire="3">Jinno</button></div><div id="world-activity-chart" class="map-respawn-summary map-insight-list world-tab-panel" data-panel="activity"></div><div id="world-level-chart" class="map-respawn-summary map-insight-list world-tab-panel" data-panel="levels"></div></section>
+    </div>
+  </section>
+
+  <section class="world-overview folio-census" aria-label="Świat w liczbach"><header class="folio-section-head"><span>03 / DANE SERWERA</span><h2>Świat w liczbach</h2><p>Cały serwer w jednym spojrzeniu.</p></header><div class="overview-pages" id="overview-pages">
+    <div class="overview-page active" data-page="0"><div class="world-summary-grid">
+      <div><b id="overview-bots">{{world_summary.bots}}</b><span>Botów w grze</span></div><div><b id="overview-resting">{{ world_summary.life_resting if world_summary.life_resting is not none else '—' }}</b><span>Odpoczywa</span></div><div><b id="overview-avg">{{world_summary.average_level}}</b><span>Śr. poziom</span></div><div><b id="overview-party">{{world_summary.party_bots}}</b><span>W grupach</span></div><div><b id="overview-max">{{world_summary.max_level}}</b><span>Maks. poziom</span></div>
+      <div class="folio-kingdoms"><b class="empire-bots-breakdown">{% for e in world_summary.empire_counts %}<span class="empire-bots-item">{% if e.flag %}<img class="empire-flag-inline" src="{{url_for('static', filename='empires/' + e.flag)}}" alt="{{e.name}}" title="{{e.name}}">{% endif %}{{e.count}}</span>{% endfor %}</b><span>Według królestwa</span></div>
+      <div class="folio-channels"><b class="channel-bots-breakdown">{% for c in world_summary.channel_counts %}<span class="folio-channel" title="Kanał {{c.channel}}">CH{{c.channel}} <strong>{{c.count}}</strong></span>{% endfor %}</b><span>Według kanału</span></div>
+      <div class="playerbots-version panel-release-card {{world_summary.panel_release.tone}}"><b class="panel-installed">{{world_summary.panel_release.installed}}</b><span>Wersja panelu</span>{% if world_summary.panel_release.latest %}<small class="panel-available">{{world_summary.panel_release.label}}</small>{% endif %}</div>
+      <div class="playerbots-version playerbots-release-card {{world_summary.release.tone}}"><b class="playerbots-installed">{{world_summary.version}}</b><span>Wersja Playerbots</span>{% if world_summary.release.latest %}<small class="playerbots-available">{{world_summary.release.label}}</small>{% endif %}</div>
+    </div></div>
+    <div class="overview-page" data-page="1"><h3>Raty serwerowe</h3><section class="overview-rates">{% for key, label in (('exp','EXP'), ('drop','Drop przedmiotów'), ('yang','Drop Yang')) %}{% set ev = world_summary.events.get(key) if world_summary.events else None %}<div class="rate-row {% if ev and ev.active %}rate-event-active{% endif %}" id="rate-row-{{key}}"><span>{{label}}</span><span class="rate-value-group"><b id="overview-rate-{{key}}">{{world_summary.rates[key]}}%</b><small class="rate-bonus" id="rate-bonus-{{key}}" data-until="{{ev.until if ev and ev.active else ''}}" {% if not (ev and ev.active) %}hidden{% endif %}>{% if ev and ev.active %}⚡ +{{ev.value}}% · <span class="rate-bonus-countdown">{{ev.until_text}}</span>{% endif %}</small></span></div>{% endfor %}</section></div>
+    <div class="overview-page" data-page="2"><h3>Boty na mapach</h3></div>
+  </div><div class="overview-dots" id="overview-dots"><button class="active" data-page="0" aria-label="Stan serwera"></button><button data-page="1" aria-label="Raty serwerowe"></button><button data-page="2" aria-label="Boty na mapach"></button></div></section>
+
+  <section class="folio-operations"><header class="folio-section-head"><span>04 / OPERACJE</span><h2>Poza mapą</h2><p>Wydajność, rozmieszczenie i liderzy serwera.</p></header><div class="folio-operations-grid">
+    <article class="folio-operation laka-widget"><header><span>INFRASTRUKTURA</span><h2>{{ 'Obciążenie Docker' if settings.monitor_mode == 'docker' else 'Obciążenie VPS' }}</h2><a href="{{ url_for('system') }}">Szczegóły ↗</a></header><div id="lw-system" class="laka-meters"><p class="muted">Ładowanie odczytu…</p></div><div class="laka-history"><div class="laka-history-head"><span>Ostatnie 24 godziny</span><span class="laka-history-key"><i class="cpu"></i>CPU <i class="ram"></i>RAM</span></div><div id="lw-history" class="laka-spark"></div><div id="lw-history-stats" class="laka-history-stats"></div></div></article>
+    <article class="folio-operation"><header><span>GEOGRAFIA</span><h2>Boty według map</h2><small class="laka-legend"><i class="e1"></i>Shinsoo <i class="e2"></i>Chunjo <i class="e3"></i>Jinno</small></header><div id="lw-maps" class="laka-hbars"><p class="muted">Czekam na pozycje botów…</p></div></article>
+    <article class="folio-operation"><header><span>HIERARCHIA</span><h2 id="lw-rank-title">Rankingi</h2><small id="lw-rank-sub"></small><div class="laka-carousel"><button type="button" id="lw-rank-prev" aria-label="Poprzedni ranking">‹</button><button type="button" id="lw-rank-next" aria-label="Następny ranking">›</button></div></header><ol id="lw-rank" class="laka-rank"><li class="muted">Ładowanie rankingów…</li></ol></article>
+  </div></section>
+  <section class="folio-chronicle laka-chronicle"><header><span>05 / OSTATNIE 12 GODZIN</span><h2>Kronika świata</h2><a href="{{ url_for('world_feed') }}">Wszystkie wydarzenia ↗</a></header><ol id="lw-chronicle"><li class="muted">Ładowanie najważniejszych wydarzeń…</li></ol></section>
+  {% if latest_changelog %}<p class="folio-latest"><span>OSTATNIA ZMIANA</span> <a href="{{ url_for('changelog') }}">{{ latest_changelog[0].version }}</a> · {{ 'Read the release notes' if ui_language == 'en' else (latest_changelog[0].changes[0] if latest_changelog[0].changes else 'Szczegóły w changelogu.') }}</p>{% endif %}
+</div>

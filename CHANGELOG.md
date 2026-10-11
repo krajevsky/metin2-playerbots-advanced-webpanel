@@ -1,3 +1,11 @@
+## 2026-10-11 · 1.114.65 · Nowy pulpit świata w motywie Łąka i Złoto
+
+- Dashboard motywu Łąka i Złoto został uszyty jako nowy szablon i nowy arkusz stylów. Mapa zajmuje prawą część pierwszego widoku, a odczyty serwera, aktywności i postacie tworzą po lewej czytelną stronę informacyjną. Na telefonie mapa pojawia się zaraz po nagłówku; zachowuje proporcje M1 4:5 i pozostałych map 1:1.
+- Znaczniki botów to teraz niewielkie punkty bez stale wyświetlanych podpisów. Nazwy można włączyć w filtrach, a lista aktywności na bieżącej mapie dostała większą wysokość i własne przewijanie. Diagramy kanałów i królestw zostały zastąpione prostymi zestawieniami; kanały w „Świecie w liczbach” nie używają dawnych obwódek.
+- Nowe teksty mają odpowiedniki angielskie. Dane nadal pochodzą z istniejących endpointów, pozostałe motywy zachowują dotychczasowy widok. Punkt powrotu: `laka-dashboard-observatory-before-redesign-20261011`.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-10 · 1.114.64 · Obserwatorium świata w motywie Łąka i Złoto
 
 - Dashboard motywu Łąka i Złoto otrzymał nową kompozycję: wąski pulpit sterowania, mapę dopasowaną do jej rzeczywistych proporcji oraz sąsiadujące z nią dane o postaciach i świecie. Usunęliśmy pustą przestrzeń wokół mapy; cała mapa mieści się w pierwszym widoku na sprawdzonych ekranach.
