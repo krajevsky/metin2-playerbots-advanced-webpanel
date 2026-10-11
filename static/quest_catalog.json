@@ -1,0 +1,354 @@
+{
+  "find_brother_article": {
+    "title": "Pamiątka po Bracie Mirine.",
+    "npc_vnum": 20006
+  },
+  "find_squareguard": {
+    "title": "Strażnik Wsi",
+    "npc_vnum": null
+  },
+  "main_quest_lv1": {
+    "title": "Witamy w Metin2009",
+    "npc_vnum": null
+  },
+  "main_quest_lv10": {
+    "title": "Trening Kapitana",
+    "npc_vnum": null
+  },
+  "main_quest_lv12": {
+    "title": "Zabij 10 Szarych Alfa Wilków",
+    "npc_vnum": null
+  },
+  "main_quest_lv14": {
+    "title": "Zniszcz Metin Bitwy",
+    "npc_vnum": null
+  },
+  "main_quest_lv15": {
+    "title": "Aktualna sytuacja",
+    "npc_vnum": null
+  },
+  "main_quest_lv16": {
+    "title": "Schwytaj Szpiega",
+    "npc_vnum": null
+  },
+  "main_quest_lv2": {
+    "title": "List od Strażnika Miejskiego",
+    "npc_vnum": null
+  },
+  "main_quest_lv27": {
+    "title": "Zniszcz Kamienie Metin!",
+    "npc_vnum": null
+  },
+  "main_quest_lv3": {
+    "title": "Nowiny od Strażnika Miejskiego",
+    "npc_vnum": null
+  },
+  "main_quest_lv30": {
+    "title": "Sekret Kamieni Metin",
+    "npc_vnum": null
+  },
+  "main_quest_lv32": {
+    "title": "Tajemnicza Książka",
+    "npc_vnum": null
+  },
+  "main_quest_lv40": {
+    "title": "Świątynia Ciemności",
+    "npc_vnum": null
+  },
+  "main_quest_lv47": {
+    "title": "Strona od Brutalnego Kapitana",
+    "npc_vnum": 20011
+  },
+  "main_quest_lv50": {
+    "title": "Dziewiąta Strona",
+    "npc_vnum": null
+  },
+  "main_quest_lv55": {
+    "title": "Poszukiwania pomników",
+    "npc_vnum": null
+  },
+  "main_quest_lv6": {
+    "title": "Idź do Strażnika Miejskiego.",
+    "npc_vnum": null
+  },
+  "main_quest_lv60": {
+    "title": "Nowy ślad",
+    "npc_vnum": null
+  },
+  "main_quest_lv66": {
+    "title": "Pamiętnik",
+    "npc_vnum": null
+  },
+  "main_quest_lv7": {
+    "title": "Znajdź Rybaka",
+    "npc_vnum": null
+  },
+  "main_quest_lv72": {
+    "title": "Zwietrzała Płyta",
+    "npc_vnum": null
+  },
+  "main_quest_lv78": {
+    "title": "Czerwony Kwarc Piekieł",
+    "npc_vnum": null
+  },
+  "main_quest_lv84": {
+    "title": "Rozpoczyna się walka",
+    "npc_vnum": null
+  },
+  "main_quest_lv9": {
+    "title": "Porozmawiaj ze Strażnikiem Miejskim",
+    "npc_vnum": null
+  },
+  "main_quest_lv90": {
+    "title": "Skała Mrocznego Smoka",
+    "npc_vnum": null
+  },
+  "main_quest_lv91": {
+    "title": "List do Mantikorów",
+    "npc_vnum": null
+  },
+  "main_quest_lv92": {
+    "title": "List do Bandy Czerwonych",
+    "npc_vnum": null
+  },
+  "main_quest_lv93": {
+    "title": "Wzmocnij siły I",
+    "npc_vnum": null
+  },
+  "main_quest_lv94": {
+    "title": "Perły Syriusza",
+    "npc_vnum": null
+  },
+  "main_quest_lv95": {
+    "title": "Gorączka złota",
+    "npc_vnum": null
+  },
+  "main_quest_lv96": {
+    "title": "Zatrzymaj klątwę",
+    "npc_vnum": null
+  },
+  "main_quest_lv97": {
+    "title": "Zatrzymaj Banshee",
+    "npc_vnum": null
+  },
+  "main_quest_lv98": {
+    "title": "Odbudowa Fortu",
+    "npc_vnum": null
+  },
+  "new_quest_lv22": {
+    "title": "Lekarstwo",
+    "npc_vnum": 11000
+  },
+  "new_quest_lv24": {
+    "title": "Dodatkowe zaopatrzenie",
+    "npc_vnum": 20355
+  },
+  "new_quest_lv26": {
+    "title": "Dezerter",
+    "npc_vnum": null
+  },
+  "new_quest_lv28": {
+    "title": "Polowanie na niedźwiedzie",
+    "npc_vnum": 20017
+  },
+  "new_quest_lv29": {
+    "title": "Rozbita Porcelana",
+    "npc_vnum": null
+  },
+  "new_quest_lv42": {
+    "title": "Diamentowy Kamień",
+    "npc_vnum": 20008
+  },
+  "new_quest_lv52": {
+    "title": "Spokojna noc",
+    "npc_vnum": null
+  },
+  "new_quest_lv7": {
+    "title": "Siostra",
+    "npc_vnum": 20008
+  },
+  "new_quest_lv75": {
+    "title": "Pamiętnik Legendy",
+    "npc_vnum": null
+  },
+  "new_quest_lv80": {
+    "title": "Posępna Drewniana Maska",
+    "npc_vnum": null
+  },
+  "subquest_1": {
+    "title": "Zdobądź Pustą Butelkę",
+    "npc_vnum": 9003
+  },
+  "subquest_10": {
+    "title": "Skradziona Spinka.",
+    "npc_vnum": 9003
+  },
+  "subquest_11": {
+    "title": "Nowiny o Bracie Mirine.",
+    "npc_vnum": 20006
+  },
+  "subquest_12": {
+    "title": "Mi-Jung z Zaprzysiężonych",
+    "npc_vnum": 11000
+  },
+  "subquest_13": {
+    "title": "Materiały na broń",
+    "npc_vnum": 9001
+  },
+  "subquest_15": {
+    "title": "Eun-Jung z Klanu Zaprzysiężonych",
+    "npc_vnum": 11000
+  },
+  "subquest_16": {
+    "title": "Uzbrojona Kawaleria.",
+    "npc_vnum": 20355
+  },
+  "subquest_17": {
+    "title": "Mąż Ariyoung",
+    "npc_vnum": 20021
+  },
+  "subquest_18": {
+    "title": "Gdzie on się ukrywa?",
+    "npc_vnum": 20002
+  },
+  "subquest_19": {
+    "title": "Zdobądź Futro Szarego Wilka.",
+    "npc_vnum": 9006
+  },
+  "subquest_2": {
+    "title": "Obiad",
+    "npc_vnum": null
+  },
+  "subquest_20": {
+    "title": "Pamiątka po mężu.",
+    "npc_vnum": 20003
+  },
+  "subquest_21": {
+    "title": "Balso?",
+    "npc_vnum": 20020
+  },
+  "subquest_22": {
+    "title": "Znalazłeś Złoty Topór",
+    "npc_vnum": 20015
+  },
+  "subquest_23": {
+    "title": "Poszukiwania starszego Brata Mirine!",
+    "npc_vnum": 20006
+  },
+  "subquest_24": {
+    "title": "Ciastka Ryżowe Yu-Rang",
+    "npc_vnum": 20012
+  },
+  "subquest_25": {
+    "title": "Och moja kochana Ariyoung",
+    "npc_vnum": 20022
+  },
+  "subquest_26": {
+    "title": "Zabij Drzewnego Żabiego Przywódce",
+    "npc_vnum": 9005
+  },
+  "subquest_27": {
+    "title": "Przyjemność z czytania",
+    "npc_vnum": 20023
+  },
+  "subquest_3": {
+    "title": "Składnik na lekarstwo",
+    "npc_vnum": null
+  },
+  "subquest_30": {
+    "title": "Ruda na nową broń",
+    "npc_vnum": 20016
+  },
+  "subquest_31": {
+    "title": "Ruda na nową zbroje",
+    "npc_vnum": 20016
+  },
+  "subquest_32": {
+    "title": "Potrzebuję Nici.",
+    "npc_vnum": 20010
+  },
+  "subquest_33": {
+    "title": "Polowanie na Bogów Zwierząt",
+    "npc_vnum": 20023
+  },
+  "subquest_34": {
+    "title": "Zabij generałów Gangu Czarnego Wiatru.",
+    "npc_vnum": 20355
+  },
+  "subquest_36": {
+    "title": "Udaj się do Stajennego",
+    "npc_vnum": 20005
+  },
+  "subquest_37": {
+    "title": "Sekret seledynowej porcelany",
+    "npc_vnum": 20005
+  },
+  "subquest_38": {
+    "title": "Skarb Łowcy",
+    "npc_vnum": 20019
+  },
+  "subquest_39": {
+    "title": "Sytuacja Balso",
+    "npc_vnum": 20020
+  },
+  "subquest_4": {
+    "title": "List od Kowala.",
+    "npc_vnum": 20016
+  },
+  "subquest_40": {
+    "title": "Wsparcie wojenne",
+    "npc_vnum": 20355
+  },
+  "subquest_41": {
+    "title": "Specjał z oczu pająków",
+    "npc_vnum": 20008
+  },
+  "subquest_42": {
+    "title": "Pozwólmy odpocząć poległym...",
+    "npc_vnum": 20306
+  },
+  "subquest_44": {
+    "title": "Wiele pająków, żadnego dzwonka",
+    "npc_vnum": 20012
+  },
+  "subquest_45": {
+    "title": "Problem ze Świątynią Ciemności",
+    "npc_vnum": null
+  },
+  "subquest_46": {
+    "title": "Sekret seledynowej porcelany",
+    "npc_vnum": 20005
+  },
+  "subquest_47": {
+    "title": "Kapitan",
+    "npc_vnum": 20355
+  },
+  "subquest_48": {
+    "title": "Znajdź Szpiega",
+    "npc_vnum": 20355
+  },
+  "subquest_49": {
+    "title": "Czym jest Bingsu?",
+    "npc_vnum": 20014
+  },
+  "subquest_5": {
+    "title": "Przysługa dla Soon.",
+    "npc_vnum": 20023
+  },
+  "subquest_6": {
+    "title": "Zamówienie na zbroję.",
+    "npc_vnum": 9002
+  },
+  "subquest_7": {
+    "title": "Najlepsza Książka Kucharska",
+    "npc_vnum": 20008
+  },
+  "subquest_8": {
+    "title": "Ciastko Ryżowe",
+    "npc_vnum": 20003
+  },
+  "subquest_9": {
+    "title": "Kowal.",
+    "npc_vnum": 20016
+  }
+}

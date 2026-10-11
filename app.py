@@ -1878,7 +1878,16 @@ def investment_summary(row):
             "goal_vnum": row["goal_vnum"], "level": row["level"]}
 
 
+try:
+    QUEST_CATALOG = json.loads((Path(__file__).parent / "static" / "quest_catalog.json").read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    QUEST_CATALOG = {}
+
+
 def quest_display_name(name):
+    title = (QUEST_CATALOG.get(name) or {}).get("title")
+    if title:
+        return title
     match = re.fullmatch(r"(main_quest_lv|new_quest_lv|subquest_)(\d+)", name)
     if match:
         family = "Misja poboczna" if match.group(1) == "subquest_" else "Misja fabularna"
@@ -3786,18 +3795,35 @@ def character_completed_quests(pid):
         expected = BIOLOGIST_COMPLETE_STATE if is_bio else QUEST_COMPLETE_STATE
         if int(quest.get("lValue") or 0) != expected:
             continue
-        completed.append({"key": name, "category": "Biolog" if is_bio else "Fabularna",
-                          "label": (f"Biolog · Lv {re.search(r'[0-9]+$', name).group()}" if re.search(r'[0-9]+$', name) else name) if is_bio else quest_display_name(name),
-                          "date": None})
+        number = re.search(r"[0-9]+$", name)
+        completed.append({"key": name, "category": "Biolog" if is_bio else "Poboczna" if name.startswith("subquest_") else "Fabularna",
+                          "label": (f"Biolog · Lv {number.group()}" if number else name) if is_bio else quest_display_name(name),
+                          "number": ("#" if name.startswith("subquest_") else "Lv ") + number.group() if number and not is_bio else None,
+                          "date": None, "giver": None})
     hunt = one("SELECT lValue FROM player.quest WHERE dwPID=%s AND szName='hunting' AND szState='huntingProgress'", (pid,))
     for index in range(min(len(HUNTING_QUEST_TARGETS), max(0, int((hunt or {}).get("lValue") or 0)))):
-        completed.append({"key": None, "category": "Polowanie", "label": f"Polowanie nr {index + 1}", "date": None})
+        completed.append({"key": None, "category": "Polowanie", "label": f"Polowanie nr {index + 1}",
+                          "number": None, "date": None, "giver": None})
     if completed:
         history = rows("SELECT quest_name,MAX(time) AS finished_at FROM log.quest_state_log "
                        "WHERE pid=%s AND quest_state='__COMPLETE__' GROUP BY quest_name", (pid,))
         dates = {r["quest_name"]: r["finished_at"] for r in history}
         for mission in completed:
             mission["date"] = dates.get(mission["key"])
+        npc_vnums = sorted({int(QUEST_CATALOG[mission["key"]]["npc_vnum"])
+                            for mission in completed if mission["key"] in QUEST_CATALOG
+                            and QUEST_CATALOG[mission["key"]].get("npc_vnum")})
+        if npc_vnums:
+            try:
+                npc_rows = rows("SELECT vnum,locale_name FROM player.mob_proto WHERE vnum IN (" +
+                                ",".join(["%s"] * len(npc_vnums)) + ")", npc_vnums)
+                npc_names = {int(r["vnum"]): game_text(r["locale_name"]) for r in npc_rows if r.get("vnum")}
+                for mission in completed:
+                    npc_vnum = (QUEST_CATALOG.get(mission["key"]) or {}).get("npc_vnum")
+                    if npc_vnum:
+                        mission["giver"] = npc_names.get(int(npc_vnum))
+            except pymysql.MySQLError:
+                pass
     return completed
 
 

@@ -37,6 +37,27 @@ def test_completed_quests_use_log_only_for_dates(monkeypatch):
     assert completed[1]["date"] is None
 
 
+def test_quest_catalog_names_and_first_npc(monkeypatch):
+    assert panel.quest_display_name("subquest_39") == "Sytuacja Balso"
+    assert panel.quest_display_name("subquest_49") == "Czym jest Bingsu?"
+
+    def fake_rows(sql, params=()):
+        if "FROM player.quest" in sql:
+            return [{"szName": "subquest_39", "lValue": panel.QUEST_COMPLETE_STATE}]
+        if "FROM player.mob_proto" in sql:
+            assert params == [20020]
+            return [{"vnum": 20020, "locale_name": "Zdrajca Balso"}]
+        return []
+
+    monkeypatch.setattr(panel, "biologist_missions", lambda: ())
+    monkeypatch.setattr(panel, "rows", fake_rows)
+    monkeypatch.setattr(panel, "one", lambda *_: None)
+    completed = panel.character_completed_quests(1)
+    assert completed[0]["label"] == "Sytuacja Balso"
+    assert completed[0]["giver"] == "Zdrajca Balso"
+    assert completed[0]["number"] == "#39"
+
+
 def test_core_quest_and_investment_snapshots(tmp_path, monkeypatch):
     quest = tmp_path / "playerbot_quest_bots.tsv"
     quest.write_text("#PB15B1\tunix_ts\tpid\n100\t40\tskupiony\tsubquest_49\tgain_ice\t18\t50\tidzie_do_celu\t7\t0\t3\tCzym jest Bingsu?\n")
@@ -63,7 +84,7 @@ def test_offered_quests_are_not_labeled_started(monkeypatch):
     missions = panel.character_mission_progress(5)
     labels = [mission["label"] for mission in missions]
     assert "Misja poboczna · #1" not in labels
-    assert "Misja poboczna · #2" in labels
+    assert panel.quest_display_name("subquest_2") in labels
 
 
 def test_item_value_prefers_listing_then_market_then_npc(monkeypatch):

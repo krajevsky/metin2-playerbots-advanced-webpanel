@@ -77,11 +77,6 @@
       </section>
       {% endif %}
     </div>
-    <section class="panel bot-quest-record"><h2>{{ 'Completed quests' if ui_language == 'en' else 'Ukończone misje' }}</h2>
-      {% if completed_quests %}<div class="bot-quest-record-list">{% for quest in completed_quests %}<div><span class="bot-quest-kind">{{ quest.category }}</span><strong>{{ quest.label }}</strong><time>{{ quest.date.strftime('%d.%m.%Y %H:%M') if quest.date else ('Date unavailable' if ui_language == 'en' else 'Brak daty') }}</time></div>{% endfor %}</div>
-      {% else %}<p class="muted">{{ 'No completed quests are recorded.' if ui_language == 'en' else 'Brak zapisanych ukończonych misji.' }}</p>{% endif %}
-      <p class="muted">{{ 'Completion dates are available only for quests recorded by the game log.' if ui_language == 'en' else 'Data ukończenia jest dostępna tylko dla misji zapisanych w logu gry.' }}</p>
-    </section>
     {% if item_value %}<section class="panel bot-item-value"><h2>{{ 'Equipment value' if ui_language == 'en' else 'Wartość ekwipunku' }}</h2><strong>{{ '{:,}'.format(item_value.value.total).replace(',', ' ') }} Yang</strong><div class="bot-item-value-parts"><span>{{ 'Equipped' if ui_language == 'en' else 'Założone' }} · {{ '{:,}'.format(item_value.value.equip).replace(',', ' ') }}</span><span>{{ 'Inventory' if ui_language == 'en' else 'Ekwipunek' }} · {{ '{:,}'.format(item_value.value.inv).replace(',', ' ') }}</span><span>{{ 'Storage' if ui_language == 'en' else 'Magazyn' }} · {{ '{:,}'.format(item_value.value.safe).replace(',', ' ') }}</span><span>{{ 'Shop' if ui_language == 'en' else 'Sklep' }} · {{ '{:,}'.format(item_value.value.shop).replace(',', ' ') }}</span></div><small class="muted">{{ 'Estimate from offline-shop prices, with NPC price as a fallback. Carried Yang is excluded.' if ui_language == 'en' else 'Szacunek według cen sklepów offline, w razie braku oferty według ceny NPC. Yang postaci nie jest doliczany.' }}</small></section>{% endif %}
     <section class="panel bot-log"><h2>📜 Historia ekwipunku</h2><div class="gear-history-filters" role="group" aria-label="Filtr historii ekwipunku"><button type="button" data-gear-filter="trade">Handel</button><button type="button" data-gear-filter="bonus">Bonusy</button><button type="button" data-gear-filter="refine">Ulepszanie</button><button type="button" data-gear-filter="other">Inne</button><button type="button" class="active" data-gear-filter="all">Wszystko</button></div><div class="log-lines" id="gear-history-lines">{% for line in gear_history %}<div class="gear-{{line.kind}}" data-gear-tab="{{line.tab}}"><time>{{line.time}}</time><span><b>{{line.label}}</b> {{line.item}}{% if line.detail %} <small>{{line.detail}}</small>{% endif %}</span></div>{% else %}<p class="muted">Brak zapisanych zdarzeń ekwipunku.</p>{% endfor %}</div></section>
     <section class="panel bot-log"><h2>📟 Dziennik zdarzeń bota (logi na żywo)</h2><p class="muted">Linie z logu rdzenia gry wspominające tę postać — zbierane od otwarcia tej strony, nie znikają między odświeżeniami.</p><div class="live-log-actions"><button type="button" class="secondary" id="live-log-toggle" data-pid="{{character.id}}">⏸ Zatrzymaj śledzenie</button><button type="button" class="secondary" id="live-log-copy">📋 Kopiuj logi</button></div><div id="live-log-box" class="live-log-box">Wczytywanie logów…</div></section>
@@ -138,7 +133,8 @@
       <form class="manage-form danger-form admin-card admin-card--delete" method="post" action="{{url_for('player_action_delete', pid=character.id)}}" onsubmit="return confirm('To jest NIEODWRACALNE i skasuje wszystkie przedmioty tej postaci. Kontynuować?');"><h3>⚠ Usuń postać (nieodwracalne)</h3><small class="muted">Wpisz dokładną nazwę postaci, żeby potwierdzić: <b>{{character.name}}</b>. Kopia wiersza trafi do web_seban_deleted_players przed usunięciem.</small><input type="text" name="confirm_name" placeholder="Wpisz {{character.name}}" required><button class="secondary">Usuń postać</button></form>
     </section>
   </article>
-  <aside class="inventory-panel" id="bot-item-inventory">
+  <aside class="bot-inventory-column">
+  <section class="inventory-panel" id="bot-item-inventory">
     <h2>⚔ Zawartość ekwipunku</h2>
     {% if can_delete_bot_items %}
     <div class="bot-item-manager" id="bot-item-manager" data-pid="{{character.id}}" data-name="{{character.name}}" data-csrf="{{item_delete_token}}">
@@ -148,6 +144,17 @@
     </div>
     {% endif %}
     <div id="inventory-live-region">{% set gold = character.gold %}{% include '_inventory_fragment.html' %}</div>
+  </section>
+  <section class="panel bot-quest-record"><h2>{{ 'Completed quests' if ui_language == 'en' else 'Ukończone misje' }}</h2>
+    {% if completed_quests %}<div class="bot-quest-record-list">{% for quest in completed_quests %}<article class="bot-quest-card">
+      <span class="bot-quest-kind">{{ {'Poboczna': 'Side quest', 'Fabularna': 'Story quest', 'Polowanie': 'Hunting', 'Biolog': 'Biologist'}.get(quest.category, quest.category) if ui_language == 'en' else quest.category }}{% if quest.number %} · {{ quest.number }}{% endif %}</span>
+      <strong>{{ quest.label }}</strong>
+      {% if quest.giver %}<small>{{ 'From:' if ui_language == 'en' else 'Od:' }} {{ quest.giver }}</small>{% endif %}
+      <time>{{ quest.date.strftime('%d.%m.%Y %H:%M') if quest.date else ('Date unavailable' if ui_language == 'en' else 'Brak daty') }}</time>
+    </article>{% endfor %}</div>
+    {% else %}<p class="muted">{{ 'No completed quests are recorded.' if ui_language == 'en' else 'Brak zapisanych ukończonych misji.' }}</p>{% endif %}
+    <p class="muted">{{ 'Completion dates are available only for quests recorded by the game log.' if ui_language == 'en' else 'Data ukończenia jest dostępna tylko dla misji zapisanych w logu gry.' }}</p>
+  </section>
   </aside>
 </section>
 <script>
