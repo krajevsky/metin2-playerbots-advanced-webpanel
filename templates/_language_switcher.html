@@ -2,7 +2,7 @@
   <input type="hidden" name="next" value="{{ request.full_path }}">
   <span class="laka-language-title">{{ 'Language' if ui_language == 'en' else 'Język' }}</span>
   <div class="laka-language-options" role="group" aria-label="{{ 'Panel language' if ui_language == 'en' else 'Język panelu' }}">
-    <button type="submit" name="language" value="pl"{% if ui_language == 'pl' %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}><span aria-hidden="true">🇵🇱</span> Polski</button>
-    <button type="submit" name="language" value="en"{% if ui_language == 'en' %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}><span aria-hidden="true">🇬🇧</span> English</button>
+    <button type="submit" name="language" value="pl"{% if ui_language == 'pl' %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}><img src="{{ static_asset_url('flag-pl.png') }}" width="30" height="20" alt=""> Polski</button>
+    <button type="submit" name="language" value="en"{% if ui_language == 'en' %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}><img src="{{ static_asset_url('flag-en.png') }}" width="30" height="20" alt=""> English</button>
   </div>
 </form>

@@ -727,6 +727,8 @@ body[data-skin="laka"] .laka-language{display:grid;gap:6px;min-width:0}
 body[data-skin="laka"] .laka-language-title{color:var(--laka-dust);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
 body[data-skin="laka"] .laka-language-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 body[data-skin="laka"] .laka-language-options button{min-width:0;min-height:42px;padding:7px 4px;border:1px solid var(--laka-bronze-dim);border-radius:6px;background:var(--laka-lacquer-2);color:var(--laka-parchment);font:600 13px var(--laka-body);cursor:pointer}
+body[data-skin="laka"] .laka-language-options button{display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+body[data-skin="laka"] .laka-language-options button img{display:block;width:20px;height:auto;flex:none}
 body[data-skin="laka"] .laka-language-options button[aria-pressed="true"]{border-color:var(--laka-gold);background:#e8b93f1a;color:var(--laka-gold-hi)}
 body[data-skin="laka"] .laka-language-options button:focus-visible{outline:2px solid var(--laka-gold);outline-offset:2px}
 body[data-skin="laka"] .laka-sheet .laka-language{margin-top:18px;padding-top:14px;border-top:1px solid var(--laka-bronze-dim)}
@@ -735,4 +737,5 @@ body[data-skin="laka"] .laka-sheet .laka-language{margin-top:18px;padding-top:14
   body[data-skin="laka"] .laka-rail-foot>a,body[data-skin="laka"] .laka-rail-foot>form:not(.laka-language),body[data-skin="laka"] .laka-language-title{display:none}
   body[data-skin="laka"] .laka-rail-foot .laka-language-options{grid-template-columns:1fr}
   body[data-skin="laka"] .laka-rail-foot .laka-language-options button{min-height:38px;font-size:10px;padding:3px 0}
+  body[data-skin="laka"] .laka-rail-foot .laka-language-options button img{width:16px}
 }
