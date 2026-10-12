@@ -1,3 +1,9 @@
+## 2026-10-12 · 1.114.87 · Przywrócony układ profilu postaci
+
+- Kolumna ekwipunku nie przejmuje już reguł CSS menu bocznego. Dane postaci, mapa, sklep i lista misji wróciły na swoje miejsca w `/player/`.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-12 · 1.114.86 · Nazwy misji z plików gry
 
 - Okno zadań postaci i lista ukończonych misji pokazują nazwy odczytane z lokalizacji i skryptów aktualnego serwera zamiast ogólnych numerów tam, gdzie gra udostępnia tytuł. Katalog obejmuje 88 misji; dla pozostałych zachowany jest opis z numerem.

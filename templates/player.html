@@ -133,7 +133,7 @@
       <form class="manage-form danger-form admin-card admin-card--delete" method="post" action="{{url_for('player_action_delete', pid=character.id)}}" onsubmit="return confirm('To jest NIEODWRACALNE i skasuje wszystkie przedmioty tej postaci. Kontynuować?');"><h3>⚠ Usuń postać (nieodwracalne)</h3><small class="muted">Wpisz dokładną nazwę postaci, żeby potwierdzić: <b>{{character.name}}</b>. Kopia wiersza trafi do web_seban_deleted_players przed usunięciem.</small><input type="text" name="confirm_name" placeholder="Wpisz {{character.name}}" required><button class="secondary">Usuń postać</button></form>
     </section>
   </article>
-  <aside class="bot-inventory-column">
+  <div class="bot-inventory-column">
   <section class="inventory-panel" id="bot-item-inventory">
     <h2>⚔ Zawartość ekwipunku</h2>
     {% if can_delete_bot_items %}
@@ -155,7 +155,7 @@
     {% else %}<p class="muted">{{ 'No completed quests are recorded.' if ui_language == 'en' else 'Brak zapisanych ukończonych misji.' }}</p>{% endif %}
     <p class="muted">{{ 'Completion dates are available only for quests recorded by the game log.' if ui_language == 'en' else 'Data ukończenia jest dostępna tylko dla misji zapisanych w logu gry.' }}</p>
   </section>
-  </aside>
+  </div>
 </section>
 <script>
 document.body.dataset.ajaxForms='1';
