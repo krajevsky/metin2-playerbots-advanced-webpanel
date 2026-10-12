@@ -515,9 +515,16 @@ def collect(con, previous):
           WHERE i.window = 'IKASHOP_OFFLINESHOP' AND o.duration > 0
             AND i.ikashop_data IS NOT NULL AND i.ikashop_data <> ''
           GROUP BY vnum, IF(vnum=50300, socket0, 0)""", (now,))
-        cur.execute("""INSERT INTO player.web_seban_skillbook_identity (item_id,socket0,last_seen)
+        cur.execute("""INSERT IGNORE INTO player.web_seban_skillbook_identity (item_id,socket0,last_seen)
           SELECT id,socket0,%s FROM player.item WHERE vnum=50300 AND socket0>0
-          ON DUPLICATE KEY UPDATE socket0=VALUES(socket0), last_seen=VALUES(last_seen)""", (now,))
+          """, (now,))
+        # Refresh surviving books once per day rather than rewriting every
+        # cached row every five minutes. A consumed book keeps its final
+        # last_seen and ages out eight days later.
+        cur.execute("""UPDATE player.web_seban_skillbook_identity c
+          JOIN player.item i ON i.id=c.item_id AND i.vnum=50300
+          SET c.last_seen=%s, c.socket0=i.socket0
+          WHERE c.last_seen < %s - INTERVAL 1 DAY AND i.socket0>0""", (now, now))
         cur.execute("DELETE FROM player.web_seban_skillbook_identity WHERE last_seen < %s - INTERVAL 8 DAY", (now,))
         cur.execute("SELECT COALESCE(SUM(gold),0) FROM player.player WHERE name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')")
         yang = cur.fetchone()[0]
