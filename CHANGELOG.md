@@ -1,3 +1,10 @@
+## 2026-10-12 · 1.114.90 · Cele botów w aktywnościach świata
+
+- „Aktywności w świecie” liczą teraz cele zgłaszane przez silnik gry, tak jak panel Tieru: zdobywanie poziomu, przetrwanie, polowanie na Metiny, zapasy, ulepszanie, rozwój konia i cele drużynowe. Kategorie można porównywać między panelami; widok wybranej mapy nadal pokazuje bardziej szczegółowe bieżące czynności.
+- Dodano rozpoznawanie nowej akcji „Robi questa” (kod 19) i angielskie tłumaczenia kategorii celów. Nieznany kod celu jest wyświetlany z numerem do diagnostyki, zamiast otrzymać mylną nazwę.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-12 · 1.114.89 · Przewijanie ukończonych misji i angielskie nazwy
 
 - Lista ukończonych misji pod ekwipunkiem mieści się w wysokości ekranu i otrzymuje własny przewijany obszar z paskiem dopasowanym do motywu Łąka i Złoto.

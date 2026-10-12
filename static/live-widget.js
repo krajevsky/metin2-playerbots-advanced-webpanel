@@ -126,22 +126,22 @@
   const portrait = job => { const files = ["warrior_m.bmp","assassin_w.bmp","sura_m.bmp","shaman_w.bmp","warrior_w.bmp","assassin_m.bmp","sura_w.bmp","shaman_m.bmp"]; const index = Number.isInteger(Number(job)) && Number(job) >= 0 && Number(job) < files.length ? Number(job) : 0; return `/static/class-portraits/${files[index]}`; };
   const empireFlag = empire => ({ 1: 'shinsoo.png', 2: 'chunjo.png', 3: 'jinno.png' })[Number(empire)] || 'chunjo.png';
   const levelMarkup = bot => topLevelRanks[bot.id] ? `<span class="top-level-badge top-level-badge--compact" title="Top 10 poziomu · #${topLevelRanks[bot.id]}">Lv ${bot.level}</span>` : `Lv ${bot.level}`;
-  // Audyt 2026-09-19: goal 0 (`BOT_GOALS[0]`) to bazowe "Zdobywanie poziomu",
-  // czyli domyślny cel niemal każdego bota, który akurat nie robi nic
-  // szczególnego -- celowo pominięty tutaj, żeby w tym najczęstszym stanie
-  // liczyła się bardziej konkretna akcja (walczy/zbiera łup/podróżuje) niż
-  // jeden wspólny, bezużyteczny worek. Goal 1 (Przetrwanie) pominięty z tego
-  // samego powodu. Reszta kodów 0-18 zsynchronizowana z kanonicznym
-  // app.py:BOT_GOALS/BOT_ACTIONS -- wcześniej brakowało action 0 (spadało do
-  // mylącego domyślnego "Expi / walczy"), a action 9 dublował etykietę
-  // action 7, więc dwie różne akcje znikały pod jedną nazwą.
+  // On the selected map, show the immediate action for generic goals 0/1;
+  // world-wide totals below use the goal itself, as the classic panel does.
   function activityGroup(bot) {
     const status = String(bot.action_label || '').toLowerCase();
     if (/łow|low|ryb|fishing|branie/.test(status)) return 'Łowi ryby';
     const goals = {2:'Wybiera profesję',3:'Zdobywa ekwipunek',4:'Uzupełnia zapasy',5:'Ulepsza ekwipunek',6:'Rozwija umiejętności',7:'Poluje na Metiny',8:'Gra w grupie',9:'Robi Biologa',10:'Misje polowania',11:'Rozwija konia'};
     if (goals[bot.goal] !== undefined) return goals[bot.goal];
-    const actions = {0:'Planuje ruch',1:'Przemieszcza się',2:'Expi / walczy',3:'Zbiera łup',4:'Regeneruje się',5:'Wybiera profesję',6:'Handluje',7:'Ulepsza ekwipunek',8:'Rozwija umiejętności',9:'Zakłada kostium',10:'Gra w grupie',11:'Robi Biologa',12:'Odwiedza stajennego',13:'Prowadzi stragan',14:'Łowi ryby',15:'Przegląda stragany',16:'Wabi potwory',17:'Odpoczywa w mieście',18:'Kopie rudę'};
+    const actions = {0:'Planuje ruch',1:'Przemieszcza się',2:'Expi / walczy',3:'Zbiera łup',4:'Regeneruje się',5:'Wybiera profesję',6:'Handluje',7:'Ulepsza ekwipunek',8:'Rozwija umiejętności',9:'Zakłada kostium',10:'Gra w grupie',11:'Robi Biologa',12:'Odwiedza stajennego',13:'Prowadzi stragan',14:'Łowi ryby',15:'Przegląda stragany',16:'Wabi potwory',17:'Odpoczywa w mieście',18:'Kopie rudę',19:'Robi questa'};
     return actions[bot.action] || 'Inna aktywność';
+  }
+  // The world summary answers "what are bots working toward?" and groups by
+  // the core's goal id. The selected-map list above intentionally keeps its
+  // more detailed current-action view. Both values come from the same status.
+  function worldGoalGroup(bot) {
+    const goals = {0:'Zdobywanie poziomu',1:'Przetrwanie',2:'Wybór profesji',3:'Zdobycie ekwipunku',4:'Uzupełnienie zapasów',5:'Ulepszanie EQ',6:'Rozwój umiejętności',7:'Polowanie na Metiny',8:'Silne cele w PT',9:'Misja Biologa',10:'Misja Polowania',11:'Rozwój konia'};
+    return goals[bot.goal] !== undefined ? goals[bot.goal] : `Nieznany cel #${bot.goal}`;
   }
   function renderActivities(bots) {
     const box = $('live-activity');
@@ -170,7 +170,7 @@
     const bots = worldEmpireFilter === 'all' ? snapshot : snapshot.filter(b => String(b.empire) === worldEmpireFilter);
     const total = bots.length || 1;
     if (activityBox) {
-      const grouped = bots.reduce((all, bot) => { const label = activityGroup(bot); all[label] = (all[label] || 0) + 1; return all; }, {});
+      const grouped = bots.reduce((all, bot) => { const label = worldGoalGroup(bot); all[label] = (all[label] || 0) + 1; return all; }, {});
       const entries = Object.entries(grouped).sort((a,b) => b[1]-a[1]);
       activityBox.innerHTML = barLines(entries, total) || '<p class="muted">Brak botów w tym królestwie.</p>';
     }

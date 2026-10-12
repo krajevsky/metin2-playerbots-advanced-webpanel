@@ -407,7 +407,7 @@ BOT_GOALS = {0: "Zdobywanie poziomu", 1: "Przetrwanie", 2: "Wybór profesji", 3:
 # 18 (Kopie rudę) byla dopisana do playerbot_types.h u Tieru, ale nie tutaj -
 # boty kopiące rudę pokazywały gołe "#18" zamiast etykiety (audyt vs panel
 # Tieru na 7788, 2026-09-14).
-BOT_ACTIONS = {0: "Planuje następny ruch", 1: "Podróżuje", 2: "Walczy", 3: "Podnosi łup", 4: "Regeneruje się", 5: "Wybiera profesję", 6: "Handluje", 7: "Ulepsza EQ", 8: "Czyta KU", 9: "Wkłada KD", 10: "Organizuje PT", 11: "Robi Biologa", 12: "Odwiedza Stajennego", 13: "Prowadzi stragan", 14: "Łowi ryby", 15: "Przegląda stragany", 16: "Wabi potwory", 17: "Odpoczywa w mieście", 18: "Kopie rudę"}
+BOT_ACTIONS = {0: "Planuje następny ruch", 1: "Podróżuje", 2: "Walczy", 3: "Podnosi łup", 4: "Regeneruje się", 5: "Wybiera profesję", 6: "Handluje", 7: "Ulepsza EQ", 8: "Czyta KU", 9: "Wkłada KD", 10: "Organizuje PT", 11: "Robi Biologa", 12: "Odwiedza Stajennego", 13: "Prowadzi stragan", 14: "Łowi ryby", 15: "Przegląda stragany", 16: "Wabi potwory", 17: "Odpoczywa w mieście", 18: "Kopie rudę", 19: "Robi questa"}
 # Akcje, w których bot stoi w miejscu z własnej woli: stragan, wędka, przegląd
 # straganów, lada NPC, kowal, trener, odpoczynek, kopanie rudy. Bez tego każdy
 # straganiarz był "Możliwie zawieszony" - a flaga z tekstu statusu łapała
