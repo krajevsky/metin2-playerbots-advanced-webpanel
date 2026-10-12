@@ -9,7 +9,15 @@ def test_database_structure_requires_auth_even_when_panel_is_open():
             patch.object(panel, "rows") as query:
         response = panel.app.test_client().get("/database/structure")
     assert response.status_code == 403
+    assert "włącz ochronę hasłem panelu" in response.get_data(as_text=True)
     query.assert_not_called()
+
+
+def test_database_structure_explains_access_in_english():
+    with patch.object(panel, "settings", return_value={"setup_complete": "1", "auth_enabled": "0", "ui_language": "en"}):
+        response = panel.app.test_client().get("/database/structure")
+    assert response.status_code == 403
+    assert "Enable panel password protection" in response.get_data(as_text=True)
 
 
 def test_database_structure_reads_only_validated_schema_metadata():

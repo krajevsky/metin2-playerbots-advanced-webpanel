@@ -1,3 +1,9 @@
+## 2026-10-12 · 1.114.88 · Czytelna blokada struktury bazy
+
+- Odnośnik do przeglądu struktury bazy pojawia się tylko przy włączonej ochronie hasłem i zalogowanej sesji administratora. Bez tych warunków bezpośredni adres nadal zwraca 403, ale wyjaśnia po polsku lub angielsku, jak uzyskać dostęp.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-12 · 1.114.87 · Przywrócony układ profilu postaci
 
 - Kolumna ekwipunku nie przejmuje już reguł CSS menu bocznego. Dane postaci, mapa, sklep i lista misji wróciły na swoje miejsca w `/player/`.

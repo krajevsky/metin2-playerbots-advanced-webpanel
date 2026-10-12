@@ -7503,7 +7503,11 @@ def item_name_search(query):
 def database_structure():
     """Read-only game schema browser; unlike regular pages, always requires login."""
     if settings().get("auth_enabled") != "1" or not session.get("seban_admin"):
-        abort(403)
+        abort(403, description=(
+            "Enable panel password protection and sign in as administrator to view the database structure."
+            if settings().get("ui_language") == "en" else
+            "Aby zobaczyć strukturę bazy, włącz ochronę hasłem panelu i zaloguj się jako administrator."
+        ))
     db_name = request.args.get("db", "player")
     if db_name not in ("account", "common", "player", "log"):
         abort(404)
