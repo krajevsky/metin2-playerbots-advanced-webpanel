@@ -131,7 +131,7 @@
   function activityGroup(bot) {
     const status = String(bot.action_label || '').toLowerCase();
     if (/łow|low|ryb|fishing|branie/.test(status)) return 'Łowi ryby';
-    const goals = {2:'Wybiera profesję',3:'Zdobywa ekwipunek',4:'Uzupełnia zapasy',5:'Ulepsza ekwipunek',6:'Rozwija umiejętności',7:'Poluje na Metiny',8:'Gra w grupie',9:'Robi Biologa',10:'Misje polowania',11:'Rozwija konia'};
+    const goals = {2:'Wybiera profesję',3:'Zdobywa ekwipunek',4:'Uzupełnia zapasy',5:'Ulepsza ekwipunek',6:'Rozwija umiejętności',7:'Poluje na Metiny',8:'Gra w grupie',9:'Robi Biologa',10:'Misje polowania',11:'Rozwija konia',12:'Łowi ryby'};
     if (goals[bot.goal] !== undefined) return goals[bot.goal];
     const actions = {0:'Planuje ruch',1:'Przemieszcza się',2:'Expi / walczy',3:'Zbiera łup',4:'Regeneruje się',5:'Wybiera profesję',6:'Handluje',7:'Ulepsza ekwipunek',8:'Rozwija umiejętności',9:'Zakłada kostium',10:'Gra w grupie',11:'Robi Biologa',12:'Odwiedza stajennego',13:'Prowadzi stragan',14:'Łowi ryby',15:'Przegląda stragany',16:'Wabi potwory',17:'Odpoczywa w mieście',18:'Kopie rudę',19:'Robi questa'};
     return actions[bot.action] || 'Inna aktywność';
@@ -140,7 +140,7 @@
   // the core's goal id. The selected-map list above intentionally keeps its
   // more detailed current-action view. Both values come from the same status.
   function worldGoalGroup(bot) {
-    const goals = {0:'Zdobywanie poziomu',1:'Przetrwanie',2:'Wybór profesji',3:'Zdobycie ekwipunku',4:'Uzupełnienie zapasów',5:'Ulepszanie EQ',6:'Rozwój umiejętności',7:'Polowanie na Metiny',8:'Silne cele w PT',9:'Misja Biologa',10:'Misja Polowania',11:'Rozwój konia'};
+    const goals = {0:'Zdobywanie poziomu',1:'Przetrwanie',2:'Wybór profesji',3:'Zdobycie ekwipunku',4:'Uzupełnienie zapasów',5:'Ulepszanie EQ',6:'Rozwój umiejętności',7:'Polowanie na Metiny',8:'Silne cele w PT',9:'Misja Biologa',10:'Misja Polowania',11:'Rozwój konia',12:'Łowienie ryb'};
     return goals[bot.goal] !== undefined ? goals[bot.goal] : `Nieznany cel #${bot.goal}`;
   }
   function renderActivities(bots) {

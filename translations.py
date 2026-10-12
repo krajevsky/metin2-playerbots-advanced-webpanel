@@ -2473,6 +2473,7 @@ EXACT.update({
     "Misja Biologa": "Biologist mission",
     "Misja Polowania": "Hunting mission",
     "Rozwój konia": "Developing horse",
+    "Łowienie ryb": "Fishing",
     "Robi questa": "Doing a quest",
     "Kupione w sklepie offline": "Bought from an offline shop",
 })

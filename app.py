@@ -403,7 +403,7 @@ BOT_PERSONALITIES = {0: "Wytrwały poszukiwacz", 1: "Pogromca Metinów", 2: "Tow
 BOT_PERSONALITY_COLORS = {0: "#69a6ff", 1: "#ff6b6b", 2: "#79e3af", 3: "#f2c34d", 4: "#c084fc",
                            5: "#4dd0e1", 6: "#ffa94d", 7: "#ff8fa3", 8: "#a3e635", 9: "#38bdf8", 10: "#fbbf24"}
 BOT_AMBITIONS = {0: "Poziom", 1: "Ekwipunek", 2: "Metiny", 3: "Koń", 4: "Biolog", 5: "Umiejętności", 6: "Handel"}
-BOT_GOALS = {0: "Zdobywanie poziomu", 1: "Przetrwanie", 2: "Wybór profesji", 3: "Zdobycie ekwipunku", 4: "Uzupełnienie zapasów", 5: "Ulepszanie EQ", 6: "Rozwój umiejętności", 7: "Polowanie na Metiny", 8: "Silne cele w PT", 9: "Misja Biologa", 10: "Misja Polowania", 11: "Rozwój konia"}
+BOT_GOALS = {0: "Zdobywanie poziomu", 1: "Przetrwanie", 2: "Wybór profesji", 3: "Zdobycie ekwipunku", 4: "Uzupełnienie zapasów", 5: "Ulepszanie EQ", 6: "Rozwój umiejętności", 7: "Polowanie na Metiny", 8: "Silne cele w PT", 9: "Misja Biologa", 10: "Misja Polowania", 11: "Rozwój konia", 12: "Łowienie ryb"}
 # 18 (Kopie rudę) byla dopisana do playerbot_types.h u Tieru, ale nie tutaj -
 # boty kopiące rudę pokazywały gołe "#18" zamiast etykiety (audyt vs panel
 # Tieru na 7788, 2026-09-14).
@@ -6823,32 +6823,36 @@ def _item_display_name(vnum, socket0=0):
 
 
 def shop_sales_velocity(hours=24, limit=15, only_skillbooks=False):
-    """Ranks items by how many times bots actually bought them off a stall in
-    the last `hours` (log.log how='PLAYERBOT_STALL_SOLD'), not by what is
-    merely listed -- that is what shop_item_market_row() already covers.
-    Demand signal for 'which price should go up', per operator's ask.
-    log.log itself has no socket0 column, but log.what is the sold item's
-    own id, and that row often still exists in player.item (confirmed on
-    live data: ~79% over 24h, ~90% within the last hour -- it only
-    disappears once a bot actually consumes the book). Joining it back lets
-    Skill Book sales split by the taught skill; a sale whose item is
-    already gone can't be attributed to any specific skill, so it is
-    dropped rather than shown as a 'which price should I raise' row for an
-    unknown skill -- that gave no real signal (confirmed with operator: the
-    lumped generic row was topping the ranking and telling them nothing
-    actionable). only_skillbooks=True narrows the whole query to Skill Book
-    vnums, for a dedicated 'top skill books' panel."""
-    vnum_filter = " AND l.vnum IN ({})".format(",".join(str(v) for v in SKILLBOOK_VNUMS)) if only_skillbooks else ""
-    raw = rows(f"""SELECT l.vnum, l.hint, l.time, i.socket0 FROM log.log l
-      LEFT JOIN player.item i ON i.id=l.what
-      WHERE l.how='PLAYERBOT_STALL_SOLD' AND l.time >= NOW() - INTERVAL %s HOUR{vnum_filter}""", (hours,))
+    """Rank sold items; book variants use completed IkarusShop purchases.
+
+    The seller log only preserves an item id, not its skill socket. BUY_ITEM
+    supplies the actual purchase and amount; the collector remembers a book's
+    socket by that same id before the item is consumed. Unknown skills remain
+    excluded from the per-skill ranking rather than misattributed.
+    """
+    if only_skillbooks:
+        vnums = ",".join(str(v) for v in SKILLBOOK_VNUMS)
+        raw = rows(f"""SELECT l.vnum,l.time,l.`count` AS qty,l.yang AS price,
+          COALESCE(NULLIF(i.socket0,0),c.socket0,0) AS socket0
+          FROM log.ikarusshop_log l
+          LEFT JOIN player.item i ON i.id=l.itemid
+          LEFT JOIN player.web_seban_skillbook_identity c ON c.item_id=l.itemid
+          WHERE l.what='BUY_ITEM' AND l.vnum IN ({vnums})
+            AND l.time >= NOW() - INTERVAL %s HOUR""", (hours,))
+    else:
+        raw = rows("""SELECT l.vnum,l.hint,l.time,i.socket0 FROM log.log l
+          LEFT JOIN player.item i ON i.id=l.what
+          WHERE l.how='PLAYERBOT_STALL_SOLD' AND l.time >= NOW() - INTERVAL %s HOUR""", (hours,))
     cutoff = datetime.now() - timedelta(hours=hours / 2)
     agg = {}
     for r in raw:
-        match = SALE_HINT_RE.match(game_text(r["hint"]))
-        if not match:
-            continue
-        vnum, qty, price = int(match.group(1)), int(match.group(2)), int(match.group(3))
+        if only_skillbooks:
+            vnum, qty, price = int(r["vnum"]), int(r["qty"]), int(r["price"])
+        else:
+            match = SALE_HINT_RE.match(game_text(r["hint"]))
+            if not match:
+                continue
+            vnum, qty, price = int(match.group(1)), int(match.group(2)), int(match.group(3))
         is_skillbook = vnum in SKILLBOOK_VNUMS
         socket0 = int(r["socket0"] or 0) if is_skillbook else 0
         if is_skillbook and socket0 == 0:
@@ -6879,33 +6883,34 @@ def shop_sales_velocity(hours=24, limit=15, only_skillbooks=False):
 
 
 def recent_shop_sales(limit=10):
-    """Last N completed stall sales, newest first. The engine's sale log
-    (log.log how='PLAYERBOT_STALL_SOLD') only records the seller. The separate
-    log.ikarusshop_log BUY_ITEM record has both buyer and shop_owner and feeds
-    /economy/transactions. This legacy summary is joined to player.item on log.what (the sold
-    item's own id) to recover socket0 for Skill Books -- see
-    shop_sales_velocity() for the match-rate note."""
-    raw = rows("""SELECT l.time, l.who, l.x, l.y, l.vnum, l.hint, i.socket0 FROM log.log l
-      LEFT JOIN player.item i ON i.id=l.what
-      WHERE l.how='PLAYERBOT_STALL_SOLD' ORDER BY l.time DESC LIMIT %s""", (limit,))
+    """Newest completed IkarusShop purchases, including both participants."""
+    raw = rows("""SELECT l.time,l.who AS buyer_id,l.shop_owner AS seller_id,
+      l.vnum,l.`count` AS qty,l.yang AS price,b.name AS buyer,s.name AS seller,
+      pi.empire,COALESCE(NULLIF(i.socket0,0),c.socket0,0) AS socket0
+      FROM log.ikarusshop_log l
+      LEFT JOIN player.player b ON b.id=l.who
+      LEFT JOIN player.player s ON s.id=l.shop_owner
+      LEFT JOIN player.player_index pi ON pi.id=s.account_id
+      LEFT JOIN player.item i ON i.id=l.itemid
+      LEFT JOIN player.web_seban_skillbook_identity c ON c.item_id=l.itemid AND l.vnum=50300
+      WHERE l.what='BUY_ITEM' ORDER BY l.id DESC LIMIT %s""", (limit,))
     sales = []
+    english = settings().get("ui_language", "pl") == "en"
     for r in raw:
-        match = SALE_HINT_RE.match(game_text(r["hint"]))
-        qty = int(match.group(2)) if match else 1
-        price = int(match.group(3)) if match else 0
-        socket0 = int(r["socket0"] or 0) if int(r["vnum"]) in SKILLBOOK_VNUMS else 0
-        seller = one("""SELECT p.name, pi.empire FROM player.player p
-          JOIN player.player_index pi ON pi.id=p.account_id WHERE p.id=%s""", (r["who"],))
-        map_index = next((idx for idx, b in MAP_BOUNDS.items()
-                           if b[0] <= r["x"] < b[0] + b[2] and b[1] <= r["y"] < b[1] + b[3]), None)
+        vnum = int(r["vnum"] or 0)
+        socket0 = int(r["socket0"] or 0) if vnum in SKILLBOOK_VNUMS else 0
+        name = _item_display_name(vnum, socket0)
+        if english:
+            name = translations.ITEM_NAMES.get(name, name)
         sales.append({
-            "time": r["time"].strftime("%H:%M:%S"), "vnum": r["vnum"], "item_name": _item_display_name(r["vnum"], socket0),
-            "icon_url": item_icon_url(r["vnum"]),
-            "qty": qty, "price": price,
-            "seller": (seller or {}).get("name") or f"pid {r['who']}",
-            "seller_id": int(r["who"]),
-            "empire": int((seller or {}).get("empire") or 0),
-            "map_name": map_name(map_index) if map_index is not None else "—",
+            "time": r["time"].strftime("%H:%M:%S"), "vnum": vnum, "item_name": name,
+            "icon_url": item_icon_url(vnum),
+            "qty": int(r["qty"] or 0), "price": int(r["price"] or 0),
+            "buyer": game_text(r.get("buyer")) or f"PID {r['buyer_id']}",
+            "buyer_id": int(r["buyer_id"] or 0),
+            "seller": game_text(r.get("seller")) or f"PID {r['seller_id']}",
+            "seller_id": int(r["seller_id"] or 0),
+            "empire": int(r.get("empire") or 0),
         })
     return sales
 
@@ -7013,6 +7018,9 @@ def economy_shops():
         fastest_items_limit = 15
     fastest_items_limit = max(15, min(100, fastest_items_limit))
     all_sales_velocity = shop_sales_velocity(limit=None)
+    skillbook_velocity = shop_sales_velocity(limit=5, only_skillbooks=True)
+    skillbook_sales_total = int(one("""SELECT COUNT(*) AS n FROM log.ikarusshop_log
+      WHERE what='BUY_ITEM' AND vnum=50300 AND time >= NOW() - INTERVAL 24 HOUR""").get("n") or 0)
     velocity_by_item = {(int(item["vnum"]), int(item.get("socket0", 0))): item for item in all_sales_velocity}
     for item in market_items:
         velocity = velocity_by_item.get((int(item["vnum"]), int(item.get("socket0", 0))), {})
@@ -7023,7 +7031,8 @@ def economy_shops():
                             empire_totals=empire_totals, kpi=kpi, value_trend=value_trend,
                             market_items=market_items, fastest_items_limit=fastest_items_limit,
                             sales_velocity=all_sales_velocity[:fastest_items_limit],
-                            skillbook_velocity=shop_sales_velocity(limit=5, only_skillbooks=True),
+                            skillbook_velocity=skillbook_velocity,
+                            skillbook_sales_total=skillbook_sales_total,
                             recent_sales=recent_shop_sales(10))
 
 
@@ -7431,7 +7440,7 @@ def shop_transaction_rows(limit=40, before_id=None, after_id=None, item_query=""
              LEFT(sa.login,10)='playerbot_' AS seller_is_bot,
              COALESCE(ip.locale_name,CONCAT('VNUM ',l.vnum)) AS proto_name,
              ip.size AS item_size,
-             i.socket0
+             COALESCE(NULLIF(i.socket0,0),c.socket0,0) AS socket0
       FROM log.ikarusshop_log l
       LEFT JOIN player.player b ON b.id=l.who
       LEFT JOIN player.player s ON s.id=l.shop_owner
@@ -7439,6 +7448,7 @@ def shop_transaction_rows(limit=40, before_id=None, after_id=None, item_query=""
       LEFT JOIN account.account sa ON sa.id=s.account_id
       LEFT JOIN player.item_proto ip ON ip.vnum=l.vnum
       LEFT JOIN player.item i ON i.id=l.itemid
+      LEFT JOIN player.web_seban_skillbook_identity c ON c.item_id=l.itemid AND l.vnum=50300
       WHERE l.what='BUY_ITEM' AND l.time >= NOW() - INTERVAL 7 DAY{condition}
       ORDER BY l.id {order} LIMIT %s""", tuple(params))
     has_more = len(raw) > limit

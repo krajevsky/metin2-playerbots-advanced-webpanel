@@ -1,3 +1,10 @@
+## 2026-10-12 · 1.114.91 · Księgi na straganach i cel wędkowania
+
+- Ranking ksiąg umiejętności korzysta z potwierdzonych zakupów IkarusShop. Kolektor zachowuje numer umiejętności przypisany do ID księgi, zanim sprzedany egzemplarz zniknie z bazy; wpisy są przechowywane najwyżej 8 dni. Brakujących socketów nie przypisujemy do przypadkowych umiejętności. Widok pokazuje również łączną liczbę sprzedaży ksiąg, nawet gdy ich rodzaj nie jest już możliwy do ustalenia.
+- „Ostatnie sprzedaże na straganach” pokazują kupującego obok sprzedawcy, na podstawie tego samego zakończonego zakupu. Tabela przewija się poziomo na wąskich ekranach; tracker transakcji także korzysta z zachowanego socketu przy nazwach ksiąg.
+- Cel Playerbots #12 ma potwierdzoną w kodzie silnika nazwę „Łowienie ryb” i angielski odpowiednik.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
 ## 2026-10-12 · 1.114.90 · Cele botów w aktywnościach świata
 
 - „Aktywności w świecie” liczą teraz cele zgłaszane przez silnik gry, tak jak panel Tieru: zdobywanie poziomu, przetrwanie, polowanie na Metiny, zapasy, ulepszanie, rozwój konia i cele drużynowe. Kategorie można porównywać między panelami; widok wybranej mapy nadal pokazuje bardziej szczegółowe bieżące czynności.

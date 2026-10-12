@@ -352,6 +352,12 @@ def init(cur):
       captured_at DATETIME NOT NULL, vnum INT UNSIGNED NOT NULL, socket0 INT NOT NULL DEFAULT 0,
       offers INT UNSIGNED NOT NULL, total_units BIGINT UNSIGNED NOT NULL, total_value BIGINT UNSIGNED NOT NULL,
       PRIMARY KEY(captured_at,vnum,socket0), KEY(vnum,captured_at)) ENGINE=InnoDB""")
+    # A sold Skill Book can be consumed before the panel reads BUY_ITEM. Keep
+    # its skill socket by item id while it still exists; never infer a skill
+    # from a different book with the same generic vnum.
+    cur.execute("""CREATE TABLE IF NOT EXISTS player.web_seban_skillbook_identity (
+      item_id INT UNSIGNED NOT NULL PRIMARY KEY, socket0 INT NOT NULL,
+      last_seen DATETIME NOT NULL, KEY(last_seen)) ENGINE=InnoDB""")
 
     # "Konta i GM -> Nazwy postaci botów": a durable, queryable copy of the
     # 5400-name pool from playerbot_names.sql (the engine's own generated
@@ -509,6 +515,10 @@ def collect(con, previous):
           WHERE i.window = 'IKASHOP_OFFLINESHOP' AND o.duration > 0
             AND i.ikashop_data IS NOT NULL AND i.ikashop_data <> ''
           GROUP BY vnum, IF(vnum=50300, socket0, 0)""", (now,))
+        cur.execute("""INSERT INTO player.web_seban_skillbook_identity (item_id,socket0,last_seen)
+          SELECT id,socket0,%s FROM player.item WHERE vnum=50300 AND socket0>0
+          ON DUPLICATE KEY UPDATE socket0=VALUES(socket0), last_seen=VALUES(last_seen)""", (now,))
+        cur.execute("DELETE FROM player.web_seban_skillbook_identity WHERE last_seen < %s - INTERVAL 8 DAY", (now,))
         cur.execute("SELECT COALESCE(SUM(gold),0) FROM player.player WHERE name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')")
         yang = cur.fetchone()[0]
         cur.execute("INSERT IGNORE INTO player.web_seban_metric_snapshot VALUES (%s,'total_yang',%s)", (now, yang))

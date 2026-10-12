@@ -15,6 +15,10 @@ SALE = {
 }
 
 
+def test_new_playerbots_goal_is_fishing():
+    assert panel.live_label("goal", 12) == "Łowienie ryb"
+
+
 def test_transaction_api_returns_both_actors_from_buy_item():
     with patch.object(panel, "settings", return_value=SETTINGS), patch.object(panel, "rows", return_value=[SALE]) as read:
         response = panel.app.test_client().get("/api/shop-transactions")
@@ -29,6 +33,40 @@ def test_transaction_api_returns_both_actors_from_buy_item():
     assert "l.who AS buyer_id" in sql and "l.shop_owner AS seller_id" in sql
     assert "l.time >= NOW() - INTERVAL 7 DAY" in sql
     assert params == (41,)
+
+
+def test_recent_shop_sales_uses_completed_purchase_for_both_names():
+    sale = {
+        "time": SALE["time"], "buyer_id": 106, "seller_id": 751,
+        "buyer": "Kupujący", "seller": "Sprzedawca", "empire": 2,
+        "vnum": 50300, "qty": 1, "price": 125000, "socket0": 4,
+    }
+    with patch.object(panel, "rows", return_value=[sale]) as read, \
+         patch.object(panel, "_item_display_name", return_value="Silne ciało — Księga Umiejętności"), \
+         patch.object(panel, "item_icon_url", return_value="/book.png"), \
+         patch.object(panel, "settings", return_value=SETTINGS):
+        result = panel.recent_shop_sales(10)
+    assert (result[0]["buyer"], result[0]["seller"]) == ("Kupujący", "Sprzedawca")
+    assert (result[0]["buyer_id"], result[0]["seller_id"]) == (106, 751)
+    assert result[0]["item_name"] == "Silne ciało — Księga Umiejętności"
+    sql, params = read.call_args.args
+    assert "l.what='BUY_ITEM'" in sql and "l.who AS buyer_id" in sql
+    assert "l.shop_owner AS seller_id" in sql and "skillbook_identity" in sql
+    assert params == (10,)
+
+
+def test_skill_book_ranking_keeps_known_skills_separate_from_unknown():
+    sales = [
+        {"vnum": 50300, "time": SALE["time"], "qty": 1, "price": 120000, "socket0": 4},
+        {"vnum": 50300, "time": SALE["time"], "qty": 1, "price": 90000, "socket0": 0},
+    ]
+    with patch.object(panel, "rows", return_value=sales) as read, \
+         patch.object(panel, "_item_display_name", return_value="Silne ciało — Księga Umiejętności"):
+        result = panel.shop_sales_velocity(24, 5, only_skillbooks=True)
+    assert len(result) == 1 and result[0]["socket0"] == 4
+    assert result[0]["sales"] == 1 and result[0]["avg_price"] == 120000
+    assert "l.what='BUY_ITEM'" in read.call_args.args[0]
+    assert "skillbook_identity" in read.call_args.args[0]
 
 
 def test_transaction_cursors_are_bounded_and_parameterized():
