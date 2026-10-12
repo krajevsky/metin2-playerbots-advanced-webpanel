@@ -39,7 +39,9 @@ def test_completed_quests_use_log_only_for_dates(monkeypatch):
 
 def test_quest_catalog_names_and_first_npc(monkeypatch):
     assert panel.quest_display_name("subquest_39") == "Sytuacja Balso"
+    assert panel.quest_display_name("subquest_39", "en") == "Traitor Balso's condition"
     assert panel.quest_display_name("subquest_49") == "Czym jest Bingsu?"
+    assert all(entry["title_en"] for entry in panel.QUEST_CATALOG.values())
 
     def fake_rows(sql, params=()):
         if "FROM player.quest" in sql:
@@ -56,6 +58,7 @@ def test_quest_catalog_names_and_first_npc(monkeypatch):
     assert completed[0]["label"] == "Sytuacja Balso"
     assert completed[0]["giver"] == "Zdrajca Balso"
     assert completed[0]["number"] == "#39"
+    assert panel.character_completed_quests(1, "en")[0]["label"] == "Traitor Balso's condition"
 
 
 def test_core_quest_and_investment_snapshots(tmp_path, monkeypatch):

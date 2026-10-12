@@ -1,7 +1,7 @@
 """Generate static quest titles from the game's Polish Lua locale and scripts.
 
 Usage on the game host:
-  python3 tools/generate_quest_catalog.py PATH_TO_TRANSLATE_LUA PATH_TO_QUEST_DIR
+  python3 tools/generate_quest_catalog.py PATH_TO_TRANSLATE_LUA PATH_TO_QUEST_DIR PATH_TO_QUEST_TEXTS_EN
 
 The output is JSON on stdout. It contains only quest names, localized titles,
 and the first NPC VNUM explicitly named by a quest script. The panel resolves
@@ -15,6 +15,7 @@ from pathlib import Path
 
 
 VALUE = re.compile(r'^gameforge\.(\w+)\.(_[\w]+)\s*=\s*"(.*)"\s*$')
+ENGLISH_VALUE = re.compile(r'^\s*\{"([\w]+\._[\w]+)", "[^"]+", "((?:\\.|[^"\\])*)"(?:, "[^"]+")?\},?\s*$')
 QUEST = re.compile(r'\bquest\s+([\w]+)\s+begin')
 NPC = re.compile(r'\b(\d{4,6})\.chat\b')
 NUMBER = re.compile(r'^_(\d+)')
@@ -23,6 +24,7 @@ ACTION = re.compile(r'^(?:idź|wróć|zapytaj|spotkaj|przynieś|dostarcz|znajdź
 # mid-quest prompt scores above the quest's clearer game title.
 TITLE_KEYS = {
     "main_quest_lv10": "_110_sayTitle",
+    "subquest_21": "_110_sendLetter",
     "subquest_30": "_100_sendLetter",
     "subquest_31": "_100_sendLetter",
     "subquest_34": "_90_sendLetter",
@@ -65,7 +67,7 @@ def title_score(key, value):
     return score
 
 
-def catalog(translation_file, quest_dir):
+def catalog(translation_file, quest_dir, english_file=None):
     translated = {}
     for line in translation_file.read_bytes().decode("cp1250", "replace").splitlines():
         match = VALUE.match(line)
@@ -74,6 +76,13 @@ def catalog(translation_file, quest_dir):
         value = match.group(3).replace("[ENTER]", " ").strip()
         if 3 <= len(value) <= 70 and "%" not in value and "[" not in value:
             translated.setdefault(match.group(1), []).append((match.group(2), value))
+
+    english = {}
+    if english_file:
+        for line in english_file.read_text(encoding="utf-8").splitlines():
+            match = ENGLISH_VALUE.match(line)
+            if match:
+                english[match.group(1)] = match.group(2).replace(r'\"', '"').replace(r'\\', '\\').replace("[ENTER]", " ").strip()
 
     result = {}
     for path in quest_dir.rglob("*.quest"):
@@ -87,15 +96,16 @@ def catalog(translation_file, quest_dir):
             continue
         aliases = {path.stem, name}
         # Some early files are subquest_01.quest but persist as subquest_1.
-        candidates = [(title_score(key, value), value) for alias in aliases
+        candidates = [(title_score(key, value), value, alias, key) for alias in aliases
                       for key, value in translated.get(alias, [])]
         candidates = [pair for pair in candidates if pair[0] > 0]
         if not candidates:
             continue
-        score, title = max(candidates, key=lambda pair: pair[0])
+        score, title, alias, title_key = max(candidates, key=lambda pair: pair[0])
         if name in TITLE_KEYS:
-            title = next((value for alias in aliases for key, value in translated.get(alias, [])
-                          if key == TITLE_KEYS[name]), title)
+            title, alias, title_key = next(((value, source, key) for source in aliases
+                                             for key, value in translated.get(source, [])
+                                             if key == TITLE_KEYS[name]), (title, alias, title_key))
         # The first chat in the opening information/start state is the
         # character's first explicit contact. Later chats may be recipients.
         first_npc = None
@@ -104,9 +114,10 @@ def catalog(translation_file, quest_dir):
             first_npc = NPC.search(opening.group(1))
             if first_npc:
                 break
-        result[name] = {"title": title, "npc_vnum": int(first_npc.group(1)) if first_npc else None}
+        result[name] = {"title": title, "title_en": english.get(f"{alias}.{title_key}"),
+                        "npc_vnum": int(first_npc.group(1)) if first_npc else None}
     return dict(sorted(result.items()))
 
 
 if __name__ == "__main__":
-    print(json.dumps(catalog(Path(sys.argv[1]), Path(sys.argv[2])), ensure_ascii=False, indent=2))
+    print(json.dumps(catalog(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])), ensure_ascii=False, indent=2))

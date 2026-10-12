@@ -1,354 +1,442 @@
 {
   "find_brother_article": {
     "title": "Pamiątka po Bracie Mirine.",
+    "title_en": "Keepsake of Mirine's Brother.",
     "npc_vnum": 20006
   },
   "find_squareguard": {
     "title": "Strażnik Wsi",
+    "title_en": "Guardian",
     "npc_vnum": null
   },
   "main_quest_lv1": {
     "title": "Witamy w Metin2009",
+    "title_en": "Welcome to Metin2 SinglePlayer",
     "npc_vnum": null
   },
   "main_quest_lv10": {
     "title": "Trening Kapitana",
+    "title_en": "The Captain's training",
     "npc_vnum": null
   },
   "main_quest_lv12": {
     "title": "Zabij 10 Szarych Alfa Wilków",
+    "title_en": "Kill 10 Alpha Grey Wolves",
     "npc_vnum": null
   },
   "main_quest_lv14": {
     "title": "Zniszcz Metin Bitwy",
+    "title_en": "Destroy the Metin of Battle",
     "npc_vnum": null
   },
   "main_quest_lv15": {
     "title": "Aktualna sytuacja",
+    "title_en": "The current situation",
     "npc_vnum": null
   },
   "main_quest_lv16": {
     "title": "Schwytaj Szpiega",
+    "title_en": "Capture the spy",
     "npc_vnum": null
   },
   "main_quest_lv2": {
     "title": "List od Strażnika Miejskiego",
+    "title_en": "Letter from the City Guard",
     "npc_vnum": null
   },
   "main_quest_lv27": {
     "title": "Zniszcz Kamienie Metin!",
+    "title_en": "Destroy the Metin Stones",
     "npc_vnum": null
   },
   "main_quest_lv3": {
     "title": "Nowiny od Strażnika Miejskiego",
+    "title_en": "News from the City Guard",
     "npc_vnum": null
   },
   "main_quest_lv30": {
     "title": "Sekret Kamieni Metin",
+    "title_en": "The secret of the Metin Stones",
     "npc_vnum": null
   },
   "main_quest_lv32": {
     "title": "Tajemnicza Książka",
+    "title_en": "The secret book",
     "npc_vnum": null
   },
   "main_quest_lv40": {
     "title": "Świątynia Ciemności",
+    "title_en": "The Temple of Darkness",
     "npc_vnum": null
   },
   "main_quest_lv47": {
     "title": "Strona od Brutalnego Kapitana",
+    "title_en": "The page from the Bestial Captains",
     "npc_vnum": 20011
   },
   "main_quest_lv50": {
     "title": "Dziewiąta Strona",
+    "title_en": "The ninth page",
     "npc_vnum": null
   },
   "main_quest_lv55": {
     "title": "Poszukiwania pomników",
+    "title_en": "Looking for the memorials",
     "npc_vnum": null
   },
   "main_quest_lv6": {
     "title": "Idź do Strażnika Miejskiego.",
+    "title_en": "Go to the City Guard",
     "npc_vnum": null
   },
   "main_quest_lv60": {
     "title": "Nowy ślad",
+    "title_en": "A new clue",
     "npc_vnum": null
   },
   "main_quest_lv66": {
     "title": "Pamiętnik",
+    "title_en": "The Diary",
     "npc_vnum": null
   },
   "main_quest_lv7": {
     "title": "Znajdź Rybaka",
+    "title_en": "Find the Fisherman",
     "npc_vnum": null
   },
   "main_quest_lv72": {
     "title": "Zwietrzała Płyta",
+    "title_en": "Worn Stone Tablet",
     "npc_vnum": null
   },
   "main_quest_lv78": {
     "title": "Czerwony Kwarc Piekieł",
+    "title_en": "Red Hell Quartz",
     "npc_vnum": null
   },
   "main_quest_lv84": {
     "title": "Rozpoczyna się walka",
+    "title_en": "The Fight Begins",
     "npc_vnum": null
   },
   "main_quest_lv9": {
     "title": "Porozmawiaj ze Strażnikiem Miejskim",
+    "title_en": "Talk to the City Guard",
     "npc_vnum": null
   },
   "main_quest_lv90": {
     "title": "Skała Mrocznego Smoka",
+    "title_en": "Dark Dragon Rock",
     "npc_vnum": null
   },
   "main_quest_lv91": {
     "title": "List do Mantikorów",
+    "title_en": "The Manticore Letter",
     "npc_vnum": null
   },
   "main_quest_lv92": {
     "title": "List do Bandy Czerwonych",
+    "title_en": "The Red Thief Letter",
     "npc_vnum": null
   },
   "main_quest_lv93": {
     "title": "Wzmocnij siły I",
+    "title_en": "Stocking Up On Power I",
     "npc_vnum": null
   },
   "main_quest_lv94": {
     "title": "Perły Syriusza",
+    "title_en": "Leviathan Pearls",
     "npc_vnum": null
   },
   "main_quest_lv95": {
     "title": "Gorączka złota",
+    "title_en": "Gold Fever",
     "npc_vnum": null
   },
   "main_quest_lv96": {
     "title": "Zatrzymaj klątwę",
+    "title_en": "Prevent the Curse",
     "npc_vnum": null
   },
   "main_quest_lv97": {
     "title": "Zatrzymaj Banshee",
+    "title_en": "Stop the Banshee",
     "npc_vnum": null
   },
   "main_quest_lv98": {
     "title": "Odbudowa Fortu",
+    "title_en": "Reconstruction of the Fort",
     "npc_vnum": null
   },
   "new_quest_lv22": {
     "title": "Lekarstwo",
+    "title_en": "Medicine",
     "npc_vnum": 11000
   },
   "new_quest_lv24": {
     "title": "Dodatkowe zaopatrzenie",
+    "title_en": "Additional Supplies",
     "npc_vnum": 20355
   },
   "new_quest_lv26": {
     "title": "Dezerter",
+    "title_en": "The deserter",
     "npc_vnum": null
   },
   "new_quest_lv28": {
     "title": "Polowanie na niedźwiedzie",
+    "title_en": "Hunting bears",
     "npc_vnum": 20017
   },
   "new_quest_lv29": {
     "title": "Rozbita Porcelana",
+    "title_en": "The broken porcelain",
     "npc_vnum": null
   },
   "new_quest_lv42": {
     "title": "Diamentowy Kamień",
+    "title_en": "Diamond Stone",
     "npc_vnum": 20008
   },
   "new_quest_lv52": {
     "title": "Spokojna noc",
+    "title_en": "A good night's sleep",
     "npc_vnum": null
   },
   "new_quest_lv7": {
     "title": "Siostra",
+    "title_en": "The sister",
     "npc_vnum": 20008
   },
   "new_quest_lv75": {
     "title": "Pamiętnik Legendy",
+    "title_en": "Diary of a Legend",
     "npc_vnum": null
   },
   "new_quest_lv80": {
     "title": "Posępna Drewniana Maska",
+    "title_en": "The Sombre Wooden Mask",
     "npc_vnum": null
   },
   "subquest_1": {
     "title": "Zdobądź Pustą Butelkę",
+    "title_en": "Get Empty Bottles",
     "npc_vnum": 9003
   },
   "subquest_10": {
     "title": "Skradziona Spinka.",
+    "title_en": "The stolen Hairpin",
     "npc_vnum": 9003
   },
   "subquest_11": {
     "title": "Nowiny o Bracie Mirine.",
+    "title_en": "News about Mirine's brother.",
     "npc_vnum": 20006
   },
   "subquest_12": {
     "title": "Mi-Jung z Zaprzysiężonych",
+    "title_en": "Mi-Jung from the White Oath",
     "npc_vnum": 11000
   },
   "subquest_13": {
     "title": "Materiały na broń",
+    "title_en": "Material for weapons",
     "npc_vnum": 9001
   },
   "subquest_15": {
     "title": "Eun-Jung z Klanu Zaprzysiężonych",
+    "title_en": "Eun-Jung from the White Oath",
     "npc_vnum": 11000
   },
   "subquest_16": {
     "title": "Uzbrojona Kawaleria.",
+    "title_en": "The armoured cavalry",
     "npc_vnum": 20355
   },
   "subquest_17": {
     "title": "Mąż Ariyoung",
+    "title_en": "Ariyoung's husband",
     "npc_vnum": 20021
   },
   "subquest_18": {
     "title": "Gdzie on się ukrywa?",
+    "title_en": "Where Is He Hiding?",
     "npc_vnum": 20002
   },
   "subquest_19": {
     "title": "Zdobądź Futro Szarego Wilka.",
+    "title_en": "Find a feather duster",
     "npc_vnum": 9006
   },
   "subquest_2": {
     "title": "Obiad",
+    "title_en": "The dinner",
     "npc_vnum": null
   },
   "subquest_20": {
     "title": "Pamiątka po mężu.",
+    "title_en": "Mementos of a husband",
     "npc_vnum": 20003
   },
   "subquest_21": {
-    "title": "Balso?",
+    "title": "Lekarstwo dla Balso",
+    "title_en": "A medicine for Balso",
     "npc_vnum": 20020
   },
   "subquest_22": {
     "title": "Znalazłeś Złoty Topór",
+    "title_en": "Found the Golden Axe",
     "npc_vnum": 20015
   },
   "subquest_23": {
     "title": "Poszukiwania starszego Brata Mirine!",
+    "title_en": "Please look for my older brother!",
     "npc_vnum": 20006
   },
   "subquest_24": {
     "title": "Ciastka Ryżowe Yu-Rang",
+    "title_en": "Yu-Rang's Rice Cake",
     "npc_vnum": 20012
   },
   "subquest_25": {
     "title": "Och moja kochana Ariyoung",
+    "title_en": "Oh my beloved Ariyoung",
     "npc_vnum": 20022
   },
   "subquest_26": {
     "title": "Zabij Drzewnego Żabiego Przywódce",
+    "title_en": "Kill Tree Frog Leaders",
     "npc_vnum": 9005
   },
   "subquest_27": {
     "title": "Przyjemność z czytania",
+    "title_en": "The joy of reading",
     "npc_vnum": 20023
   },
   "subquest_3": {
     "title": "Składnik na lekarstwo",
+    "title_en": "Ingredient for the Medicine",
     "npc_vnum": null
   },
   "subquest_30": {
     "title": "Ruda na nową broń",
+    "title_en": "Ore for a new weapon",
     "npc_vnum": 20016
   },
   "subquest_31": {
     "title": "Ruda na nową zbroje",
+    "title_en": "Ore for new armour",
     "npc_vnum": 20016
   },
   "subquest_32": {
     "title": "Potrzebuję Nici.",
+    "title_en": "I need Thread.",
     "npc_vnum": 20010
   },
   "subquest_33": {
     "title": "Polowanie na Bogów Zwierząt",
+    "title_en": "Hunting the animal gods",
     "npc_vnum": 20023
   },
   "subquest_34": {
     "title": "Zabij generałów Gangu Czarnego Wiatru.",
+    "title_en": "Kill the Black Wind generals",
     "npc_vnum": 20355
   },
   "subquest_36": {
     "title": "Udaj się do Stajennego",
+    "title_en": "Off to see the Stable Boy",
     "npc_vnum": 20005
   },
   "subquest_37": {
     "title": "Sekret seledynowej porcelany",
+    "title_en": "Secret of Celadon Porcelain",
     "npc_vnum": 20005
   },
   "subquest_38": {
     "title": "Skarb Łowcy",
+    "title_en": "The Hunter's Treasure",
     "npc_vnum": 20019
   },
   "subquest_39": {
     "title": "Sytuacja Balso",
+    "title_en": "Traitor Balso's condition",
     "npc_vnum": 20020
   },
   "subquest_4": {
     "title": "List od Kowala.",
+    "title_en": "A Letter from the Blacksmith",
     "npc_vnum": 20016
   },
   "subquest_40": {
     "title": "Wsparcie wojenne",
+    "title_en": "Supporting War Device",
     "npc_vnum": 20355
   },
   "subquest_41": {
     "title": "Specjał z oczu pająków",
+    "title_en": "Spider Eyes Special",
     "npc_vnum": 20008
   },
   "subquest_42": {
     "title": "Pozwólmy odpocząć poległym...",
+    "title_en": "Let the Dead Rest",
     "npc_vnum": 20306
   },
   "subquest_44": {
     "title": "Wiele pająków, żadnego dzwonka",
+    "title_en": "A lot of spiders, no bell",
     "npc_vnum": 20012
   },
   "subquest_45": {
     "title": "Problem ze Świątynią Ciemności",
+    "title_en": "The thing about the Temple of Darkness",
     "npc_vnum": null
   },
   "subquest_46": {
     "title": "Sekret seledynowej porcelany",
+    "title_en": "Secret of Celadon Porcelain",
     "npc_vnum": 20005
   },
   "subquest_47": {
     "title": "Kapitan",
+    "title_en": "Captain",
     "npc_vnum": 20355
   },
   "subquest_48": {
     "title": "Znajdź Szpiega",
+    "title_en": "Finding the spy",
     "npc_vnum": 20355
   },
   "subquest_49": {
     "title": "Czym jest Bingsu?",
+    "title_en": "What is Bingsu?",
     "npc_vnum": 20014
   },
   "subquest_5": {
     "title": "Przysługa dla Soon.",
+    "title_en": "A Favour for Soon",
     "npc_vnum": 20023
   },
   "subquest_6": {
     "title": "Zamówienie na zbroję.",
+    "title_en": "Ordering Armour",
     "npc_vnum": 9002
   },
   "subquest_7": {
     "title": "Najlepsza Książka Kucharska",
+    "title_en": "The best cookbook",
     "npc_vnum": 20008
   },
   "subquest_8": {
     "title": "Ciastko Ryżowe",
+    "title_en": "Rice Cake",
     "npc_vnum": 20003
   },
   "subquest_9": {
     "title": "Kowal.",
+    "title_en": "Blacksmith",
     "npc_vnum": 20016
   }
 }

@@ -185,8 +185,11 @@
 .bot-profile-head>.inventory-panel{width:auto;inset:auto;display:block}
 .bot-profile-head>.bot-inventory-column{min-width:0;width:100%}
 .bot-inventory-column>.inventory-panel{width:100%;box-sizing:border-box;inset:auto;display:block}
-.bot-inventory-column>.bot-quest-record{margin-top:14px;min-width:0;box-sizing:border-box}
-.bot-quest-record-list{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}
+.bot-inventory-column>.bot-quest-record{display:flex;flex-direction:column;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);margin-top:14px;min-width:0;box-sizing:border-box;overflow:hidden}
+.bot-quest-record-list{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:9px;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#9b7138 #20150d;overscroll-behavior:contain}
+.bot-quest-record-list::-webkit-scrollbar{width:8px}
+.bot-quest-record-list::-webkit-scrollbar-track{background:#20150d;border-radius:8px}
+.bot-quest-record-list::-webkit-scrollbar-thumb{background:linear-gradient(#c59a52,#76502a);border:2px solid #20150d;border-radius:8px}
 .bot-quest-card{display:grid;gap:4px;min-width:0;padding:10px 12px;border:1px solid var(--edge);border-radius:8px;background:color-mix(in srgb,var(--panel) 90%,#000);overflow-wrap:anywhere}
 .bot-quest-card strong{font-size:13px;line-height:1.25}
 .bot-quest-card small,.bot-quest-card time{font-size:11px;color:var(--muted)}

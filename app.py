@@ -1884,15 +1884,19 @@ except (OSError, ValueError):
     QUEST_CATALOG = {}
 
 
-def quest_display_name(name):
-    title = (QUEST_CATALOG.get(name) or {}).get("title")
+def quest_display_name(name, language="pl"):
+    title = (QUEST_CATALOG.get(name) or {}).get("title_en" if language == "en" else "title")
     if title:
         return title
     match = re.fullmatch(r"(main_quest_lv|new_quest_lv|subquest_)(\d+)", name)
     if match:
-        family = "Misja poboczna" if match.group(1) == "subquest_" else "Misja fabularna"
+        family = (("Side quest" if match.group(1) == "subquest_" else "Story quest") if language == "en"
+                  else ("Misja poboczna" if match.group(1) == "subquest_" else "Misja fabularna"))
         return f"{family} · {'#' if match.group(1) == 'subquest_' else 'Lv '}{match.group(2)}"
-    return {"find_brother_article": "Poszukiwanie brata", "find_squareguard": "Poszukiwanie strażnika"}.get(name, name)
+    fallback = ({"find_brother_article": "Search for the brother", "find_squareguard": "Search for the guard"}
+                if language == "en" else
+                {"find_brother_article": "Poszukiwanie brata", "find_squareguard": "Poszukiwanie strażnika"})
+    return fallback.get(name, name)
 
 
 def guild_statuses():
@@ -3700,7 +3704,7 @@ HUNTING_QUEST_TARGETS = {
 }
 
 
-def character_mission_progress(pid, current_quest=None):
+def character_mission_progress(pid, current_quest=None, language="pl"):
     """Track numeric missions plus every persisted story/side quest in progress."""
     quest_names = list(biologist_missions()) + ["playerbot", "hunting"]
     marks = ",".join(["%s"] * len(quest_names))
@@ -3763,7 +3767,7 @@ def character_mission_progress(pid, current_quest=None):
         state = int(quest.get("lValue") or 0)
         if state != QUEST_COMPLETE_STATE and (state != QUEST_INFORMATION_STATE or is_current):
             seen_story.add(quest["szName"])
-            label = current_quest["title"] if is_current else quest_display_name(quest["szName"])
+            label = current_quest["title"] if is_current else quest_display_name(quest["szName"], language)
             current = max(0, current_quest["have"]) if is_current else 0
             target = max(0, current_quest["need"]) if is_current else 0
             missions.append({"label": label, "current": current, "target": target,
@@ -3782,7 +3786,7 @@ QUEST_COMPLETE_STATE = 668443392  # CRC32("__COMPLETE__") in this engine.
 QUEST_INFORMATION_STATE = 695801987  # CRC32("information"): offered, not necessarily accepted.
 
 
-def character_completed_quests(pid):
+def character_completed_quests(pid, language="pl"):
     """Current completed states are authoritative; the log only supplies dates."""
     bio = biologist_missions()
     quest_rows = rows("SELECT szName,lValue FROM player.quest WHERE dwPID=%s AND szState='__status' "
@@ -3797,12 +3801,12 @@ def character_completed_quests(pid):
             continue
         number = re.search(r"[0-9]+$", name)
         completed.append({"key": name, "category": "Biolog" if is_bio else "Poboczna" if name.startswith("subquest_") else "Fabularna",
-                          "label": (f"Biolog · Lv {number.group()}" if number else name) if is_bio else quest_display_name(name),
+                          "label": (f"{'Biologist' if language == 'en' else 'Biolog'} · Lv {number.group()}" if number else name) if is_bio else quest_display_name(name, language),
                           "number": ("#" if name.startswith("subquest_") else "Lv ") + number.group() if number and not is_bio else None,
                           "date": None, "giver": None})
     hunt = one("SELECT lValue FROM player.quest WHERE dwPID=%s AND szName='hunting' AND szState='huntingProgress'", (pid,))
     for index in range(min(len(HUNTING_QUEST_TARGETS), max(0, int((hunt or {}).get("lValue") or 0)))):
-        completed.append({"key": None, "category": "Polowanie", "label": f"Polowanie nr {index + 1}",
+        completed.append({"key": None, "category": "Polowanie", "label": f"{'Hunting quest' if language == 'en' else 'Polowanie nr'} {index + 1}",
                           "number": None, "date": None, "giver": None})
     if completed:
         history = rows("SELECT quest_name,MAX(time) AS finished_at FROM log.quest_state_log "
@@ -6103,11 +6107,16 @@ def player(pid):
     )
     current_quest = player_profile_component(pid, "current_quest", None,
                                              lambda: bot_profile_snapshots("quest").get(pid))
+    ui_language = settings().get("ui_language", "pl")
+    if (current_quest and ui_language == "en" and
+            (QUEST_CATALOG.get(current_quest.get("quest")) or {}).get("title_en")):
+        current_quest = dict(current_quest, title=quest_display_name(current_quest["quest"], "en"))
     investment = player_profile_component(pid, "investment", None,
                                           lambda: investment_summary(bot_profile_snapshots("investment").get(pid)))
     mission_progress = player_profile_component(pid, "missions", list,
-                                                lambda: character_mission_progress(pid, current_quest))
-    completed_quests = player_profile_component(pid, "completed_quests", list, lambda: character_completed_quests(pid))
+                                                lambda: character_mission_progress(pid, current_quest, ui_language))
+    completed_quests = player_profile_component(pid, "completed_quests", list,
+                                                lambda: character_completed_quests(pid, ui_language))
     item_value = player_profile_component(pid, "item_value", None,
                                           lambda: character_item_value(pid, character.get("account_id")))
     exp_lock = player_profile_component(pid, "exp_lock", None, lambda: bot_exp_lock_view(character, live))

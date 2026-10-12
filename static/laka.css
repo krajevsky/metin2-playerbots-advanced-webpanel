@@ -747,7 +747,7 @@ body[data-skin="laka"] .laka-sheet .laka-language{margin-top:18px;padding-top:14
   body[data-skin="laka"] .laka-rail-foot .laka-language-options button{min-height:38px;font-size:10px;padding:3px 0}
   body[data-skin="laka"] .laka-rail-foot .laka-language-options button img{width:16px}
 }
-[data-skin="laka"] .bot-quest-record-list{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;max-height:none;overflow:visible}
+[data-skin="laka"] .bot-quest-record-list{gap:10px}
 [data-skin="laka"] .bot-quest-card{border-color:rgba(214,168,81,.22);background:rgba(29,19,12,.62)}
 [data-skin="laka"] .bot-quest-kind{color:#d7a754;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
 [data-skin="laka"] .bot-quest-record-list time{color:#a99985;font-size:.8rem}

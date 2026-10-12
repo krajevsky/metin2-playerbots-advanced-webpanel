@@ -1,3 +1,11 @@
+## 2026-10-12 · 1.114.89 · Przewijanie ukończonych misji i angielskie nazwy
+
+- Lista ukończonych misji pod ekwipunkiem mieści się w wysokości ekranu i otrzymuje własny przewijany obszar z paskiem dopasowanym do motywu Łąka i Złoto.
+- Angielskie tytuły wszystkich 88 rozpoznanych misji pochodzą z pliku `quest_texts_en.lua` serwera i są wybierane po przełączeniu panelu na English. Dotyczy to również bieżącej misji, jeśli ma odpowiednik w katalogu.
+- Poprawiono tytuł misji `subquest_21` na właściwy tytuł skryptu „Lekarstwo dla Balso” / „A medicine for Balso”.
+
+![via Codex by Seban](https://img.shields.io/badge/via-Codex%20by%20Seban-10A37F)
+
 ## 2026-10-12 · 1.114.88 · Czytelna blokada struktury bazy
 
 - Odnośnik do przeglądu struktury bazy pojawia się tylko przy włączonej ochronie hasłem i zalogowanej sesji administratora. Bez tych warunków bezpośredni adres nadal zwraca 403, ale wyjaśnia po polsku lub angielsku, jak uzyskać dostęp.
