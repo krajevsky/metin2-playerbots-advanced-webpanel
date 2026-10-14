@@ -1,3 +1,11 @@
+## 2026-10-14 · 1.114.92 · Zmiana nicku postaci z prawami GM
+
+- Zmiana nicku w karcie postaci przenosi prawa GM: wiersze `common.gmlist` starej nazwy są kopiowane na nową (stare zostają, bo gra może jeszcze chwilę podawać starą nazwę). Panel odmawia, gdy nowa nazwa jest już na liście GM albo nie zmieści się w kolumnie `mName`.
+- Postać, która jest w grze, zmienia nazwę sama gra (komenda `RENAME` w kolejce, `pc.change_name` w `web_admin.quest` Tieru): rdzeń bazy dostaje nową nazwę do pamięci, gracz jest rozłączany po kilku sekundach, a panel przeładowuje listę GM. Postać offline, bot albo starszy quest bez `RENAME` dostaje zapis w tabeli jak dotąd, z komunikatem, kiedy gra pokaże nową nazwę. Odmowa gry cofa skopiowane wiersze.
+- Wcześniej zmieniony GM zostawał w grze pod starą nazwą i tracił IMPLEMENTOR (zgłoszenie kreinbargh, 13.10).
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-12 · 1.114.91 · Księgi na straganach i cel wędkowania
 
 - Ranking ksiąg umiejętności korzysta z potwierdzonych zakupów IkarusShop. Kolektor zachowuje numer umiejętności przypisany do ID księgi, zanim sprzedany egzemplarz zniknie z bazy; wpisy są przechowywane najwyżej 8 dni. Brakujących socketów nie przypisujemy do przypadkowych umiejętności. Widok pokazuje również łączną liczbę sprzedaży ksiąg, nawet gdy ich rodzaj nie jest już możliwy do ustalenia.

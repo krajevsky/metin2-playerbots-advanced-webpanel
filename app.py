@@ -245,6 +245,8 @@ QUEUE_FINAL_STATUSES = frozenset((
     # Playerbots' answer to EXPUNLOCK/EXPLOCK for a character that is not a
     # registered bot, or is a player's companion (playerbot_admin_grants.h).
     "not_allowed",
+    # web_admin.quest's RENAME (pc.change_name's refusals).
+    "name_taken", "bad_name", "renaming",
 ))
 AI_WEIGHTS_FILE = RATES_SPOOL / "playerbot_weights.tsv"
 CHEST_SWITCH_FILE = RATES_SPOOL / "playerbot_chest_switch.tsv"
@@ -6414,25 +6416,149 @@ def player_action_coins(pid):
 @app.route("/player/<int:pid>/action/rename", methods=["POST"])
 @login_required
 def player_action_rename(pid):
-    character = one("SELECT id,name FROM player.player WHERE id=%s", (pid,))
+    """A character's new name, and the GM rights that hang on it.
+
+    kreinbargh, 13 October: "changed the GM name ... after restarted the
+    world and updated the client, the GM character didn't got the name
+    updated and lost the implementor perms but in the website shows fine".
+    Three things stood behind it. The engine finds a game master by the
+    character's NAME (common.gmlist.mName; gm.cpp's gm_new_get_level, the
+    account checked beside it), and this action never touched gmlist. The db
+    core keeps a character it has loaded in its cache, name included, and
+    serves the character screen and the next login from it: CreatePlayerSaveQuery
+    never writes the name back, so the row here says the new name while the
+    game goes on with the old one until the db core lets the character go
+    (ten minutes after its account logged out) or restarts. And gmlist.mName
+    is VARCHAR(16) in the package's dump, against names of up to 24.
+
+    So the rights are copied to the new name first - the old row stays, so
+    the character keeps them under whichever name the db core hands out (a
+    row names its account too, so nobody else can use it) - and a character
+    that is in the game is renamed by the game itself: web_admin.quest's
+    RENAME runs pc.change_name, the engine's own rename, which saves the new
+    name into the db core's cache, reloads the GM list and sends the player
+    to the character screen. Only a character nobody serves within a few
+    seconds is renamed in the table, as before, and the GM list is reloaded
+    through an online IMPLEMENTOR. A bot (playerbot_ account) keeps the old
+    path: the overlay renames bots its own way, and pc.change_name would
+    disconnect a character that has no client."""
+    character = one("SELECT p.id, p.name, p.account_id, a.login FROM player.player p "
+                    "LEFT JOIN account.account a ON a.id = p.account_id WHERE p.id=%s", (pid,))
     if not character:
         abort(404)
+    old_name = character["name"]
     new_name = request.form.get("new_name", "").strip()
-    if not (2 <= len(new_name) <= 24) or not new_name.isalnum():
+    if not (2 <= len(new_name) <= 24) or not new_name.isalnum() or not new_name.isascii():
         flash("Nick musi mieć 2-24 znaki alfanumeryczne.", "error")
+        return redirect(url_for("player", pid=pid))
+    if new_name == old_name:
         return redirect(url_for("player", pid=pid))
     if one("SELECT id FROM player.player WHERE name=%s LIMIT 1", (new_name,)):
         flash(f"Nick '{new_name}' jest już zajęty.", "error")
         return redirect(url_for("player", pid=pid))
-    rows("UPDATE player.player SET name=%s WHERE id=%s", (new_name, pid))
-    # No PAUSE/STOP command exists in web_admin_queue's live command set
-    # (checked web_admin.quest's cmd branches: ITEM/GOLD/LEVEL/WARP/SPEED/
-    # RIDER_*/BULK_* only) to safely quiesce a live bot first, so this is a
-    # plain write with an honest warning rather than a half-built pause hook.
-    flash(f"Zmieniono nick '{character['name']}' → '{new_name}'. Silnik nie zapisuje nazwy z pamięci "
-          f"przy CHARACTER::Save, więc żywa postać/bot NIE powinien cofnąć tej zmiany -- ale jeśli mimo "
-          f"to wróci stara nazwa, krótko zrestartuj kanał gry, na którym stoi ta postać.")
+    if one("SELECT mID FROM common.gmlist WHERE mName=%s LIMIT 1", (new_name,)):
+        flash(f"Nick '{new_name}' jest już na liście GM (common.gmlist) innej postaci. Usuń najpierw ten wpis.",
+              "error")
+        return redirect(url_for("player", pid=pid))
+    gm_rows = rows("SELECT mAccount, mContactIP, mServerIP, mAuthority FROM common.gmlist "
+                   "WHERE mName=%s AND mAuthority <> 'PLAYER'", (old_name,))
+    if gm_rows:
+        width = one("SELECT CHARACTER_MAXIMUM_LENGTH AS w FROM information_schema.COLUMNS "
+                    "WHERE TABLE_SCHEMA='common' AND TABLE_NAME='gmlist' AND COLUMN_NAME='mName'")
+        if width and width.get("w") and len(new_name) > int(width["w"]):
+            flash(f"Postać ma prawa GM, a lista GM (common.gmlist) mieści nicki do {int(width['w'])} znaków. "
+                  f"Wybierz krótszy nick albo zaktualizuj serwer.", "error")
+            return redirect(url_for("player", pid=pid))
+    copied = []
+    with db() as con, con.cursor() as cur:
+        for row in gm_rows:
+            cur.execute("INSERT INTO common.gmlist (mAccount, mName, mContactIP, mServerIP, mAuthority) "
+                        "VALUES (%s,%s,%s,%s,%s)",
+                        (row["mAccount"], new_name, row["mContactIP"], row["mServerIP"], row["mAuthority"]))
+            copied.append(cur.lastrowid)
+    is_bot = str(character.get("login") or "").startswith("playerbot_")
+    status = None if is_bot else queue_live_rename(old_name, new_name)
+    if status == "done":
+        log_rename(pid, old_name, new_name, "live")
+        if gm_rows:
+            queue_gm_reload()
+        flash(f"Zmieniono nick '{old_name}' → '{new_name}'. Postać była w grze: gra sama zmieniła jej nick, "
+              f"za około 10 sekund rozłączy gracza, a następne logowanie jest już pod nowym nickiem."
+              + (" Prawa GM przeszły na nowy nick." if gm_rows else ""))
+        return redirect(url_for("player", pid=pid))
+    if status in ("timeout", "gone"):
+        flash(f"Gra przyjęła zmianę nicku '{old_name}' → '{new_name}', ale nie odpowiedziała na czas. "
+              f"Sprawdź kartę postaci za chwilę.", "error")
+        return redirect(url_for("player", pid=pid))
+    # unknown_cmd: a game whose web_admin.quest predates RENAME (r40250's,
+    # or an image not rebuilt since) - the table's way, as before.
+    if status not in (None, "offline", "player_offline", "unknown_cmd"):
+        if copied:
+            rows("DELETE FROM common.gmlist WHERE mID IN (" + ",".join(["%s"] * len(copied)) + ")", copied)
+        flash(f"Gra nie zmieniła nicku ({status}). Nic nie zostało zmienione.", "error")
+        return redirect(url_for("player", pid=pid))
+    try:
+        rows("UPDATE player.player SET name=%s WHERE id=%s", (new_name, pid))
+    except pymysql.MySQLError:
+        if copied:
+            rows("DELETE FROM common.gmlist WHERE mID IN (" + ",".join(["%s"] * len(copied)) + ")", copied)
+        raise
+    log_rename(pid, old_name, new_name, "table")
+    reloaded = queue_gm_reload() if gm_rows else False
+    message = (f"Zmieniono nick '{old_name}' → '{new_name}'. Gra pokaże nowy nick, gdy serwer bazy "
+               f"zapomni tę postać: 10 minut po wylogowaniu konta albo po pełnym restarcie serwera.")
+    if gm_rows:
+        message += (" Prawa GM przeszły na nowy nick i do tego czasu działają pod oboma."
+                    if reloaded else
+                    " Prawa GM przeszły na nowy nick i do tego czasu działają pod oboma; "
+                    "pod nowym od następnego restartu serwera albo /reload a.")
+    flash(message)
     return redirect(url_for("player", pid=pid))
+
+
+def log_rename(pid, old_name, new_name, how):
+    try:
+        rows("INSERT INTO log.log (type,time,who,how,hint) VALUES ('CHARACTER',NOW(),%s,'PANEL_RENAME',%s)",
+             (pid, f"{old_name} -> {new_name} ({how})"))
+    except pymysql.MySQLError:
+        pass
+
+
+def queue_live_rename(old_name, new_name):
+    """Hand the rename to the character's own core (web_admin.quest's RENAME,
+    pc.change_name) and wait for its answer: "done", one of the quest's
+    refusals, or "offline" when nobody took the row - only then may the
+    caller write the table itself. A row the quest claimed a moment before it
+    was withdrawn is waited for, so the table is never written behind a
+    rename the game is making."""
+    rows("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2) VALUES (%s,'RENAME',%s,'')",
+         (old_name, new_name))
+    found = one("SELECT MAX(id) AS id FROM player.web_admin_queue WHERE player_name=%s AND cmd='RENAME' "
+                "AND arg1=%s AND status='pending'", (old_name, new_name))
+    qid = found.get("id") if found else None
+    if not qid:
+        return "offline"
+    deadline = time.time() + 8.0  # a player timer ticks every 3s
+    status = "pending"
+    while time.time() < deadline:
+        time.sleep(0.6)
+        row = one("SELECT status FROM player.web_admin_queue WHERE id=%s", (qid,))
+        status = (row or {}).get("status") or "gone"
+        if status != "pending" and not re.match(r"^w\d+x", status):
+            return status
+    with db() as con, con.cursor() as cur:
+        cur.execute("DELETE FROM player.web_admin_queue WHERE id=%s AND status='pending'", (qid,))
+        withdrawn = cur.rowcount
+    if withdrawn:
+        return "offline"
+    deadline = time.time() + 6.0
+    while time.time() < deadline:
+        row = one("SELECT status FROM player.web_admin_queue WHERE id=%s", (qid,))
+        status = (row or {}).get("status") or "gone"
+        if status != "pending" and not re.match(r"^w\d+x", status):
+            return status
+        time.sleep(0.5)
+    return "timeout"
 
 
 def queue_gm_reload():

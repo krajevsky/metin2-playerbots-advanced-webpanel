@@ -2553,6 +2553,31 @@ PATTERNS_RAW += [
     (r'exp odblokowany przez operatora', 'EXP unlocked by the operator'),
 ]
 
+# The rename of a character and its GM rights (kreinbargh, 13 October).
+EXACT.update({
+    "Postać w grze zmienia nick sama i zostaje rozłączona; poza grą gra pokaże nowy nick 10 minut po wylogowaniu konta albo po pełnym restarcie. Prawa GM idą za nickiem.":
+        "A character in the game renames itself and is disconnected; out of the game, the game shows the new name 10 minutes after the account logged out or after a full restart. GM rights follow the name.",
+})
+PATTERNS_RAW += [
+    (r"^Nick '(.+)' jest już na liście GM \(common\.gmlist\) innej postaci\. Usuń najpierw ten wpis\.$",
+     "The name '$1' is already in another character's GM list entry (common.gmlist). Remove that entry first."),
+    (r"^Postać ma prawa GM, a lista GM \(common\.gmlist\) mieści nicki do (\d+) znaków\. Wybierz krótszy nick albo zaktualizuj serwer\.$",
+     "The character has GM rights, and the GM list (common.gmlist) holds names of up to $1 characters. Choose a shorter name or update the server."),
+    (r"^Gra przyjęła zmianę nicku '(.+)' → '(.+)', ale nie odpowiedziała na czas\. Sprawdź kartę postaci za chwilę\.$",
+     "The game took the rename '$1' → '$2' but did not answer in time. Check the character's card in a moment."),
+    (r"^Gra nie zmieniła nicku \((.+)\)\. Nic nie zostało zmienione\.$",
+     "The game did not change the name ($1). Nothing was changed."),
+    (r"^Zmieniono nick '(.+)' → '(.+)'\. Postać była w grze: gra sama zmieniła jej nick, za około 10 sekund rozłączy gracza, a następne logowanie jest już pod nowym nickiem\.",
+     "Renamed '$1' → '$2'. The character was in the game: the game renamed it itself, disconnects the player in about 10 seconds, and the next login is under the new name."),
+    (r"^Zmieniono nick '(.+)' → '(.+)'\. Gra pokaże nowy nick, gdy serwer bazy zapomni tę postać: 10 minut po wylogowaniu konta albo po pełnym restarcie serwera\.",
+     "Renamed '$1' → '$2'. The game shows the new name once the database server lets the character go: 10 minutes after the account logged out, or after a full restart of the server."),
+    (r" Prawa GM przeszły na nowy nick i do tego czasu działają pod oboma; pod nowym od następnego restartu serwera albo /reload a\.$",
+     " The GM rights moved to the new name and work under both until then; under the new one from the next server restart or /reload a."),
+    (r" Prawa GM przeszły na nowy nick i do tego czasu działają pod oboma\.$",
+     " The GM rights moved to the new name and work under both until then."),
+    (r" Prawa GM przeszły na nowy nick\.$", " The GM rights moved to the new name."),
+]
+
 
 def _compile_pattern(entry):
     """A PATTERNS_RAW entry, (source, replacement[, names]), as re.subn wants
