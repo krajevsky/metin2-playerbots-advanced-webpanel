@@ -1,5 +1,6 @@
 """The English panel (ui_language=en): translations.py and the pages it reaches."""
 import html
+import re
 from datetime import datetime
 from unittest.mock import patch
 
@@ -253,3 +254,34 @@ def test_admin_page_short_labels_follow_english_language():
     assert english("Decyzje botów (sklepy, ceny) →") == "Bot decisions (shops, prices) →"
     assert english("🎒 Wyłącz skrzynię startową dla nowych postaci (wszystkie klasy)") == \
         "🎒 Disable the starter chest for new characters (all classes)"
+
+
+def test_the_notification_bell_and_the_sidebar_foot_in_english():
+    # The bell's list and toast show what create_notification() stored in
+    # Polish; i18n-watch.js puts it into English with the same tables.
+    for polish, translated in (
+            ("Podsumowanie dnia 7", "Daily summary 7"),
+            ("15.10.2026 — kliknij, żeby zobaczyć szczegóły.", "15.10.2026 — click to see the details."),
+            ("Nowa wersja Playerbots: 2.2.100", "New Playerbots version: 2.2.100"),
+            ("Masz zainstalowaną 2.2.97.", "You have 2.2.97 installed."),
+            ("Event zakończony: Drop przedmiotów", "Event ended: Item drop"),
+            ("Wydropiono 49847 szkatułek.", "49847 chests dropped."),
+            ("Brak powiadomień.", "No notifications."), ("Kliknij, żeby zobaczyć.", "Click to see."),
+            ("Edytor bazy danych ↗", "Database editor ↗"), ("⌘ Edytor bazy danych", "⌘ Database editor"),
+            ("Panel Tieru (klasyczny) ↗", "Tieru panel (classic) ↗"), ("Panel Tieru ↗", "Tieru panel ↗")):
+        assert english(polish) == translated
+    payload = translations.i18n_payload()
+    assert "Database editor ↗" in payload and "New Playerbots version: $1" in payload
+    totals = {"characters": 0, "accounts": 0, "item_stacks": 0, "yang": 0}
+    bodies = {}
+    for language in ("en", "pl"):
+        with patch.object(panel, "settings", return_value=dict(english_settings(theme="laka"), ui_language=language)), \
+                patch.object(panel, "one", return_value=totals), \
+                patch.object(panel, "changelog_entries", return_value=[]):
+            response = panel.app.test_client().get("/")
+        assert response.status_code == 200
+        # without the scripts: an English page carries the tables themselves
+        bodies[language] = re.sub(r"<script\b.*?</script>", "", response.get_data(as_text=True), flags=re.S)
+    assert "Database editor ↗</a>" in bodies["en"] and "Tieru panel (classic) ↗</a>" in bodies["en"]
+    assert "Edytor bazy danych" not in bodies["en"] and "Panel Tieru" not in bodies["en"]
+    assert "Edytor bazy danych ↗</a>" in bodies["pl"] and "Panel Tieru (klasyczny) ↗</a>" in bodies["pl"]

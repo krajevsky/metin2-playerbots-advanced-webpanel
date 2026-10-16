@@ -2578,6 +2578,26 @@ PATTERNS_RAW += [
     (r" Prawa GM przeszły na nowy nick\.$", " The GM rights moved to the new name."),
 ]
 
+# The notification bell, its toasts and the sidebar's foot (RapLow, 16
+# October). A notification is stored in Polish when it is made (app.py's
+# create_notification) and put into English where it is shown, by
+# notifications-bell.js's list and toast through i18n-watch.js, so one made
+# before this reads English as well. "Event zakończony: ..." and its summary
+# already had their patterns; the daily summary's and the new version's had
+# none, and neither had the links to Tieru's panels at the sidebar's foot.
+EXACT.update({
+    "Edytor bazy danych ↗": "Database editor ↗",
+    "⌘ Edytor bazy danych": "⌘ Database editor",
+    "Panel Tieru (klasyczny) ↗": "Tieru panel (classic) ↗",
+    "Panel Tieru ↗": "Tieru panel ↗",
+})
+PATTERNS_RAW += [
+    (r'^Podsumowanie dnia (\d+)$', 'Daily summary $1'),
+    (r'^(\d{2}\.\d{2}\.\d{4}) — kliknij, żeby zobaczyć szczegóły\.$', '$1 — click to see the details.'),
+    (r'^Nowa wersja Playerbots: (.+)$', 'New Playerbots version: $1'),
+    (r'^Masz zainstalowaną (.+)\.$', 'You have $1 installed.'),
+]
+
 
 def _compile_pattern(entry):
     """A PATTERNS_RAW entry, (source, replacement[, names]), as re.subn wants

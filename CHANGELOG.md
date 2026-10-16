@@ -1,3 +1,10 @@
+## 2026-10-16 · 1.114.93 · Powiadomienia i stopka menu po angielsku
+
+- Panel po angielsku tłumaczy też powiadomienia z dzwoneczka i wyskakujące okienka w prawym rogu: „Podsumowanie dnia N” z jego opisem („kliknij, żeby zobaczyć szczegóły”) oraz „Nowa wersja Playerbots” z „Masz zainstalowaną …”. Powiadomienia są zapisane w bazie po polsku i tłumaczone przy wyświetlaniu, więc dotyczy to również tych utworzonych wcześniej.
+- Odnośniki w lewym dolnym rogu menu („Edytor bazy danych ↗”, „Panel Tieru (klasyczny) ↗”, w wersji mobilnej „Panel Tieru ↗”) i „⌘ Edytor bazy danych” w klasycznym menu mają angielskie odpowiedniki. Polski panel bez zmian (zgłoszenie RapLow, 16.10).
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-14 · 1.114.92 · Zmiana nicku postaci z prawami GM
 
 - Zmiana nicku w karcie postaci przenosi prawa GM: wiersze `common.gmlist` starej nazwy są kopiowane na nową (stare zostają, bo gra może jeszcze chwilę podawać starą nazwę). Panel odmawia, gdy nowa nazwa jest już na liście GM albo nie zmieści się w kolumnie `mName`.
