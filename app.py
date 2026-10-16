@@ -2334,7 +2334,22 @@ def update_csrf_token():
 
 
 EVENTS_FILE = RATES_SPOOL / "playerbot_events.tsv"
-EVENT_KINDS = ("chest", "exp", "drop", "yang", "tanaka", "zuo")
+# Kiciamol's Hexagonal Chest event (mt2009 only): a player's Metin drops the
+# hexagonal chest of its map while the event runs. The drop is the image's
+# quest (m2_hexagonal_event.lua), which reads a file of its own beside this
+# one, hexagonal_event.tsv; the core judges the rows of this file only to
+# announce the event on the chat. Both files are written from the same rows
+# here as the classic panel writes them (files/hexagonal_events.py), so a
+# save on this page keeps the classic panel's hexagonal rows instead of
+# dropping a kind it did not know (_dumitrualexandru, 16 October).
+EVENT_KINDS = ("chest", "exp", "drop", "yang", "tanaka", "zuo") + (("hexagonal",) if ENGINE_MT2009 else ())
+# The kinds whose rows and lines carry no value: a chest window is a window.
+EVENT_VALUELESS = ("chest", "hexagonal")
+HEXAGONAL_STATE_FILE = RATES_SPOOL / "hexagonal_event.tsv"
+HEXAGONAL_SETTINGS_FILE = RATES_SPOOL / "hexagonal_settings.json"
+# What the quest reads while the classic panel never saved a chance.
+HEXAGONAL_DEFAULT_PERMILLE = 200
+HEXAGONAL_CHEST_FIRST_VNUM, HEXAGONAL_CHEST_LAST_VNUM, HEXAGONAL_CHEST_M1_VNUM = 55000, 55020, 50037
 EVENT_WORLD_KINDS = ("tanaka", "zuo")
 EVENT_WORLD_DEFAULT = {"tanaka": 3, "zuo": 8}
 EVENT_WORLD_MAX = {"tanaka": 20, "zuo": 30}
@@ -2354,8 +2369,9 @@ EVENT_LABELS = {
     "yang": "Yang",
     "tanaka": "Pirat Tanaka",
     "zuo": "Zuo: deszcz Metinów",
+    "hexagonal": "Heksagonalne Szkatułki",
 }
-EVENT_ICONS = {"chest": "🎁", "exp": "⚡", "drop": "📦", "yang": "💰", "tanaka": "🏴‍☠️", "zuo": "☄️"}
+EVENT_ICONS = {"chest": "🎁", "exp": "⚡", "drop": "📦", "yang": "💰", "tanaka": "🏴‍☠️", "zuo": "☄️", "hexagonal": "🔷"}
 EVENT_DAY_NAMES = ("Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd")
 EVENT_NOW_MINUTES = (15, 30, 60, 120, 180, 360)
 EVENT_HHMM = re.compile(r"^([01]?\d|2[0-4]):([0-5]\d)$")
@@ -2493,6 +2509,63 @@ def write_events(rows, nows, event_settings=None):
     temporary = EVENTS_FILE.with_suffix(".tsv.new")
     temporary.write_text("\n".join(body) + "\n", encoding="utf-8")
     os.replace(temporary, EVENTS_FILE)
+    if "hexagonal" in EVENT_KINDS:
+        # The quest's own copy of the hexagonal rows and line, after the file
+        # the cores read; an OSError here is the caller's failure too.
+        write_hexagonal_state(rows, nows)
+
+
+def hexagonal_chance_permille():
+    """The hexagonal chests' chance as the classic panel keeps it (its
+    /events page sets it; files/hexagonal_events.py read_settings): 20% while
+    nothing was saved, 0% for a file that cannot be read - a corrupt setting
+    must not quietly enable a drop."""
+    try:
+        value = json.loads(HEXAGONAL_SETTINGS_FILE.read_text(encoding="utf-8"))["permille"]
+        if type(value) is not int or not 0 <= value <= 1000:
+            return 0
+        return value
+    except FileNotFoundError:
+        return HEXAGONAL_DEFAULT_PERMILLE
+    except (OSError, ValueError, KeyError, TypeError):
+        return 0
+
+
+def hexagonal_percent_text(permille):
+    return "%g" % (permille / 10.0)
+
+
+def hexagonal_state_text(rows, nows, permille, stamp=None):
+    """The quest's file (M2HEX1) for the events' rows and line, byte for byte
+    what files/hexagonal_events.py state_text writes."""
+    stamp = time.time() if stamp is None else stamp
+    body = ["M2HEX1", "chance\t%d" % permille]
+    now_event = nows.get("hexagonal")
+    if now_event and int(now_event.get("until", 0)) > stamp:
+        body.append("now\t%d" % int(now_event["until"]))
+    for row in rows:
+        if row.get("kind") != "hexagonal" or not row.get("on", True):
+            continue
+        days = ",".join(str(int(day)) for day in row.get("days", []) if 1 <= int(day) <= 7)
+        if not days:
+            continue
+        start, end = event_hhmm(row["start"]), event_hhmm(row["end"])
+        if not start or not end or start == "24:00":
+            continue  # the core and the quest refuse such a window as well
+        start_min = int(start[:2]) * 60 + int(start[3:])
+        end_min = int(end[:2]) * 60 + int(end[3:])
+        body.append("weekly\t%s\t%d\t%d" % (days, start_min, end_min))
+    return "\n".join(body) + "\n"
+
+
+def write_hexagonal_state(rows, nows):
+    """Written beside and renamed over: the quest reads it on its own clock,
+    from the game's account, which reads the shared spool through its group."""
+    text = hexagonal_state_text(rows, nows, hexagonal_chance_permille())
+    temporary = HEXAGONAL_STATE_FILE.with_suffix(".tsv.new")
+    temporary.write_text(text, encoding="utf-8")
+    os.chmod(temporary, 0o644)
+    os.replace(temporary, HEXAGONAL_STATE_FILE)
 
 
 def event_status_item(fields):
@@ -2627,6 +2700,16 @@ def event_run_stats(kind, started_at, ended_at, value):
     if kind == "chest":
         found = one("SELECT COUNT(*) AS n FROM log.log WHERE how='GET' AND vnum=%s AND time BETWEEN %s AND %s",
                      (MOONLIGHT_CHEST_VNUM, started_at, ended_at))
+        return {"chest_count": int(found["n"]) if found else 0, "yang_extra": None}
+    if kind == "hexagonal":
+        # The chests the quest drops: 55000-55020 and 50037, the first
+        # villages' (files/hexagonal_catalog.json). 50037 is also the
+        # package's own Hexagonal Treasure Chest, so a rare one from
+        # elsewhere in the window counts too.
+        found = one("SELECT COUNT(*) AS n FROM log.log WHERE how='GET' AND (vnum BETWEEN %s AND %s OR vnum=%s)"
+                    " AND time BETWEEN %s AND %s",
+                    (HEXAGONAL_CHEST_FIRST_VNUM, HEXAGONAL_CHEST_LAST_VNUM, HEXAGONAL_CHEST_M1_VNUM,
+                     started_at, ended_at))
         return {"chest_count": int(found["n"]) if found else 0, "yang_extra": None}
     if kind == "yang":
         found = one("SELECT COALESCE(SUM(what),0) AS total FROM log.log WHERE how='GET_GOLD' AND time BETWEEN %s AND %s",
@@ -9220,7 +9303,7 @@ def events():
                     if map_id not in EVENT_MAP_IDS:
                         map_id = 0
                 new_rows.append({"kind": kind, "days": days, "start": start, "end": end,
-                                 "value": 0 if kind == "chest" else value, "map": map_id,
+                                 "value": 0 if kind in EVENT_VALUELESS else value, "map": map_id,
                                  "on": bool(request.form.get(f"r{index}_on"))})
             try:
                 write_events(new_rows, nows)
@@ -9252,10 +9335,13 @@ def events():
             # second map is a second event beside the first, the same map again
             # starts that one over.
             nows[event_now_key(kind, map_id)] = {"kind": kind, "until": started + minutes * 60,
-                                                "value": 0 if kind == "chest" else value,
+                                                "value": 0 if kind in EVENT_VALUELESS else value,
                                                 "map": map_id, "since": started}
             write_events(rows, nows)
-            flash(f"Event aktywowany na {minutes} min. Rdzeń odczyta go w ciągu pięciu sekund.", "success")
+            if kind == "hexagonal" and hexagonal_chance_permille() <= 0:
+                flash(f"Okno heksagonalnych szkatułek zapisane na {minutes} minut, ale ich szansa dropu wynosi 0%. Ustaw ją na stronie Eventy panelu klasycznego.", "warning")
+            else:
+                flash(f"Event aktywowany na {minutes} min. Rdzeń odczyta go w ciągu pięciu sekund.", "success")
         elif action == "stop":
             # A Stop of one map's Tanaka or Zuo carries that map alone. The
             # card's own form - a page from before one event per map - sent its
@@ -9280,7 +9366,10 @@ def events():
                            now_epoch=int(time.time()), event_history=event_history,
                            event_icons=EVENT_ICONS, world_kinds=EVENT_WORLD_KINDS,
                            world_defaults=EVENT_WORLD_DEFAULT, world_max=EVENT_WORLD_MAX,
-                           event_maps=EVENT_MAPS, event_settings=read_event_settings())
+                           event_maps=EVENT_MAPS, event_settings=read_event_settings(),
+                           event_valueless=EVENT_VALUELESS,
+                           hexagonal_chance=(hexagonal_percent_text(hexagonal_chance_permille())
+                                             if "hexagonal" in EVENT_KINDS else None))
 
 @app.route("/manage")
 @login_required

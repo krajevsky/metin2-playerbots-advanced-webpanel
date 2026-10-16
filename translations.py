@@ -2103,6 +2103,10 @@ PATTERNS_RAW = [
     (r'^(\d+) szkatułek$', '$1 chests'),
     (r'^Wydropiono (\d+) szkatułek\.$', '$1 chests dropped.'),
     (r'^Gracze wydropili o ([\d\s]+) więcej yang\.$', 'Players looted $1 more yang.'),
+    # The hexagonal chests' quick start when their chance is 0% (the classic
+    # panel's /events page sets the chance; this page only runs the window).
+    (r'^Okno heksagonalnych szkatułek zapisane na (\d+) minut, ale ich szansa dropu wynosi 0%\. Ustaw ją na stronie Eventy panelu klasycznego\.$',
+     "Hexagonal chest window saved for $1 minutes, but their drop chance is 0%. Set it on the classic panel's Events page."),
 
     # --- guild.html / guilds.html ---
     (r'^· poziom (\d+)$', '· level $1'),
@@ -2331,6 +2335,8 @@ EXACT.update({
     "Szkatułki Blasku Księżyca": "Moonlight Treasure Chests",
     "Pirat Tanaka": "Pirate Tanaka",
     "Zuo: deszcz Metinów": "Zuo: Metin rain",
+    "Heksagonalne Szkatułki": "Hexagonal Treasure Chests",
+    "Szansa z Metina:": "Chance per Metin:",
 })
 
 # --- app.py REFINE_METHOD_LABELS + _classify_news_events()/world_feed
@@ -2665,7 +2671,8 @@ for _pl_map in sorted(_MAP_NAMES_IN_TEXT, key=len, reverse=True):
 # Tanaka's or Zuo's "Pirat Tanaka · Pyongmoo" in the history, the same in
 # its notification after "Event zakończony: ", a calendar block's
 # "Edytuj: Doświadczenie (20:00–21:00)". Yang is Yang in English.
-for _pl_event in ("Szkatułki Blasku Księżyca", "Doświadczenie", "Drop przedmiotów", "Pirat Tanaka", "Zuo: deszcz Metinów"):
+for _pl_event in ("Szkatułki Blasku Księżyca", "Doświadczenie", "Drop przedmiotów", "Pirat Tanaka", "Zuo: deszcz Metinów",
+                  "Heksagonalne Szkatułki"):
     _raw_pattern = r'(^|: )' + re.escape(_pl_event) + r'(?= · | \(|$)'
     _raw_repl = '$1' + EXACT[_pl_event]
     PATTERNS_RAW.append((_raw_pattern, _raw_repl))

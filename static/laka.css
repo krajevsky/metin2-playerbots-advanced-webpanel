@@ -316,7 +316,7 @@ html body[data-skin="laka"] .laka-chronicle ol{list-style:none;margin:0;padding:
 }
 
 /* ───── Planer eventów (templates/_laka_events.html) ───── */
-body[data-skin="laka"]{--k-chest:#c98e3a;--k-exp:#e8b93f;--k-drop:#74cf8e;--k-yang:#f0a030;--k-tanaka:#5d9cf5;--k-zuo:#e5573b}
+body[data-skin="laka"]{--k-chest:#c98e3a;--k-exp:#e8b93f;--k-drop:#74cf8e;--k-yang:#f0a030;--k-tanaka:#5d9cf5;--k-zuo:#e5573b;--k-hexagonal:#4fc3dc}
 html body[data-skin="laka"] main .lev-head h2{margin:2px 0 0;padding:0;border:0;font:700 19px/1.2 var(--laka-display)}
 .lev-head{display:flex;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--laka-bronze-dim)}
 .lev-head>p{margin:0;max-width:60ch;font-size:13.5px}
@@ -341,7 +341,7 @@ html body[data-skin="laka"] .lev-share button{justify-self:start}
 .lev-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--laka-dust)}
 .lev-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .lev-legend .k-chest,.lev-ev.k-chest{--k:var(--k-chest)}.lev-legend .k-exp,.lev-ev.k-exp{--k:var(--k-exp)}.lev-legend .k-drop,.lev-ev.k-drop{--k:var(--k-drop)}
-.lev-legend .k-yang,.lev-ev.k-yang{--k:var(--k-yang)}.lev-legend .k-tanaka,.lev-ev.k-tanaka{--k:var(--k-tanaka)}.lev-legend .k-zuo,.lev-ev.k-zuo{--k:var(--k-zuo)}
+.lev-legend .k-yang,.lev-ev.k-yang{--k:var(--k-yang)}.lev-legend .k-tanaka,.lev-ev.k-tanaka{--k:var(--k-tanaka)}.lev-legend .k-zuo,.lev-ev.k-zuo{--k:var(--k-zuo)}.lev-legend .k-hexagonal,.lev-ev.k-hexagonal{--k:var(--k-hexagonal)}
 .lev-legend i{background:var(--k)}
 .lev-actions{display:flex;gap:6px;flex-wrap:wrap}
 html body[data-skin="laka"] .lev-actions button{padding:7px 12px;font-size:13px}

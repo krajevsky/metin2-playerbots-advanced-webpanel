@@ -1,3 +1,10 @@
+## 2026-10-16 · 1.114.94 · Heksagonalne Szkatułki w planerze eventów
+
+- Planer eventów (mt2009) ma event „Heksagonalne Szkatułki” Kiciamola: „Aktywuj teraz”, zatrzymanie i bloki w tygodniowym kalendarzu, w obu motywach. Jak okno Szkatułek Blasku Księżyca nie ma bonusu; karta pokazuje szansę dropu z Metina, którą nadal ustawia strona Eventy panelu klasycznego, a przy szansie 0% panel ostrzega po aktywacji.
+- Zapis harmonogramu zachowuje heksagonalne wiersze i aktywny event. Wcześniej panel znał tylko sześć rodzajów i przy każdym zapisie usuwał je z `playerbot_events.tsv`; teraz pisze też plik questa `hexagonal_event.tsv` w tym samym kształcie co panel klasyczny. Historia liczy zdobyte heksagonalne szkatułki. Na r40250 bez zmian (zgłoszenie _dumitrualexandru, 16.10).
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-16 · 1.114.93 · Powiadomienia i stopka menu po angielsku
 
 - Panel po angielsku tłumaczy też powiadomienia z dzwoneczka i wyskakujące okienka w prawym rogu: „Podsumowanie dnia N” z jego opisem („kliknij, żeby zobaczyć szczegóły”) oraz „Nowa wersja Playerbots” z „Masz zainstalowaną …”. Powiadomienia są zapisane w bazie po polsku i tłumaczone przy wyświetlaniu, więc dotyczy to również tych utworzonych wcześniej.

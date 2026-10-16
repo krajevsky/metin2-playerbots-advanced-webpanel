@@ -1,6 +1,6 @@
 {#- Motyw "Laka i Złoto": Planer eventów w nowym układzie. Te same formularze i ten sam zapis
     harmonogramu (r<N>_kind/start/end/value/map/d<1-7>/on, action=save) co events.html. -#}
-{% set LEV_ICONS = {'chest': '50011.png', 'exp': '71153.png', 'drop': '70043.png', 'yang': 'money.png', 'tanaka': '70038.png', 'zuo': '50513.png'} %}
+{% set LEV_ICONS = {'chest': '50011.png', 'exp': '71153.png', 'drop': '70043.png', 'yang': 'money.png', 'tanaka': '70038.png', 'zuo': '50513.png', 'hexagonal': '50037.png'} %}
 <section class="lev-top">
   <article class="panel lev-now">
     <header class="lev-head"><div><span class="eyebrow">Playerbots · na żywo</span><h2>Teraz w świecie</h2></div><span class="lev-core {{ 'is-on' if status else '' }}">Rdzeń: {{ 'połączony' if status else 'czeka na status' }}</span></header>
@@ -10,8 +10,8 @@
         <span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ LEV_ICONS[kind]) }}" alt=""></span>
         <div><b>{{ event_labels[kind] }}</b>
         {% if runs %}<small class="lev-live">Trwa {{ 'na 1 mapie' if runs|length == 1 else 'na ' ~ runs|length ~ ' mapach' }}</small>{% for run in runs %}<small>{{ run.map_label }} · {{ run.value }} szt. · do {{ run.until_text }}{% if run.reported %} · {{ run.alive }} na mapie · {{ run.killed }} pokonanych · {{ run.bots }} botów{% endif %}</small>{% endfor %}
-        {% elif st.active %}<small class="lev-live">Trwa{% if kind in world_kinds %} · {{ st.value }} jednostek{% elif kind != 'chest' %} · +{{ st.value }}%{% endif %} · do {{ st.until_text }}</small>{% if kind in world_kinds %}<small>{{ st.alive }} na mapie · {{ st.killed }} pokonanych · {{ st.bots }} botów</small>{% endif %}
-        {% elif st.scheduled %}<small>Następny: {{ st.next_start_text }}{% if kind in world_kinds %} · {{ st.next_value }} jednostek{% elif kind != 'chest' %} · +{{ st.next_value }}%{% endif %}</small>
+        {% elif st.active %}<small class="lev-live">Trwa{% if kind in world_kinds %} · {{ st.value }} jednostek{% elif kind not in event_valueless %} · +{{ st.value }}%{% endif %} · do {{ st.until_text }}</small>{% if kind in world_kinds %}<small>{{ st.alive }} na mapie · {{ st.killed }} pokonanych · {{ st.bots }} botów</small>{% endif %}
+        {% elif st.scheduled %}<small>Następny: {{ st.next_start_text }}{% if kind in world_kinds %} · {{ st.next_value }} jednostek{% elif kind not in event_valueless %} · +{{ st.next_value }}%{% endif %}</small>
         {% else %}<small class="muted">Brak aktywnego eventu</small>{% endif %}</div>
       </div>
     {% endfor %}
@@ -59,9 +59,10 @@
       <input type="hidden" name="kind" value="{{ kind }}">
       <div class="lev-qhead"><span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ LEV_ICONS[kind]) }}" alt=""></span><b>{{ event_labels[kind] }}</b></div>
       <small class="{{ 'lev-live' if running else 'muted' }}">{{ ('Aktywny do ' ~ (status.get(kind,{}).until_text or 'końca odliczania')) if running else 'Uruchom jednorazowo' }}</small>
+      {% if kind == 'hexagonal' and hexagonal_chance is not none %}<small class="muted"><span>Szansa z Metina:</span> {{ hexagonal_chance }}%</small>{% endif %}
       <div class="lev-qform">
         <label>Czas<select name="minutes">{% for minute in now_minutes %}<option value="{{ minute }}" {% if minute == 60 %}selected{% endif %}>{{ minute }} min</option>{% endfor %}</select></label>
-        {% if kind != 'chest' %}<label>Bonus %<input name="value" type="number" min="1" max="1000" value="50"></label>{% endif %}
+        {% if kind not in event_valueless %}<label>Bonus %<input name="value" type="number" min="1" max="1000" value="50"></label>{% endif %}
         {% if running %}<button name="action" value="stop" class="danger">Zatrzymaj</button>{% else %}<button name="action" value="now">Aktywuj teraz</button>{% endif %}
       </div>
     </form>
@@ -72,7 +73,7 @@
 
 <section class="panel lev-history">
   <header class="lev-head"><div><span class="eyebrow">Historia</span><h2>Ostatnio zakończone</h2></div><p class="muted">Liczone ze zdarzeń w logu gry, więc dokładne niezależnie od tego, co boty zrobiły z łupem.</p></header>
-  {% if event_history %}<ul class="lev-past">{% for run in event_history %}<li id="run-{{ run.id }}"><span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ LEV_ICONS.get(run.base_kind, '25040.png')) }}" alt=""></span><div>{# label, amount and summary are separate text nodes: the EN translation matches whole nodes #}<b>{{ run.label }}</b>{% if run.base_kind == 'chest' %}{% elif run.base_kind in world_kinds %}<em class="lev-amount">{{ run.value }} szt.</em>{% else %}<em class="lev-amount">+{{ run.value }}%</em>{% endif %}<small>{{ run.summary }}</small></div><time>{{ run.started_at.strftime('%d.%m %H:%M') }} – {{ run.ended_at.strftime('%H:%M') }}</time></li>{% endfor %}</ul>
+  {% if event_history %}<ul class="lev-past">{% for run in event_history %}<li id="run-{{ run.id }}"><span class="laka-slot"><img src="{{ url_for('static', filename='icons/' ~ LEV_ICONS.get(run.base_kind, '25040.png')) }}" alt=""></span><div>{# label, amount and summary are separate text nodes: the EN translation matches whole nodes #}<b>{{ run.label }}</b>{% if run.base_kind in event_valueless %}{% elif run.base_kind in world_kinds %}<em class="lev-amount">{{ run.value }} szt.</em>{% else %}<em class="lev-amount">+{{ run.value }}%</em>{% endif %}<small>{{ run.summary }}</small></div><time>{{ run.started_at.strftime('%d.%m %H:%M') }} – {{ run.ended_at.strftime('%H:%M') }}</time></li>{% endfor %}</ul>
   {% else %}<p class="muted">Żaden event jeszcze się nie zakończył od kiedy to śledzimy.</p>{% endif %}
 </section>
 
@@ -94,6 +95,7 @@ document.body.dataset.ajaxForms='1';
 const dayNames=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
 const shortDays=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
 const labels={{ event_labels|tojson }};
+const valueless={{ event_valueless|list|tojson }};
 const icons={ {% for kind, file in LEV_ICONS.items() %}{{ kind|tojson }}: {{ url_for('static', filename='icons/' ~ file)|tojson }}{% if not loop.last %}, {% endif %}{% endfor %} };
 const worldKinds={{ world_kinds|list|tojson }},worldDefaults={{ world_defaults|tojson }},worldMax={{ world_max|tojson }};
 // eventy, które trwają teraz: ich bloki z bieżącego okna dostają poświatę
@@ -113,7 +115,7 @@ function openDialog(index,day=1,hour=20){editing=index;if(index===null){field.ki
 function closeDialog(){if(dialog.close)dialog.close();else dialog.removeAttribute('open')}
 function setDays(days){field.days.innerHTML=shortDays.map((name,i)=>`<label><input type="checkbox" value="${i+1}" ${days.includes(i+1)?'checked':''}><span>${name}</span></label>`).join('')}
 function selectedDays(){return [...field.days.querySelectorAll('input:checked')].map(input=>Number(input.value))}
-function syncBonus(){const world=worldKinds.includes(field.kind.value),chest=field.kind.value==='chest';field.bonus.classList.toggle('is-hidden',chest);field.mapWrap.classList.toggle('is-hidden',!world);field.value.disabled=chest;if(world){field.bonus.firstChild.textContent=field.kind.value==='tanaka'?'Piraci naraz':'Metiny w fali';field.value.max=worldMax[field.kind.value];if(!field.value.value||Number(field.value.value)>worldMax[field.kind.value])field.value.value=worldDefaults[field.kind.value];field.bonus.querySelector('small').textContent='liczba jednostek eventu'}else{field.value.max=1000;field.bonus.firstChild.textContent='Bonus';field.bonus.querySelector('small').textContent='% ponad ratę serwera'}}
+function syncBonus(){const world=worldKinds.includes(field.kind.value),chest=valueless.includes(field.kind.value);field.bonus.classList.toggle('is-hidden',chest);field.mapWrap.classList.toggle('is-hidden',!world);field.value.disabled=chest;if(world){field.bonus.firstChild.textContent=field.kind.value==='tanaka'?'Piraci naraz':'Metiny w fali';field.value.max=worldMax[field.kind.value];if(!field.value.value||Number(field.value.value)>worldMax[field.kind.value])field.value.value=worldDefaults[field.kind.value];field.bonus.querySelector('small').textContent='liczba jednostek eventu'}else{field.value.max=1000;field.bonus.firstChild.textContent='Bonus';field.bonus.querySelector('small').textContent='% ponad ratę serwera'}}
 function addBlock(day,row,index,start,end,lane,count){
   if(end<=start)return;
   const live=row.on&&activeKinds.includes(row.kind)&&day===today()&&nowMin()>=start&&nowMin()<end;
@@ -121,7 +123,7 @@ function addBlock(day,row,index,start,end,lane,count){
   block.className=`lev-ev k-${row.kind}${row.on?'':' is-off'}${live?' is-live':''}`;
   block.style.top=(start/60*H+1)+'px';block.style.height=Math.max(22,(end-start)/60*H-3)+'px';
   block.style.left=`calc(${lane/count*100}% + 3px)`;block.style.right=`calc(${(count-lane-1)/count*100}% + 3px)`;
-  const amount=worldKinds.includes(row.kind)?`${row.value} szt.`:(row.kind!=='chest'?`+${row.value}%`:'');
+  const amount=worldKinds.includes(row.kind)?`${row.value} szt.`:(!valueless.includes(row.kind)?`+${row.value}%`:'');
   // kilka eventów naraz dzieli kolumnę dnia na wąskie pasy: wtedy ikona przedmiotu zamiast nazwy
   if(count>=3)block.classList.add('is-narrow');else if(count===2)block.classList.add('is-half');
   block.innerHTML=`<img src="${icons[row.kind]}" alt=""><b>${labels[row.kind]}</b><small>${row.start}–${row.end}${amount?' · '+amount:''}${row.on?'':' · wyłączony'}</small>`;
@@ -144,14 +146,14 @@ function render(){
   drawNow();
   requestAnimationFrame(()=>scrollTo(focusHour(),false));
 }
-function serialize(){hidden.innerHTML='';schedule.map(normal).slice(0,16).forEach((row,index)=>{const put=(name,value)=>{const input=document.createElement('input');input.type='hidden';input.name=`r${index}_${name}`;input.value=value;hidden.append(input)};put('kind',row.kind);put('start',row.start);put('end',row.end);put('value',row.kind==='chest'?0:row.value);put('map',row.map);row.days.forEach(day=>put('d'+day,'1'));if(row.on)put('on','1')});if(!schedule.length){const input=document.createElement('input');input.type='hidden';input.name='r0_kind';input.value='';hidden.append(input)}}
+function serialize(){hidden.innerHTML='';schedule.map(normal).slice(0,16).forEach((row,index)=>{const put=(name,value)=>{const input=document.createElement('input');input.type='hidden';input.name=`r${index}_${name}`;input.value=value;hidden.append(input)};put('kind',row.kind);put('start',row.start);put('end',row.end);put('value',valueless.includes(row.kind)?0:row.value);put('map',row.map);row.days.forEach(day=>put('d'+day,'1'));if(row.on)put('on','1')});if(!schedule.length){const input=document.createElement('input');input.type='hidden';input.name='r0_kind';input.value='';hidden.append(input)}}
 $('calendar-now').addEventListener('click',()=>scrollTo(new Date().getHours()));
 $('calendar-midnight').addEventListener('click',()=>scrollTo(0));
 $('calendar-add-event').addEventListener('click',()=>openDialog(null,today(),Math.min(23,new Date().getHours()+1)));
 $('calendar-editor-close').addEventListener('click',closeDialog);$('calendar-editor-cancel').addEventListener('click',closeDialog);
 field.kind.addEventListener('change',syncBonus);
 $('calendar-editor-delete').addEventListener('click',()=>{if(editing!==null){schedule.splice(editing,1);render()}closeDialog()});
-editor.addEventListener('submit',event=>{event.preventDefault();const days=selectedDays();if(!days.length){window.showActionToast('Wybierz co najmniej jeden dzień.','error');return}const row={kind:field.kind.value,days,start:field.start.value,end:field.end.value,value:field.kind.value==='chest'?0:Number(field.value.value)||0,map:worldKinds.includes(field.kind.value)?Number(field.map.value)||0:0,on:field.enabled.checked};if(!row.start||!row.end){window.showActionToast('Ustaw godzinę rozpoczęcia i zakończenia.','error');return}if(editing===null){if(schedule.length>=16){window.showActionToast('Można zapisać maksymalnie 16 eventów.','error');return}schedule.push(row)}else schedule[editing]=row;render();closeDialog()});
+editor.addEventListener('submit',event=>{event.preventDefault();const days=selectedDays();if(!days.length){window.showActionToast('Wybierz co najmniej jeden dzień.','error');return}const row={kind:field.kind.value,days,start:field.start.value,end:field.end.value,value:valueless.includes(field.kind.value)?0:Number(field.value.value)||0,map:worldKinds.includes(field.kind.value)?Number(field.map.value)||0:0,on:field.enabled.checked};if(!row.start||!row.end){window.showActionToast('Ustaw godzinę rozpoczęcia i zakończenia.','error');return}if(editing===null){if(schedule.length>=16){window.showActionToast('Można zapisać maksymalnie 16 eventów.','error');return}schedule.push(row)}else schedule[editing]=row;render();closeDialog()});
 form.addEventListener('submit',serialize);
 render();
 setInterval(drawNow,60000);
