@@ -49,7 +49,7 @@
       if (translated !== node.nodeValue) node.nodeValue = translated;
       return;
     }
-    if (node.nodeType !== Node.ELEMENT_NODE || SKIP_TAGS.has(node.tagName) || node.getAttribute('translate') === 'no') return;
+    if (node.nodeType !== Node.ELEMENT_NODE || node.getAttribute('translate') === 'no') return;
     for (const attr of ATTRS) {
       const value = node.getAttribute && node.getAttribute(attr);
       if (value) {
@@ -57,6 +57,8 @@
         if (translated !== value) node.setAttribute(attr, translated);
       }
     }
+    // a textarea's placeholder is translated (above), never its content (Turkish patch)
+    if (SKIP_TAGS.has(node.tagName)) return;
     if (node.tagName === 'INPUT' && (node.type === 'submit' || node.type === 'button') && node.value) {
       const translated = translate(node.value);
       if (translated !== node.value) node.value = translated;
@@ -73,7 +75,57 @@
         if (kept(mutation.target)) continue;
         const translated = translate(mutation.target.nodeValue);
         if (translated !== mutation.target.nodeValue) mutation.target.nodeValue = translated;
+      } else if (mutation.type === 'attributes') {
+        // Turkish patch: a script that rewrites a title/placeholder in place
+        // (the live map's markers, a refreshed tooltip) is translated too.
+        const element = mutation.target, attr = mutation.attributeName;
+        if (kept(element)) continue;
+        const value = element.getAttribute(attr);
+        if (!value) continue;
+        const translated = translate(value);
+        if (translated !== value) element.setAttribute(attr, translated);
       }
     }
-  }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+
+  // Turkish patch: a chart's own words (dataset names, category labels in
+  // the legend, tooltips and axes) are drawn on its canvas, out of the
+  // DOM's reach -- they are translated inside Chart.js, for the charts the
+  // page drew already and, by a plugin, at every later update.
+  function translateChart(chart) {
+    const data = chart && chart.data;
+    if (!data) return false;
+    let changed = false;
+    if (Array.isArray(data.labels)) {
+      data.labels = data.labels.map(label => {
+        if (typeof label !== 'string') return label;
+        const translated = translate(label);
+        if (translated !== label) changed = true;
+        return translated;
+      });
+    }
+    (data.datasets || []).forEach(dataset => {
+      if (typeof dataset.label !== 'string') return;
+      const translated = translate(dataset.label);
+      if (translated !== dataset.label) { dataset.label = translated; changed = true; }
+    });
+    return changed;
+  }
+  if (window.Chart) {
+    try { window.Chart.register({ id: 'm2-i18n', beforeUpdate: chart => { translateChart(chart); } }); } catch (_) {}
+    try {
+      Object.values(window.Chart.instances || {}).forEach(chart => { if (translateChart(chart)) chart.update('none'); });
+    } catch (_) {}
+  }
+
+  // Turkish patch: the dialogs a script opens itself (a deletion's
+  // confirmation, an error alert) never enter the DOM, so their message is
+  // translated here with the same table.
+  for (const name of ['alert', 'confirm', 'prompt']) {
+    const original = window[name];
+    if (typeof original !== 'function') continue;
+    window[name] = function (message, ...rest) {
+      return original.call(window, typeof message === 'string' ? translate(message) : message, ...rest);
+    };
+  }
 })();

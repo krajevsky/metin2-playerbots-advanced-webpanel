@@ -32,8 +32,25 @@ NAME_SOURCES = {"skill": None, "mob": None}
 
 _DX_SLOT = re.compile(r"\{(value|a|b|c)\}")
 
+# Turkish patch: a Turkish panel reads the Turkish of the same texts in Tieru's
+# classic admin_panel.py, whose tables are {pl, en, de, tr} (decision_tables.py
+# keeps pl/en only): static/decision_texts_tr.json, English -> Turkish, rendered
+# by tr-build/tools/panels_seban_quality.py. A text without Turkish stays English.
+# TURKISH_PHRASE is set by app.py: a Polish skill name -> its Turkish.
+try:
+    import json as _json
+    from pathlib import Path as _Path
+    DECISION_TEXTS_TR = _json.loads((_Path(__file__).parent / "static" / "decision_texts_tr.json")
+                                    .read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    DECISION_TEXTS_TR = {}
+TURKISH_PHRASE = None
+
 
 def _pick(texts, lang):
+    if lang == "tr":
+        english = texts.get("en") or ""
+        return DECISION_TEXTS_TR.get(english) or english
     return texts.get(lang) or texts.get("en") or ""
 
 
@@ -118,6 +135,8 @@ def _dx_param(kind, raw, params, lang, item_name, apply_text):
         return "×" + _dec_text(raw / 10000.0, 4, lang)
     if kind == "skill":
         name = NAME_SOURCES["skill"](raw) if NAME_SOURCES["skill"] and raw > 0 else None
+        if name and lang == "tr" and TURKISH_PHRASE:
+            name = TURKISH_PHRASE(name)
         return name or (_text("ex_skill_n", lang, n=raw) if raw > 0 else "—")
     if kind == "mob":
         name = NAME_SOURCES["mob"](raw, lang) if NAME_SOURCES["mob"] and raw > 0 else None

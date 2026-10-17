@@ -47,6 +47,7 @@ page and anything injected by those scripts afterwards.
 import html
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 
@@ -2605,7 +2606,7 @@ PATTERNS_RAW += [
 ]
 
 
-def _compile_pattern(entry):
+def _compile_pattern(entry, mob=None, item=None):
     """A PATTERNS_RAW entry, (source, replacement[, names]), as re.subn wants
     it. names maps a group to the kind of game name it holds ("mob"): that
     group's text is put back under the monster's official English name where
@@ -2623,7 +2624,8 @@ def _compile_pattern(entry):
         def group(token):
             number = int(token.group(1))
             text = match.group(number) or ""
-            table = {"mob": MOB_NAMES, "item": ITEM_NAMES}.get(names.get(number))
+            table = {"mob": mob if mob is not None else MOB_NAMES,
+                     "item": item if item is not None else ITEM_NAMES}.get(names.get(number))
             return table.get(text, text) if table is not None else text
         return re.sub(r'\\g<(\d+)>', group, replacement)
     return re.compile(entry[0]), substitute
@@ -2714,15 +2716,24 @@ _ITEM_NAMES_BY_VNUM = _load_game_names("item_names_en.json")
 ITEM_NAMES = _names_by_polish(_ITEM_NAMES_BY_VNUM)
 
 
-def item_vnums_named(text):
+def item_vnums_named(text, lang="en"):
     """The vnums whose official English name contains text, in any case --
     for the item database's search on an English panel, which shows these
-    names while the database knows only the Polish ones."""
+    names while the database knows only the Polish ones. On a Turkish panel
+    (Turkish patch) the official Turkish names are searched as well, with
+    Turkish case rules and without the letters' marks (fold_search), so
+    "KILIÇ", "kılıç" and "kilic" all find "Kılıç+0"."""
     needle = (text or "").strip().casefold()
     if not needle:
         return []
-    return [int(vnum) for vnum, (_polish, english) in _ITEM_NAMES_BY_VNUM.items()
-            if needle in english.casefold()]
+    found = [int(vnum) for vnum, (_polish, english) in _ITEM_NAMES_BY_VNUM.items()
+             if needle in english.casefold()]
+    if lang == "tr":
+        folded = fold_search(text)
+        seen = set(found)
+        found += [int(vnum) for vnum, (_polish, turkish) in _ITEM_NAMES_BY_VNUM_TR.items()
+                  if int(vnum) not in seen and folded in fold_search(turkish)]
+    return found
 
 
 # The monsters and NPCs the same way (static/mob_names_en.json), but only for
@@ -2731,22 +2742,43 @@ def item_vnums_named(text):
 # "Kowal" too, and a name is somebody's, not a word to translate.
 MOB_NAMES = _names_by_polish(_load_game_names("mob_names_en.json"))
 
+# --- Turkish patch: the same two tables in Turkish (static/item_names_tr.json,
+# static/mob_names_tr.json, rendered by tr-build/tools/build_panels_names_tr.py:
+# Gameforge's official Turkish where the vnum names the same thing as this
+# world's item, else the Turkish server patch's hand names). Used when the
+# panel's ui_language is "tr"; a name missing here falls back to the English.
+_ITEM_NAMES_BY_VNUM_TR = _load_game_names("item_names_tr.json")
+ITEM_NAMES_TR = _names_by_polish(_ITEM_NAMES_BY_VNUM_TR)
+MOB_NAMES_TR = _names_by_polish(_load_game_names("mob_names_tr.json"))
+
+_TURKISH_I = str.maketrans({"İ": "i", "I": "i", "ı": "i", "ł": "l", "Ł": "l"})
+
+
+def fold_search(text):
+    """A search key: Turkish case rules (İ/i and I/ı are one letter here),
+    then lower case without the letters' marks (ş→s, ğ→g, ç→c, ö→o, ü→u,
+    and the Polish ones too). Matching only - never shown."""
+    value = unicodedata.normalize("NFKD", str(text or "").translate(_TURKISH_I).casefold())
+    return "".join(ch for ch in value if not unicodedata.combining(ch)).strip()
+
 
 def item_display_name(vnum, polish, lang):
     """An item's name for the panel's language: the Polish proto name on a
-    Polish panel, the official English one where the table's line still names
-    this world's item (its Polish name is the one the line was made for), else
-    the Polish. By vnum, so two items that share a Polish name each get their
-    own (Said, saido_0, 17 October: the give-item box)."""
+    Polish panel, the official English (en) or Turkish (tr, falling back to
+    the English) name where the table's line still names this world's item
+    (its Polish name is the one the line was made for), else the Polish."""
     polish = polish or ""
-    if lang != "en":
+    if lang not in ("en", "tr"):
         return polish
-    pair = _ITEM_NAMES_BY_VNUM.get(str(vnum))
-    if pair and pair[0] == polish and pair[1]:
-        return pair[1]
-    return ITEM_NAMES.get(polish, polish)
-
-
+    tables = ((_ITEM_NAMES_BY_VNUM_TR, ITEM_NAMES_TR), (_ITEM_NAMES_BY_VNUM, ITEM_NAMES)) if lang == "tr" \
+        else ((_ITEM_NAMES_BY_VNUM, ITEM_NAMES),)
+    for by_vnum, by_polish in tables:
+        pair = by_vnum.get(str(vnum))
+        if pair and pair[0] == polish and pair[1]:
+            return pair[1]
+        if polish in by_polish:
+            return by_polish[polish]
+    return polish
 
 _SCRIPT_STYLE_RE = re.compile(r'(<(script|style|textarea|pre)\b[^>]*>.*?</\2>)', re.I | re.S)
 # An element marked translate="no" -- the HTML attribute browsers' own
@@ -2768,7 +2800,7 @@ _VALUE_ATTR_RE = re.compile(r'\bvalue="([^"]*)"')
 _WS_RE = re.compile(r'^(\s*)(.*?)(\s*)$', re.S)
 
 
-def translate_string(raw):
+def translate_string(raw, lang="en"):
     """Translate one already-HTML-escaped fragment (a trimmed text node or
     an attribute value). Returns the original unchanged if nothing matches.
 
@@ -2784,12 +2816,14 @@ def translate_string(raw):
     if not raw or not raw.strip():
         return raw
     core = html.unescape(raw)
-    if core in EXACT:
-        return html.escape(EXACT[core])
-    if core in ITEM_NAMES:
-        return html.escape(ITEM_NAMES[core])
+    exact, names, patterns = _tables(lang)
+    if core in exact:
+        return html.escape(exact[core])
+    for table in names:
+        if core in table:
+            return html.escape(table[core])
     result, changed = core, False
-    for pattern, repl in PATTERNS:
+    for pattern, repl in patterns:
         new_result, count = pattern.subn(repl, result)
         if count:
             result = new_result
@@ -2799,25 +2833,33 @@ def translate_string(raw):
     return html.escape(result)
 
 
-def _translate_text_segment(text):
+def _translate_text_segment(text, lang="en"):
     if not text or not text.strip():
         return text
     m = _WS_RE.match(text)
     lead, core, trail = m.group(1), m.group(2), m.group(3)
-    return lead + translate_string(core) + trail
+    return lead + translate_string(core, lang) + trail
 
 
-def _translate_tag(tag):
-    tag = _ATTR_TRANSLATE_RE.sub(lambda m: f'{m.group(1)}="{translate_string(m.group(2))}"', tag)
+_TR_DATA_ATTR_RE = re.compile(r'\b(data-item-name)="([^"]*)"')
+
+
+def _translate_tag(tag, lang="en"):
+    tag = _ATTR_TRANSLATE_RE.sub(lambda m: f'{m.group(1)}="{translate_string(m.group(2), lang)}"', tag)
+    if lang == "tr" and "data-item-name" in tag:
+        # Turkish patch: the bot-item deletion's question names the item from
+        # this attribute (templates/player.html), so it carries the Turkish name
+        tag = _TR_DATA_ATTR_RE.sub(lambda m: f'{m.group(1)}="{translate_string(m.group(2), lang)}"', tag)
     if tag[:6].lower() == '<input' and _TYPE_SUBMIT_RE.search(tag):
-        tag = _VALUE_ATTR_RE.sub(lambda m: f'value="{translate_string(m.group(1))}"', tag, count=1)
+        tag = _VALUE_ATTR_RE.sub(lambda m: f'value="{translate_string(m.group(1), lang)}"', tag, count=1)
     return tag
 
 
 def translate_html(body, lang):
     """Translate a full rendered HTML response. No-op for anything but
-    "en" -- Polish output is returned byte-identical to what Jinja made."""
-    if lang != "en" or not body:
+    "en" and (Turkish patch) "tr" -- Polish output is returned byte-identical
+    to what Jinja made."""
+    if lang not in ("en", "tr") or not body:
         return body
     placeholders = []
 
@@ -2837,7 +2879,7 @@ def translate_html(body, lang):
     for part in parts:
         if not part:
             continue
-        out.append(_translate_tag(part) if part[0] == "<" else _translate_text_segment(part))
+        out.append(_translate_tag(part, lang) if part[0] == "<" else _translate_text_segment(part, lang))
     translated = "".join(out)
     # A stashed translate="no" element can hold a stashed script of its own,
     # so the placeholders are put back until none is left.
@@ -2848,10 +2890,15 @@ def translate_html(body, lang):
     return translated
 
 
-def i18n_payload():
+def i18n_payload(lang="en"):
     """EXACT + PATTERNS_RAW as JSON for static/i18n-watch.js, so the browser
     can apply the identical table to content the JS dashboard/live-map/
-    rankings-carousel code renders client-side after the initial page load."""
+    rankings-carousel code renders client-side after the initial page load.
+    "tr" (Turkish patch) sends the Turkish tables, English where a phrase has
+    no Turkish yet."""
+    if lang == "tr":
+        tables = _tr_tables()
+        return json.dumps({"exact": tables["exact"], "patterns": tables["patterns_raw"]}, ensure_ascii=False)
     return json.dumps({"exact": EXACT, "patterns": PATTERNS_RAW}, ensure_ascii=False)
 
 # --- configurable shop ranking feedback ---
@@ -2872,8 +2919,8 @@ EXACT.update({
     "Zmiana": "Change",
 })
 
-# The give-item box's answers (templates/player.html; Said, saido_0, 17
-# October), drawn by its script and so translated by static/i18n-watch.js.
+# --- Turkish patch: the give-item box's answers (templates/player.html),
+# drawn by its script and so translated by static/i18n-watch.js.
 EXACT.update({
     "Brak wyników": "No results",
     "Wyszukiwanie nie powiodło się": "Search failed",
@@ -2882,3 +2929,157 @@ PATTERNS_RAW += [
     (r'^Zbyt wiele wyników \((\d+)\+\), zawęź wyszukiwanie$', 'Too many results ($1+), narrow the search'),
 ]
 PATTERNS.append(_compile_pattern(PATTERNS_RAW[-1]))
+
+
+# ---------------------------------------------------------------------------
+# Turkish (ui_language "tr") -- added by the Turkish patch.
+#
+# The same mechanism as the English above, keyed the same way (the Polish the
+# panel prints): static/i18n_tr.json holds
+#   "exact":    Polish phrase -> Turkish (every EXACT key, the template and
+#               script phrases written as "English if en else Polish", and
+#               the stat labels, which the generated patterns below reuse)
+#   "patterns": PATTERNS_RAW source regex -> Turkish replacement ($1.. kept)
+#   "extra_patterns": [regex, Turkish] for sentences the page scripts build
+#               with a value inside (the English needs none: the script itself
+#               picks its English)
+# rendered by tr-build/tools/panels_tr_apply.py from the translators' tables
+# (tr-build/work/panels/hand/). A phrase or pattern with no Turkish falls back
+# to the English one, never to Polish; item and monster names come from
+# ITEM_NAMES_TR / MOB_NAMES_TR first, then the English tables.
+# ---------------------------------------------------------------------------
+_TR_CACHE = {}
+
+
+def _load_tr_data():
+    try:
+        with open(Path(__file__).parent / "static" / "i18n_tr.json", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        data = {}
+    return (data.get("exact") or {}, data.get("patterns") or {}, data.get("extra_patterns") or [],
+            data.get("pattern_names") or {})
+
+
+def _compile_tr_pattern(entry, exact):
+    """A Turkish pattern (source, replacement[, names]) for re.subn. names maps
+    a group to the kind of text it holds -- "item" / "mob" (the official
+    Turkish names, then the English), "phrase" (the Turkish panel table: a
+    skill, a class, a label) or "game" (the game's Turkish quest texts and
+    shop titles) --
+    and that group is put back translated when the table knows it, else as it
+    was. static/i18n-watch.js reads the first two fields only."""
+    names = entry[2] if len(entry) > 2 else None
+    if not names:
+        return _compile_pattern(entry[:2])
+    names = {int(k): v for k, v in names.items()}
+    replacement = _dollar_to_backslash(entry[1])
+    tables = {"mob": MOB_NAMES_TR_FULL, "item": ITEM_NAMES_TR_FULL, "phrase": exact, "game": GAME_TEXTS_TR}
+
+    def substitute(match):
+        def group(token):
+            number = int(token.group(1))
+            text = match.group(number) or ""
+            table = tables.get(names.get(number))
+            return table.get(text, text) if table is not None else text
+        return re.sub(r'\\g<(\d+)>', group, replacement)
+    return re.compile(entry[0]), substitute
+
+
+def _tr_tables():
+    """Built on first use, after every EXACT.update / PATTERNS_RAW += above."""
+    if _TR_CACHE:
+        return _TR_CACHE
+    tr_exact, tr_patterns, tr_extra, tr_names = _load_tr_data()
+    exact = dict(EXACT)
+    exact.update(tr_exact)
+    # the generated patterns (stat labels, maps, events), rebuilt with the
+    # Turkish words: the same sources as above, so they replace the English
+    generated = {}
+    for pl_label, en_label in _ITEM_STAT_LABELS.items():
+        generated[r'^' + re.escape(pl_label) + r' ([+-]\d+)(.*)$'] = exact.get(pl_label, en_label) + ' $1$2'
+    for pl_map in _MAP_NAMES_IN_TEXT:
+        generated[r'(^|[\s(])' + re.escape(pl_map) + r'(?=$|[\s),.!?:;])'] = '$1' + exact.get(pl_map, EXACT[pl_map])
+    for pl_event in ("Szkatułki Blasku Księżyca", "Doświadczenie", "Drop przedmiotów", "Pirat Tanaka",
+                     "Zuo: deszcz Metinów", "Heksagonalne Szkatułki"):
+        generated[r'(^|: )' + re.escape(pl_event) + r'(?= · | \(|$)'] = '$1' + exact.get(pl_event, EXACT[pl_event])
+    patterns_raw, patterns = [], []
+    for entry in PATTERNS_RAW:
+        source = entry[0]
+        repl = tr_patterns.get(source) or generated.get(source) or entry[1]
+        # "pattern_names": a Turkish-only names map for a pattern whose group
+        # holds an item / skill / class the English leaves in Polish
+        names = tr_names.get(source) or (entry[2] if len(entry) > 2 else None)
+        tr_entry = (source, repl, names) if names else (source, repl)
+        patterns_raw.append((source, repl))
+        patterns.append(_compile_tr_pattern(tr_entry, exact))
+    # Polish sentences that the page scripts build themselves ("en ? `...${x}` :
+    # `...${x}`"): Turkish only - the English never needed a pattern for them.
+    # "pattern_names" may name a group of these too (see _compile_tr_pattern).
+    for source, repl in tr_extra:
+        names = tr_names.get(source)
+        try:
+            patterns.append(_compile_tr_pattern((source, repl, names) if names else (source, repl), exact))
+        except re.error:
+            continue
+        patterns_raw.append((source, repl))
+    _TR_CACHE.update(exact=exact, patterns=patterns, patterns_raw=patterns_raw)
+    return _TR_CACHE
+
+
+def _tables(lang):
+    """(exact, name tables in order, compiled patterns) for a language."""
+    if lang == "tr":
+        tables = _tr_tables()
+        return tables["exact"], (ITEM_NAMES_TR, ITEM_NAMES, GAME_TEXTS_TR), tables["patterns"]
+    return EXACT, (ITEM_NAMES,), PATTERNS
+
+
+# A Turkish name where there is one, else the English (for a pattern's group).
+ITEM_NAMES_TR_FULL = dict(ITEM_NAMES)
+ITEM_NAMES_TR_FULL.update(ITEM_NAMES_TR)
+MOB_NAMES_TR_FULL = dict(MOB_NAMES)
+MOB_NAMES_TR_FULL.update(MOB_NAMES_TR)
+
+# The game's own texts in Turkish (static/game_texts_tr.json, rendered by
+# tr-build/tools/panels_seban_quality.py): the quest texts (the Polish the
+# server's quest locale holds -> the Turkish the Turkish client is shown,
+# single-line texts only, from the Turkish server patch's quest_texts_tr.lua)
+# and the bots' shop titles (the Polish title -> the Turkish one the Turkish
+# client shows, tr-build/work/shop_names_tr.tsv). Quest titles and goals and
+# shop titles reach the panel in Polish (quest_catalog.json, the core's
+# snapshots, the shops table); on a Turkish panel a text node that is exactly
+# such a text is shown in Turkish. Server-side only (not sent to
+# static/i18n-watch.js): those pages are rendered here.
+try:
+    with open(Path(__file__).parent / "static" / "game_texts_tr.json", encoding="utf-8") as _handle:
+        GAME_TEXTS_TR = json.load(_handle)
+except (OSError, ValueError):
+    GAME_TEXTS_TR = {}
+
+
+def item_name_for(polish, lang):
+    """A Polish item name (as item_proto prints it) in the panel's language,
+    by the name alone - for a JSON answer that its page draws itself."""
+    if lang == "tr":
+        return ITEM_NAMES_TR.get(polish) or ITEM_NAMES.get(polish, polish)
+    if lang == "en":
+        return ITEM_NAMES.get(polish, polish)
+    return polish
+
+
+def mob_name_for(polish, lang):
+    if lang == "tr":
+        return MOB_NAMES_TR.get(polish) or MOB_NAMES.get(polish, polish)
+    if lang == "en":
+        return MOB_NAMES.get(polish, polish)
+    return polish
+
+
+def phrase(polish, lang):
+    """A Polish panel phrase in the panel's language (EXACT / the Turkish table)."""
+    if lang == "tr":
+        return _tr_tables()["exact"].get(polish, polish)
+    if lang == "en":
+        return EXACT.get(polish, polish)
+    return polish

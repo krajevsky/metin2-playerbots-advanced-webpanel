@@ -523,7 +523,7 @@ document.querySelectorAll('[data-gear-filter]').forEach(button=>button.addEventL
   document.querySelectorAll('#gear-history-lines [data-gear-tab]').forEach(row=>row.hidden=selected!=='all'&&row.dataset.gearTab!==selected);
 }));
 document.querySelectorAll('[data-yang]').forEach(button=>button.addEventListener('click',()=>{document.getElementById('admin-yang').value=button.dataset.yang}));
-// Give-item box (Said, saido_0, 17 October): the names come from the server in the
+// Give-item box (Turkish patch fix): the names come from the server in the
 // panel's language (and it searches them), each with its icon for the preview
 // under the list. A failed request used to leave the list silently as it was
 // (data.items of an error page threw inside the try); a slower, older answer

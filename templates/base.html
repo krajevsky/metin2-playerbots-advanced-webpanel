@@ -64,5 +64,5 @@ if (window.Chart) { const d = Chart.defaults; d.color = '#a8957a'; d.borderColor
 <script defer src="{{ static_asset_url('ajax-forms.js') }}"></script>
 <script defer src="{{ static_asset_url('notifications-bell.js') }}"></script>
 <script defer src="{{ static_asset_url('dashboard-deferred.js') }}"></script>
-{% if ui_language == 'en' and i18n_payload %}<script id="i18n-data" type="application/json">{{ i18n_payload|safe }}</script><script defer src="{{ static_asset_url('i18n-watch.js') }}"></script>{% endif %}
+{% if ui_language in ('en', 'tr') and i18n_payload %}<script id="i18n-data" type="application/json">{{ i18n_payload|safe }}</script><script defer src="{{ static_asset_url('i18n-watch.js') }}"></script>{% endif %}
 </body></html>
