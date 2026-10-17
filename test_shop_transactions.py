@@ -93,7 +93,18 @@ def test_transaction_item_search_uses_item_proto_and_parameterized_query():
     sql, params = read.call_args.args
     assert "ip.locale_name LIKE %s" in sql and "ip.name LIKE %s" in sql
     assert "Klejnot" not in sql
-    assert params == (-1, "%Klejnot%", "%Klejnot%", 41)
+    assert params == ("%Klejnot%", "%Klejnot%", 41)
+
+
+def test_transaction_item_search_skips_cp1250_columns_for_letters_cp1250_lacks():
+    # MariaDB refused LIKE between the CP1250 name columns and a Turkish
+    # letter ("Illegal mix of collations") and the request answered 500.
+    with patch.object(panel, "settings", return_value=SETTINGS), patch.object(panel, "rows", return_value=[SALE]) as read:
+        response = panel.app.test_client().get("/api/shop-transactions?q=K%C4%B1l%C4%B1%C3%A7")
+    assert response.status_code == 200
+    sql, params = read.call_args.args
+    assert "locale_name LIKE" not in sql and "(0=1)" in sql
+    assert params == (41,)
 
 
 def test_disabled_tracker_never_reads_transactions_or_loads_polling_script():

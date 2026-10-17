@@ -6247,6 +6247,9 @@ def api_player_position(pid):
             "map_image": f"/static/maps/{image}" if image else None,
             "portrait": bool(bound and bound[2] != bound[3]), "x": x, "y": y, "px": px, "py": py}
 
+ADMIN_ITEM_SEARCH_LIMIT = 500
+
+
 @app.get("/api/admin/item-search")
 @login_required
 def api_admin_item_search():
@@ -6261,17 +6264,41 @@ def api_admin_item_search():
         where.append(category_sql[category])
     elif category == "other":
         where.append("type NOT IN (1,2,3,10,16,18,29)")
+    language = settings().get("ui_language", "pl")
+    term = term[:80]
     if term:
-        if term.isdigit():
-            where.append("(vnum=%s OR locale_name LIKE %s)")
-            params.extend((int(term), f"%{term}%"))
-        else:
-            where.append("locale_name LIKE %s")
-            params.append(f"%{term}%")
-    found = rows("SELECT vnum,locale_name,type FROM player.item_proto WHERE " + " AND ".join(where) +
-                 " ORDER BY vnum LIMIT 80", params)
-    return jsonify({"items": [{"vnum": int(item["vnum"]), "name": game_text(item.get("locale_name")) or f"VNUM {item['vnum']}"}
-                              for item in found]})
+        # The give-item box on a character's page (Said, saido_0, 17 October).
+        # It used to search the Polish proto name alone, while the list beside
+        # it is read in the panel's language: on an English panel "sword"
+        # found nothing, and a name with a letter CP1250 lacks ("Kılıç",
+        # "Ağaç") made MariaDB refuse the LIKE outright - "Illegal mix of
+        # collations (cp1250_polish_ci,IMPLICIT) and (utf8mb4_...,COERCIBLE)" -
+        # so the request answered 500 and the box silently kept its old list.
+        # item_name_search() is the item database's search with both fixed.
+        clause, clause_params = item_name_search(term, language, internal=False)
+        where.append(clause)
+        params.extend(clause_params)
+    # Up to ADMIN_ITEM_SEARCH_LIMIT rows (was 80), the exact vnum first; one
+    # row more tells whether there are others, and then how many in all, so
+    # the box can say "too many results, narrow the search".
+    order, order_params = " ORDER BY vnum", []
+    if term.isdigit() and len(term) <= 10:
+        order, order_params = " ORDER BY (vnum=%s) DESC, vnum", [int(term)]
+    predicate = " AND ".join(where)
+    found = rows("SELECT vnum,locale_name,type FROM player.item_proto WHERE " + predicate + order + " LIMIT %s",
+                 params + order_params + [ADMIN_ITEM_SEARCH_LIMIT + 1])
+    more = len(found) > ADMIN_ITEM_SEARCH_LIMIT
+    found = found[:ADMIN_ITEM_SEARCH_LIMIT]
+    total = (one("SELECT COUNT(*) AS count FROM player.item_proto WHERE " + predicate, params).get("count", 0)
+             if more else len(found))
+    items = []
+    for item in found:
+        vnum = int(item["vnum"])
+        polish = game_text(item.get("locale_name"))
+        items.append({"vnum": vnum,
+                      "name": translations.item_display_name(vnum, polish, language) or f"VNUM {vnum}",
+                      "icon": item_icon_url(vnum) or ""})
+    return jsonify({"items": items, "more": more, "total": int(total or 0), "limit": ADMIN_ITEM_SEARCH_LIMIT})
 
 
 @app.post("/player/<int:pid>/action/game")
@@ -7710,20 +7737,67 @@ def api_shop_transactions():
     return {"ok": True, "transactions": transactions, "has_more": has_more}
 
 
-def item_name_search(query):
+def vnum_prefix_clause(query, column):
+    """(sql, params) matching `column` equal to the digits typed or starting
+    with them, written as BETWEEN ranges (index-friendly, no string casts, no
+    text in the SQL): "29" -> 29, 290..299, 2900..2999 ... up to the 32-bit
+    vnum range. None for a query that cannot be a vnum prefix (not digits,
+    longer than ten, a leading zero)."""
+    if not query.isdigit() or len(query) > 10 or (len(query) > 1 and query[0] == "0"):
+        return None, []
+    prefix = int(query)
+    parts, params = [column + "=%s"], [prefix]
+    for k in range(1, 11 - len(query)):
+        low, high = prefix * 10 ** k, (prefix + 1) * 10 ** k - 1
+        if low > 4294967295:
+            break
+        parts.append(column + " BETWEEN %s AND %s")
+        params += [low, min(high, 4294967295)]
+    return "(" + " OR ".join(parts) + ")", params
+
+
+def item_name_search(query, language=None, internal=True):
     """The item database's search: a VNUM, the Polish proto name or the
     internal one -- and on an English panel the official English name too,
     which the list shows (translations.ITEM_NAMES) and the database has never
     heard of. Matched by vnum, so an item whose Polish name another item
-    shares (and which therefore keeps it on the page) is found as well."""
-    clause = "p.vnum=%s OR p.locale_name LIKE %s OR p.name LIKE %s"
-    params = [int(query) if query.isdigit() else -1, f"%{query}%", f"%{query}%"]
-    if not query.isdigit() and settings().get("ui_language", "pl") == "en":
+    shares (and which therefore keeps it on the page) is found as well.
+
+    The two name columns are CP1250: a query holding a letter CP1250 cannot
+    hold (Turkish ı, ğ, İ) is not compared with them at all - MariaDB refused
+    that comparison with "Illegal mix of collations" and the page answered
+    500 - since no Polish name can contain it anyway (Said, saido_0, 17
+    October). `internal` False leaves p.name (the
+    proto's internal name) out, as the give-item box always did."""
+    language = language or settings().get("ui_language", "pl")
+    alias = "p." if internal else ""
+    parts, params = [], []
+    if query.isdigit():
+        # the vnum itself and every vnum that starts with these digits
+        # ("29" -> 29, 290-299, 2900-2999 ...), as numeric ranges
+        clause, clause_params = vnum_prefix_clause(query, alias + "vnum")
+        if clause:
+            parts.append(clause)
+            params += clause_params
+    try:
+        query.encode("cp1250")
+        polish_ok = True
+    except UnicodeEncodeError:
+        polish_ok = False
+    if polish_ok:
+        parts.append(alias + "locale_name LIKE %s")
+        params.append(f"%{query}%")
+        if internal:
+            parts.append("p.name LIKE %s")
+            params.append(f"%{query}%")
+    if not query.isdigit() and language == "en":
         vnums = translations.item_vnums_named(query)
         if vnums:
-            clause += " OR p.vnum IN (" + ",".join(["%s"] * len(vnums)) + ")"
+            parts.append(alias + "vnum IN (" + ",".join(["%s"] * len(vnums)) + ")")
             params += vnums
-    return "(" + clause + ")", params
+    if not parts:
+        return "(0=1)", []
+    return "(" + " OR ".join(parts) + ")", params
 
 
 @app.get("/database/structure")

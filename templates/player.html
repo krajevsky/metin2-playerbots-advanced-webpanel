@@ -119,7 +119,7 @@
         {% endif %}
       </form>
       {% endif %}
-      <form class="manage-form game-admin-card admin-card admin-card--item" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>🎁 Daj przedmiot</h3><input type="hidden" name="command" value="ITEM"><label>Kategoria<select id="admin-item-category"><option value="all">Wszystkie</option><option value="weapons">Bronie</option><option value="armor">Zbroje</option><option value="use">Mikstury / użytkowe</option><option value="dragon">Smocze Kamienie</option><option value="metin">Kamienie Metin</option><option value="special">Specjalne</option><option value="other">Inne</option></select></label><label>Szukaj<input id="admin-item-search" type="search" placeholder="Nazwa albo VNUM"></label><label>Przedmiot<select id="admin-item-results" name="vnum" required><option value="">Wyszukaj przedmiot…</option></select></label><label>Ilość<input name="count" type="number" min="1" max="65535" value="1" required></label><button>🎁 Wyślij przedmiot</button></form>
+      <form class="manage-form game-admin-card admin-card admin-card--item" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>🎁 Daj przedmiot</h3><input type="hidden" name="command" value="ITEM"><label>Kategoria<select id="admin-item-category"><option value="all">Wszystkie</option><option value="weapons">Bronie</option><option value="armor">Zbroje</option><option value="use">Mikstury / użytkowe</option><option value="dragon">Smocze Kamienie</option><option value="metin">Kamienie Metin</option><option value="special">Specjalne</option><option value="other">Inne</option></select></label><label>Szukaj<input id="admin-item-search" type="search" placeholder="Nazwa albo VNUM"></label><label>Przedmiot<select id="admin-item-results" name="vnum" required><option value="">Wyszukaj przedmiot…</option></select></label><div id="admin-item-preview" class="admin-item-preview" style="display:none;align-items:center;gap:.5rem;margin:.25rem 0"><img alt="" width="32" height="32" style="width:32px;height:32px;object-fit:contain"><span></span></div><small id="admin-item-hint" class="muted" hidden></small><label>Ilość<input name="count" type="number" min="1" max="65535" value="1" required></label><button>🎁 Wyślij przedmiot</button></form>
       <form class="manage-form game-admin-card admin-card admin-card--yang" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>💰 Daj Yang</h3><input type="hidden" name="command" value="GOLD"><div class="admin-presets"><button type="button" data-yang="1000000">1 Million</button><button type="button" data-yang="10000000">10 Million</button><button type="button" data-yang="100000000">100 Million</button><button type="button" data-yang="1000000000">1 Billion</button></div><label>Kwota<input id="admin-yang" name="amount" type="number" min="1" max="2000000000" value="1000000" required></label><button>💰 Wyślij Yang</button></form>
       <form class="manage-form game-admin-card admin-card admin-card--level" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>⭐ Ustaw poziom</h3><input type="hidden" name="command" value="LEVEL"><label>Poziom<input name="level" type="number" min="1" max="120" value="{{character.level}}" required></label><button>⭐ Zmień poziom</button></form>
       <form class="manage-form game-admin-card admin-card admin-card--warp" method="post" action="{{url_for('player_action_game', pid=character.id)}}"><h3>🗺️ Teleportuj</h3><input type="hidden" name="command" value="WARP"><label>Miejsce<select name="warp">{% for label,x,y in admin_warps %}<option value="{{loop.index0}}">{{label}}</option>{% endfor %}</select></label><small class="muted">Działa, gdy postać jest w grze.</small><button>🗺️ Teleportuj</button></form>
@@ -523,17 +523,47 @@ document.querySelectorAll('[data-gear-filter]').forEach(button=>button.addEventL
   document.querySelectorAll('#gear-history-lines [data-gear-tab]').forEach(row=>row.hidden=selected!=='all'&&row.dataset.gearTab!==selected);
 }));
 document.querySelectorAll('[data-yang]').forEach(button=>button.addEventListener('click',()=>{document.getElementById('admin-yang').value=button.dataset.yang}));
-let itemSearchTimer;
+// Give-item box (Said, saido_0, 17 October): the names come from the server in the
+// panel's language (and it searches them), each with its icon for the preview
+// under the list. A failed request used to leave the list silently as it was
+// (data.items of an error page threw inside the try); a slower, older answer
+// can no longer overwrite a newer one (itemSearchSeq).
+let itemSearchTimer, itemSearchSeq=0;
+const escapeAttr=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function showAdminItemPreview(){
+  const select=document.getElementById('admin-item-results'), box=document.getElementById('admin-item-preview');
+  if(!select||!box)return;
+  const option=select.options[select.selectedIndex];
+  if(!option||!option.value){box.style.display='none';return}
+  const img=box.querySelector('img'), label=box.querySelector('span');
+  if(option.dataset.icon){img.src=option.dataset.icon;img.hidden=false}else{img.removeAttribute('src');img.hidden=true}
+  label.textContent=option.textContent;
+  box.style.display='flex';
+}
 async function searchAdminItems(){
   const q=document.getElementById('admin-item-search')?.value||'', category=document.getElementById('admin-item-category')?.value||'all';
+  const select=document.getElementById('admin-item-results'), hint=document.getElementById('admin-item-hint');
+  if(!select)return;
+  const seq=++itemSearchSeq;
   try{
     const response=await fetch(`/api/admin/item-search?q=${encodeURIComponent(q)}&category=${encodeURIComponent(category)}`,{cache:'no-store'});
-    const data=await response.json(), select=document.getElementById('admin-item-results');
-    select.innerHTML=data.items.length?data.items.map(item=>`<option value="${item.vnum}">${escapeHtml(item.name)} · ${item.vnum}</option>`).join(''):'<option value="">Brak wyników</option>';
-  }catch(_){}
+    if(!response.ok)throw new Error(String(response.status));
+    const data=await response.json();
+    if(seq!==itemSearchSeq)return;
+    const items=Array.isArray(data.items)?data.items:[];
+    select.innerHTML=items.length?items.map(item=>`<option value="${Number(item.vnum)}" data-icon="${escapeAttr(item.icon||'')}">${escapeHtml(String(item.name))} · ${Number(item.vnum)}</option>`).join(''):'<option value="">Brak wyników</option>';
+    // more rows than the box lists: say so (translated by i18n-watch.js)
+    if(hint){hint.textContent=data.more?`Zbyt wiele wyników (${Number(data.limit)||items.length}+), zawęź wyszukiwanie`:'';hint.hidden=!data.more}
+  }catch(_){
+    if(seq!==itemSearchSeq)return;
+    select.innerHTML='<option value="">Wyszukiwanie nie powiodło się</option>';
+    if(hint){hint.textContent='';hint.hidden=true}
+  }
+  showAdminItemPreview();
 }
 document.getElementById('admin-item-search')?.addEventListener('input',()=>{clearTimeout(itemSearchTimer);itemSearchTimer=setTimeout(searchAdminItems,250)});
 document.getElementById('admin-item-category')?.addEventListener('change',searchAdminItems);
+document.getElementById('admin-item-results')?.addEventListener('change',showAdminItemPreview);
 searchAdminItems();
 })();
 </script>

@@ -2731,6 +2731,23 @@ def item_vnums_named(text):
 # "Kowal" too, and a name is somebody's, not a word to translate.
 MOB_NAMES = _names_by_polish(_load_game_names("mob_names_en.json"))
 
+
+def item_display_name(vnum, polish, lang):
+    """An item's name for the panel's language: the Polish proto name on a
+    Polish panel, the official English one where the table's line still names
+    this world's item (its Polish name is the one the line was made for), else
+    the Polish. By vnum, so two items that share a Polish name each get their
+    own (Said, saido_0, 17 October: the give-item box)."""
+    polish = polish or ""
+    if lang != "en":
+        return polish
+    pair = _ITEM_NAMES_BY_VNUM.get(str(vnum))
+    if pair and pair[0] == polish and pair[1]:
+        return pair[1]
+    return ITEM_NAMES.get(polish, polish)
+
+
+
 _SCRIPT_STYLE_RE = re.compile(r'(<(script|style|textarea|pre)\b[^>]*>.*?</\2>)', re.I | re.S)
 # An element marked translate="no" -- the HTML attribute browsers' own
 # translators honour -- holds somebody's own words, a chat line and the nick
@@ -2854,3 +2871,14 @@ EXACT.update({
     "Krok": "Step",
     "Zmiana": "Change",
 })
+
+# The give-item box's answers (templates/player.html; Said, saido_0, 17
+# October), drawn by its script and so translated by static/i18n-watch.js.
+EXACT.update({
+    "Brak wyników": "No results",
+    "Wyszukiwanie nie powiodło się": "Search failed",
+})
+PATTERNS_RAW += [
+    (r'^Zbyt wiele wyników \((\d+)\+\), zawęź wyszukiwanie$', 'Too many results ($1+), narrow the search'),
+]
+PATTERNS.append(_compile_pattern(PATTERNS_RAW[-1]))

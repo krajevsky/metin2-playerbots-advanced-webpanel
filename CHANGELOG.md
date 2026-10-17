@@ -1,3 +1,10 @@
+## 2026-10-17 · 1.114.95 · Wyszukiwarka przedmiotów bez błędu 500
+
+- Okno „Daj przedmiot” na karcie postaci i baza przedmiotów nie odpowiadają już błędem HTTP 500 na zapytanie z literą spoza CP1250 (np. „Kılıç”): MariaDB odrzucała porównanie z polską kolumną nazw („Illegal mix of collations”), więc takie zapytanie nie jest z nią porównywane. Okno szuka i podpisuje przedmioty w języku panelu (na angielskim panelu „sword” znajduje miecze), same cyfry to numer przedmiotu i każdy numer od nich zaczynający się (zakresy liczbowe, wszystko parametryzowane), a dokładny numer jest pierwszy.
+- Okno pokazuje do 500 wyników (było 80) z ikonami, „Brak wyników”, „Wyszukiwanie nie powiodło się” i „Zbyt wiele wyników (500+), zawęź wyszukiwanie” (z angielskimi odpowiednikami), a spóźniona odpowiedź na starsze zapytanie nie nadpisuje już nowszej. Zapytanie z wiodącym zerem („029”) jest teraz tylko fragmentem nazwy. Poprawka od Saida (saido_0), 17.10.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-16 · 1.114.94 · Heksagonalne Szkatułki w planerze eventów
 
 - Planer eventów (mt2009) ma event „Heksagonalne Szkatułki” Kiciamola: „Aktywuj teraz”, zatrzymanie i bloki w tygodniowym kalendarzu, w obu motywach. Jak okno Szkatułek Blasku Księżyca nie ma bonusu; karta pokazuje szansę dropu z Metina, którą nadal ustawia strona Eventy panelu klasycznego, a przy szansie 0% panel ostrzega po aktywacji.
