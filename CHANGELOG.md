@@ -1,3 +1,11 @@
+## 2026-10-23 · 1.114.97 · Wartości broni na karcie postaci jak w grze
+
+- Na mt2009 karta postaci (ekwipunek, plecak, magazyn, stragan) pokazuje wartość ataku, wartość magicznego ataku i wymagany poziom z tabeli przedmiotów tego świata (`player.item_proto`, czytanej raz na godzinę), a nie z `static/item_defs.json`, która jest tabelą r40250: Olbrz. Topór+6 pokazywał 110–144 zamiast 122–159, Wachlarz Feniksa+4 70–84 zamiast 80–98. Gdy baza jeszcze nie odpowiada, panel bierze plik jak dotąd; na r40250 bez zmian.
+- Szybkość ataku broni dwuręcznej na mt2009 to wartość z tabeli, tak jak w podpowiedzi klienta (25% na Olbrz. Toporze i Ostrzu z Czerw. Stali, było 15%). Na r40250 odejmowanie 10 zostaje.
+- Broń bez własnego magicznego ataku (dwuręczna, miecz) nie dostaje już linii „Wartość magicznego ataku” z samego bonusu ulepszenia (klient pyta o wartości przedmiotu przed bonusem). Zgłoszenie Ziółka, 22.10.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-17 · 1.114.96 · Panel po turecku
 
 - Panel ma język turecki („Türkçe” w przełączniku i w ustawieniach, flaga turecka): teksty panelu (`static/i18n_tr.json`, wzorce jak w angielskim), nazwy przedmiotów i potworów, teksty gry i tytuły sklepów, wyjaśnienia decyzji botów, lista komend GM (`gm_commands.tr.txt`) i `README_TR.md`. Panel bez wybranego języka mówi po turecku przeglądarce, która jako pierwszy język podaje turecki.

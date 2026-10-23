@@ -1093,6 +1093,62 @@ def apply_text(apply_type, value):
     return f"{name} {value:+d}{suffix}"
 
 
+# static/item_defs.json is the r40250 item table. On mt2009 a vnum both
+# engines have can carry other numbers: Olbrz. Topór+6 (3086) is 69-103 with
+# +41 there and 77-114 with +45 here, so the card said 110-144 where the
+# game says 122-159 (Ziółek, 22 October). The db core mirrors this world's
+# item_proto into player.item_proto at every boot; on mt2009 the fields the
+# tooltip is made of are read from there, once an hour, and the static file
+# stays the answer for r40250 and for a database that does not answer yet.
+_WORLD_ITEM_BASE = {"rows": {}, "loaded": 0.0, "tried": 0.0}
+_WORLD_ITEM_BASE_LOCK = threading.Lock()
+
+
+def _world_item_base_rows():
+    if not ENGINE_MT2009:
+        return {}
+    now = time.time()
+    cache = _WORLD_ITEM_BASE
+    if now - cache["loaded"] < 3600 or now - cache["tried"] < 60:
+        return cache["rows"]
+    with _WORLD_ITEM_BASE_LOCK:
+        if now - cache["loaded"] < 3600 or now - cache["tried"] < 60:
+            return cache["rows"]
+        cache["tried"] = now
+        try:
+            found = rows("SELECT vnum, type, subtype, value0, value1, value2, value3, value4, value5, "
+                         "limittype0, limitvalue0, limittype1, limitvalue1 FROM player.item_proto")
+        except pymysql.MySQLError:
+            return cache["rows"]
+        table = {}
+        for row in found or ():
+            entry = {"type": int(row.get("type") or 0), "subtype": int(row.get("subtype") or 0)}
+            for index in range(6):
+                entry[f"value{index}"] = int(row.get(f"value{index}") or 0)
+            level = 0
+            for index in range(2):  # LIMIT_LEVEL is 1 on both engines
+                if int(row.get(f"limittype{index}") or 0) == 1:
+                    level = int(row.get(f"limitvalue{index}") or 0)
+            entry["level"] = level
+            table[str(int(row.get("vnum") or 0))] = entry
+        if table:
+            cache["rows"] = table
+            cache["loaded"] = now
+        return cache["rows"]
+
+
+def item_stats_proto(vnum):
+    """The item's type, values and level as this world has them: the world's
+    item_proto on mt2009, static/item_defs.json otherwise (names, icons and
+    sizes stay the static file's)."""
+    key = str(int(vnum or 0))
+    proto = ITEM_DEFS.get(key, {})
+    world = _world_item_base_rows().get(key)
+    if world:
+        proto = {**proto, **world}
+    return proto
+
+
 def item_base_stats(vnum):
     """Client-side item properties displayed by the in-game tooltip.
     value1-4 alone are the item's +0 base -- refine level adds value5, once
@@ -1102,7 +1158,7 @@ def item_base_stats(vnum):
     defense here vs. 83 in the live client (29 + 27*2); Antyczny Dzwon+9
     read 50-70/35-60 here vs. 120-140/105-130 live (both +70). Reported by
     [GA]Seban, 2026-09-15."""
-    proto = ITEM_DEFS.get(str(int(vnum or 0)), {})
+    proto = item_stats_proto(vnum)
     if not proto:
         return []
     stats, item_type, subtype = [], int(proto.get("type") or 0), int(proto.get("subtype") or 0)
@@ -1116,7 +1172,10 @@ def item_base_stats(vnum):
         magic_min, magic_max = value(1) + refine_bonus, value(2) + refine_bonus
         if attack_min or attack_max:
             stats.append(f"Wartość ataku: {attack_min}–{attack_max}" if attack_min != attack_max else f"Wartość ataku: {attack_max}")
-        if magic_min or magic_max:
+        # The client's __AppendMagicAttackInfo asks the proto's own magic
+        # values, before the refine bonus: a two-hander has none, and its
+        # value5 alone printed "Wartość magicznego ataku: 41" here.
+        if value(1) > 0 or value(2) > 0:
             stats.append(f"Wartość magicznego ataku: {magic_min}–{magic_max}" if magic_min != magic_max else f"Wartość magicznego ataku: {magic_max}")
     elif item_type == 2:  # ITEM_ARMOR. Only these four subtypes show a flat
         # defense number in the client at all; jewelry (necklace/earring/
@@ -5628,7 +5687,8 @@ def _enrich_items(items):
         item["item_name"] = resolve_item_display_name(item_vnum, item.get("socket0"), game_text(item["item_name"]))
         item["item_size"] = max(1, min(3, int(item.get("item_size") or 1)))
         item["base_stats"] = item_base_stats(item_vnum) + fishing_rod_stats(item_vnum, item.get("socket0"))
-        item_type, item_subtype = int(proto.get("type") or 0), int(proto.get("subtype") or 0)
+        stats_proto = item_stats_proto(item_vnum) or proto
+        item_type, item_subtype = int(stats_proto.get("type") or 0), int(stats_proto.get("subtype") or 0)
 
         def native_apply_text(index):
             apply_type = item.get(f"applytype{index}")
@@ -5636,7 +5696,11 @@ def _enrich_items(items):
             display_type = POINT_TO_APPLY.get(int(apply_type or 0), int(apply_type or 0)) if ENGINE_MT2009 else int(apply_type or 0)
             # The client displays a built-in attack-speed affect on a two-handed
             # weapon with its fixed -10 penalty deducted (raw 25 -> shown 15).
-            if item_type == 1 and item_subtype == 3 and display_type == 7:
+            # Not mt2009's: its uitooltip.py prints the proto's own value
+            # (__AppendAffectInformation, GetApplyString), so an Olbrz. Topór
+            # or an Ostrze z Czerw. Stali reads 25% in the game and read 15%
+            # here (Ziółek, 22 October).
+            if not ENGINE_MT2009 and item_type == 1 and item_subtype == 3 and display_type == 7:
                 apply_value -= 10
             return apply_text(apply_type, apply_value)
 
