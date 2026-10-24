@@ -1,3 +1,9 @@
+## 2026-10-23 · 1.114.98 · Gildie botów, których żaden rdzeń nie zgłasza
+
+- Strona „Gildie” pokazuje w tabeli „Gildie graczy” także gildię, której mistrzem jest bot, a której żaden rdzeń nie zgłasza jako gildii botów (nie ma jej w `player.playerbot_guild`): zwykle założoną przez GM-a w czasie Przemiany, zanim bot wrócił do gry. Dotąd takiej gildii nie było na żadnej stronie panelu. Mistrz ma dopisek „bot, gildia jeszcze nieprzyjęta” (z podpowiedzią); gdy bot wróci do gry, rdzeń przejmie gildię jako gildię botów. Gildia, którą raport rdzeni już pokazuje, nie trafia drugi raz do tabeli graczy, a świat bez `player.playerbot_guild` czyta gildie graczy jak dotąd. Zgłoszenie Kordyl13, 23.10.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-23 · 1.114.97 · Wartości broni na karcie postaci jak w grze
 
 - Na mt2009 karta postaci (ekwipunek, plecak, magazyn, stragan) pokazuje wartość ataku, wartość magicznego ataku i wymagany poziom z tabeli przedmiotów tego świata (`player.item_proto`, czytanej raz na godzinę), a nie z `static/item_defs.json`, która jest tabelą r40250: Olbrz. Topór+6 pokazywał 110–144 zamiast 122–159, Wachlarz Feniksa+4 70–84 zamiast 80–98. Gdy baza jeszcze nie odpowiada, panel bierze plik jak dotąd; na r40250 bez zmian.

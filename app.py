@@ -2046,26 +2046,46 @@ def player_guild_rows(query=""):
     """Gildie graczy: te, których mistrz nie gra na koncie bota
     (playerbot_NNN). Czytane z bazy, bo rdzenie raportują tylko gildie botów
     (Derpsonkowy95, 28 września). Bez klasy (to percentyl botów) i bez
-    liczby osób online, której baza nie zna."""
-    try:
-        found = rows("""SELECT g.id, g.name, g.level, g.ladder_point AS ladder, g.win AS wins, g.draw AS draws,
-                               g.loss AS losses, m.id AS master_pid, m.name AS master,
-                               COALESCE(pi.empire, 0) AS empire,
-                               (SELECT COUNT(*) FROM player.guild_member gm WHERE gm.guild_id = g.id) AS members
-                        FROM player.guild g
-                        JOIN player.player m ON m.id = g.master
-                        JOIN account.account a ON a.id = m.account_id
-                        LEFT JOIN player.player_index pi ON pi.id = m.account_id
-                        WHERE a.login NOT LIKE 'playerbot\\_%%'
-                        ORDER BY g.level DESC, g.ladder_point DESC, g.id""")
-    except Exception:
+    liczby osób online, której baza nie zna.
+
+    Do tego gildia, której mistrzem jest bot, a której żaden rdzeń nie
+    zgłasza (nie ma jej w player.playerbot_guild): zwykle założona przez GM-a
+    w czasie Przemiany, gdy bot jeszcze nie wrócił do gry (Kordyl13, 23
+    października - tej gildii nie było na żadnym panelu). Taki wiersz ma
+    bot_master; gdy bot wróci, rdzeń przejmie ją jako gildię botów."""
+    select = """SELECT g.id, g.name, g.level, g.ladder_point AS ladder, g.win AS wins, g.draw AS draws,
+                       g.loss AS losses, m.id AS master_pid, m.name AS master,
+                       COALESCE(pi.empire, 0) AS empire,
+                       (SELECT COUNT(*) FROM player.guild_member gm WHERE gm.guild_id = g.id) AS members{extra}
+                FROM player.guild g
+                JOIN player.player m ON m.id = g.master
+                JOIN account.account a ON a.id = m.account_id
+                LEFT JOIN player.player_index pi ON pi.id = m.account_id
+                WHERE {where}
+                ORDER BY g.level DESC, g.ladder_point DESC, g.id"""
+    with_bots = select.format(
+        extra=""",
+                       (a.login LIKE 'playerbot\\_%%' OR EXISTS (SELECT 1 FROM common.playerbot_seed_state s
+                        WHERE s.pid = m.id)) AS bot_master""",
+        where="""(a.login NOT LIKE 'playerbot\\_%%' OR NOT EXISTS
+                       (SELECT 1 FROM player.playerbot_guild pg WHERE pg.guild_id = g.id))""")
+    people_only = select.format(extra="", where="a.login NOT LIKE 'playerbot\\_%%'")
+    found = None
+    # Świat bez tabeli gildii botów (albo bez rejestru) pokazuje gildie ludzi jak dotąd.
+    for statement in (with_bots, people_only):
+        try:
+            found = rows(statement)
+            break
+        except Exception:
+            continue
+    if found is None:
         return []
     needle = (query or "").casefold()
     result = []
     for g in found:
         if needle and needle not in str(g.get("name") or "").casefold() and needle not in str(g.get("master") or "").casefold():
             continue
-        for key in ("level", "ladder", "wins", "draws", "losses", "members", "empire"):
+        for key in ("level", "ladder", "wins", "draws", "losses", "members", "empire", "bot_master"):
             try:
                 g[key] = int(g.get(key) or 0)
             except (TypeError, ValueError):
@@ -5121,7 +5141,8 @@ def guilds():
                "wars": sum(1 for g in roster if g["war_with"]),
                "exp": sum(g["exp_offered"] for g in roster)}
     return render_template("guilds.html", guilds=roster, query=query, summary=summary,
-                           player_guilds=player_guild_rows(query),
+                           player_guilds=[g for g in player_guild_rows(query)
+                                          if not (g.get("bot_master") and g.get("id") in {r["id"] for r in roster})],
                            next_wars=[{"empire": empire, "text": guild_war_text(seconds)} for empire, seconds in sorted(next_wars.items())],
                            status_written_at=datetime.fromtimestamp(written_at).strftime("%H:%M") if written_at else None)
 
