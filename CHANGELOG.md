@@ -1,3 +1,9 @@
+## 2026-10-24 · 1.114.100 · Diagnostyka wędkowania bez skanu log.log
+
+- Strona „Diagnostyka” liczy wpisy wędkowania w `log.log` po indeksie: rodzaje wpisów z `SELECT DISTINCT how` (około stu pozycji indeksu `how_idx`), potem `COUNT(*)` po tych, w których nazwie jest FISH. Dotąd `how LIKE '%FISH%' OR hint LIKE '%FISH%'` czytało całą tabelę (na świecie testowym 74 mln wierszy) pod blokadą odczytu przy każdym wejściu na stronę. Wpis innego rodzaju, którego opis tylko wymienia rybę, nie jest już liczony. Z audytu VPS Tomasza i Dekriego, 24.10.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-23 · 1.114.99 · Logi postaci tylko tej postaci
 
 - Logi na żywo na karcie postaci pokazują tylko linie o tej postaci: linię botów, której pierwsze `pid=` (albo `name=`, gdy linia nie ma pid) to ta postać, i linię silnika, która zaczyna się jej dokładną nazwą (wielkość liter się liczy). Dotąd wchodziła każda linia z nazwą jako słowem, bez względu na wielkość liter: bot „lodowy” widział każdego „Lodowego Golema” i „Lodowego Robaka” rdzenia, bot nazwany jak potwór albo NPC (Zwiadowca, Handlarka) każdą linię o nim, a bot wymieniony w cudzej linii (`target=`, `leader=`, `shaman_name=`) linie innego bota. Zgłoszenie Kordyl13, 23.10.

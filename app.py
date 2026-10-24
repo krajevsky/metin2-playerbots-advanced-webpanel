@@ -2178,10 +2178,21 @@ def fishing_diagnostics():
         for line in text.splitlines():
             if re.search(r"fish|fishing|w[ęe]dk|rod", line, re.I):
                 matches.append({"core": f"ch{channel}/{path.parent.name}", "line": line[-300:]})
+    # `how LIKE '%FISH%' OR hint LIKE '%FISH%'` read every row of log.log
+    # (MyISAM, tens of millions of rows) under a read lock at every visit of
+    # this page: no index can serve a LIKE with a leading %. The kinds of row
+    # come from a loose scan of how_idx (a few hundred entries), and the rows
+    # of the fishing kinds are a count on that index; a hint that merely names
+    # a fish in another kind of row is no fishing event (Tomasz and Dekri's
+    # audit of their VPS, 24 October).
     database_events = 0
     try:
-        found = one("SELECT COUNT(*) AS total FROM log.log WHERE how LIKE %s OR hint LIKE %s", ("%FISH%", "%FISH%"))
-        database_events = int(found.get("total") or 0) if found else 0
+        fish_kinds = [r["how"] for r in rows("SELECT DISTINCT how FROM log.log")
+                      if r.get("how") is not None and "FISH" in game_text(r["how"]).upper()]
+        if fish_kinds:
+            marks = ",".join(["%s"] * len(fish_kinds))
+            found = one(f"SELECT COUNT(*) AS total FROM log.log WHERE how IN ({marks})", tuple(fish_kinds))
+            database_events = int(found.get("total") or 0) if found else 0
     except pymysql.MySQLError:
         pass
     return {"weights": read_ai_weights(), "online": len(bots), "anglers": anglers,
