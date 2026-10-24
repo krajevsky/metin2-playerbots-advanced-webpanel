@@ -1,3 +1,9 @@
+## 2026-10-23 · 1.114.99 · Logi postaci tylko tej postaci
+
+- Logi na żywo na karcie postaci pokazują tylko linie o tej postaci: linię botów, której pierwsze `pid=` (albo `name=`, gdy linia nie ma pid) to ta postać, i linię silnika, która zaczyna się jej dokładną nazwą (wielkość liter się liczy). Dotąd wchodziła każda linia z nazwą jako słowem, bez względu na wielkość liter: bot „lodowy” widział każdego „Lodowego Golema” i „Lodowego Robaka” rdzenia, bot nazwany jak potwór albo NPC (Zwiadowca, Handlarka) każdą linię o nim, a bot wymieniony w cudzej linii (`target=`, `leader=`, `shaman_name=`) linie innego bota. Zgłoszenie Kordyl13, 23.10.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-23 · 1.114.98 · Gildie botów, których żaden rdzeń nie zgłasza
 
 - Strona „Gildie” pokazuje w tabeli „Gildie graczy” także gildię, której mistrzem jest bot, a której żaden rdzeń nie zgłasza jako gildii botów (nie ma jej w `player.playerbot_guild`): zwykle założoną przez GM-a w czasie Przemiany, zanim bot wrócił do gry. Dotąd takiej gildii nie było na żadnej stronie panelu. Mistrz ma dopisek „bot, gildia jeszcze nieprzyjęta” (z podpowiedzią); gdy bot wróci do gry, rdzeń przejmie gildię jako gildię botów. Gildia, którą raport rdzeni już pokazuje, nie trafia drugi raz do tabeli graczy, a świat bez `player.playerbot_guild` czyta gildie graczy jak dotąd. Zgłoszenie Kordyl13, 23.10.

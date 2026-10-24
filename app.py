@@ -5320,19 +5320,74 @@ def gear_history_tab(how):
     return next((tab for tab, values in GEAR_HISTORY_TABS.items() if how in values), "other")
 
 
-# Word-boundary match: a name is bounded by space, "=", ":", "[", a bracket
-# or line end, never by a letter/digit of its own -- bot names are numbered
-# suffixes of a shared stem ("botgrom" must not match "botgrom2"). Ported
-# from Tieru's classic panel (admin_panel.py's api_bot_logs), which the
-# operator asked to compare our panel against, 2026-09-26.
-def bot_debug_logs(name, limit=60, scan_lines=800):
+# A character's live log is the lines about it, not every line its name is
+# in. Kordyl13 opened one bot's log and read other bots' lines (23 October):
+# the filter took any line with the name as a whole word, case ignored, so a
+# bot called "lodowy" read every "Lodowy Golem" and "Lodowy Robak" of the
+# core, a bot named like an NPC or a monster (Handlarka, Zwiadowca) every
+# line naming it, and a bot another one's line named second read that line
+# ("PLAYERBOT_PARTY: assist pid=115 name=Viktoria ... target=Lodowy Golem",
+# "PLAYERBOT_ESCORT: formed leader=2213 name=Art ... shaman_name=Filantrop").
+# A PLAYERBOT line names its subject first, as pid= and name=, and any other
+# character under a prefix (leader=, target=, shaman_name=), so it is this
+# character's when its first bare pid= is its pid - its first bare name= its
+# name when it has no pid= or the pid is not known. An engine line has neither
+# and names its character first ("Name: USE_ITEM ...", "SAVE: Name ...",
+# "SECTREE DIFFER: Name ...", "HorseSummon : Name ...", "AddAffect Name type
+# ...", "CRUSH! Name -> ..."): it is this character's when the exact name,
+# case and all, is its first word or follows its first word (or a tag of two
+# words ending in a colon), and is not the first word of a monster's or an
+# item's name ("AddAffect Lodowy Wieloryb Zab." is no line of a bot called
+# Lodowy). The same rule as Tieru's classic panel's /api/bot_logs.
+BOT_LOG_PID_RE = re.compile(r"(?<![A-Za-z0-9_])pid=(\d+)")
+BOT_LOG_NAME_RE = re.compile(r"(?<![A-Za-z0-9_])name=([^\s,;()\[\]]+)")
+
+
+def bot_log_line_is_about(line, name, pid=0):
+    """Whether a core's syslog line is about this character (its name, and
+    its pid when known), and not another one's line that names it."""
+    name = (name or "").strip()
+    pid = int(pid or 0)
+    first_pid = BOT_LOG_PID_RE.search(line)
+    if first_pid and pid:
+        return int(first_pid.group(1)) == pid
+    first_name = BOT_LOG_NAME_RE.search(line)
+    if first_name:
+        return bool(name) and first_name.group(1) == name
+    if first_pid or not name:
+        # A pid= of somebody, no name= and no pid of ours to compare with.
+        return False
+    sep = line.find(" :: ")
+    body = line[sep + 4:] if sep >= 0 else line
+    who = re.escape(name) + r"(?![A-Za-z0-9_])"
+    if re.match(r"(?:\S+ (?:\S*: )?)?" + who + r"(?! [A-Z\x80-\xff][a-z\x80-\xff])", body):
+        return True
+    # Or the line ends with it, after a word of the engine's own ("... item
+    # 50255 to Name", "... touched items from Name", "CRUSH! monster -> Name
+    # (x y) -> (x y)") rather than after a monster's other word ("from Elit.
+    # Ork Zwiadowca").
+    return re.search(r"(?:^|\s)(?:[a-z]+|->) " + who + r"(?:\s*$| \()", body) is not None
+
+
+def bot_log_lines_about(lines, name, pid=0):
+    """The lines of a syslog tail about this character, stripped."""
+    pid_token = "pid=%d" % int(pid) if int(pid or 0) > 0 else ""
+    return [line.strip() for line in lines
+            if (name in line or (pid_token and pid_token in line)) and bot_log_line_is_about(line, name, pid)]
+
+
+# The whole name and not a prefix of one ("botgrom" must not match
+# "botgrom2"), and only the lines about this character: see
+# bot_log_line_is_about. Ported from Tieru's classic panel (admin_panel.py's
+# api_bot_logs), which the operator asked to compare our panel against,
+# 2026-09-26.
+def bot_debug_logs(name, limit=60, scan_lines=800, pid=0):
     """Recent syslog lines mentioning this bot's name, across every core.
     Read-only, bounded (scan_lines per file so this never reads full,
     multi-GB syslogs -- same reasoning as scan_bot_chat_logs())."""
     name = (name or "").strip()
     if not name:
         return []
-    name_re = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(name) + r"(?![A-Za-z0-9_])", re.IGNORECASE)
     matched = []
     for channel, path in channel_paths("syslog"):
         try:
@@ -5345,9 +5400,7 @@ def bot_debug_logs(name, limit=60, scan_lines=800):
             continue
         lines = data.decode("cp1250", "replace").splitlines()
         recent = lines[-scan_lines:] if len(lines) > scan_lines else lines
-        for line in recent:
-            if name_re.search(line):
-                matched.append(line.strip())
+        matched.extend(bot_log_lines_about(recent, name, pid))
     return matched[-limit:]
 
 
@@ -5567,21 +5620,22 @@ def bot_offline_shop(pid):
     }
 
 
-def bot_live_logs(name, limit=80):
-    """Tail of the live game core's own syslogs, filtered to lines naming
+def bot_live_logs(name, limit=80, pid=0):
+    """Tail of the live game core's own syslogs, filtered to the lines about
     this bot -- same source (channelN/*/syslog, across every known channel)
-    and word-boundary matching as Tieru's own /api/bot_logs on 7788, so a
-    short name doesn't also match a longer sibling's (botgrom vs botgrom2)."""
+    and rule as Tieru's own /api/bot_logs on 7788 (bot_log_line_is_about):
+    its own pid= or name= first, or an engine line that starts with its exact
+    name, so neither a longer sibling (botgrom vs botgrom2) nor another bot's
+    line that names it gets in."""
     if not name:
         return []
-    name_re = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(name) + r"(?![A-Za-z0-9_])", re.IGNORECASE)
     matched = []
     for _channel, path in channel_paths("syslog"):
         try:
             with open(path, "r", encoding="latin-1", errors="ignore") as f:
                 lines = f.readlines()
             recent = lines[-800:] if len(lines) > 800 else lines
-            matched.extend(line.strip() for line in recent if name_re.search(line))
+            matched.extend(bot_log_lines_about(recent, name, pid))
         except OSError:
             continue
     return matched[-limit:]
@@ -5593,7 +5647,7 @@ def api_bot_logs(pid):
     character = one("SELECT name FROM player.player WHERE id=%s", (pid,))
     if not character:
         return {"ok": False, "logs": []}, 404
-    return {"ok": True, "logs": bot_live_logs(character["name"])}
+    return {"ok": True, "logs": bot_live_logs(character["name"], pid=pid)}
 
 
 @app.route("/api/admin/teleport-me", methods=["POST"])
