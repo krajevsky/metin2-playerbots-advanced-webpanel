@@ -1,3 +1,10 @@
+## 2026-10-24 · 1.114.101 · Kolektor nie blokuje zapisów gry
+
+- Kolektor (co 5 minut) czyta migawki przedmiotów, straganów i ofert straganów zwykłym `SELECT` i zapisuje je w paczkach po 500 wierszy, zamiast `INSERT IGNORE ... SELECT` z `player.item`. Taka instrukcja w InnoDB przy domyślnym REPEATABLE READ zakładała blokady współdzielone na każdy przeczytany wiersz `player.item` (migawka przedmiotów: cała tabela; migawki straganów: przedmioty każdego właściciela straganu) i gra czekała z `INSERT INTO item` i zapisem przedmiotów do końca instrukcji, ~1,6 s co 5 minut (`sys.innodb_lock_waits`). Tak samo pamięć ksiąg umiejętności: nowe księgi i odświeżenie raz na dobę idą przez `ON DUPLICATE KEY UPDATE`, bez `UPDATE ... JOIN player.item`.
+- Połączenie kolektora czyta w READ COMMITTED, więc instrukcja, która kiedyś znów zapisze to, co czyta z tabel gry, nie zablokuje ich wierszy. Zawartość migawek bez zmian. Zgłoszenie Tomasza i Dekriego, 24.10.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-24 · 1.114.100 · Diagnostyka wędkowania bez skanu log.log
 
 - Strona „Diagnostyka” liczy wpisy wędkowania w `log.log` po indeksie: rodzaje wpisów z `SELECT DISTINCT how` (około stu pozycji indeksu `how_idx`), potem `COUNT(*)` po tych, w których nazwie jest FISH. Dotąd `how LIKE '%FISH%' OR hint LIKE '%FISH%'` czytało całą tabelę (na świecie testowym 74 mln wierszy) pod blokadą odczytu przy każdym wejściu na stronę. Wpis innego rodzaju, którego opis tylko wymienia rybę, nie jest już liczony. Z audytu VPS Tomasza i Dekriego, 24.10.

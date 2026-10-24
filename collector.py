@@ -37,7 +37,39 @@ def status_paths():
 
 
 def connect():
-    return pymysql.connect(host=os.environ.get("DB_HOST", "mariadb"), port=int(os.environ.get("DB_PORT", "3306")), user=os.environ["DB_USER"], password=os.environ["DB_PASSWORD"], charset="utf8mb4", autocommit=True)
+    # READ COMMITTED: the collector only ever reads the game's tables, and
+    # under InnoDB's REPEATABLE READ any statement that writes while it reads
+    # them (INSERT ... SELECT, UPDATE ... JOIN) takes shared next-key locks on
+    # every row it reads - the game's own INSERT and UPDATE of player.item
+    # then wait for it (Tomasz and Dekri, 24 October). Under READ COMMITTED
+    # such a read is a consistent read and locks nothing; the snapshots below
+    # no longer write while they read anyway, so this guards what a later
+    # change adds. Safe without a binary log (the stack runs none) and with
+    # MariaDB's default MIXED one.
+    return pymysql.connect(host=os.environ.get("DB_HOST", "mariadb"), port=int(os.environ.get("DB_PORT", "3306")), user=os.environ["DB_USER"], password=os.environ["DB_PASSWORD"], charset="utf8mb4", autocommit=True,
+                           init_command="SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+
+
+# A snapshot's rows go in this many to a statement: each INSERT is its own
+# short transaction on the panel's own table, never one long one.
+SNAPSHOT_BATCH = 500
+
+
+def snapshot(cur, now, select_sql, insert_sql):
+    """Reads a snapshot of the game's tables with a plain SELECT and writes it
+    to the panel's table in batches. A plain SELECT is a consistent read: it
+    locks no row of player.item or player.ikashop_offlineshop at any isolation
+    level. The INSERT IGNORE ... SELECT it replaces read the same rows as a
+    locking read under REPEATABLE READ - every row of player.item for the
+    item snapshot, every item of every shop owner for the shop snapshots -
+    and held the game's INSERT INTO item and its saves of those items for as
+    long as the statement ran, ~1.6 s every five minutes on Tomasz and
+    Dekri's world (sys.innodb_lock_waits, 24 October)."""
+    cur.execute(select_sql)
+    rows = [(now,) + tuple(row) for row in cur.fetchall()]
+    for start in range(0, len(rows), SNAPSHOT_BATCH):
+        cur.executemany(insert_sql, rows[start:start + SNAPSHOT_BATCH])
+    return len(rows)
 
 
 def publish_playerbots_version(cur):
@@ -487,18 +519,16 @@ def collect(con, previous):
         # item this way would fragment ordinary equipment into one row per
         # gem combination for no reason, since only 50300's socket0 changes
         # what the item actually *is*.
-        cur.execute("""INSERT IGNORE INTO player.web_seban_item_snapshot (captured_at,vnum,socket0,amount)
-          SELECT %s, vnum, IF(vnum=50300, socket0, 0), SUM(count)
-          FROM player.item GROUP BY vnum, IF(vnum=50300, socket0, 0)""", (now,))
+        snapshot(cur, now, """SELECT vnum, IF(vnum=50300, socket0, 0), SUM(count)
+          FROM player.item GROUP BY vnum, IF(vnum=50300, socket0, 0)""",
+          "INSERT IGNORE INTO player.web_seban_item_snapshot (captured_at,vnum,socket0,amount) VALUES (%s,%s,%s,%s)")
         # Only what can be bought (Playerbots 2.2.23): a stand with duration 0
         # ran out and holds its goods until its owner renews it - on m2zip on
         # 26 September 970 of 1 641 stands, nearly all of them of bots not in
         # the world - and a line just sold keeps its window with ikashop_data
         # emptied until the game core saves the item back. Both were counted
         # as "Aktywne sklepy" and offers, and priced the market's averages.
-        cur.execute("""INSERT IGNORE INTO player.web_seban_shop_snapshot
-          (captured_at, map_index, empire, shop_count, offer_count, item_count, total_value)
-          SELECT %s, o.map, pi.empire, COUNT(DISTINCT o.owner), COUNT(i.id),
+        snapshot(cur, now, """SELECT o.map, pi.empire, COUNT(DISTINCT o.owner), COUNT(i.id),
                  COALESCE(SUM(i.count),0),
                  COALESCE(SUM(CAST(JSON_UNQUOTE(JSON_EXTRACT(i.ikashop_data,'$.yang')) AS UNSIGNED)),0)
           FROM player.ikashop_offlineshop o
@@ -507,24 +537,27 @@ def collect(con, previous):
           LEFT JOIN player.item i ON i.owner_id = o.owner AND i.window = 'IKASHOP_OFFLINESHOP'
             AND i.ikashop_data IS NOT NULL AND i.ikashop_data <> ''
           WHERE o.duration > 0
-          GROUP BY o.map, pi.empire""", (now,))
-        cur.execute("""INSERT IGNORE INTO player.web_seban_shop_item_snapshot (captured_at, vnum, socket0, offers, total_units, total_value)
-          SELECT %s, vnum, IF(vnum=50300, socket0, 0), COUNT(*), SUM(count),
+          GROUP BY o.map, pi.empire""",
+          """INSERT IGNORE INTO player.web_seban_shop_snapshot
+          (captured_at, map_index, empire, shop_count, offer_count, item_count, total_value)
+          VALUES (%s,%s,%s,%s,%s,%s,%s)""")
+        snapshot(cur, now, """SELECT vnum, IF(vnum=50300, socket0, 0), COUNT(*), SUM(count),
                  COALESCE(SUM(CAST(JSON_UNQUOTE(JSON_EXTRACT(ikashop_data,'$.yang')) AS UNSIGNED)),0)
           FROM player.item i JOIN player.ikashop_offlineshop o ON o.owner=i.owner_id
           WHERE i.window = 'IKASHOP_OFFLINESHOP' AND o.duration > 0
             AND i.ikashop_data IS NOT NULL AND i.ikashop_data <> ''
-          GROUP BY vnum, IF(vnum=50300, socket0, 0)""", (now,))
-        cur.execute("""INSERT IGNORE INTO player.web_seban_skillbook_identity (item_id,socket0,last_seen)
-          SELECT id,socket0,%s FROM player.item WHERE vnum=50300 AND socket0>0
-          """, (now,))
-        # Refresh surviving books once per day rather than rewriting every
-        # cached row every five minutes. A consumed book keeps its final
-        # last_seen and ages out eight days later.
-        cur.execute("""UPDATE player.web_seban_skillbook_identity c
-          JOIN player.item i ON i.id=c.item_id AND i.vnum=50300
-          SET c.last_seen=%s, c.socket0=i.socket0
-          WHERE c.last_seen < %s - INTERVAL 1 DAY AND i.socket0>0""", (now, now))
+          GROUP BY vnum, IF(vnum=50300, socket0, 0)""",
+          """INSERT IGNORE INTO player.web_seban_shop_item_snapshot (captured_at, vnum, socket0, offers, total_units, total_value)
+          VALUES (%s,%s,%s,%s,%s,%s)""")
+        # A skill book still in the game: a new one is added, and one cached a
+        # day ago or more takes its socket and today's date - the refresh once
+        # a day of before, written by the duplicate key instead of an UPDATE
+        # ... JOIN player.item, which read the game's items as a locking read.
+        snapshot(cur, now, "SELECT id, socket0 FROM player.item WHERE vnum=50300 AND socket0>0",
+          """INSERT INTO player.web_seban_skillbook_identity (last_seen,item_id,socket0) VALUES (%s,%s,%s)
+          ON DUPLICATE KEY UPDATE
+            socket0=IF(last_seen < VALUES(last_seen) - INTERVAL 1 DAY, VALUES(socket0), socket0),
+            last_seen=IF(last_seen < VALUES(last_seen) - INTERVAL 1 DAY, VALUES(last_seen), last_seen)""")
         cur.execute("DELETE FROM player.web_seban_skillbook_identity WHERE last_seen < %s - INTERVAL 8 DAY", (now,))
         cur.execute("SELECT COALESCE(SUM(gold),0) FROM player.player WHERE name NOT IN ('[SA]Admin','Test','Admin','AdminNinja','AdminSura','AdminSzaman')")
         yang = cur.fetchone()[0]
