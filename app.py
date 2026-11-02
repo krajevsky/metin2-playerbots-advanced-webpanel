@@ -10550,6 +10550,9 @@ def api_heat_events():
 from item_grants import install as install_item_grants
 install_item_grants(app, db, login_required, game_text)
 
+import flash_offers
+flash_offers.register(app, globals())
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=7789)

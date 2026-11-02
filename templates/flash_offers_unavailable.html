@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}{{ flash_t('title') }} · {{ panel_brand }}{% endblock %}
+{% block content %}
+<section class="panel" role="alert"><h1>{{ flash_t('title') }}</h1><p>{{ flash_t('schema_missing') }}</p></section>
+{% endblock %}

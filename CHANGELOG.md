@@ -1,3 +1,10 @@
+## 2026-11-02 · 1.114.102 · Aukcje błyskawiczne ItemShopu
+
+- Nowa strona „Aukcje błyskawiczne” w grupie Gospodarka (tylko mt2009, domyślnie wyłączona): tworzenie, edycja i anulowanie ograniczonych czasowo ofert ItemShopu na natywnych tabelach aukcji - wyszukiwarka przedmiotu, ilość w paczce, cena w SM lub SZ, wymagany poziom, pula sztuk, limit na konto i okno sprzedaży w czasie warszawskim. Edytować można tylko ofertę, która jeszcze nie ruszyła i której nikt nie kupił; anulowanie skraca okno i zachowuje historię zakupów. Oferty spoza edytora są nietykalne.
+- Zapis pod blokadą tabel z limitem 3 s (zajęta tabela daje komunikat zamiast czekania), przedmiot dopisywany na końcu, żeby awaria nie zostawiła zwykłej oferty bez limitu, cena chroniona przed procentem cen ItemShopu (`own=1` w `m2_itemshop_price_base`). Po zapisie panel prosi GM-a online o `reload i` (komenda `GM_RELOAD itemshop` w `web_admin.quest`, inne argumenty odrzucane). Bez tabel edytora strona odpowiada 503, a link w menu się nie pokazuje. Teksty PL/EN/TR. Port twórcy aukcji NerrVoVy.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-10-24 · 1.114.101 · Kolektor nie blokuje zapisów gry
 
 - Kolektor (co 5 minut) czyta migawki przedmiotów, straganów i ofert straganów zwykłym `SELECT` i zapisuje je w paczkach po 500 wierszy, zamiast `INSERT IGNORE ... SELECT` z `player.item`. Taka instrukcja w InnoDB przy domyślnym REPEATABLE READ zakładała blokady współdzielone na każdy przeczytany wiersz `player.item` (migawka przedmiotów: cała tabela; migawki straganów: przedmioty każdego właściciela straganu) i gra czekała z `INSERT INTO item` i zapisem przedmiotów do końca instrukcji, ~1,6 s co 5 minut (`sys.innodb_lock_waits`). Tak samo pamięć ksiąg umiejętności: nowe księgi i odświeżenie raz na dobę idą przez `ON DUPLICATE KEY UPDATE`, bez `UPDATE ... JOIN player.item`.

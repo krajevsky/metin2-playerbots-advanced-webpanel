@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{{ flash_t('title') }} · {{ panel_brand }}{% endblock %}
+{% block content %}
+<p class="eyebrow">ITEMSHOP</p><h1>{{ flash_t('title') }}</h1>
+<p class="muted">{{ flash_t('intro') }}</p>
+<section class="panel"><h2>{{ flash_t('switch') }}: {{ flash_t('on' if flash_enabled else 'off') }}</h2>
+<p class="muted">{{ flash_t('switch_help') }}</p>
+<form method="post" action="{{ url_for('flash_offer_enabled') }}">
+  <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="enabled" value="{{ '0' if flash_enabled else '1' }}">
+  <button type="submit">{{ flash_t('disable' if flash_enabled else 'enable') }}</button>
+</form></section>
+{% if error %}<section class="panel" role="alert"><strong>{{ error }}</strong></section>{% endif %}
+{% if flash_enabled %}
+<section class="panel"><h2>{{ flash_t('edit' if form.edit_id else 'new') }}</h2>
+<form method="post" id="offer-form">
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="edit_id" value="{{ form.edit_id or '' }}">
+<div class="grid two">
+<label class="flash-item-picker" for="item-search">{{ flash_t('search') }}
+<input type="search" id="item-search" list="item-suggestions" autocomplete="off" required value="{{ form.vnum or '' }}">
+<datalist id="item-suggestions"></datalist><input id="item-vnum" type="hidden" name="vnum" value="{{ form.vnum or '' }}"></label>
+<label>{{ flash_t('count') }}<input type="number" name="count" min="1" max="200" required value="{{ form.count }}"></label>
+<label>{{ flash_t('price') }}<input type="number" name="price" min="1" max="{{ flash_max_price }}" required value="{{ form.price }}"></label>
+<label>{{ flash_t('currency_label') }}<select name="currency"><option value="DRAGON_COIN" {% if form.currency=='DRAGON_COIN' %}selected{% endif %}>{{ flash_t('coin') }}</option><option value="DRAGON_MARK" {% if form.currency=='DRAGON_MARK' %}selected{% endif %}>{{ flash_t('mark') }}</option></select></label>
+<label>{{ flash_t('level') }}<input type="number" name="minLevel" min="0" max="255" required value="{{ form.minLevel }}"></label>
+<label>{{ flash_t('start') }}<input type="datetime-local" name="start_time" required value="{{ form.start_time }}"></label>
+<label>{{ flash_t('end') }}<input type="datetime-local" name="end_time" required value="{{ form.end_time }}"></label>
+<label>{{ flash_t('stock') }}<input type="number" name="max_amount" min="1" max="{{ flash_max_stock }}" required value="{{ form.max_amount }}"></label>
+<label>{{ flash_t('limit') }}<input type="number" name="account_limit" min="0" max="{{ flash_max_stock }}" required value="{{ form.account_limit }}"></label>
+</div><p class="muted">{{ flash_t('bundle_help') }}</p>
+<button type="submit">{{ flash_t('save') }}</button>
+{% if form.edit_id %}<a href="{{ url_for('flash_offers') }}">{{ flash_t('cancel_edit') }}</a>{% endif %}
+</form></section>
+{% endif %}
+<section class="panel"><h2>{{ flash_t('offers') }}</h2><p class="muted">{{ flash_t('history_help') }}</p>
+<div style="overflow-x:auto"><table><thead><tr>{% for key in ('item','bundle','window','sold','account_limit','status','actions') %}<th>{{ flash_t(key) }}</th>{% endfor %}</tr></thead><tbody>
+{% for offer in offers %}<tr><td>#{{ offer.index }} · {{ offer.item_name }}<br><small>VNUM {{ offer.vnum }} · {{ offer.minLevel }} lvl</small></td><td>{{ offer.count }} / {{ offer.price }} {{ flash_t('coin_short' if offer.currency=='DRAGON_COIN' else 'mark_short') }}</td><td>{{ offer.start_time_local|replace('T',' ') }}<br>{{ offer.end_time_local|replace('T',' ') }}</td><td>{{ offer.buy_count }} / {{ offer.max_amount }}</td><td>{{ offer.account_limit or flash_t('unlimited') }}</td><td>{{ flash_t(offer.state) }}</td><td>
+{% if offer.editable and flash_enabled %}<a href="{{ url_for('flash_offers',edit=offer.index) }}">{{ flash_t('edit_link') }}</a>{% endif %}
+{% if offer.state in ('active','planned','sold_out') %}<form method="post" action="{{ url_for('flash_offer_cancel',index=offer.index) }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="secondary">{{ flash_t('cancel') }}</button></form>{% endif %}</td></tr>
+{% else %}<tr><td colspan="7">{{ flash_t('empty') }}</td></tr>{% endfor %}
+</tbody></table></div></section>
+<style>
+#offer-form .grid.two>label{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+#offer-form .grid.two>label>input,#offer-form .grid.two>label>select{width:100%;max-width:none;box-sizing:border-box}
+#offer-form .flash-item-picker{grid-column:1/-1}
+</style>
+{% if flash_enabled %}<script>
+(()=>{
+const input=document.getElementById('item-search'),list=document.getElementById('item-suggestions'),hidden=document.getElementById('item-vnum');
+const choices=new Map();let timer,version=0;
+function sync(){const text=input.value.trim();hidden.value=choices.get(text)||(/^[1-9][0-9]{0,9}$/.test(text)&&Number(text)<=2147483647?text:'');input.setCustomValidity('');}
+input.addEventListener('input',()=>{
+ clearTimeout(timer);const id=++version;sync();if(choices.has(input.value.trim()))return;
+ if(!input.value.trim()){list.replaceChildren();choices.clear();return;}
+ timer=setTimeout(async()=>{try{
+  const response=await fetch({{ url_for('flash_offer_items')|tojson }}+'?q='+encodeURIComponent(input.value.trim()));
+  if(!response.ok)return;const rows=await response.json();if(id!==version)return;
+  list.replaceChildren();choices.clear();
+  for(const row of rows){const label=row.name+' · '+row.vnum,option=document.createElement('option');option.value=label;choices.set(label,String(row.vnum));list.appendChild(option);}
+  sync();
+ }catch(e){}},250);
+});
+input.addEventListener('change',sync);
+document.getElementById('offer-form').addEventListener('submit',e=>{sync();if(!hidden.value){e.preventDefault();input.setCustomValidity({{ flash_t('picker')|tojson }});input.reportValidity();}});
+sync();
+})();
+</script>{% endif %}
+{% endblock %}

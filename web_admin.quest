@@ -399,7 +399,14 @@ quest web_admin begin
 									if pc.get_gm_level() < 5 then
 										result = "no_gm"
 									else
-										command("reload a")
+										-- Only literal, whitelisted reload targets; never concatenate panel input.
+										if arg1 == "itemshop" then
+											command("reload i")
+										elseif arg1 == nil or arg1 == "" or arg1 == "admin" then
+											command("reload a")
+										else
+											result = "bad_args"
+										end
 									end
 								else
 									result = "unknown_cmd"
