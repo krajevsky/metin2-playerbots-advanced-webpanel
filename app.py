@@ -10554,6 +10554,8 @@ import flash_offers
 flash_offers.register(app, globals())
 import plague_settings
 plague_settings.register(app, globals())
+import hunter_forge
+hunter_forge.register(app, globals())
 
 
 if __name__ == "__main__":

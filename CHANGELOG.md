@@ -1,3 +1,10 @@
+## 2026-11-03 · 1.114.104 · Kuźnia Łowcy w panelu
+
+- Nowa strona „Kuźnia Łowcy” (tylko mt2009, Zarządzanie; w motywie „Łąka i Złoto” w sekcji Zarządzanie): przełącznik Kuźni (`player.hunter_forge_settings`) oraz sześć przepisów u Kowala z `world.crafting_proto` (vnum 98100-98105), w których broń +9 na 30 poziom staje się bronią na 50 poziom. Dla każdej rodziny opłata w Yang i do czterech dodatkowych materiałów z ilością (1-1000) z wyszukiwarką przedmiotów; broń źródłowa zostaje pierwszym składnikiem, a zbroje, bronie i same wyniki Kuźni nie mogą być materiałem. Zapis pod blokadą wierszy z numerem rewizji (formularz otwarty przed cudzym zapisem jest odrzucany), przed każdym zapisem panel kopiuje poprzednie wartości do `spool/hunter-forge-backups`. Domyślnie wyłączona; boty z Kuźni nie korzystają.
+- Strona wymaga logowania i uprawnień administratora, ma własny token CSRF i teksty PL/EN/TR. Bez tabel i przepisów Kuźni strona prosi o zwykłą migrację serwera i nic nie zapisuje. Kuźnia to dodatek NerrVoVy.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-11-03 · 1.114.103 · Loch Zarazy w panelu
 
 - Nowa strona „Loch Zarazy” (tylko mt2009): przełącznik otwierający i zamykający loch dla graczy (flaga świata `m2_plague_enabled`, od razu na żywo przez komendę `PLAGUE` w `web_admin.quest`; gdy żaden rdzeń nie odpowie w 12 s, zlecenie jest anulowane, a gra przyjmie flagę przy następnym starcie) oraz ustawienia wypraw z wiersza `player.local_plague_config`: opłata wejściowa, liczba i cena Przepustek Zarazy, nagroda w Yang i PD na osobę oraz do trzech przedmiotów nagrody z ilością. Te same granice co strona `/plague` panelu klasycznego, numer rewizji odrzuca formularz otwarty przed cudzym zapisem, a przed każdym zapisem panel kopiuje poprzednie wartości do `spool/plague-backups`. Zmiana działa od następnej wyprawy, bez restartu; trwające wyprawy kończą się w swojej godzinie. Boty i towarzysze nigdy nie wchodzą.

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ hunter_forge_t('title') }} · {{ panel_brand }}{% endblock %}
+{% block content %}
+<section style="max-width:1100px;margin:auto" translate="no">
+<h1>{{ hunter_forge_t('title') }}</h1>
+<p>{{ hunter_forge_t('intro') }}</p>
+<p>{{ hunter_forge_t('proposal') }}</p>
+<p>{{ hunter_forge_t('rules') }}</p>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+{% if not ready %}<p role="alert">{{ hunter_forge_t('missing') }}</p>{% else %}
+<form method="post">
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="revision" value="{{ state.revision }}"><input type="hidden" name="action" value="toggle">
+<label><input type="checkbox" name="enabled" value="1" {% if state.enabled %}checked{% endif %}> {{ hunter_forge_t('enabled') }}</label>
+<button type="submit">{{ hunter_forge_t('toggle') }}</button>
+</form><p>{{ hunter_forge_t('on' if state.enabled else 'off') }}</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+{% for c in cards %}<form method="post" style="border:1px solid #80653f;padding:20px;border-radius:8px">
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="revision" value="{{ state.revision }}"><input type="hidden" name="recipe_id" value="{{ c.id }}">
+{% if item_icon(c.model) %}<img src="{{ item_icon(c.model) }}" alt="" style="max-width:40px;max-height:65px">{% endif %}
+<h2>{{ c.label }}</h2><p>30 +9 → 50 +0</p>
+<label for="fee-{{c.id}}">{{ hunter_forge_t('fee') }}</label><input id="fee-{{c.id}}" name="price" type="number" min="0" max="2000000000" value="{{c.price}}" required>
+{% for i in range(4) %}{% set mat=c.materials[i] if i<c.materials|length else none %}
+<p><label for="mat-{{c.id}}-{{i}}">{{ hunter_forge_t('material') }} {{i+1}}</label>
+<input id="mat-{{c.id}}-{{i}}" class="hunter-forge-item" name="item_{{i}}" list="options-{{c.id}}-{{i}}" value="{{mat[0] if mat else ''}}" autocomplete="off"><datalist id="options-{{c.id}}-{{i}}"></datalist>
+<label for="count-{{c.id}}-{{i}}">{{ hunter_forge_t('count') }}</label><input id="count-{{c.id}}-{{i}}" name="count_{{i}}" type="number" min="1" max="1000" value="{{mat[1] if mat else ''}}">
+<small>{{items.get(mat[0],{}).get('label','') if mat else ''}}</small></p>
+{% endfor %}<button type="submit">{{ hunter_forge_t('save') }}</button></form>{% endfor %}
+</div>{% endif %}</section>
+<script>
+document.querySelectorAll('.hunter-forge-item').forEach(input=>{let timer,controller;input.addEventListener('input',()=>{clearTimeout(timer);if(controller)controller.abort();timer=setTimeout(async()=>{if(input.value.trim().length<2)return;controller=new AbortController();try{const r=await fetch('{{url_for("hunter_forge_items")}}?q='+encodeURIComponent(input.value),{signal:controller.signal});if(!r.ok)return;const data=await r.json();document.getElementById(input.getAttribute('list')).replaceChildren(...data.map(v=>{const o=document.createElement('option');o.value=v.vnum;o.label=v.name;return o}));const selected=data.find(v=>String(v.vnum)===input.value);if(selected)input.parentElement.querySelector('small').textContent=selected.name}catch(e){if(e.name!=='AbortError')console.error(e)}},220)})});
+</script>
+{% endblock %}
