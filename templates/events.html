@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Eventy · {{ panel_brand }}{% endblock %}
 {% block content %}
+{% if plague_supported %}<section class="panel" id="plague-link"><h2>☣ {{ plague_t('title') }}</h2><p>{{ plague_t('intro') }}</p><p><a href="{{ url_for('plague_settings_page') }}">{{ plague_t('settings') }} →</a></p></section>{% endif %}
 {% if settings.theme == 'laka' %}{% include '_laka_events.html' %}{% else %}
 <p class="eyebrow">PLAYERBOTS · NA ŻYWO</p>
 <div class="events-heading"><div><h1>🎉 Planer eventów</h1><p class="muted">Uruchamiaj eventy od razu albo ustawiaj ich tygodniowy harmonogram. Rdzeń Playerbots odczytuje zmianę w ciągu pięciu sekund — restart nie jest potrzebny.</p></div><div class="events-core"><span>RDZEŃ</span><b>{{ 'połączony' if status else 'czeka na status' }}</b></div></div>

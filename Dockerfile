@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # answered "dev" when it cannot read it.
 COPY app.py collector.py item_grants.py translations.py decisions.py decision_tables.py market_categories.py gm_commands.txt gm_commands.en.txt gm_commands.tr.txt CHANGELOG.md VERSION* ./
 COPY flash_offers.py flash_offers_text.py ./
+COPY plague_settings.py plague_settings_text.py ./
 COPY templates ./templates
 COPY static ./static
 ENV PYTHONUNBUFFERED=1

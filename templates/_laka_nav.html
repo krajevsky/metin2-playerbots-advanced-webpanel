@@ -1,7 +1,7 @@
 {#- Motyw "Laka i Złoto": nawigacja sekcjami. Każda strona z dotychczasowego menu ma tu swoje miejsce;
     'extra' to podstrony szczegółów (karta postaci, gildia, przedmiot…), które podświetlają swoją sekcję. -#}
 {% set LAKA_SECTIONS = [
-  {'name': 'Świat', 'icon': 'world', 'pages': [('dashboard', 'Przegląd świata'), ('events', 'Planer eventów'), ('season', 'Sezon i rekordy')], 'extra': ['daily_summary']},
+  {'name': 'Świat', 'icon': 'world', 'pages': [('dashboard', 'Przegląd świata'), ('events', 'Planer eventów')] + ([('plague_settings_page', plague_t('title'))] if plague_supported else []) + [('season', 'Sezon i rekordy')], 'extra': ['daily_summary']},
   {'name': 'Postacie', 'icon': 'chars', 'pages': [('players', 'Gracze i boty'), ('rankings', 'Rankingi'), ('fame_ranking', 'Fame ranking' if ui_language == 'en' else 'Ranking sławy'), ('guilds', 'Gildie'), ('bot_personalities', 'Osobowości botów'), ('character_creator', 'Kreator postaci')], 'extra': ['player', 'guild']},
   {'name': 'Gospodarka', 'icon': 'economy', 'pages': [('economy', 'Przedmioty i drop'), ('economy_shops', 'Sklepy offline'), ('economy_transactions', 'Shop transactions' if ui_language == 'en' else 'Transakcje straganów'), ('economy_offers', 'Oferty rynku'), ('economy_itemshop', 'ItemShop')] + ([('flash_offers', flash_t('title'))] if flash_supported and flash_available() else []), 'extra': ['economy_item', 'economy_holders_status']},
   {'name': 'Kronika', 'icon': 'chronicle', 'pages': [('world_feed', 'Wiadomości ze świata'), ('live_chat', 'Czat na żywo')], 'extra': []},

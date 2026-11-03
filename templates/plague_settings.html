@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}{{ plague_t('title') }} · {{ panel_brand }}{% endblock %}
+{% block content %}
+<section style="max-width:1100px;margin:auto" translate="no">
+<h1>☣ {{ plague_t('title') }}</h1>
+<p>{{ plague_t('intro') }}</p>
+<p>{{ plague_t('classic') }}</p>
+{% if cfg is none %}<p role="alert">{{ plague_t('missing') }}</p>{% else %}
+<div id="plague-status" style="border:1px solid #80653f;padding:20px;border-radius:8px;margin:16px 0">
+<p><strong>{{ plague_t('open' if is_open else 'closed') }}</strong></p>
+{% if not ready.ok %}<p role="alert">⚠ {{ plague_t('incomplete') }} ({{ ready.mobs }}/{{ mob_total }}, {{ ready.items }}/{{ item_total }}). {{ plague_t('incomplete_hint') }}</p>{% endif %}
+<form method="post"><input type="hidden" name="csrf" value="{{ csrf }}">
+{% if is_open %}<button type="submit" name="action" value="close">■ {{ plague_t('do_close') }}</button>
+{% else %}<button type="submit" name="action" value="open">▶ {{ plague_t('do_open') }}</button>{% endif %}
+</form>
+<p>{{ plague_t('closing') }}</p>
+</div>
+<form method="post" id="plague-settings" style="border:1px solid #80653f;padding:20px;border-radius:8px">
+<h2>{{ plague_t('settings') }}</h2>
+<p>{{ plague_t('settings_hint') }}</p>
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="revision" value="{{ cfg.revision }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 18px;align-items:end">
+{% for key, low, high in fields %}<label style="display:flex;flex-direction:column;gap:4px">{{ plague_t(key) }}<input name="{{ key }}" inputmode="numeric" value="{{ cfg[key] }}"></label>
+{% endfor %}
+{% for i in (1, 2, 3) %}{% set vnum = cfg['reward_item%d' % i] %}<label style="display:flex;flex-direction:column;gap:4px">{{ plague_t('reward_item') % i }}{% if names.get(vnum) %} - {{ names[vnum] }}{% endif %}<input name="reward_item{{ i }}" inputmode="numeric" value="{{ vnum }}"></label>
+<label style="display:flex;flex-direction:column;gap:4px">{{ plague_t('count') }}<input name="reward_count{{ i }}" inputmode="numeric" value="{{ cfg['reward_count%d' % i] }}"></label>
+{% endfor %}
+</div>
+<p><button type="submit" name="action" value="save">{{ plague_t('save') }}</button></p>
+<p>{{ plague_t('balance') }}</p>
+<p>{{ plague_t('backup') }}</p>
+</form>{% endif %}
+</section>
+{% endblock %}

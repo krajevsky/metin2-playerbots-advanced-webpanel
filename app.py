@@ -10552,6 +10552,8 @@ install_item_grants(app, db, login_required, game_text)
 
 import flash_offers
 flash_offers.register(app, globals())
+import plague_settings
+plague_settings.register(app, globals())
 
 
 if __name__ == "__main__":
