@@ -6849,39 +6849,63 @@ def queue_live_rename(old_name, new_name):
     return "timeout"
 
 
+GM_RELOAD_WAIT_SECONDS = 8.0  # a player timer ticks every 3 s, the cores' GMRELOAD poll every 2 s
+
+# What a grant says when no game core re-read the list (issue #606): the rank
+# is in common.gmlist, and the game takes it at its next start or /reload a -
+# never at a login, which only asks the list the core already holds.
+GM_RELOAD_FAILED_HINT = ("Gra nie przeładowała listy GM, więc ranga zadziała dopiero po restarcie serwera "
+                         "(w launcherze ZATRZYMAJ I ZAPISZ, potem GRAJ) albo gdy postać z rangą Właściciel "
+                         "(IMPLEMENTOR), np. Admin z konta admin, wpisze w grze /reload a. "
+                         "Samo przelogowanie postaci rangi nie wczyta.")
+GM_RELOAD_DONE_HINT = ("Gra przeładowała listę GM: postać, która jest w grze, ma rangę od razu, "
+                       "bez przelogowania, a pozostałe przy wejściu do gry.")
+
+
 def queue_gm_reload():
-    """Ask an online IMPLEMENTOR to run /reload a for us, so a GM grant/removal
-    takes effect immediately instead of waiting for the character's next
-    login. Same trick Tieru's own classic panel (7788) uses: this engine has
-    no admin socket, so nothing can push HEADER_GD_RELOAD_ADMIN to the db
-    core directly -- only an in-game /reload a can, and interpret_command()
-    runs a queued command as the player who owns it, so only a character
-    that already holds IMPLEMENTOR (gm_level 5) can carry it (see the
-    GM_RELOAD branch in game/quest/web_admin.quest, already shipped and
-    already running -- this just starts using it from this panel too).
-    One row per current IMPLEMENTOR; whichever is actually online picks it
-    up first, the rest are withdrawn. Returns True only if one actually did
-    -- False means "wrote the gmlist row, but nobody was online to push the
-    live reload; takes effect at that character's next login instead."""
-    names = [r["mName"] for r in rows(
-        "SELECT mName FROM common.gmlist WHERE mAuthority='IMPLEMENTOR' LIMIT 8") if r["mName"]]
-    if not names:
-        return False
-    for name in names:
-        rows("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2) VALUES (%s,'GM_RELOAD','','')", (name,))
-    ids = {r["id"]: r["player_name"] for r in rows(
-        "SELECT id, player_name FROM player.web_admin_queue WHERE cmd='GM_RELOAD' AND status='pending'"
-        " AND player_name IN (" + ",".join(["%s"] * len(names)) + ")", names)}
+    """Make the running game re-read common.gmlist, so a GM grant or removal
+    works at once. True only when a game core did it.
+
+    A game core reads the list when it boots and on /reload a, and nowhere
+    else: a login asks the copy in memory (gm.cpp's gm_new_get_level), so a
+    row written after the boot grants nothing until one of the two - not at
+    the character's next login (issue #606: an account made here with
+    IMPLEMENTOR had no rights in the game). Two ways to ask, both at once,
+    the first 'done' enough and the rest withdrawn:
+
+    * GMRELOAD (mt2009), a row that names nobody, status 'await' so
+      web_admin.quest's player timer never answers it: every game core of the
+      suite from 2.2.139 polls for it every two seconds and the one whose
+      claim wins sends the db core HEADER_GD_RELOAD_ADMIN itself
+      (playerbot_gm_reload.cpp), and the db core pushes the list to every
+      core, which recomputes the level of everybody online. Nobody needs to
+      be in the game - the new account's own character least of all.
+    * GM_RELOAD for each IMPLEMENTOR (web_admin.quest's player timer runs
+      /reload a as that player), for a server before it; it works only while
+      one of them is online.
+    """
+    ids = []
+    with db() as con, con.cursor() as cur:
+        if ENGINE_MT2009:
+            cur.execute("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2,status) "
+                        "VALUES ('','GMRELOAD','','','await')")
+            ids.append(cur.lastrowid)
+        cur.execute("SELECT mName FROM common.gmlist WHERE mAuthority='IMPLEMENTOR' LIMIT 8")
+        names = [r["mName"] for r in cur.fetchall() if r["mName"]]
+        for name in names:
+            cur.execute("INSERT INTO player.web_admin_queue (player_name,cmd,arg1,arg2) "
+                        "VALUES (%s,'GM_RELOAD','','')", (name,))
+            ids.append(cur.lastrowid)
+    ids = [qid for qid in ids if qid]
     if not ids:
         return False
-    done, deadline = False, time.time() + 8.0  # a player timer ticks every 3s
+    marks = ",".join(["%s"] * len(ids))
+    done, deadline = False, time.time() + GM_RELOAD_WAIT_SECONDS
     while time.time() < deadline and not done:
         time.sleep(0.6)
         done = any(r["status"] == "done" for r in rows(
-            "SELECT status FROM player.web_admin_queue WHERE id IN (" +
-            ",".join(["%s"] * len(ids)) + ")", list(ids.keys())))
-    rows("DELETE FROM player.web_admin_queue WHERE status='pending' AND id IN (" +
-         ",".join(["%s"] * len(ids)) + ")", list(ids.keys()))
+            "SELECT status FROM player.web_admin_queue WHERE id IN (" + marks + ")", ids))
+    rows("DELETE FROM player.web_admin_queue WHERE status IN ('pending','await') AND id IN (" + marks + ")", ids)
     return done
 
 
@@ -6893,10 +6917,9 @@ def player_action_gm_rank(pid):
 
     common.gmlist to jedyne źródło prawdy: silnik czyta stamtąd listę GM-ów,
     więc ten wiersz JEST nadaniem rangi. Rdzeń re-czyta listę przy starcie
-    oraz przy /reload a -- queue_gm_reload() poniżej prosi o to online
-    IMPLEMENTORA automatycznie (ten sam trik co panel Tieru na 7788), więc
-    zwykle działa od razu; jeśli akurat nikt z tą rangą nie jest zalogowany,
-    zmiana i tak zacznie działać przy najbliższym logowaniu tej postaci.
+    oraz przy /reload a, nigdy przy logowaniu postaci -- queue_gm_reload()
+    poniżej prosi o przeładowanie rdzenie gry (GMRELOAD) i online
+    IMPLEMENTORA (GM_RELOAD); bez żadnego z nich zmiana czeka na restart.
     """
     rank = (request.form.get("rank", "") or "").strip()
     if rank and rank not in GM_RANK_SET:
@@ -6919,14 +6942,13 @@ def player_action_gm_rank(pid):
     reloaded = queue_gm_reload()
     verb = "nadana" if rank else "odebrana"
     if reloaded:
-        flash(f"Ranga GM „{label}” {verb} postaci {name}. Zadziałało od razu (online IMPLEMENTOR wykonał /reload a)."
-              if rank else f"Ranga GM odebrana postaci {name}. Zadziałało od razu (online IMPLEMENTOR wykonał /reload a).")
+        flash(f"Ranga GM „{label}” {verb} postaci {name}. {GM_RELOAD_DONE_HINT}"
+              if rank else f"Ranga GM odebrana postaci {name}. Zadziałało od razu (gra przeładowała listę GM).")
     elif rank:
-        flash(f"Ranga GM „{label}” nadana postaci {name}. Zacznie działać przy najbliższym zalogowaniu tej postaci "
-              f"-- żaden IMPLEMENTOR nie był akurat online, żeby wykonać /reload a za nas.")
+        flash(f"Ranga GM „{label}” nadana postaci {name} (zapisana w common.gmlist). {GM_RELOAD_FAILED_HINT}", "error")
     else:
-        flash(f"Ranga GM odebrana postaci {name}. Postać online zachowa komendy do wylogowania "
-              f"-- żaden IMPLEMENTOR nie był akurat online, żeby wykonać /reload a za nas.")
+        flash(f"Ranga GM odebrana postaci {name} (usunięta z common.gmlist). Gra nie przeładowała listy GM, "
+              f"więc postać zachowa komendy do restartu serwera albo /reload a.", "error")
     return redirect(url_for("player", pid=pid))
 
 
@@ -8490,7 +8512,12 @@ def accounts():
                             cur.execute("INSERT INTO common.gmlist (mAccount,mName,mContactIP,mServerIP,mAuthority) VALUES (%s,%s,'','ALL',%s)", (login, gm_name, authority))
                         con.commit()
                 if authority != "PLAYER":
-                    flash(f"Utworzono konto i postać GM „{gm_name}”. Postać jest dostępna od razu; uprawnienia GM staną się aktywne po restarcie usług gry.")
+                    # The row alone grants nothing in a running game (issue
+                    # #606): ask it to re-read the list, and say what it did.
+                    if queue_gm_reload():
+                        flash(f"Utworzono konto „{login}” i postać GM „{gm_name}”. {GM_RELOAD_DONE_HINT}")
+                    else:
+                        flash(f"Utworzono konto „{login}” i postać GM „{gm_name}”. {GM_RELOAD_FAILED_HINT}", "error")
                 else:
                     flash("Konto utworzone.")
                 return redirect(url_for("accounts"))
@@ -8860,7 +8887,11 @@ def character_creator():
                 else:
                     flash(f"Utworzono postać „{gm_name}” na koncie „{account_login}”.")
                 if authority != "PLAYER":
-                    flash("Uprawnienia GM staną się aktywne po restarcie usług gry.")
+                    # As on /accounts (issue #606).
+                    if queue_gm_reload():
+                        flash(GM_RELOAD_DONE_HINT)
+                    else:
+                        flash(GM_RELOAD_FAILED_HINT, "error")
                 return redirect(url_for("character_creator"))
             except (pymysql.MySQLError, ValueError) as exc:
                 try: con.rollback()

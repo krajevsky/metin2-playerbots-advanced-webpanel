@@ -1,3 +1,10 @@
+## 2026-11-03 · 1.114.105 · Ranga GM działa od razu
+
+- Konto z postacią GM (strona Konta), postać z rangą w kreatorze postaci i ranga nadana istniejącej postaci działają od razu, bez restartu i bez GM-a w grze. Gra czyta listę GM (`common.gmlist`) tylko przy starcie i przy `/reload a`, nigdy przy logowaniu, a panel prosił o przeładowanie wyłącznie przez Właściciela (IMPLEMENTOR) akurat zalogowanego w grze - przy zakładaniu konta nawet nie prosił. Teraz razem z dotychczasowym `GM_RELOAD` panel wstawia do kolejki wiersz `GMRELOAD` (bez postaci, status `await`), który rdzenie gry Playerbots od 2.2.139 przejmują w ciągu 2 s i same wysyłają przeładowanie listy; postać, która jest w grze, dostaje rangę bez przelogowania.
+- Gdy nic nie przeładuje listy (starszy serwer i żaden Właściciel w grze), panel mówi to wprost na czerwono: ranga zadziała po restarcie serwera albo po `/reload a` wpisanym przez Właściciela, a samo przelogowanie jej nie wczyta. Znika fałszywa obietnica „zacznie działać przy najbliższym zalogowaniu tej postaci”. Nieodebrane wiersze kolejki są wycofywane. Teksty PL/EN. Zgłoszenie z launchera 4bc6e981 (issue #606 Playerbots).
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-11-03 · 1.114.104 · Kuźnia Łowcy w panelu
 
 - Nowa strona „Kuźnia Łowcy” (tylko mt2009, Zarządzanie; w motywie „Łąka i Złoto” w sekcji Zarządzanie): przełącznik Kuźni (`player.hunter_forge_settings`) oraz sześć przepisów u Kowala z `world.crafting_proto` (vnum 98100-98105), w których broń +9 na 30 poziom staje się bronią na 50 poziom. Dla każdej rodziny opłata w Yang i do czterech dodatkowych materiałów z ilością (1-1000) z wyszukiwarką przedmiotów; broń źródłowa zostaje pierwszym składnikiem, a zbroje, bronie i same wyniki Kuźni nie mogą być materiałem. Zapis pod blokadą wierszy z numerem rewizji (formularz otwarty przed cudzym zapisem jest odrzucany), przed każdym zapisem panel kopiuje poprzednie wartości do `spool/hunter-forge-backups`. Domyślnie wyłączona; boty z Kuźni nie korzystają.

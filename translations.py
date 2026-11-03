@@ -2585,6 +2585,37 @@ PATTERNS_RAW += [
     (r" Prawa GM przeszły na nowy nick\.$", " The GM rights moved to the new name."),
 ]
 
+# A GM rank granted while the game runs (issue #606): the two hints app.py's
+# GM_RELOAD_DONE_HINT and GM_RELOAD_FAILED_HINT say after every grant, alone
+# or after the sentence that names the account and the character.
+_GM_RELOAD_DONE_PL = ("Gra przeładowała listę GM: postać, która jest w grze, ma rangę od razu, "
+                      "bez przelogowania, a pozostałe przy wejściu do gry.")
+_GM_RELOAD_DONE_EN = ("The game reloaded the GM list: a character that is in the game has the rank at once, "
+                      "without logging in again, and the others when they enter the game.")
+_GM_RELOAD_FAILED_PL = ("Gra nie przeładowała listy GM, więc ranga zadziała dopiero po restarcie serwera "
+                        "(w launcherze ZATRZYMAJ I ZAPISZ, potem GRAJ) albo gdy postać z rangą Właściciel "
+                        "(IMPLEMENTOR), np. Admin z konta admin, wpisze w grze /reload a. "
+                        "Samo przelogowanie postaci rangi nie wczyta.")
+_GM_RELOAD_FAILED_EN = ("The game did not reload the GM list, so the rank takes effect only after a restart of the "
+                        "server (STOP AND SAVE in the launcher, then PLAY) or once a character with the Owner rank "
+                        "(IMPLEMENTOR), such as Admin on the admin account, types /reload a in the game. "
+                        "Logging the character in again does not load the rank.")
+EXACT.update({_GM_RELOAD_DONE_PL: _GM_RELOAD_DONE_EN, _GM_RELOAD_FAILED_PL: _GM_RELOAD_FAILED_EN})
+PATTERNS_RAW += [
+    (r"^Utworzono konto „(.+?)” i postać GM „(.+?)”\. ", "Created the account „$1” and the GM character „$2”. "),
+    (r"^Ranga GM „(.+?)” (?:nadana|odebrana) postaci (.+?) \(zapisana w common\.gmlist\)\. ",
+     "GM rank „$1” given to $2 (written to common.gmlist). "),
+    (r"^Ranga GM „(.+?)” nadana postaci (.+?)\. ", "GM rank „$1” given to $2. "),
+    (r"^Ranga GM odebrana postaci (.+?) \(usunięta z common\.gmlist\)\. Gra nie przeładowała listy GM, więc "
+     r"postać zachowa komendy do restartu serwera albo /reload a\.$",
+     "GM rank taken from $1 (removed from common.gmlist). The game did not reload the GM list, so the "
+     "character keeps the commands until a restart of the server or /reload a."),
+    (r"^Ranga GM odebrana postaci (.+?)\. Zadziałało od razu \(gra przeładowała listę GM\)\.$",
+     "GM rank taken from $1. It applied at once (the game reloaded the GM list)."),
+    (re.escape(_GM_RELOAD_DONE_PL), _GM_RELOAD_DONE_EN),
+    (re.escape(_GM_RELOAD_FAILED_PL), _GM_RELOAD_FAILED_EN),
+]
+
 # The notification bell, its toasts and the sidebar's foot (RapLow, 16
 # October). A notification is stored in Polish when it is made (app.py's
 # create_notification) and put into English where it is shown, by
