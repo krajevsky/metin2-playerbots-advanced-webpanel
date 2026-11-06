@@ -1,3 +1,9 @@
+## 2026-11-07 · 1.114.106 · Ikony Skrzyni Zarazy i Kuźni Łowcy
+
+- Ikona i nazwy (EN/TR) fioletowej Skrzyni Zarazy (54799) oraz ikony przedmiotów Kuźni Łowcy (98900-98959) w podglądzie przedmiotów, na kartach postaci i w wyszukiwarce - te same pliki `static/` co w serwerze Playerbots 2.2.144 (dodatki NerrVoVy). Bez nich kolejny import panelu do Playerbots zdejmowałby te ikony.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-11-03 · 1.114.105 · Ranga GM działa od razu
 
 - Konto z postacią GM (strona Konta), postać z rangą w kreatorze postaci i ranga nadana istniejącej postaci działają od razu, bez restartu i bez GM-a w grze. Gra czyta listę GM (`common.gmlist`) tylko przy starcie i przy `/reload a`, nigdy przy logowaniu, a panel prosił o przeładowanie wyłącznie przez Właściciela (IMPLEMENTOR) akurat zalogowanego w grze - przy zakładaniu konta nawet nie prosił. Teraz razem z dotychczasowym `GM_RELOAD` panel wstawia do kolejki wiersz `GMRELOAD` (bez postaci, status `await`), który rdzenie gry Playerbots od 2.2.139 przejmują w ciągu 2 s i same wysyłają przeładowanie listy; postać, która jest w grze, dostaje rangę bez przelogowania.
