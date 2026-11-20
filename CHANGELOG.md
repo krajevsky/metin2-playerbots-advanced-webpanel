@@ -1,3 +1,11 @@
+## 2026-11-20 · 1.114.107 · Nazwy postaci botów: nicki nadaje serwer
+
+- Strona „Nazwy postaci botów” (Konta i GM, w motywie „Łąka i Złoto” Administracja) nie ma już kolejki nicków, priorytetów, blokad ani przycisku „Zastosuj teraz”. Nic z tego nie docierało do botów: migrator serwera nadaje nick każdemu botowi bez nicku przy każdym starcie, zaraz po utworzeniu botów, zanim panel go zobaczy, więc przycisk zawsze miał 0 botów, a kolektor szukał pliku z pulą pod ścieżką dawnego VPS-a i starym formatem wiersza, więc „Nicków w puli” było zawsze 0. Zgłoszenie Mortalis1128.
+- Strona wyjaśnia teraz (PL/EN/TR), że nicki nadaje serwer z listy nicków świata, i odsyła do „Własnych botów” w panelu klasycznym (bot z własnym nickiem, klasą i królestwem, pojawia się po najbliższym starcie) oraz do „Zachowania botów”, gdzie zmienia się język puli. Pokazuje tylko do odczytu z `common.playerbot_name_history` pulę świata, liczbę botów z każdej puli, liczbę własnych botów i listę nicków z wyszukiwaniem i królestwem.
+- Kolektor nie tworzy już ani nie wypełnia `web_seban_bot_name_pool`; istniejąca tabela zostaje bez zmian.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-11-07 · 1.114.106 · Ikony Skrzyni Zarazy i Kuźni Łowcy
 
 - Ikona i nazwy (EN/TR) fioletowej Skrzyni Zarazy (54799) oraz ikony przedmiotów Kuźni Łowcy (98900-98959) w podglądzie przedmiotów, na kartach postaci i w wyszukiwarce - te same pliki `static/` co w serwerze Playerbots 2.2.144 (dodatki NerrVoVy). Bez nich kolejny import panelu do Playerbots zdejmowałby te ikony.

@@ -8558,60 +8558,90 @@ def accounts():
     return render_template("accounts.html", accounts=recent, authorities=authorities, jobs=GM_JOB_OPTIONS, genders=GM_GENDER_OPTIONS, account_query=account_query, display=display)
 
 
-BOT_NAME_STATUSES = ("all", "free", "used", "blocked")
+# "Konta i GM -> Nazwy postaci botow" shows what the server named its bots and
+# changes nothing. It used to be a queue of the panel's own names
+# (player.web_seban_bot_name_pool) with priorities, blocks and "Zastosuj
+# teraz", and none of it ever reached a bot: the migrator
+# (mariadb/playerbot/apply.sh -> playerbot_names.sql) names every bot that has
+# no name yet at every start, right after the seed and before the panel can
+# see it, so the button always found 0 bots and the queue was never read; and
+# the collector looked for the pool file under the VPS path of this panel's
+# first home and with a row format the file no longer has, so "Nicków w puli"
+# was always 0 (Mortalis1128, 20 November 2026). A bot of the operator's own
+# name, class and kingdom is the classic panel's "Wlasne boty" (/custom-bots),
+# which the seed makes at the next start; the language of the pool is the
+# classic panel's bot behaviour page (/ai). The old table, where it exists, is
+# left as it was - nothing reads it any more and nothing drops it.
+BOT_NAMES_PER_PAGE = 100
+# The pids the seed and the core keep for the operator's own bots
+# (playerbot_channel_rules.h CUSTOM_FIRST_PID/CUSTOM_LAST_PID, the classic
+# panel's CUSTOM_BOT_FIRST_PID/LAST_PID): the seed gives each made one a
+# playerbot_name_history row of its own name, which is not a pool's.
+BOT_NAMES_CUSTOM_PIDS = (7001, 7999)
+BOT_NAMES_LANGUAGES = {"pl": "Polski", "tr": "Türkçe", "en": "English", "de": "Deutsch", "fr": "Français",
+                       "pt": "Português", "ro": "Română", "es": "Español", "it": "Italiano"}
+BOT_NAMES_TEXT = {
+    "title": ("Nazwy postaci botów", "Bot character names", "Bot karakter isimleri"),
+    "intro": ("Nicki botom nadaje serwer, nie panel: przy każdym starcie, zaraz po utworzeniu botów, daje każdemu "
+              "botowi bez nicku wolny nick z listy nicków świata (puli w języku, w którym świat nazywa boty). Bot "
+              "zachowuje swój nick na stałe, także gdy lista się zmieni. Ta strona tylko pokazuje nadane nicki i "
+              "niczego nie zmienia.",
+              "Bot names are given by the server, not by the panel: at every start, right after the bots are made, "
+              "it gives every bot without a name a free one from the world's name list (the pool in the language "
+              "the world names its bots in). A bot keeps its name for good, even when the list changes. This page "
+              "only shows the names given and changes nothing.",
+              "Bot adlarını panel değil sunucu verir: her açılışta, botlar oluşturulduktan hemen sonra, adı olmayan "
+              "her bota dünyanın ad listesinden (dünyanın botlarını adlandırdığı dildeki havuzdan) boş bir ad verir. "
+              "Bot adını kalıcı olarak korur, liste değişse bile. Bu sayfa yalnızca verilen adları gösterir ve "
+              "hiçbir şeyi değiştirmez."),
+    "own": ("Żeby dodać bota z własnym nickiem, klasą i królestwem, użyj strony „Własne boty” w panelu klasycznym. "
+            "Bot pojawi się po najbliższym starcie serwera.",
+            "To add a bot with a name, class and kingdom of your own, use the \"Custom bots\" page of the classic "
+            "panel. The bot appears at the server's next start.",
+            "Kendi seçtiğin ad, sınıf ve krallıkla bir bot eklemek için klasik paneldeki \"Özel botlar\" sayfasını "
+            "kullan. Bot, sunucunun bir sonraki açılışında ortaya çıkar."),
+    "own_open": ("Otwórz „Własne boty” w panelu klasycznym ↗", "Open \"Custom bots\" in the classic panel ↗",
+                 "Klasik panelde \"Özel botlar\"ı aç ↗"),
+    "language": ("Język puli nicków zmienisz w panelu klasycznym: Zachowanie botów → Nicki botów według języka.",
+                 "The language of the name pool is changed in the classic panel: Bot behaviour → Bot nicknames by "
+                 "language.",
+                 "Ad havuzunun dili klasik panelde değiştirilir: Bot davranışı → Dile göre bot takma adları."),
+    "language_open": ("Otwórz „Zachowanie botów” ↗", "Open \"Bot behaviour\" ↗", "\"Bot davranışı\"nı aç ↗"),
+    "world_pool": ("Pula tego świata", "This world's pool", "Bu dünyanın havuzu"),
+    "pool_count": ("Boty z nickiem z puli %s", "Bots named from the %s pool", "%s havuzundan ad alan botlar"),
+    "own_count": ("Własne boty", "Custom bots", "Özel botlar"),
+    "named": ("Boty z nickiem", "Named bots", "Adlı botlar"),
+    "unknown": ("nieznana", "unknown", "bilinmiyor"),
+    "unavailable": ("Serwer nie nadał jeszcze botom nicków albo baza jest niedostępna.",
+                    "The server has not named its bots yet, or the database is unreachable.",
+                    "Sunucu botlarına henüz ad vermedi ya da veritabanına ulaşılamıyor."),
+    "search": ("🔍 Szukaj nicku", "🔍 Search a name", "🔍 Ad ara"),
+    "all_kingdoms": ("Wszystkie królestwa", "All kingdoms", "Tüm krallıklar"),
+    "filter": ("Filtruj", "Filter", "Filtrele"),
+    "col_name": ("Nick", "Name", "Ad"),
+    "col_kingdom": ("Królestwo", "Kingdom", "Krallık"),
+    "col_level": ("Poziom", "Level", "Seviye"),
+    "col_origin": ("Skąd nick", "Where the name is from", "Adın kaynağı"),
+    "origin_pool": ("Pula %s", "%s pool", "%s havuzu"),
+    "origin_own": ("Własny bot", "Custom bot", "Özel bot"),
+    "pool_name": ("nick z puli: %s", "pool name: %s", "havuz adı: %s"),
+    "empty": ("Brak botów z nickiem pasujących do filtrów.", "No named bot matches the filters.",
+              "Filtrelere uyan adlı bot yok."),
+}
 
 
-def reconcile_bot_names():
-    """Deals a name to any playerbot account that exists in the DB but has
-    never had one (no common.playerbot_name_history row) -- the only moment
-    web_seban_bot_name_pool's priority/blocked settings actually change
-    anything, since every currently-existing bot was already named the
-    moment its account was seeded (confirmed live 2026-09-22: all 2500
-    accounts already have a history row, regardless of whether they are
-    actively spawned). This only has real work to do right after a genuine
-    wipe/reseed grows the cohort past what the last pass already named.
-    Mirrors playerbot_names.sql's own per-kingdom, PID-ordered matching (see
-    that file's header), but draws from the panel's own pool table --
-    priority DESC, pool_order ASC -- and skips blocked names. Runs in one
-    connection/cursor since the TEMPORARY TABLE it uses is connection-scoped
-    and rows()/one() each open a fresh one."""
-    with db() as con, con.cursor() as cur:
-        cur.execute("DROP TEMPORARY TABLE IF EXISTS seban_name_plan")
-        cur.execute("""CREATE TEMPORARY TABLE seban_name_plan (
-          pid INT UNSIGNED NOT NULL PRIMARY KEY, seed_name VARCHAR(24) NOT NULL,
-          human_name VARCHAR(24) NOT NULL, UNIQUE KEY human_name (human_name)) ENGINE=MEMORY""")
-        cur.execute("""INSERT INTO seban_name_plan (pid, seed_name, human_name)
-          SELECT waiting.pid, waiting.name, free.name
-            FROM (SELECT p.id AS pid, p.name,
-                    CASE WHEN pi.empire IN (1,2,3) THEN pi.empire ELSE 2 END AS empire,
-                    ROW_NUMBER() OVER (PARTITION BY CASE WHEN pi.empire IN (1,2,3) THEN pi.empire ELSE 2 END ORDER BY p.id) AS rn
-                    FROM player.player p
-                    JOIN account.account a ON a.id=p.account_id
-                    LEFT JOIN player.player_index pi ON pi.id=p.account_id
-                    LEFT JOIN common.playerbot_name_history h ON h.pid=p.id
-                   WHERE LEFT(a.login,10)='playerbot_' AND h.pid IS NULL) AS waiting
-            JOIN (SELECT name, empire,
-                    ROW_NUMBER() OVER (PARTITION BY empire ORDER BY priority DESC, pool_order ASC) AS rn
-                    FROM player.web_seban_bot_name_pool np
-                   WHERE blocked=0
-                     AND NOT EXISTS (SELECT 1 FROM player.player px JOIN account.account ax ON ax.id=px.account_id
-                                      LEFT JOIN common.playerbot_name_history hx ON hx.pid=px.id
-                                     WHERE px.name=np.name AND NOT (LEFT(ax.login,10)='playerbot_' AND hx.pid IS NULL))
-                  ) AS free ON free.empire=waiting.empire AND free.rn=waiting.rn""")
-        cur.execute("SELECT COUNT(*) AS n FROM seban_name_plan")
-        planned = cur.fetchone()["n"]
-        if planned:
-            cur.execute("""INSERT INTO common.playerbot_name_history (pid, seed_name, human_name, pool_version, renamed_at)
-              SELECT pid, seed_name, human_name, 'seban-panel', NOW() FROM seban_name_plan
-              ON DUPLICATE KEY UPDATE human_name=VALUES(human_name), pool_version=VALUES(pool_version), renamed_at=VALUES(renamed_at)""")
-            cur.execute("UPDATE player.player p JOIN seban_name_plan pl ON pl.pid=p.id SET p.name=pl.human_name")
-        cur.execute("DROP TEMPORARY TABLE IF EXISTS seban_name_plan")
-        return planned
+def bot_names_text(key, language):
+    return BOT_NAMES_TEXT[key][{"pl": 0, "en": 1, "tr": 2}.get(language, 1)]
+
+
+def bot_names_language_label(code):
+    return f"{BOT_NAMES_LANGUAGES.get(code, code)} ({code})" if code else ""
 
 
 @app.route("/accounts/bot-names")
 @login_required
 def bot_names():
+    language = settings().get("ui_language", "pl")
     search = request.args.get("q", "").strip()[:24]
     try:
         empire = int(request.args.get("empire", 0) or 0)
@@ -8619,129 +8649,51 @@ def bot_names():
         empire = 0
     if empire not in (0, 1, 2, 3):
         empire = 0
-    status = request.args.get("status", "all")
-    if status not in BOT_NAME_STATUSES:
-        status = "all"
     try:
         page = max(1, int(request.args.get("page", 1) or 1))
     except ValueError:
         page = 1
-    per_page = 100
-    where, params = ["1=1"], []
+    # Read only, from the migrator's own ledger: every bot it named, and the
+    # seed's row of each made custom bot. A Companion's name (pool_version
+    # 'sidekick') is a person's choice, not the pool's, and stays out, as on
+    # the classic panel's card.
+    base = (" FROM common.playerbot_name_history h JOIN player.player p ON p.id=h.pid"
+            " JOIN account.account a ON a.id=p.account_id LEFT JOIN player.player_index pi ON pi.id=p.account_id"
+            " WHERE h.pool_version<>'sidekick'")
+    where, params = "", []
     if search:
-        where.append("np.name LIKE %s")
+        where += " AND p.name LIKE %s"
         params.append(f"%{search}%")
     if empire:
-        where.append("np.empire=%s")
+        where += f" AND {EMPIRE_EXPR}=%s"
         params.append(empire)
-    if status == "free":
-        where.append("np.blocked=0 AND h.pid IS NULL")
-    elif status == "used":
-        where.append("h.pid IS NOT NULL")
-    elif status == "blocked":
-        where.append("np.blocked=1")
-    where_sql = " AND ".join(where)
-    join_sql = """FROM player.web_seban_bot_name_pool np
-      LEFT JOIN common.playerbot_name_history h ON h.human_name=np.name
-      LEFT JOIN player.player p ON p.id=h.pid
-      WHERE """ + where_sql
-    total = one("SELECT COUNT(*) AS n " + join_sql, params).get("n", 0)
-    entries = rows("""SELECT np.name, np.empire, np.pool_order, np.source, np.priority, np.blocked, np.note,
-        h.pid, p.name AS current_name, p.level """ + join_sql +
-        " ORDER BY CASE WHEN np.blocked=0 AND h.pid IS NULL THEN 0 WHEN np.blocked=1 THEN 2 ELSE 1 END, "
-        "np.priority DESC, np.pool_order ASC LIMIT %s OFFSET %s",
-        params + [per_page, (page - 1) * per_page])
-    stats = one("""SELECT COUNT(*) AS total, SUM(np.blocked) AS blocked_count,
-        SUM(CASE WHEN h.pid IS NOT NULL THEN 1 ELSE 0 END) AS used_count,
-        SUM(CASE WHEN np.source='custom' THEN 1 ELSE 0 END) AS custom_count
-      FROM player.web_seban_bot_name_pool np LEFT JOIN common.playerbot_name_history h ON h.human_name=np.name""")
-    pending = one("""SELECT COUNT(*) AS n FROM player.player p JOIN account.account a ON a.id=p.account_id
-      LEFT JOIN common.playerbot_name_history h ON h.pid=p.id
-      WHERE LEFT(a.login,10)='playerbot_' AND h.pid IS NULL""").get("n", 0)
-    pages = max(1, (total + per_page - 1) // per_page)
-    return render_template("bot_names.html", entries=entries, search=search, empire=empire, status=status,
-        page=page, pages=pages, total=total, stats=stats, pending=pending, empires=EMPIRES)
-
-
-@app.post("/accounts/bot-names/add")
-@login_required
-def bot_names_add():
-    raw = request.form.get("names", "")
+    origin = "CASE WHEN h.pid BETWEEN %s AND %s THEN '' ELSE IF(h.name_language='', 'pl', h.name_language) END"
+    available, entries, total, counts, own_count, world_language = True, [], 0, [], 0, ""
     try:
-        empire = max(1, min(3, int(request.form.get("empire", 2) or 2)))
-        priority = max(0, min(1000, int(request.form.get("priority", 0) or 0)))
-    except ValueError:
-        flash("Królestwo i priorytet muszą być liczbami.", "error")
-        return redirect(url_for("bot_names"))
-    names = [n.strip() for n in raw.splitlines() if n.strip()]
-    added, skipped = 0, 0
-    for name in names:
-        if not re.fullmatch(r"[A-Za-z0-9]{2,24}", name):
-            skipped += 1
-            continue
+        for row in rows(f"SELECT {origin} AS pool, COUNT(*) AS n{base} GROUP BY 1 ORDER BY 1", BOT_NAMES_CUSTOM_PIDS):
+            if row["pool"]:
+                counts.append((row["pool"], int(row["n"])))
+            else:
+                own_count = int(row["n"])
+        total = int(one("SELECT COUNT(*) AS n" + base + where, params).get("n", 0) or 0)
+        entries = rows(f"SELECT p.id AS pid, p.name, p.level, h.human_name, {origin} AS pool, {EMPIRE_EXPR} AS empire"
+                       + base + where + " ORDER BY p.name LIMIT %s OFFSET %s",
+                       list(BOT_NAMES_CUSTOM_PIDS) + params + [BOT_NAMES_PER_PAGE, (page - 1) * BOT_NAMES_PER_PAGE])
+    except pymysql.MySQLError as exc:
+        # No ledger yet (a world the migrator has not named) or no database:
+        # the page still explains where names come from.
+        app.logger.warning("bot names: the name ledger is unreadable: %s", exc)
+        available = False
+    if available:
         try:
-            rows("INSERT INTO player.web_seban_bot_name_pool (name,empire,pool_order,source,priority) VALUES (%s,%s,0,'custom',%s)",
-                 (name, empire, priority))
-            added += 1
+            world_language = one("SELECT language FROM common.playerbot_name_world WHERE singleton=1").get("language", "")
         except pymysql.MySQLError:
-            skipped += 1
-    flash(f"Dodano {added} nick(ów) do kolejki." + (f" Pominięto {skipped} (zły format albo nick już istnieje w puli)." if skipped else ""))
-    return redirect(url_for("bot_names"))
-
-
-@app.post("/accounts/bot-names/<name>/block")
-@login_required
-def bot_names_block(name):
-    rows("UPDATE player.web_seban_bot_name_pool SET blocked=1 WHERE name=%s", (name,))
-    flash(f"Nick „{name}” zablokowany — nie zostanie przydzielony żadnemu przyszłemu botowi.")
-    return redirect(request.referrer or url_for("bot_names"))
-
-
-@app.post("/accounts/bot-names/<name>/unblock")
-@login_required
-def bot_names_unblock(name):
-    rows("UPDATE player.web_seban_bot_name_pool SET blocked=0 WHERE name=%s", (name,))
-    flash(f"Nick „{name}” odblokowany.")
-    return redirect(request.referrer or url_for("bot_names"))
-
-
-@app.post("/accounts/bot-names/<name>/delete")
-@login_required
-def bot_names_delete(name):
-    row = one("SELECT source FROM player.web_seban_bot_name_pool WHERE name=%s", (name,))
-    used = one("SELECT pid FROM common.playerbot_name_history WHERE human_name=%s", (name,))
-    if not row:
-        flash("Nie znaleziono tego nicku w puli.", "error")
-    elif used:
-        flash("Ten nick jest już przypisany do bota — nie można go usunąć z kolejki.", "error")
-    elif row["source"] != "custom":
-        flash("Nicki z bazowej puli silnika można tylko zablokować, nie usunąć całkowicie (silnik i tak je zna z własnego pliku).", "error")
-    else:
-        rows("DELETE FROM player.web_seban_bot_name_pool WHERE name=%s", (name,))
-        flash(f"Usunięto nick „{name}” z kolejki.")
-    return redirect(request.referrer or url_for("bot_names"))
-
-
-@app.post("/accounts/bot-names/<name>/priority")
-@login_required
-def bot_names_priority(name):
-    try:
-        priority = max(0, min(1000, int(request.form.get("priority", 0))))
-    except ValueError:
-        priority = 0
-    rows("UPDATE player.web_seban_bot_name_pool SET priority=%s WHERE name=%s", (priority, name))
-    return redirect(request.referrer or url_for("bot_names"))
-
-
-@app.post("/accounts/bot-names/reconcile")
-@login_required
-def bot_names_reconcile():
-    assigned = reconcile_bot_names()
-    if assigned:
-        flash(f"Nadano nick {assigned} botom, które go jeszcze nie miały.")
-    else:
-        flash("Wszystkie istniejące boty mają już nick — nie ma czego przydzielać. To coś zmieni dopiero po realnym poszerzeniu puli botów (pełny wipe/reseed).")
-    return redirect(url_for("bot_names"))
+            world_language = ""    # a world named before there were pools
+    pages = max(1, (total + BOT_NAMES_PER_PAGE - 1) // BOT_NAMES_PER_PAGE)
+    return render_template("bot_names.html", entries=entries, search=search, empire=empire, page=page, pages=pages,
+                           total=total, counts=counts, own_count=own_count, world_language=world_language,
+                           available=available, empires=EMPIRES, bn_t=lambda key: bot_names_text(key, language),
+                           bn_language=bot_names_language_label)
 
 
 @app.route("/api/character-creator/name-status")

@@ -391,51 +391,16 @@ def init(cur):
       item_id INT UNSIGNED NOT NULL PRIMARY KEY, socket0 INT NOT NULL,
       last_seen DATETIME NOT NULL, KEY(last_seen)) ENGINE=InnoDB""")
 
-    # "Konta i GM -> Nazwy postaci botów": a durable, queryable copy of the
-    # 5400-name pool from playerbot_names.sql (the engine's own generated
-    # rename list -- 1800 names/kingdom, applied once per bot the moment its
-    # account exists, not when it's actively spawned; see
-    # common.playerbot_name_history for who already has one). Parsed from the
-    # file once (only when this table is still empty of 'base' rows) so the
-    # panel can browse/search/filter 5400 rows without re-reading a 5600-line
-    # SQL file on every request. 'custom' rows are names the operator adds
-    # from the panel; 'blocked' marks a name (base or custom) as never to be
-    # dealt out again. None of this touches a bot that already has a name --
-    # see check_bot_name_reconcile() in app.py, which only ever assigns a name
-    # to a bot with no common.playerbot_name_history row at all (i.e. freshly
-    # seeded past the current 2500, after a real wipe/reseed).
-    # name is explicitly latin1/latin1_swedish_ci -- the columns this table
-    # gets JOINed against (common.playerbot_name_history.human_name,
-    # player.player.name) are both that collation (the mt2009 schema's own
-    # default), while this session's default is cp1250 (M2_DEFAULT_GAME_
-    # LANGUAGE). A plain VARCHAR here inherited cp1250 and every query
-    # joining on name/human_name/=%s failed with "Illegal mix of collations"
-    # (1267) the moment the panel loaded -- caught immediately, 2026-09-22.
-    cur.execute("""CREATE TABLE IF NOT EXISTS player.web_seban_bot_name_pool (
-      name VARCHAR(24) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL PRIMARY KEY,
-      empire TINYINT UNSIGNED NOT NULL,
-      pool_order INT UNSIGNED NOT NULL, source ENUM('base','custom') NOT NULL DEFAULT 'base',
-      priority INT NOT NULL DEFAULT 0, blocked TINYINT(1) NOT NULL DEFAULT 0,
-      note VARCHAR(255) NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      KEY empire_priority (empire, blocked, priority, pool_order)) ENGINE=InnoDB DEFAULT CHARSET=latin1""")
-    # cur.fetchone() is not always a plain tuple here -- this init() also runs
-    # through app.py's DictCursor at startup (_ensure_collector_tables), so
-    # indexing by [0] crashed the panel with KeyError there. LIMIT 1 + "is
-    # not None" (table_exists()'s own trick above) works under either cursor.
-    cur.execute("SELECT 1 FROM player.web_seban_bot_name_pool WHERE source='base' LIMIT 1")
-    if cur.fetchone() is None:
-        names_sql = Path("/hostfs" + os.environ.get("SEBAN_M2_ROOT", "/opt/metin2-mt2009/mt2009-r41023-base")) \
-            / "linux-port/docker/mariadb/playerbot/playerbot_names.sql"
-        try:
-            text = names_sql.read_text(encoding="latin-1", errors="replace")
-        except OSError:
-            text = ""
-        rows = re.findall(r"\((\d+),(\d+),'([^']*)'\)", text)
-        if rows:
-            cur.executemany(
-                "INSERT IGNORE INTO player.web_seban_bot_name_pool (pool_order,empire,name,source) VALUES (%s,%s,%s,'base')",
-                [(int(n), int(empire), name) for n, empire, name in rows])
-            print(f"[seban-collector] bot name pool: loaded {len(rows)} base name(s) from {names_sql}", flush=True)
+    # "Konta i GM -> Nazwy postaci botow" no longer keeps a pool of its own.
+    # This used to create player.web_seban_bot_name_pool and fill it once from
+    # playerbot_names.sql under the VPS path of the panel's first home, with a
+    # row format the generated file no longer has, so it found the file nowhere
+    # and the pool stayed empty on every install; and nothing the panel queued
+    # there reached a bot, because the migrator names every unnamed bot at each
+    # start before the panel sees it (Mortalis1128, 20 November 2026). The page
+    # reads common.playerbot_name_history, the migrator's own ledger, instead.
+    # Where the old table exists it is left as it was: nothing reads it, and
+    # nothing drops what an operator may have typed into it.
 
 
 # playerbot_status.tsv, read by its header: Iwakura's personalities (2.0.85)
