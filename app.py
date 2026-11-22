@@ -110,7 +110,7 @@ MAP_IMAGE_FILES = {
     21: "chunjo-m1.png", 23: "chunjo-m2.png", 24: "guild-map-02.png", 25: "easy-monkey.png",
     41: "jinno-m1.png", 43: "jinno-m2.png", 44: "jinno-guild.png", 45: "easy-monkey.png",
     61: "mount-sohan.png", 62: "doyyumhwaji.png", 63: "yongbi-desert.png", 64: "orc-valley.png",
-    65: "hwang-temple.png", 66: "deviltower.png", 67: "trent-forest.png", 68: "trent02-red-forest.png",
+    65: "hwang-temple.png", 66: "66.webp", 67: "trent-forest.png", 68: "trent02-red-forest.png",
     71: "spider-dungeon-v2.png", 72: "grotto-v1.png", 73: "grotto-v2.png", 104: "spider-dungeon-v1.png",
     108: "medium-monkey.webp", 109: "hard-monkey.webp",
 }
@@ -2103,6 +2103,32 @@ def guild_war_text(seconds):
     return f"za ok. {minutes} min"
 
 
+def base_map_index(index):
+    """The map a private instance is a copy of, any other index as it is.
+
+    The engine numbers an instance its map's index times ten thousand plus a
+    number (the Demon Tower's floors are 660000, 660001...), and the
+    collector writes every snapshot under the base map (collector.py,
+    live_positions: the same rule, kept there because it runs in its own
+    process). The cores' status files say the instance's own index, so what
+    is compared with a snapshot, or counted beside one, is brought to the
+    base map first."""
+    index = int(index or 0)
+    return index // 10000 if index >= 10000 else index
+
+
+def snapshot_on_same_map(snapshot, index):
+    """Whether a position snapshot was taken on the map a bot's status names
+    now. The snapshot's own instance_index (the index as the core wrote it)
+    decides when the row has one: another run of the same dungeon is another
+    place, though it shares the coordinates. A row written before that
+    column knows the base map only, and is compared by it."""
+    then = snapshot.get("instance_index")
+    if then is not None:
+        return int(then) == int(index or 0)
+    return base_map_index(snapshot["map_index"]) == base_map_index(index)
+
+
 def live_map_counts(channel=None):
     """channel=None sums every channel together (existing behaviour); pass a
     channel number to scope the count to just that channel."""
@@ -2110,11 +2136,9 @@ def live_map_counts(channel=None):
     for entry in live_statuses().values():
         if channel is not None and entry.get("channel") != channel:
             continue
-        index = entry["map_index"]
-        # A dungeon instance (the Demon Tower's floors are 660000, 660001...)
-        # is counted with its base map, which is the map a person picks.
-        if index >= 10000:
-            index //= 10000
+        # A dungeon instance is counted with its base map, which is the map a
+        # person picks.
+        index = base_map_index(entry["map_index"])
         counts[index] = counts.get(index, 0) + 1
     return [{"map_index": index, "character_count": count} for index, count in sorted(counts.items(), key=lambda item: -item[1])]
 
@@ -2134,7 +2158,7 @@ def live_bots():
     threshold = max(1, min(120, int(settings().get("stuck_minutes", "5"))))
     historical = {}
     try:
-        prior = rows("""SELECT s.pid,s.map_index,s.x,s.y FROM player.web_seban_bot_position_snapshot s
+        prior = rows("""SELECT s.pid,s.map_index,s.instance_index,s.x,s.y FROM player.web_seban_bot_position_snapshot s
           JOIN (SELECT pid, MAX(captured_at) captured_at FROM player.web_seban_bot_position_snapshot
                 WHERE captured_at <= NOW() - INTERVAL %s MINUTE GROUP BY pid) old
           ON old.pid=s.pid AND old.captured_at=s.captured_at WHERE s.pid IN (""" + placeholders + ")", (threshold, *ids))
@@ -2146,7 +2170,11 @@ def live_bots():
         state = statuses.get(bot["id"])
         if state and state["map_index"] in MAP_BOUNDS:
             old = historical.get(bot["id"])
-            stuck = bool(old and old["map_index"] == state["map_index"] and (old["x"] - state["x"]) ** 2 + (old["y"] - state["y"]) ** 2 < 40000 and not is_stationary_activity(state.get("status"), state.get("action")))
+            # The snapshot's map_index is the base map and the status file
+            # says the instance's own index: compared as they stood, 66 was
+            # never 660000, and no bot inside the Demon Tower, the Plague
+            # Dungeon, Beran's lair or the Catacomb was ever marked.
+            stuck = bool(old and snapshot_on_same_map(old, state["map_index"]) and (old["x"] - state["x"]) ** 2 + (old["y"] - state["y"]) ** 2 < 40000 and not is_stationary_activity(state.get("status"), state.get("action")))
             # The free-text status is diagnostic and can be stale; action is the authoritative core state.
             result.append({
                 **bot, **state,

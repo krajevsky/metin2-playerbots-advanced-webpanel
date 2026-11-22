@@ -1,3 +1,10 @@
+## 2026-11-22 · 1.114.108 · Wieża Demonów na mapie na żywo i znacznik „utknął” w lochach
+
+- Mapa na żywo pokazuje boty w Wieży Demonów: Wieża ma własny podkład (`static/maps/66.webp`), a jej instancje są rysowane na mapie bazowej tak jak Loch Zarazy i leże Berana. Dotąd bot w Wieży znikał z mapy na czas wyprawy. Zgłoszenie NerrVoVy.
+- Znacznik „utknął” działa także w instancjach lochów (Wieża Demonów, Loch Zarazy, leże Berana, Katakumby). Panel porównywał mapę migawki pozycji z mapą z pliku stanu, a kolektor zapisywał migawkę pod mapą bazową (66), gdy plik stanu podaje indeks samej instancji (660042) - w lochu te dwie liczby nigdy się nie zgadzały, więc żaden bot w instancji nie był oznaczany. Kolektor zapisuje teraz także indeks instancji (`web_seban_bot_position_snapshot.instance_index`, kolumna dodawana przy starcie przez `ADD COLUMN IF NOT EXISTS`; `map_index` zostaje mapą bazową), a panel porównuje go z indeksem ze stanu; wiersze sprzed kolumny porównuje mapą bazową. Inna wyprawa do tego samego lochu pozostaje innym miejscem.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-11-20 · 1.114.107 · Nazwy postaci botów: nicki nadaje serwer
 
 - Strona „Nazwy postaci botów” (Konta i GM, w motywie „Łąka i Złoto” Administracja) nie ma już kolejki nicków, priorytetów, blokad ani przycisku „Zastosuj teraz”. Nic z tego nie docierało do botów: migrator serwera nadaje nick każdemu botowi bez nicku przy każdym starcie, zaraz po utworzeniu botów, zanim panel go zobaczy, więc przycisk zawsze miał 0 botów, a kolektor szukał pliku z pulą pod ścieżką dawnego VPS-a i starym formatem wiersza, więc „Nicków w puli” było zawsze 0. Zgłoszenie Mortalis1128.

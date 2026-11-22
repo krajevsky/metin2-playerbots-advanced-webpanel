@@ -359,6 +359,13 @@ def init(cur):
     # channel at a time, so the primary key doesn't need to change, just a
     # plain additive column read by the player page's "last seen on" lookup.
     cur.execute("ALTER TABLE player.web_seban_bot_position_snapshot ADD COLUMN IF NOT EXISTS channel TINYINT UNSIGNED NOT NULL DEFAULT 1")
+    # instance_index added 2026-11-21: the status file's own map index, which
+    # for a bot inside a dungeon is the private instance's (660042), while
+    # map_index holds the base map (66) the counts and the heat are kept
+    # under. The panel's "stuck" marker compares a bot with its row here, and
+    # with the base map alone on one side and the instance on the other it
+    # never matched. NULL is a row written before this column.
+    cur.execute("ALTER TABLE player.web_seban_bot_position_snapshot ADD COLUMN IF NOT EXISTS instance_index INT UNSIGNED NULL DEFAULT NULL")
     # Offline shops (IkarusShop "stragany"): player.ikashop_offlineshop is one
     # row per open shop, player.item WHERE window='IKASHOP_OFFLINESHOP' is one
     # row per listed offer, and the offer's price for its whole stack (not
@@ -440,11 +447,12 @@ def live_positions():
             for n, _status in parse_status_rows(path.read_text(encoding="cp1250", errors="replace")):
                 # A dungeon instance (the Demon Tower's floors are 660000,
                 # 660001...) shares its base map's coordinates, so its
-                # positions count and heat on the base map.
-                index = n.get("map", 0)
+                # positions count and heat on the base map. The index as the
+                # core wrote it goes along, last: which run a bot is in.
+                actual = index = n.get("map", 0)
                 if index >= 10000:
                     index //= 10000
-                result[n["pid"]] = (index, n.get("x", 0), n.get("y", 0), channel)
+                result[n["pid"]] = (index, n.get("x", 0), n.get("y", 0), channel, actual)
         except (OSError, ValueError):
             continue
     return result
@@ -452,7 +460,7 @@ def live_positions():
 
 def live_map_counts():
     counts = {}
-    for index, _, _, channel in live_positions().values():
+    for index, _, _, channel, _ in live_positions().values():
         counts[(channel, index)] = counts.get((channel, index), 0) + 1
     return counts
 
@@ -477,8 +485,8 @@ def collect(con, previous):
         for (channel, map_index), count in live_map_counts().items():
             cur.execute("INSERT IGNORE INTO player.web_seban_map_snapshot (captured_at,channel,map_index,character_count) VALUES (%s,%s,%s,%s)", (now, channel, map_index, count))
         positions = live_positions()
-        for pid, (map_index, x, y, channel) in positions.items():
-            cur.execute("INSERT IGNORE INTO player.web_seban_bot_position_snapshot (captured_at,pid,channel,map_index,x,y) VALUES (%s,%s,%s,%s,%s,%s)", (now, pid, channel, map_index, x, y))
+        for pid, (map_index, x, y, channel, instance_index) in positions.items():
+            cur.execute("INSERT IGNORE INTO player.web_seban_bot_position_snapshot (captured_at,pid,channel,map_index,instance_index,x,y) VALUES (%s,%s,%s,%s,%s,%s,%s)", (now, pid, channel, map_index, instance_index, x, y))
         # Split by socket0 only for vnum 50300 (the generic Skill Book -- see
         # resolve_item_display_name in app.py): splitting every socketed
         # item this way would fragment ordinary equipment into one row per
