@@ -1,3 +1,9 @@
+## 2026-11-22 · 1.114.109 · Boty w Wieży Demonów widać na mapie na żywo
+
+- Dokończenie 1.114.108 w samodzielnym panelu: lista mapy na żywo brała bota tylko pod indeksem mapy, dla której panel ma granice, a bot w Wieży Demonów podaje w pliku stanu indeks swojej wyprawy (np. 660042), więc mimo nowego podkładu dalej znikał z mapy na czas wyprawy i nie mógł dostać znacznika „utknął”. Teraz wyprawa do lochu, który rdzeń prowadzi jako instancję (Wieża Demonów; Loch Zarazy, leże Berana i Katakumby tam, gdzie panel ma ich podkład), jest rysowana na mapie bazowej, dymek punktu podaje numer wyprawy (`#660042`), a znacznik „utknął” porównuje indeks wyprawy z migawki z indeksem ze stanu. Tak samo pozycja na żywo na karcie postaci. W panelu wbudowanym w Playerbots działało to już od 1.114.108.
+
+![via Tieru](https://img.shields.io/badge/via-Tieru-f2c34d)
+
 ## 2026-11-22 · 1.114.108 · Wieża Demonów na mapie na żywo i znacznik „utknął” w lochach
 
 - Mapa na żywo pokazuje boty w Wieży Demonów: Wieża ma własny podkład (`static/maps/66.webp`), a jej instancje są rysowane na mapie bazowej tak jak Loch Zarazy i leże Berana. Dotąd bot w Wieży znikał z mapy na czas wyprawy. Zgłoszenie NerrVoVy.

@@ -244,7 +244,7 @@
       point.className = `bot-point dot-${dotStatus} ch-${bot.channel || 1} ${bot.in_party ? 'is-pt' : ''}${bot.stuck ? ' is-stuck' : ''}${bot.fighting_metin ? ' is-metin' : ''}`;
       point.href = `/player/${bot.id}`;
       point.style.left = `${Math.max(1,Math.min(99,bot.px))}%`; point.style.top = `${Math.max(1,Math.min(99,bot.py))}%`;
-      point.title = `${bot.name} · poziom ${bot.level}${knownChannels.length > 1 ? ' · CH' + (bot.channel || 1) : ''}${bot.in_party ? ' · PT' : ''}${bot.stuck ? ' · możliwie zablokowany' : ''}${bot.fighting_metin ? ' · walczy z Metinem' : ''}`;
+      point.title = `${bot.name} · poziom ${bot.level}${knownChannels.length > 1 ? ' · CH' + (bot.channel || 1) : ''}${bot.instance_index ? ' · #' + bot.instance_index : ''}${bot.in_party ? ' · PT' : ''}${bot.stuck ? ' · możliwie zablokowany' : ''}${bot.fighting_metin ? ' · walczy z Metinem' : ''}`;
       const html = `${$('show-names').checked ? `<em class="kd-${Number(bot.empire) || 0}">${escape(bot.name)} ${levelMarkup(bot)} (CH ${bot.channel || 1})</em>` : ''}`;
       if (point.innerHTML !== html) point.innerHTML = html;
     });

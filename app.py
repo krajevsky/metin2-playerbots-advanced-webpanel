@@ -2117,6 +2117,22 @@ def base_map_index(index):
     return index // 10000 if index >= 10000 else index
 
 
+# The dungeons whose private instances are drawn on their base map's picture:
+# a run shares its base map's coordinates. The same set as the Playerbots
+# suite's playerbot_map_views.py (supports_instances); of the four this panel
+# has bounds and a picture for the Demon Tower only, so a bot in a run of the
+# others stays off the map like a bot on any map MAP_BOUNDS does not name.
+LIVE_INSTANCE_MAPS = frozenset({30, 66, 208, 216})
+
+
+def live_map_index(index):
+    """The map a bot is drawn on: a run of one of LIVE_INSTANCE_MAPS on its
+    base map (660042 on 66), any other index as it is."""
+    index = int(index or 0)
+    base = base_map_index(index)
+    return base if base != index and base in LIVE_INSTANCE_MAPS else index
+
+
 def snapshot_on_same_map(snapshot, index):
     """Whether a position snapshot was taken on the map a bot's status names
     now. The snapshot's own instance_index (the index as the core wrote it)
@@ -2168,7 +2184,12 @@ def live_bots():
     result = []
     for bot in roster:
         state = statuses.get(bot["id"])
-        if state and state["map_index"] in MAP_BOUNDS:
+        # A bot in a Demon Tower run says its instance's index (660042), which
+        # MAP_BOUNDS never names: it is listed under the map it is drawn on,
+        # and the instance's own index is kept beside it for the stuck marker
+        # below and the live map's tooltip.
+        view_index = live_map_index(state["map_index"]) if state else None
+        if state and view_index in MAP_BOUNDS:
             old = historical.get(bot["id"])
             # The snapshot's map_index is the base map and the status file
             # says the instance's own index: compared as they stood, 66 was
@@ -2178,6 +2199,8 @@ def live_bots():
             # The free-text status is diagnostic and can be stale; action is the authoritative core state.
             result.append({
                 **bot, **state,
+                "map_index": view_index,
+                "instance_index": state["map_index"] if view_index != state["map_index"] else None,
                 "personality_label": live_label("personality", state["personality"]),
                 "ambition_label": live_label("ambition", state["ambition"]),
                 "goal_label": live_label("goal", state["goal"]),
@@ -6444,7 +6467,7 @@ def api_player_position(pid):
         return {"ok": False, "error": "not_found"}, 404
     live = live_statuses().get(pid)
     position = live or saved
-    map_index = int(position.get("map_index") or 0)
+    map_index = live_map_index(position.get("map_index"))
     bound = MAP_BOUNDS.get(map_index)
     x, y = int(position.get("x") or 0), int(position.get("y") or 0)
     px = max(0, min(100, (x - bound[0]) / bound[2] * 100)) if bound else 50
@@ -9062,7 +9085,7 @@ def account_characters(aid):
 # used here cuts the field count by more than half before gzip (below) even
 # gets to it.
 _LIVE_BOT_API_FIELDS = ("id", "name", "level", "job", "empire", "action", "action_label",
-                        "goal", "channel", "map_index", "x", "y", "in_party", "stuck", "fighting_metin")
+                        "goal", "channel", "map_index", "instance_index", "x", "y", "in_party", "stuck", "fighting_metin")
 
 
 @app.route("/api/live-bots")
